@@ -1,4 +1,4 @@
-# admin_gui_gen
+# Single Page App generator
 
 Code generator for VueJs implementing basic CRUD use cases.
 
@@ -18,7 +18,7 @@ From the command line prompt
     --jsonFiles <files-directory>      Directory containing one json file for each model.
     -h, --help                         Output usage information
 ````
-`<directory>` should contain a skeleton of the GUI, for download the skeleton and more details in how to run the GUI see [THIS](https://github.com/ScienceDb/ScienceDbGui/tree/enciclovida).
+`<directory>` should contain a skeleton of the GUI, for download the skeleton and more details in how to run the GUI see [THIS](https://github.com/ScienceDb/single-page-app).
 
 ## JSON files Spec
 
