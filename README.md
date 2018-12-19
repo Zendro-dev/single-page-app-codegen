@@ -7,9 +7,9 @@ Code generator for VueJs implementing basic CRUD use cases.
 From the command line prompt
 
 ````
- admin_gui_gen -h
+ gui-generator -h
 
-  Usage: admin_gui_gen [options] <directory>
+  Usage: gui-generator [options] <directory>
   
   <directory> path where GUI components will be rendered
 
