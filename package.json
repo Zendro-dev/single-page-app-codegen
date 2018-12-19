@@ -1,10 +1,10 @@
 {
-  "name": "admin_gui_gen",
+  "name": "gui-generator",
   "version": "1.0.0",
   "description": "Enables auto generation of basic List, Create, Edit, and Delete Views for data models.",
   "main": "index.js",
   "bin": {
-    "admin_gui_gen": "./index.js"
+    "gui-generator": "./index.js"
   },
   "scripts": {
     "test": "mocha ./test/test-features.js"
