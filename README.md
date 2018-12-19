@@ -113,35 +113,67 @@ name | Type | Description
 *type* | String | Type of association (one of the six described above).
 *target* | String | Name of model to which the current model will be associated with
 *targetKey* | String | Key to identify the field in the target
-*label* | String | Name of the column in the target model to be used as a display name
-*sublabel* | String | Optional name of the column in the target model to be used as a sub-label
-  
-  
-When the association is of the type 4, it will be enough describing `type` `target`, `label` and `sublabel`(optional)
+*targetStorageType* | String | Type of storage where the target model is stored. So far can be one of __sql__ or __Webservice__
+*label* | String | Name of the column in the target model to be used as a display name in the GUI
+*sublabel* | String | Optional name of the column in the target model to be used as a sub-label in the GUI
 
-Example:
+When the association is of the type 4, it's necessary to describe a couple of two extra arguments given that the association is made with a cross table. The extra two arguments will be:
+
+name | Type | Description
+------- | ------- | --------------
+*sourceKey* | String | Key to identify the source id
+*keysIn* | String | Name of the cross table
+
+## NOTE: 
+THE SAME DATA MODELS DESCRIPTION(.json files) WILL BE USEFUL FOR GENERATING BOTH, THE [BACKEND](https://github.com/ScienceDb/graphql-server-model-codegen) AND THE FRONTEND OR GUI HERE DESCRIBED.
+
+Fields *`label`* and *`sublabel`* in the specification are only needed by the GUI generator, but backend generator will only read required information, therefore extra fields such as *`label`* and *`sublabel`* will be ignored by the backend generator.
+
+EXAMPLES OF VALID JSON FILE:
 ```
+//dog.json
 {
-  "model" : "Book",
-  "storageType" : "sql",
+  "model" : "Dog",
+  "storageType" : "Sql",
   "attributes" : {
-    "title" : "String",
-    "genre" : "String"
+    "name" : "String",
+    "breed" : "String"
   },
-  "associations":{
 
-      "people" : {
-          "type" : "sql_belongsToMany",
-          "target" : "Person",
-          "label" : "firstName",
-          "sublabel" : "email"
-        },
-      "publisher" : {
-        "type" : "cross_belongsTo",
-        "target" : "Publisher",
-        "targetKey" : "publisherId",
-        "label" : "name"
-        }
+  "associations" : {
+    "person" : {
+      "type" : "sql_belongsTo",
+      "target" : "Person",
+      "targetKey" : "personId",
+      "targetStorageType" : "sql",
+      "label": "firstName"
+    }
   }
+}
+
+```
+
+```
+//book.json
+{
+ "model" : "Book",
+ "storageType" : "SQL",
+ "attributes" : {
+        "id" : Int,
+        "title": String,
+        "ISBN": Int
+    },
+ "associations" : {
+        "authors" : {
+            "type" : "sql_belongsToMany",
+            "target" : "Person",
+            "targetKey" : "person_id",
+            "sourceKey" : "book_id",
+            "keysIn" : "person_to_book",
+            "targetStorageType" : "sql",
+            "label": "name",
+            "sublabel": "lastname"
+        }
+    }
 }
 ```
