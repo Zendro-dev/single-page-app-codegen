@@ -5,7 +5,13 @@ var inflection = require('inflection')
 const {promisify} = require('util');
 const ejsRenderFile = promisify( ejs.renderFile )
 
-// Render EJB template
+/**
+ * renderTemplate - Generate the Javascript code as string using EJS templates views
+ *
+ * @param  {string} templateName Name of the template view to use
+ * @param  {object} options      Options that the template will use to fill generic spaces
+ * @return {string}              String of created file with specified template
+ */
 exports.renderTemplate = async function(templateName, options) {
   try {
     return await ejsRenderFile(__dirname + '/views/pages/' + templateName +
@@ -15,7 +21,15 @@ exports.renderTemplate = async function(templateName, options) {
   }
 }
 
-// Write rendered string into file
+/**
+ * renderToFile - Given a template view it generates the code as string
+ * and writes the code in a output file.
+ *
+ * @param  {string} outFile      path to output file where code will be written
+ * @param  {string} templateName template view name to use for generating code
+ * @param  {object} options      Options to fill the template
+ * @return {promise}              Promise will be resolved with success message if the file is written successfully, rejected with error otherwise.
+ */
 exports.renderToFile = async function(outFile, templateName, options) {
   // console.log("options:\n" + JSON.stringify(options) + "\n");
   let fileCont = await exports.renderTemplate(templateName, options)
@@ -39,6 +53,15 @@ exports.renderToFile = async function(outFile, templateName, options) {
 
 // Parse input 'attributes' argument into array of arrays:
 // [ [ 'name':'string' ], [ 'is_human':'boolean' ] ]
+//
+
+
+/**
+ * exports - Parse input 'attributes' argument into array of arrays:
+ *
+ * @param  {string} attributesStr Attributes as string
+ * @return {array}                Array of arrays each item is as array with field name and its type (example [ [ 'name','string' ], [ 'is_human','boolean' ] ])
+ */
 exports.attributesArray = function(attributesStr) {
   if (attributesStr !== undefined && attributesStr !== null && typeof attributesStr ===
     'string') {
@@ -50,9 +73,12 @@ exports.attributesArray = function(attributesStr) {
   }
 }
 
-// Collect attributes into a map with keys the attributes' types and values the
-// attributes' names: { 'string': [ 'name', 'last_name' ], 'boolean': [
-// 'is_human' ] }
+/**
+ * typeAttributes - Collect attributes into a map with keys the attributes' types and values the attributes' names
+ *
+ * @param  {array} attributesArray Array of arrays each item is as array with field name and its type
+ * @return {object}                 Map with keys the attributes' types and values the attributes' names (example: { 'string': [ 'name', 'last_name' ], 'boolean': [ 'is_human' ] })
+ */
 exports.typeAttributes = function(attributesArray) {
   y = {};
   attributesArray.forEach(function(x) {
@@ -62,49 +88,17 @@ exports.typeAttributes = function(attributesArray) {
   return y;
 }
 
-exports.associationsArray = function(associationsStr) {
-  if (typeof associationsStr === 'undefined') {
-    return []
-  }
-  return associationsStr.trim().split(/\s+|,/).filter(function(x) {
-    return x !== ''
-  }).map(function(x) {
-    return x.trim().split(/:/)
-  })
-}
-
-// parses the CLI argument --belongsTos and returns the values as an array of
-// BelongTo Objects:
-exports.parseBelongsTos = function(belongsTosStr) {
-  return exports.associationsArray(belongsTosStr).map(function(bt) {
-    return {
-      targetModel: bt[0],
-      foreignKey: bt[1],
-      primaryKey: bt[2],
-      label: bt[3],
-      subLabel: bt[4],
-      targetModelLc: bt[0].toLowerCase(),
-      targetModelPlLc: inflection.pluralize(bt[0]).toLowerCase(),
-      relationName: bt[5] || bt[0]
-    }
-  })
-}
-
-// parses the CLI argument --hasManys and returns the values as an array of
-// relations Objects:
-exports.parseHasManys = function(hasManysStr) {
-  return exports.associationsArray(hasManysStr).map(function(rel) {
-    return {
-      relationName: rel[0],
-      targetModelPlLc: inflection.pluralize(rel[1]).toLowerCase(),
-      label: rel[2],
-      subLabel: rel[3],
-    }
-  })
-}
 
 // Copies file found under sourcePath to targetPath if and only if target does
 // not exist:
+
+
+/**
+ * copyFileIfNotExists - Copies file found under sourcePath to targetPath if and only if target does not exist.
+ *
+ * @param  {string} sourcePath Source path where file to copy is stored
+ * @param  {type} targetPath Target path where source file will be copied
+ */
 exports.copyFileIfNotExists = async function(sourcePath, targetPath) {
 
     fs.stat(targetPath, function(err, stat) {
@@ -114,12 +108,26 @@ exports.copyFileIfNotExists = async function(sourcePath, targetPath) {
     });
 }
 
+
+/**
+ * parseFile - Parse a json file
+ *
+ * @param  {string} jFile path where json file is stored
+ * @return {object}       json file converted to js object
+ */
 exports.parseFile = function(jFile){
   let data=fs.readFileSync(jFile, 'utf8');
   let words=JSON.parse(data);
   return words;
 }
 
+
+/**
+ * fillOptionsForViews - Creates object with all extra info and with all data model info that templates will use.
+ *
+ * @param  {object} fileData object originally created from a json file containing data model info.
+ * @return {object}          Object with all extra data model info that will be needed to create files with templates.
+ */
 exports.fillOptionsForViews = function(fileData){
   //fileData = parseFile(jFile);
   let associations = parseAssociationsFromFile(fileData.associations);
@@ -140,6 +148,14 @@ exports.fillOptionsForViews = function(fileData){
   return opts;
 }
 
+
+/**
+ * attributesArrayFromFile - Given a object containing attributes description, this function will
+ * convert it to an array of arrays, where each item is as array with field name and its type (example [ [ 'name','string' ], [ 'is_human','boolean' ] ])
+ *
+ * @param  {object} attributes Object with keys the name of the field and value its type.
+ * @return {array}            array of arrays, where each item is as array with field name and its type (example [ [ 'name','string' ], [ 'is_human','boolean' ] ])
+ */
 attributesArrayFromFile = function(attributes){
   let attArray = []
 
@@ -150,6 +166,13 @@ attributesArrayFromFile = function(attributes){
   return attArray;
 }
 
+
+/**
+ * parseAssociationsFromFile - Parse associations description for a given model
+ *
+ * @param  {object} associations Object where each key is an association and its value is the info related to that association.
+ * @return {object}              Associations classified as 'belongsTos' and 'hasManys'. Each association will contain all extra information required by the tamplatees views. 
+ */
 parseAssociationsFromFile = function(associations){
   let assoc = {
     "belongsTos" : [],
