@@ -1,0 +1,24 @@
+FROM node:11.6.0-alpine
+
+# Create app directory
+WORKDIR /usr/src/app
+
+# Clone the skeleton project and install dependencies
+RUN apk update && \
+ apk add git && apk add bash && \
+ git clone https://github.com/ScienceDb/graphql-server.git . && \
+ mkdir  ./generator && \
+ git clone https://github.com/ScienceDb/graphql-server-model-codegen.git ./generator && \
+ npm --prefix ./generator install ./generator && \
+ chmod u+x ./migrateDbAndStartServer.sh && \
+ npm install
+
+# Copy generated code into the skeleton GraphQL-Server
+COPY ./integration_test_run/src/integration-test-input ./input
+
+# Configure the database connections
+COPY sequelize_config.json ./config/config.json
+
+RUN cd ./generator && node index.js generate ../input ..
+
+EXPOSE 3000
