@@ -7,7 +7,8 @@
     "gui-generator": "./index.js"
   },
   "scripts": {
-    "test": "mocha ./test/test-features.js"
+    "test": "mocha ./test/test-features.js",
+    "test-integration": "bash ./test/integration-test.sh"
   },
   "author": "Dr. Asis Hallab <asis.hallab@gmail.com>",
   "license": "MIT",
