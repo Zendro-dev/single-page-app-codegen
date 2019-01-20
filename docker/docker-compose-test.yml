@@ -15,9 +15,9 @@ services:
       context: .
       dockerfile: Dockerfile.graphql_server
     ports:
-      - "3000:3000"
+      - 3000:3000
     environment:
-      PORT: 3000
+      - PORT=3000
     # Await POSTGRES role and DB creation, migrate schema, then start web
     # server:
     command: bash -C './migrateDbAndStartServer.sh'
@@ -29,7 +29,10 @@ services:
       context: .
       dockerfile: Dockerfile.app
     ports:
-      - "8080:8080"
+      - 8080:8080
     environment:
-      port: 8080
-    command: top
+      - PORT=8080
+      - AUTH0_DOMAIN=any.domain.org
+      - AUTH0_CLIENT_ID=any_aplhanumeric_string
+      - YOUR_CALLBACK_URL=http://localhost:8080/callback
+    command: npm run dev

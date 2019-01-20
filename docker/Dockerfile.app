@@ -7,7 +7,7 @@ WORKDIR /usr/src/app
 RUN apk update && \
  apk add git && apk add bash && \
  git clone https://github.com/ScienceDb/single-page-app.git . && \
- npm install
+ npm install npm@6.0.0
 
 
 # Copy generated files for App
