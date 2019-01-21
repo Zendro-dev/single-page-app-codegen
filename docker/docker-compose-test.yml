@@ -31,8 +31,11 @@ services:
     ports:
       - 8080:8080
     environment:
+      #Until own server is created, the Auth0 trial account can be used (expires at 10 Feb 2019)
+      #Login: example.tester@mydomain.org
+      #Passwd: QAZxsw12
       - PORT=8080
-      - AUTH0_DOMAIN=any.domain.org
-      - AUTH0_CLIENT_ID=any_aplhanumeric_string
+      - AUTH0_DOMAIN=qwerty99.auth0.com
+      - AUTH0_CLIENT_ID=fvobGhnrMn5M02iUSOYsQzq7kCv9Qq8W
       - YOUR_CALLBACK_URL=http://localhost:8080/callback
     command: npm run dev

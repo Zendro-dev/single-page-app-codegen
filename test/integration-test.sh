@@ -38,6 +38,6 @@ done
 
 #Run the integration test suite
 
-mocha ./test/integration-tests-mocha.js
+mocha --timeout 15000 ./test/integration-tests-mocha.js
 
 cleanup
