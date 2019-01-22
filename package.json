@@ -7,7 +7,8 @@
     "gui-generator": "./index.js"
   },
   "scripts": {
-    "test": "mocha ./test/test-features.js"
+    "test": "mocha ./test/test-features.js",
+    "test-integration": "bash ./test/integration-test.sh"
   },
   "author": "Dr. Asis Hallab <asis.hallab@gmail.com>",
   "license": "MIT",
@@ -24,6 +25,9 @@
   },
   "devDependencies": {
     "chai": "^4.1.2",
-    "mocha": "^5.2.0"
+    "mocha": "^5.2.0",
+    "puppeteer": "^1.10.0",
+    "lodash" : "^4.17.11",
+    "delay" : "^4.1.0"
   }
 }

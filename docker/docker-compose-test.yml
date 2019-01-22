@@ -1,0 +1,41 @@
+version: "3.2"
+
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres
+    ports:
+     - 1234:5432
+
+  science_db_graphql_server:
+    depends_on:
+      - postgres
+    build:
+      context: .
+      dockerfile: Dockerfile.graphql_server
+    ports:
+      - 3000:3000
+    environment:
+      - PORT=3000
+    # Await POSTGRES role and DB creation, migrate schema, then start web
+    # server:
+    command: bash -C './migrateDbAndStartServer.sh'
+
+  science_db_app_server:
+    depends_on:
+      - science_db_graphql_server
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    ports:
+      - 8080:8080
+    environment:
+      #Until own server is created, the Auth0 trial account can be used (expires at 10 Feb 2019)
+      #Login: example.tester@mydomain.org
+      #Passwd: QAZxsw12
+      - PORT=8080
+      - AUTH0_DOMAIN=qwerty99.auth0.com
+      - AUTH0_CLIENT_ID=fvobGhnrMn5M02iUSOYsQzq7kCv9Qq8W
+      - YOUR_CALLBACK_URL=http://localhost:8080/callback
+    command: npm run dev

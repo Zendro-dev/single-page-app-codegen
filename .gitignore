@@ -1,5 +1,4 @@
 node_modules
-node_modules
-.idea
 .idea
 .vscode-upload.json
+package-lock.json
