@@ -21,4 +21,6 @@ COPY sequelize_config.json ./config/config.json
 
 RUN cd ./generator && node index.js generate ../input ..
 
+#TODO: print code generation to console
+
 EXPOSE 3000
