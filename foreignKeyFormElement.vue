@@ -10,7 +10,7 @@
     :classes="{ wrapper: 'form-wrapper', input: 'form-control', list: 'data-list', item: 'data-list-item' }"
     :on-select="setForeignKey"
     :onInput="onUserInput"
-    :customHeaders="{ Authorization: `Bearer ${this.$getAuthToken()}` }"
+    :customHeaders="{ Authorization: `Bearer ${this.$store.getters.authToken}` }"
     :onShouldGetData="getDataPromise"
   >
   </autocomplete>
@@ -76,9 +76,12 @@ export default {
     },
     getDataPromise(value){
       return new Promise((resolve, reject) => {
+
         let ajax = new XMLHttpRequest();
         let data = new FormData();
+
         ajax.open('POST', this.searchUrl, true);
+        ajax.setRequestHeader('authorization',`Bearer ${this.$store.getters.authToken}`);
         // On Done
         ajax.addEventListener('loadend', (e) => {
           const { responseText } = e.target

@@ -32,7 +32,7 @@ export default {
     },
     deleteInstance () {
       var t = this;
-      queries.delete<%-nameCp-%>({url:this.$baseUrl(), variables: {id:this.rowData.id}, token:t.$getAuthToken() })
+      queries.delete<%-nameCp-%>({url:this.$baseUrl(), variables: {id:this.rowData.id}})
       .then(function (response) {
         window.alert(response.data.data.delete<%-nameCp-%>)
         t.$parent.reload()

@@ -107,7 +107,7 @@ module.exports.book_table = `
       :fields="fields"
       :per-page="20"
       :appendParams="moreParams"
-      :http-options="{ headers: {Authorization: \`bearer \${this.$getAuthToken()}\`} }"
+      :http-options="{ headers: {Authorization: \`Bearer \${this.$store.getters.authToken}\`} }"
       pagination-path="data.vueTableBook"
       detail-row-component="book-detail-row"
       data-path="data.vueTableBook.data"
@@ -208,32 +208,11 @@ export default {
       }
       Vue.nextTick(() => this.$refs.vuetable.refresh())
     },
-    onDelete () {
-      if (window.confirm("Do you really want to delete books of ids '" + this.$refs.vuetable.selectedTo.join("; ") + "'?")) {
-        var t = this;
-        var url = this.$baseUrl()() + '/book/' + this.$refs.vuetable.selectedTo.join("/")
-        axios.delete(url, {
-          headers: {
-            'authorization': \`Bearer \${t.$getAuthToken()}\`,
-            'Accept': 'application/json'
-          }
-        }).then(function (response) {
-          t.$refs.vuetable.refresh()
-        }).catch(function (error) {
-          t.error = error
-        })
-      }
-    },
     onCsvExport () {
       var t = this;
       var url = this.$baseUrl()() + '/books/example_csv' + '?array=[' + this.$refs.vuetable.selectedTo.join(",") + ']'
 
-      axios.get(url, {
-        headers: {
-          'authorization': \`Bearer \${t.$getAuthToken()}\`,
-          'Accept': 'application/json'
-        }
-      }).then(function (response) {
+      axios.get(url).then(function (response) {
 
         var a = document.createElement("a");
         document.body.appendChild(a);
@@ -251,10 +230,6 @@ export default {
     downloadExampleCsv: function() {
       var t = this
       axios.get(t.$baseUrl() + '/books/example_csv', {
-        headers: {
-          'authorization': \`Bearer \${t.$getAuthToken()}\`,
-          'Accept': 'application/json'
-        },
         responseType: 'blob'
       }).then((response) => {
         const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -325,8 +300,8 @@ module.exports.DogFormElem = `
         :searchUrl = "this.$baseUrl()"
         v-model:foreignKey="dog.personId"
         label="firstName"
-        subLabel="lastName"
-                valueKey="id"
+                    subLabel = "lastName"
+                        valueKey="id"
         targetModel="Person"
         v-bind:initialInput="personInitialLabel">
       </foreign-key-form-element>
@@ -339,12 +314,15 @@ module.exports.DogFormElem = `
         :searchUrl = "this.$baseUrl()"
         v-model:foreignKey="dog.researcherId"
         label="firstName"
-
-                valueKey="id"
+                        valueKey="id"
         targetModel="Researcher"
         v-bind:initialInput="researcherInitialLabel">
       </foreign-key-form-element>
     </div>
+
+
+
+
 
   </div>
 </template>
@@ -355,21 +333,21 @@ import Vue from 'vue'
 import foreignKeyFormElement from './foreignKeyFormElement.vue'
 
 Vue.component('foreign-key-form-element', foreignKeyFormElement)
+
 import inflection from 'inflection'
 import axios from 'axios'
 
 export default {
-
   props: [ 'dog', 'errors', 'mode' ],
   data(){
-  return{
-    target_models: [
-           ],
-    model: 'dog'
-  }
-},
+    return{
+      target_models: [
+             ],
+      model: 'dog'
+    }
+  },
   computed: {
-          personInitialLabel: function () {
+            personInitialLabel: function () {
       var x = this.dog.person
       if (x !== null && typeof x === 'object' &&
           x['firstName'] !== null &&
@@ -390,7 +368,8 @@ export default {
         return ''
       }
     }
-        },
+
+  },
   methods: {
     validationError(modelField) {
       if (this.errors == null) return false;
@@ -409,6 +388,7 @@ export default {
     })
 	},
   created(){
+
   }
 }
 </script>
@@ -452,7 +432,7 @@ export default {
       var t = this;
       var url = this.$baseUrl()
       this.getAssociationsIds()
-      Queries.Dog.create({url:url, variables:t.dog, token:t.$getAuthToken()})
+      Queries.Dog.create({url:url, variables: t.dog})
       .then(function(response) {
         t.$router.push('/dogs')
       }).catch(function(res) {
@@ -469,11 +449,11 @@ export default {
     },
 
     getOnlyIds(array){
-       return array.map((item)=>{ return item.id; });
+      return array.map((item)=>{ return item.id; });
     },
 
     getAssociationsIds(){
-    }
+          }
   }
 }
 </script>
@@ -569,21 +549,19 @@ export default {
     fetchData() {
       var t = this
       t.error = null
-      if (this.$route.params.id) {
-        queries.readOneDog({ url:this.$baseUrl(), variables: {id:this.$route.params.id}, token:t.$getAuthToken()})
-          .then(function (response) {
-            t.dog = response.data.data.readOneDog
-          }, function (err) {
+      if(this.$route.params.id){
+        queries.readOneDog({ url:this.$baseUrl(), variables: {id:this.$route.params.id}})
+        .then(function (response) {
+            t.dog = response.data.data.readOneDog          }, function (err) {
             t.parent.error = err
           })
       }
-
     },
     onSubmit() {
       var t = this;
       var url = this.$baseUrl()
       this.getAssociationsIds();
-      Queries.Dog.update({url:url, variables:t.dog, token: t.$getAuthToken()})
+      Queries.Dog.update({url:url, variables:t.dog})
       .then(function (response) {
         t.$router.push('/dogs')
       }).catch( function (res) {
@@ -598,8 +576,9 @@ export default {
         }
       })
     },
+
     getOnlyIds(array){
-        return array.map((item)=>{ return item.id; });
+      return array.map((item)=>{ return item.id; });
     },
 
     getAssociationsIds(){
@@ -644,7 +623,7 @@ export default {
     },
     deleteInstance () {
       var t = this;
-      queries.deleteDog({url:this.$baseUrl(), variables: {id:this.rowData.id}, token:t.$getAuthToken() })
+      queries.deleteDog({url:this.$baseUrl(), variables: {id:this.rowData.id} })
       .then(function (response) {
         window.alert(response.data.data.deleteDog)
         t.$parent.reload()
@@ -980,7 +959,7 @@ module.exports.dog_table = `
       :fields="fields"
       :per-page="20"
       :appendParams="moreParams"
-      :http-options="{ headers: {Authorization: \`bearer \${this.$getAuthToken()}\`} }"
+      :http-options="{ headers: {Authorization: \`Bearer \${this.$store.getters.authToken}\`} }"
       pagination-path="data.vueTableDog"
       detail-row-component="dog-detail-row"
       data-path="data.vueTableDog.data"
@@ -1054,7 +1033,7 @@ export default {
         }
       ],
       moreParams: {
-        query: \`{vueTableDog{data {id  name  breed person{firstName lastName} researcher{firstName}}total per_page current_page last_page prev_page_url next_page_url from to}}\`
+        query: \`{vueTableDog{data {id  name breed person{firstName  lastName } researcher{firstName }} total per_page current_page last_page prev_page_url next_page_url from to}}\`
       }
     }
   },
@@ -1077,36 +1056,15 @@ export default {
     },
     onFilterReset() {
       this.moreParams = {
-        query: \`{vueTableDog{data {id  name  breed person{firstName lastName} researcher{firstName} }total per_page current_page last_page prev_page_url next_page_url from to}}\`
+        query: \`{vueTableDog{data {id  name breed person{firstName  lastName } researcher{firstName }} total per_page current_page last_page prev_page_url next_page_url from to}}\`
       }
       Vue.nextTick(() => this.$refs.vuetable.refresh())
-    },
-    onDelete () {
-      if (window.confirm("Do you really want to delete dogs of ids '" + this.$refs.vuetable.selectedTo.join("; ") + "'?")) {
-        var t = this;
-        var url = this.$baseUrl()() + '/dog/' + this.$refs.vuetable.selectedTo.join("/")
-        axios.delete(url, {
-          headers: {
-            'authorization': \`Bearer \${t.$getAuthToken()}\`,
-            'Accept': 'application/json'
-          }
-        }).then(function (response) {
-          t.$refs.vuetable.refresh()
-        }).catch(function (error) {
-          t.error = error
-        })
-      }
     },
     onCsvExport () {
       var t = this;
       var url = this.$baseUrl()() + '/dogs/example_csv' + '?array=[' + this.$refs.vuetable.selectedTo.join(",") + ']'
 
-      axios.get(url, {
-        headers: {
-          'authorization': \`Bearer \${t.$getAuthToken()}\`,
-          'Accept': 'application/json'
-        }
-      }).then(function (response) {
+      axios.get(url).then(function (response) {
 
         var a = document.createElement("a");
         document.body.appendChild(a);
@@ -1124,10 +1082,6 @@ export default {
     downloadExampleCsv: function() {
       var t = this
       axios.get(t.$baseUrl() + '/dogs/example_csv', {
-        headers: {
-          'authorization': \`Bearer \${t.$getAuthToken()}\`,
-          'Accept': 'application/json'
-        },
         responseType: 'blob'
       }).then((response) => {
         const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -1370,7 +1324,7 @@ export default {
       var t = this;
       var url = this.$baseUrl()
       this.getAssociationsIds()
-      Queries.Person.create({url:url, variables: t.person, token: t.$getAuthToken()})
+      Queries.Person.create({url:url, variables: t.person})
       .then(function(response) {
         t.$router.push('/people')
       }).catch(function(res) {
@@ -1412,7 +1366,7 @@ module.exports.individual_table= `
       :fields="fields"
       :per-page="20"
       :appendParams="moreParams"
-      :http-options="{ headers: {Authorization: \`bearer \${this.$getAuthToken()}\`} }"
+      :http-options="{ headers: {Authorization: \`Bearer \${this.$store.getters.authToken}\`} }"
       pagination-path="data.vueTableIndividual"
       detail-row-component="individual-detail-row"
       data-path="data.vueTableIndividual.data"
@@ -1509,32 +1463,11 @@ export default {
       }
       Vue.nextTick(() => this.$refs.vuetable.refresh())
     },
-    onDelete () {
-      if (window.confirm("Do you really want to delete individuals of ids '" + this.$refs.vuetable.selectedTo.join("; ") + "'?")) {
-        var t = this;
-        var url = this.$baseUrl()() + '/individual/' + this.$refs.vuetable.selectedTo.join("/")
-        axios.delete(url, {
-          headers: {
-            'authorization': \`Bearer \${t.$getAuthToken()}\`,
-            'Accept': 'application/json'
-          }
-        }).then(function (response) {
-          t.$refs.vuetable.refresh()
-        }).catch(function (error) {
-          t.error = error
-        })
-      }
-    },
     onCsvExport () {
       var t = this;
       var url = this.$baseUrl()() + '/individuals/example_csv' + '?array=[' + this.$refs.vuetable.selectedTo.join(",") + ']'
 
-      axios.get(url, {
-        headers: {
-          'authorization': \`Bearer \${t.$getAuthToken()}\`,
-          'Accept': 'application/json'
-        }
-      }).then(function (response) {
+      axios.get(url).then(function (response) {
 
         var a = document.createElement("a");
         document.body.appendChild(a);
@@ -1552,10 +1485,6 @@ export default {
     downloadExampleCsv: function() {
       var t = this
       axios.get(t.$baseUrl() + '/individuals/example_csv', {
-        headers: {
-          'authorization': \`Bearer \${t.$getAuthToken()}\`,
-          'Accept': 'application/json'
-        },
         responseType: 'blob'
       }).then((response) => {
         const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -1948,7 +1877,7 @@ export default {
       var t = this
       t.error = null
       if(this.$route.params.id){
-        queries.readOneBook({ url:this.$baseUrl(), variables: {id:this.$route.params.id}, token:t.$getAuthToken()})
+        queries.readOneBook({ url:this.$baseUrl(), variables: {id:this.$route.params.id}})
         .then(function (response) {
             t.book = response.data.data.readOneBook          }, function (err) {
             t.parent.error = err
@@ -1959,7 +1888,7 @@ export default {
       var t = this;
       var url = this.$baseUrl()
       this.getAssociationsIds();
-      Queries.Book.update({url:url, variables:t.book, token: t.$getAuthToken()})
+      Queries.Book.update({url:url, variables:t.book})
       .then(function (response) {
         t.$router.push('/books')
       }).catch( function (res) {
@@ -1986,27 +1915,27 @@ export default {
 `
 module.exports.DogUploadFormCsv = `
 <template>
-<div class="col-xs-5 content">
-  <ul v-for="record in errors" v-if="errors" class="list-group">
-    <li class="list-group-item">
-      <div class="alert alert-danger">
-        <h4>Errors for dog {{record.record}}</h4>
-        <ul>
-          <li>{{record.errors.message}}</li>
-        </ul>
-      </div>
-    </li>
-  </ul>
-  <h4>Upload dogs</h4>
-    <form id="dog-form" enctype="multipart/form-data" novalidate v-on:submit.prevent="onSubmit">
+  <div class="col-xs-5 content">
+    <ul v-for="record in errors" v-if="errors" class="list-group">
+      <li class="list-group-item">
+        <div class="alert alert-danger">
+          <h4>Errors for dog {{record.record}}</h4>
+          <ul>
+            <li>{{record.errors.message}}</li>
+          </ul>
+        </div>
+      </li>
+    </ul>
+    <h4>Upload dogs</h4>
+      <form id="dog-form" enctype="multipart/form-data" novalidate v-on:submit.prevent="onSubmit">
 
-      <div class="form-group">
-        <input type="file" id="uploadTableFile" ref="uploadTable" class="form-control">
-      </div>
+        <div class="form-group">
+          <input type="file" id="uploadTableFile" ref="uploadTable" class="form-control">
+        </div>
 
-      <button type="submit" class="btn btn-primary">Upload</button>
-    </form>
-</div>
+        <button type="submit" class="btn btn-primary">Upload</button>
+      </form>
+  </div>
 </template>
 
 <script>
@@ -2014,61 +1943,60 @@ import Vue from 'vue'
 import axios from 'axios'
 
 export default {
-data() {
-  return {
-    loading: false,
-    error: null,
-    errors: null,
-  }
-},
-methods: {
-  onSubmit() {
-    var t = this;
-    let query = '';
-
-    if (t.$refs.uploadTable.value.indexOf('.xlsx') > 0) {
-      var formElm = "xlsx_file"
-      query = \`mutation {bulkAddDogXlsx{ id }}\`
-    } else {
-      var formElm = "csv_file"
-      query = \`mutation {bulkAddDogCsv{ id}}\`
+  data() {
+    return {
+      loading: false,
+      error: null,
+      errors: null,
     }
+  },
+  methods: {
+    onSubmit() {
+      var t = this;
+      let query = '';
 
-    try{
-      let formData = new FormData();
-      let tableFile = document.querySelector('#uploadTableFile');
-      if( (tableFile.files[0].size/ 1024*1024) > t.$MAX_UPLOAD_SIZE()){
-        throw \`File exceeds limit of \${t.$MAX_UPLOAD_SIZE()} MB\`
+      if (t.$refs.uploadTable.value.indexOf('.xlsx') > 0) {
+        var formElm = "xlsx_file"
+        query = \`mutation {bulkAddDogXlsx{ id }}\`
+      } else {
+        var formElm = "csv_file"
+        query = \`mutation {bulkAddDogCsv{ id}}\`
       }
-      formData.append(formElm, tableFile.files[0]);
-      formData.append('query', query)
-      axios.post(this.$baseUrl(), formData,  {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          'authorization': \`Bearer \${t.$getAuthToken()}\`,
-          'Accept': 'application/graphql'
+
+      try{
+        let formData = new FormData();
+        let tableFile = document.querySelector('#uploadTableFile');
+        if( (tableFile.files[0].size/ 1024*1024) > t.$MAX_UPLOAD_SIZE()){
+          throw \`File exceeds limit of \${t.$MAX_UPLOAD_SIZE()} MB\`
         }
-      }).then(function(response) {
-        t.$router.push('/dogs')
-      }).catch(function(res) {
-          if (res.response && res.response.data && res.response.data && Array
-            .isArray(res.response.data)) {
-            t.errors = res.response.data
-          } else {
-            var err = (res && res.response && res.response.data && res.response
-              .data.message ?
-              res.response.data.message : res)
-            t.$root.$emit('globalError', err)
-            t.$router.push('/')
+        formData.append(formElm, tableFile.files[0]);
+        formData.append('query', query)
+        axios.post(this.$baseUrl(), formData,  {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Accept': 'application/graphql'
           }
-      })
-    }catch(err){
-      console.log(err)
-      t.$root.$emit('globalError', err)
-      t.$router.push('/')
+        }).then(function(response) {
+          t.$router.push('/dogs')
+        }).catch(function(res) {
+            if (res.response && res.response.data && res.response.data && Array
+              .isArray(res.response.data)) {
+              t.errors = res.response.data
+            } else {
+              var err = (res && res.response && res.response.data && res.response
+                .data.message ?
+                res.response.data.message : res)
+              t.$root.$emit('globalError', err)
+              t.$router.push('/')
+            }
+        })
+      }catch(err){
+        console.log(err)
+        t.$root.$emit('globalError', err)
+        t.$router.push('/')
+      }
     }
   }
-}
 }
 </script>
 `
@@ -2118,7 +2046,7 @@ export default {
       var t = this
       t.error = null
       if(this.$route.params.id){
-        queries.readOnePerson({ url:this.$baseUrl(), variables: {id:this.$route.params.id}, token:t.$getAuthToken()})
+        queries.readOnePerson({ url:this.$baseUrl(), variables: {id:this.$route.params.id}})
         .then(function (response) {
             t.person = response.data.data.readOnePerson          }, function (err) {
             t.parent.error = err
@@ -2129,7 +2057,7 @@ export default {
       var t = this;
       var url = this.$baseUrl()
       this.getAssociationsIds();
-      Queries.Person.update({url:url, variables:t.person, token: t.$getAuthToken()})
+      Queries.Person.update({url:url, variables:t.person})
       .then(function (response) {
         t.$router.push('/people')
       }).catch( function (res) {

@@ -12,7 +12,7 @@
         :classes="{ wrapper: 'form-wrapper', input: 'form-control', list: 'data-list', item: 'data-list-item' }"
         :on-select="addElementDirect"
         :onInput="onUserInput"
-        :customHeaders="{ Authorization: `Bearer ${this.$getAuthToken()}` }"
+        :customHeaders="{ Authorization: `Bearer ${this.$store.getters.authToken}` }"
         :onShouldGetData="getDataPromise"
       >
       </autocomplete>
@@ -75,7 +75,6 @@ export default {
   methods: {
     addElementDirect(data){
       if(this.mode=="create"){
-        console.log("HERE WE CAN ADD LOCALLY")
         let modList = this.addItems ? _.clone(this.addItems) : []
         modList.push(data)
         modList = _.uniqBy(modList, 'id')
@@ -86,7 +85,7 @@ export default {
             id: this.idSelected,
             [this.addName]: [ data.id]
         }
-        Queries[this.model].update({url:this.$baseUrl(), variables:variables ,token:this.$getAuthToken()});
+        Queries[this.model].update({url:this.$baseUrl(), variables:variables });
       }
       this.$refs.autocomplete.setValue(null)
     },
@@ -103,7 +102,7 @@ export default {
             id: this.idSelected,
             [this.removeName]: [dataId]
         }
-        Queries[this.model].update({url:this.$baseUrl(), variables:variables ,token:this.$getAuthToken()});
+        Queries[this.model].update({url:this.$baseUrl(), variables:variables});
       }
 
     },
@@ -132,6 +131,7 @@ export default {
         let ajax = new XMLHttpRequest();
         let data = new FormData();
         ajax.open('POST', this.searchUrl, true);
+        ajax.setRequestHeader('authorization',`Bearer ${this.$store.getters.authToken}`)
         // On Done
         ajax.addEventListener('loadend', (e) => {
           const { responseText } = e.target

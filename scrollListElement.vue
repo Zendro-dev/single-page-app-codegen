@@ -64,10 +64,7 @@ export default {
       if(this.checkAndSetLimits()){
         axios.post(this.url,{
           query:this.data_query,
-          variables:{id:this.idSelected, limit: this.limit, offset: this.offset},
-          headers: {
-            'authorization': `Bearer ${this.$getAuthToken()}`,
-            'Accept': 'application/graphql'}
+          variables:{id:this.idSelected, limit: this.limit, offset: this.offset}
         }).then( res =>{
           this.items.push(...res.data.data[this.query][this.subQuery]);
           this.offset+= this.limit;

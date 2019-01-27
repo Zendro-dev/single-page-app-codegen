@@ -11,7 +11,7 @@
       :fields="fields"
       :per-page="20"
       :appendParams="moreParams"
-      :http-options="{ headers: {Authorization: `bearer ${this.$getAuthToken()}`} }"
+      :http-options="{ headers: {Authorization: `Bearer ${this.$store.getters.authToken}`} }"
       pagination-path="data.vueTable<%-nameCp-%>"
       detail-row-component="<%- nameLc -%>-detail-row"
       data-path="data.vueTable<%-nameCp-%>.data"
@@ -124,32 +124,11 @@ export default {
       }
       Vue.nextTick(() => this.$refs.vuetable.refresh())
     },
-    onDelete () {
-      if (window.confirm("Do you really want to delete <%- namePlLc -%> of ids '" + this.$refs.vuetable.selectedTo.join("; ") + "'?")) {
-        var t = this;
-        var url = this.$baseUrl()() + '/<%- nameLc -%>/' + this.$refs.vuetable.selectedTo.join("/")
-        axios.delete(url, {
-          headers: {
-            'authorization': `Bearer ${t.$getAuthToken()}`,
-            'Accept': 'application/json'
-          }
-        }).then(function (response) {
-          t.$refs.vuetable.refresh()
-        }).catch(function (error) {
-          t.error = error
-        })
-      }
-    },
     onCsvExport () {
       var t = this;
       var url = this.$baseUrl()() + '/<%- namePlLc -%>/example_csv' + '?array=[' + this.$refs.vuetable.selectedTo.join(",") + ']'
 
-      axios.get(url, {
-        headers: {
-          'authorization': `Bearer ${t.$getAuthToken()}`,
-          'Accept': 'application/json'
-        }
-      }).then(function (response) {
+      axios.get(url).then(function (response) {
 
         var a = document.createElement("a");
         document.body.appendChild(a);
@@ -167,10 +146,6 @@ export default {
     downloadExampleCsv: function() {
       var t = this
       axios.get(t.$baseUrl() + '/<%- namePlLc -%>/example_csv', {
-        headers: {
-          'authorization': `Bearer ${t.$getAuthToken()}`,
-          'Accept': 'application/json'
-        },
         responseType: 'blob'
       }).then((response) => {
         const url = window.URL.createObjectURL(new Blob([response.data]));

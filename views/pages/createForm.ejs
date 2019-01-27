@@ -36,7 +36,7 @@ export default {
       var t = this;
       var url = this.$baseUrl()
       this.getAssociationsIds()
-      Queries.<%- nameCp -%>.create({url:url, variables: t.<%- nameLc -%>, token: t.$getAuthToken()})
+      Queries.<%- nameCp -%>.create({url:url, variables: t.<%- nameLc -%>})
       .then(function(response) {
         t.$router.push('/<%- namePlLc -%>')
       }).catch(function(res) {

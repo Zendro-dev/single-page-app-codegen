@@ -43,7 +43,7 @@ export default {
       var t = this
       t.error = null
       if(this.$route.params.id){
-        queries.readOne<%- nameCp -%>({ url:this.$baseUrl(), variables: {id:this.$route.params.id}, token:t.$getAuthToken()})
+        queries.readOne<%- nameCp -%>({ url:this.$baseUrl(), variables: {id:this.$route.params.id}})
         .then(function (response) {
             t.<%- nameLc -%> = response.data.data.readOne<%- nameCp -%>
           }, function (err) {
@@ -55,7 +55,7 @@ export default {
       var t = this;
       var url = this.$baseUrl()
       this.getAssociationsIds();
-      Queries.<%-nameCp-%>.update({url:url, variables:t.<%-nameLc-%>, token: t.$getAuthToken()})
+      Queries.<%-nameCp-%>.update({url:url, variables:t.<%-nameLc-%>})
       .then(function (response) {
         t.$router.push('/<%- namePlLc -%>')
       }).catch( function (res) {
