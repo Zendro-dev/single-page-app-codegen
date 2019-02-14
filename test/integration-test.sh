@@ -39,7 +39,7 @@ do
 done
 
 # Add tests-specific data into the database
-QUERY=`cat test/integration_test.sql`
+QUERY=`cat test/integration-test.sql`
 PG_CNAME=`docker-compose -f ./docker/docker-compose-test.yml ps | grep spa_postgres | awk '{ print $1 }'`
 
 docker exec ${PG_CNAME} \
