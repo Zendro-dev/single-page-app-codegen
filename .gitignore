@@ -2,3 +2,4 @@ node_modules
 .idea
 .vscode-upload.json
 package-lock.json
+npm-debug.log

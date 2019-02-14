@@ -39,28 +39,13 @@ describe( 'Basic functionality', function() {
         expect(await page.title()).to.eql('Reconstruct DB');
     });
 
+    it('02. Login', async function () {
 
-    it('02. Login Auth0', async function () {
-
-        const SELECTOR = 'button.btn-info.log';
-        await page.waitFor(SELECTOR);
-
-        let sel = await page.$eval(SELECTOR, sel => sel.innerText);
-        expect(sel).to.eql('Log In');
-
+        await page.type('form.login > input[type="email"]', 'admin@scidb.org', {delay: 20});
+        await page.type('form.login > input[type="password"]', '123', {delay: 20});
 
         await Promise.all([
-            page.click(SELECTOR),
-            page.waitForNavigation({ waitUntil: 'domcontentloaded' })
-        ]);
-
-        await delay(2500);
-
-        await page.type('input[name="email"]', 'example.tester@mydomain.org', {delay: 20});
-        await page.type('input[name="password"]', 'QAZxsw12');
-
-        await Promise.all([
-            page.click('button[name="submit"]'),
+            page.click('button[type="submit"]'),
             page.waitForNavigation({ waitUntil: 'domcontentloaded' })
         ]);
 
@@ -183,7 +168,7 @@ describe( 'Basic functionality', function() {
 
         rows = await page.$$eval('tbody > tr', row => row);
 
-        expect(rows.length).to.eql(0);
+        expect(rows.length).to.eql(1);
     });
 
 

@@ -9,6 +9,8 @@ function cleanup {
     rm -rf ./docker/integration_test_run/src
 }
 
+
+
 # Create folders required by App code generator
 mkdir -p ./docker/integration_test_run/src/components
 mkdir -p ./docker/integration_test_run/src/router
@@ -36,8 +38,17 @@ do
   waited=$(expr $waited + 2)
 done
 
+# Add tests-specific data into the database
+QUERY=`cat test/integration_test.sql`
+PG_CNAME=`docker-compose -f ./docker/docker-compose-test.yml ps | grep spa_postgres | awk '{ print $1 }'`
+
+docker exec ${PG_CNAME} \
+bash -c "psql -U sciencedb -d sciencedb_development -P pager=off --single-transaction --command=\"$QUERY\""
+
+
+
 #Run the integration test suite
 
-mocha --timeout 15000 ./test/integration-tests-mocha.js
+#mocha --timeout 15000 ./test/integration-tests-mocha.js
 
-cleanup
+#cleanup
