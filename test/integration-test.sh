@@ -2,14 +2,45 @@
 
 set -e
 
+#set the list of images to be removed from the docker
+DELETE_IMAGES=(spa_postgres spa_science_db_graphql_server spa_science_db_app_server)
+while [[ $# -gt 0 ]]
+do
+    key="$1"
+
+    case $key in
+        -k|--keep-image)
+        DELETE_IMAGES=("${DELETE_IMAGES[@]/$2}") #+=("$2")
+        shift # past argument
+        shift # past value
+        ;;
+        *)    # unknown option
+        echo "unknown option: $key"
+        exit 1
+        ;;
+    esac
+done
+
 # Stop the GraphQL web server, delete the Docker containers and volume, but
 # leave the image. Finally delete the generated code.
 function cleanup {
- docker-compose -f ./docker/docker-compose-test.yml down -v && \
-    rm -rf ./docker/integration_test_run/src
+ docker-compose -f ./docker/docker-compose-test.yml down -v
+
+ for IMAGE in "${DELETE_IMAGES[@]}"
+    do
+        if ! [[ -z "${IMAGE// }" ]]; then
+            IN_ID=`docker images | grep "$IMAGE"`
+            if ! [[ -z "${IN_ID// }" ]]; then
+             echo "Delete image: $IMAGE"
+             echo "$IN_ID" | awk '{print "docker rmi -f " $3}' | sh
+            fi
+        fi
+done
+
+ rm -rf ./docker/integration_test_run/src
 }
 
-
+cleanup
 
 # Create folders required by App code generator
 mkdir -p ./docker/integration_test_run/src/components
@@ -49,6 +80,6 @@ bash -c "psql -U sciencedb -d sciencedb_development -P pager=off --single-transa
 
 #Run the integration test suite
 
-#mocha --timeout 15000 ./test/integration-tests-mocha.js
+mocha --timeout 15000 ./test/integration-tests-mocha.js
 
-#cleanup
+cleanup

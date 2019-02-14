@@ -20,6 +20,15 @@ From the command line prompt
 ````
 `<directory>` should contain a skeleton of the GUI, for download the skeleton and more details in how to run the GUI see [THIS](https://github.com/ScienceDb/single-page-app).
 
+Note: intergation-test case creates a docker-compose ambient with three servers `spa_postgres`,
+`spa_science_db_graphql_server` and `spa_ncbi_sim_srv`. By default, after the test run, all
+corresponding images will be completely removed from the docker. However, to speed-up the
+development process it is possible to not remove the selected images. Each of the images that
+wou prefer to keep alive shell be preceeded with the `-k` or `--keep-image` key. For example:
+```
+$ npm run test-integration -- -k spa_ncbi_sim_srv -k spa_science_db_graphql_server
+```
+
 ## JSON files Spec
 
 Each json file describes one and only one model. (i.e if an association involves two models, this association needs to be specified in both json files, corresponding to each model).
