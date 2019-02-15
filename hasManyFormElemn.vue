@@ -30,6 +30,7 @@
       :subLabel="parseSublabel"
       :displayItems="addItems"
       v-on:remove-element="removeElementDirect"
+      :key="countItems"
     > </scroll-list>
     </div>
 
@@ -65,7 +66,8 @@ export default {
         //default value of number for guess "to add" elements
         limit: 10,
         offset: 0
-      }
+      },
+      countItems: this.countQuery
     }
   },
   props: ['model', 'searchUrl', 'idSelected','query', 'subQuery' ,'label', 'subLabel', 'countQuery','valueKey','targetModel', 'removeName', 'addName', 'mode', 'addItems'],
@@ -85,7 +87,10 @@ export default {
             id: this.idSelected,
             [this.addName]: [ data.id]
         }
-        Queries[this.model].update({url:this.$baseUrl(), variables:variables });
+        Queries[this.model].update({url:this.$baseUrl(), variables:variables })
+        .then(()=>{
+          this.countItems++;
+        });
       }
       this.$refs.autocomplete.setValue(null)
     },
@@ -102,7 +107,10 @@ export default {
             id: this.idSelected,
             [this.removeName]: [dataId]
         }
-        Queries[this.model].update({url:this.$baseUrl(), variables:variables});
+        Queries[this.model].update({url:this.$baseUrl(), variables:variables})
+        .then(()=>{
+          this.countItems--;
+        });
       }
 
     },
