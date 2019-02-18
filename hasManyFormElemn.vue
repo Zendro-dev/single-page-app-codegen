@@ -23,7 +23,7 @@
       :mode="mode"
       :url="this.$baseUrl()"
       :idSelected="idSelected"
-      :countQuery="countQuery"
+      :countQuery="countItems"
       :query="query"
       :subQuery="subQuery"
       :label="label"

@@ -1,7 +1,7 @@
 <template>
   <div id="scroll-form-div">
 
-    <virtual-list class="list"
+    <virtual-list class="list"  v-if="mode!=='create'"
         :size="40"
         :remain="2"
         :tobottom="toBottom"
@@ -11,12 +11,21 @@
           {{ udf[label]}} <span v-if="subLabel!==''"> {{ udf[subLabel]}} </span>
         </div>
 
-        <div v-if="mode=='create'" class="item" v-for="(udf, index) of displayItems" :key="index">
-          <i  v-on:click="onRemove(udf)" class="delete icon"></i>
-          {{ udf[label]}} <span v-if="subLabel!==''"> {{ udf[subLabel]}} </span>
-        </div>
-
     </virtual-list>
+
+  </virtual-list>
+
+  <virtual-list class="list" v-if="mode=='create'"
+      :size="40"
+      :remain="2"
+      :tobottom="toBottom">
+
+      <div v-if="mode=='create'" class="item" v-for="(udf, index) of displayItems" :key="index">
+        <i  v-on:click="onRemove(udf)" class="delete icon"></i>
+        {{ udf[label]}} <span v-if="subLabel!==''"> {{ udf[subLabel]}} </span>
+      </div>
+
+  </virtual-list>
 
 
 
