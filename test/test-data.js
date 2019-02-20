@@ -434,17 +434,22 @@ export default {
       this.getAssociationsIds()
       Queries.Dog.create({url:url, variables: t.dog})
       .then(function(response) {
-        t.$router.push('/dogs')
-      }).catch(function(res) {
-        if (res.response && res.response.data && res.response.data.errors) {
-          t.errors = res.response.data.errors
-        } else {
-          var err = (res && res.response && res.response.data && res.response
-            .data.message ?
-            res.response.data.message : res)
-          t.$root.$emit('globalError', err)
-          t.$router.push('/')
+        if(response.data && response.data.errors){
+          t.errors = response.data.errors
+        }else{
+          t.$router.push('/dogs')
         }
+      }).catch(function(res) {
+        let msg = res;
+        if (res.response && res.response.data && res.response.data.errors && res.response.data.errors[0].message) {
+          msg = res.response.data.errors[0].message
+        }
+
+        if(res && res.response && res.response.data && res.response.data.message){
+          msg =  res.response.data.message
+        }
+        t.$root.$emit('globalError', msg)
+        t.$router.push('/home')
       })
     },
 
@@ -1326,17 +1331,22 @@ export default {
       this.getAssociationsIds()
       Queries.Person.create({url:url, variables: t.person})
       .then(function(response) {
-        t.$router.push('/people')
-      }).catch(function(res) {
-        if (res.response && res.response.data && res.response.data.errors) {
-          t.errors = res.response.data.errors
-        } else {
-          var err = (res && res.response && res.response.data && res.response
-            .data.message ?
-            res.response.data.message : res)
-          t.$root.$emit('globalError', err)
-          t.$router.push('/')
+        if(response.data && response.data.errors){
+          t.errors = response.data.errors
+        }else{
+          t.$router.push('/people')
         }
+      }).catch(function(res) {
+        let msg = res;
+        if (res.response && res.response.data && res.response.data.errors && res.response.data.errors[0].message) {
+          msg = res.response.data.errors[0].message
+        }
+
+        if(res && res.response && res.response.data && res.response.data.message){
+          msg =  res.response.data.message
+        }
+        t.$root.$emit('globalError', msg)
+        t.$router.push('/home')
       })
     },
 
@@ -2225,4 +2235,79 @@ export default {
   }
 }
 </script>
+`
+
+module.exports.BookCreateForm = `
+
+<template>
+  <div class="col-xs-5">
+    <h4>New book</h4>
+    <div id="book-div">
+      <div v-if="book" class="content">
+        <form id="book-form" v-on:submit.prevent="onSubmit">
+
+          <book-form-elemns mode="create" v-bind:errors="errors" v-bind:book="book"></book-form-elemns>
+
+          <button type="submit" class="btn btn-primary">Create</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import Vue from 'vue'
+import axios from 'axios'
+import BookFormElemns from './BookFormElemns.vue'
+import Queries from '../requests/index'
+
+Vue.component('book-form-elemns', BookFormElemns)
+
+export default {
+  data() {
+    return {
+      loading: false,
+      book: {},
+      error: null,
+      errors: null,
+    }
+  },
+  methods: {
+    onSubmit() {
+      var t = this;
+      var url = this.$baseUrl()
+      this.getAssociationsIds()
+      Queries.Book.create({url:url, variables: t.book})
+      .then(function(response) {
+        if(response.data && response.data.errors){
+          t.errors = response.data.errors
+        }else{
+          t.$router.push('/books')
+        }
+
+      }).catch(function(res) {
+          let msg = res;
+          if (res.response && res.response.data && res.response.data.errors && res.response.data.errors[0].message) {
+            msg = res.response.data.errors[0].message
+          }
+
+          if(res && res.response && res.response.data && res.response.data.message){
+            msg =  res.response.data.message
+          }
+          t.$root.$emit('globalError', msg)
+          t.$router.push('/home')
+      })
+    },
+
+    getOnlyIds(array){
+      return array.map((item)=>{ return item.id; });
+    },
+
+    getAssociationsIds(){
+              this.book.addPeople = this.getOnlyIds(this.book.addPeople);
+          }
+  }
+}
+</script>
+
 `

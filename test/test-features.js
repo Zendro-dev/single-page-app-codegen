@@ -136,6 +136,15 @@ describe('VueTable GraphQl Query', function(){
         let test_formElement = testData.PersonCreateForm.replace(/\s/g, '');
         expect(created_formElement).to.be.equal(test_formElement);
     });
+
+    let modelsObjBook = funks.fillOptionsForViews(models.book) ;
+    it('BookCreateForm - validation errors',async function(){
+       let file = await funks.renderTemplate('createForm',modelsObjBook);
+        let created_formElement = file.replace(/\s/g, '');
+        let test_formElement = testData.BookCreateForm.replace(/\s/g, '');
+        expect(created_formElement).to.be.equal(test_formElement);
+    });
+
   });
 
   describe('GraphQl Requests ', function(){
