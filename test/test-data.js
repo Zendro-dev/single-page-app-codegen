@@ -434,22 +434,18 @@ export default {
       this.getAssociationsIds()
       Queries.Dog.create({url:url, variables: t.dog})
       .then(function(response) {
-        if(response.data && response.data.errors){
-          t.errors = response.data.errors
-        }else{
           t.$router.push('/dogs')
-        }
       }).catch(function(res) {
-        let msg = res;
-        if (res.response && res.response.data && res.response.data.errors && res.response.data.errors[0].message) {
-          msg = res.response.data.errors[0].message
+        if(res.response && res.response.data && res.response.data.errors && (res.response.data.errors[0].message === "Validation error")){
+          t.errors = res.response.data.errors[0];
+        }else{
+          let msg = res;
+          if(res && res.response && res.response.data && res.response.data.message){
+             msg =  res.response.data.message
+          }
+          t.$root.$emit('globalError', msg)
+          t.$router.push('/home')
         }
-
-        if(res && res.response && res.response.data && res.response.data.message){
-          msg =  res.response.data.message
-        }
-        t.$root.$emit('globalError', msg)
-        t.$router.push('/home')
       })
     },
 
@@ -1331,22 +1327,18 @@ export default {
       this.getAssociationsIds()
       Queries.Person.create({url:url, variables: t.person})
       .then(function(response) {
-        if(response.data && response.data.errors){
-          t.errors = response.data.errors
-        }else{
-          t.$router.push('/people')
-        }
+        t.$router.push('/people')
       }).catch(function(res) {
-        let msg = res;
-        if (res.response && res.response.data && res.response.data.errors && res.response.data.errors[0].message) {
-          msg = res.response.data.errors[0].message
+        if(res.response && res.response.data && res.response.data.errors && (res.response.data.errors[0].message === "Validation error")){
+          t.errors = res.response.data.errors[0];
+        }else{
+          let msg = res;
+          if(res && res.response && res.response.data && res.response.data.message){
+             msg =  res.response.data.message
+          }
+          t.$root.$emit('globalError', msg)
+          t.$router.push('/home')
         }
-
-        if(res && res.response && res.response.data && res.response.data.message){
-          msg =  res.response.data.message
-        }
-        t.$root.$emit('globalError', msg)
-        t.$router.push('/home')
       })
     },
 
@@ -2279,23 +2271,18 @@ export default {
       this.getAssociationsIds()
       Queries.Book.create({url:url, variables: t.book})
       .then(function(response) {
-        if(response.data && response.data.errors){
-          t.errors = response.data.errors
-        }else{
           t.$router.push('/books')
-        }
-
       }).catch(function(res) {
-          let msg = res;
-          if (res.response && res.response.data && res.response.data.errors && res.response.data.errors[0].message) {
-            msg = res.response.data.errors[0].message
+          if(res.response && res.response.data && res.response.data.errors && (res.response.data.errors[0].message === "Validation error")){
+            t.errors = res.response.data.errors[0];
+          }else{
+            let msg = res;
+            if(res && res.response && res.response.data && res.response.data.message){
+               msg =  res.response.data.message
+            }
+            t.$root.$emit('globalError', msg)
+            t.$router.push('/home')
           }
-
-          if(res && res.response && res.response.data && res.response.data.message){
-            msg =  res.response.data.message
-          }
-          t.$root.$emit('globalError', msg)
-          t.$router.push('/home')
       })
     },
 
