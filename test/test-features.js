@@ -189,7 +189,7 @@ describe('VueTable GraphQl Query', function(){
 
     let modelsObjBook = funks.fillOptionsForViews(models.book) ;
 
-    it('BookEditForm - update hasMany',async function(){
+    it('BookEditForm - update hasMany - validation error',async function(){
        let file = await funks.renderTemplate('editForm',modelsObjBook);
         let created_editForm = file.replace(/\s/g, '');
         let test_editForm = testData.BookEdit.replace(/\s/g, '');
