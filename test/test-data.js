@@ -373,7 +373,7 @@ export default {
   methods: {
     validationError(modelField) {
       if (this.errors == null) return false;
-      return this.errors.find(function (el) {
+      return this.errors.details.find(function (el) {
         return el.path === modelField
       })
     }
@@ -761,7 +761,7 @@ export default {
   methods: {
     validationError(modelField) {
       if (this.errors == null) return false;
-      return this.errors.find(function (el) {
+      return this.errors.details.find(function (el) {
         return el.path === modelField
       })
     }
@@ -1152,7 +1152,7 @@ module.exports.BookForm = `
         :searchUrl = "this.$baseUrl()"
         v-model:foreignKey="book.publisherId"
         label="name"
-        valueKey="id"
+                        valueKey="id"
         targetModel="Publisher"
         v-bind:initialInput="publisherInitialLabel">
       </foreign-key-form-element>
@@ -1170,8 +1170,8 @@ module.exports.BookForm = `
         :mode="mode"
         :addItems.sync="book.addPeople"
         label="firstName"
-        subLabel ="email"
-        valueKey="id"
+                    subLabel ="email"
+                valueKey="id"
         model="Book"
         targetModel = "Person"
         removeName="removePeople"
@@ -1203,18 +1203,18 @@ import axios from 'axios'
 export default {
   props: [ 'book', 'errors', 'mode' ],
   data(){
-  return{
-    target_models: [
-                   {
-          model:'Person',
-          label: 'firstName',
-          sublabel: 'email'
-      }              ],
-    model: 'book'
+    return{
+      target_models: [
+                     {
+            model:'Person',
+            label: 'firstName',
+            sublabel: 'email'
+        }              ],
+      model: 'book'
     }
   },
   computed: {
-          publisherInitialLabel: function () {
+            publisherInitialLabel: function () {
       var x = this.book.publisher
       if (x !== null && typeof x === 'object' &&
           x['name'] !== null &&
@@ -1224,13 +1224,14 @@ export default {
         return ''
       }
     }
-        },
+
+  },
   methods: {
     validationError(modelField) {
       if (this.errors == null) return false;
-      return this.errors.find(function (el) {
-        return el.path === modelField
-      })
+        return this.errors.details.find(function (el) {
+          return el.path === modelField
+        })
     }
   },
 	mounted: function() {
@@ -1243,6 +1244,7 @@ export default {
     })
 	},
   created(){
+
   }
 }
 </script>
@@ -1641,7 +1643,7 @@ export default {
   methods: {
     validationError(modelField) {
       if (this.errors == null) return false;
-      return this.errors.find(function (el) {
+      return this.errors.details.find(function (el) {
         return el.path === modelField
       })
     }
@@ -1770,7 +1772,7 @@ export default {
   methods: {
     validationError(modelField) {
       if (this.errors == null) return false;
-      return this.errors.find(function (el) {
+      return this.errors.details.find(function (el) {
         return el.path === modelField
       })
     }
@@ -2212,7 +2214,7 @@ export default {
   methods: {
     validationError(modelField) {
       if (this.errors == null) return false;
-      return this.errors.find(function (el) {
+      return this.errors.details.find(function (el) {
         return el.path === modelField
       })
     }
