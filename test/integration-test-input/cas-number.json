@@ -1,0 +1,8 @@
+{
+  "model" : "cas_number",
+  "storageType" : "SQL",
+  "attributes" : {
+    "CAS_number" : "String",
+    "Cas_number" : "String"
+  }
+}
