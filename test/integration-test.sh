@@ -1,6 +1,12 @@
 #!/bin/bash
 
-set -e
+# Intergation-test case creates a docker-compose ambient with three servers
+# spa_postgres, spa_science_db_graphql_server and spa_science_db_app_server. By default, after the test run,
+# all corresponding images will be completely removed from the docker. However, to speed-up the development
+# process it is possible to not remove the selected images. Each of the images that wou prefer to keep alive
+# shell be preceeded with the -k or --keep-image key. For example:
+
+#$ npm run test-integration -- -k spa_science_db_graphql_server -k spa_postgres
 
 #set the list of images to be removed from the docker
 DELETE_IMAGES=(spa_postgres spa_science_db_graphql_server spa_science_db_app_server)
@@ -21,9 +27,9 @@ do
     esac
 done
 
-# Stop the GraphQL web server, delete the Docker containers and volume, but
-# leave the image. Finally delete the generated code.
+# Stop the Docker-Compose, cleanup all generated data and delete selected docker images
 function cleanup {
+
  docker-compose -f ./docker/docker-compose-test.yml down -v
 
  for IMAGE in "${DELETE_IMAGES[@]}"
@@ -35,10 +41,12 @@ function cleanup {
              echo "$IN_ID" | awk '{print "docker rmi -f " $3}' | sh
             fi
         fi
-done
+ done
+
 
  rm -rf ./docker/integration_test_run/src
 }
+
 
 cleanup
 
@@ -52,6 +60,8 @@ node ./index.js --jsonFiles ./test/integration-test-input/ ./docker/integration_
 
 # Prepare integration tests input to generate code on the GraphQL server
 cp -r ./test/integration-test-input ./docker/integration_test_run/src/
+
+
 
 # Setup and launch all three servers: PostgreSQL, GraphQL and App
 docker-compose -f ./docker/docker-compose-test.yml up -d
@@ -83,3 +93,4 @@ bash -c "psql -U sciencedb -d sciencedb_development -P pager=off --single-transa
 mocha --timeout 15000 ./test/integration-tests-mocha.js
 
 cleanup
+
