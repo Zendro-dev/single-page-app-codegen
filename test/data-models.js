@@ -150,3 +150,24 @@ module.exports.transcript_count = {
     }
   }
 }
+
+module.exports.transcriptCount = {
+
+  "model" : "transcriptCount",
+  "storageType" : "SQL",
+  "attributes" : {
+    "gene" : "String",
+    "variable" : "String",
+    "count" : "Float",
+    "tissue_or_condition": "String"
+  },
+  "associations":{
+    "individual":{
+      "type" : "sql_belongsTo",
+      "target" : "individual",
+      "targetKey" : "individual_id",
+      "targetStorageType" : "sql",
+      "label" : "name"
+    }
+  }
+}

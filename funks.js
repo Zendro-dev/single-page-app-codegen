@@ -89,6 +89,38 @@ exports.typeAttributes = function(attributesArray) {
 }
 
 
+/**
+ * uncapitalizeString - set initial character to lower case
+ *
+ * @param  {string} word String input to uncapitalize
+ * @return {string}      String with lower case in the initial character
+ */
+uncapitalizeString = function(word){
+  let length = word.length;
+  if(length==1){
+    return word.toLowerCase();
+  }else{
+    return word.slice(0,1).toLowerCase() + word.slice(1,length);
+  }
+}
+
+
+/**
+ * capitalizeString - set initial character to upper case
+ *
+ * @param  {type} word String input to capitalize
+ * @return {type}      String with upper case in the initial character
+ */
+capitalizeString = function(word){
+  let length = word.length;
+  if(length==1){
+    return word.toUpperCase();
+  }else{
+    return word.slice(0,1).toUpperCase() + word.slice(1,length);
+  }
+}
+
+
 // Copies file found under sourcePath to targetPath if and only if target does
 // not exist:
 
@@ -135,10 +167,14 @@ exports.fillOptionsForViews = function(fileData){
     baseUrl: fileData.baseUrl,
     //check compatibility with name in express_graphql_gen
     name: fileData.model,
-    nameLc: fileData.model.toLowerCase(),
-    namePl: inflection.pluralize(fileData.model.toLowerCase()),
-    namePlLc: inflection.pluralize(fileData.model.toLowerCase()).toLowerCase(),
-    nameCp: inflection.capitalize(fileData.model),
+    // nameLc: fileData.model.toLowerCase(),
+    // namePl: inflection.pluralize(fileData.model.toLowerCase()),
+    // namePlLc: inflection.pluralize(fileData.model.toLowerCase()).toLowerCase(),
+    // nameCp: inflection.capitalize(fileData.model),
+    nameLc: uncapitalizeString(fileData.model),
+    namePl: inflection.pluralize(uncapitalizeString(fileData.model)),
+    namePlLc: inflection.pluralize(uncapitalizeString(fileData.model)),
+    nameCp: capitalizeString(fileData.model),
     attributesArr: attributesArrayFromFile(fileData.attributes),
     typeAttributes: exports.typeAttributes(attributesArrayFromFile(fileData.attributes)),
     belongsTosArr: associations.belongsTos,
@@ -171,7 +207,7 @@ attributesArrayFromFile = function(attributes){
  * parseAssociationsFromFile - Parse associations description for a given model
  *
  * @param  {object} associations Object where each key is an association and its value is the info related to that association.
- * @return {object}              Associations classified as 'belongsTos' and 'hasManys'. Each association will contain all extra information required by the tamplatees views. 
+ * @return {object}              Associations classified as 'belongsTos' and 'hasManys'. Each association will contain all extra information required by the tamplatees views.
  */
 parseAssociationsFromFile = function(associations){
   let assoc = {
