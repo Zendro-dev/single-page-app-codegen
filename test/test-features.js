@@ -65,6 +65,15 @@ describe('VueTable GraphQl Query', function(){
         expect(created_table).to.be.equal(test_table);
     });
 
+    let modelsObjTranscript = funks.fillOptionsForViews(models.transcriptCount);
+    it('VueTable  - transcriptCount',async function(){
+       let file = await funks.renderTemplate('tableView',modelsObjTranscript);
+        let created_table = file.replace(/\s/g, '');
+        let test_table = testData.transcriptCount_table.replace(/\s/g, '');
+        expect(created_table).to.be.equal(test_table);
+    });
+
+
   });
 
   describe('FormElementVue ', function(){
