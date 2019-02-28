@@ -276,7 +276,9 @@ module.exports.DogFormElem = `
 
 
       <div id="dog-name-err" v-if="validationError('name')" class="alert alert-danger">
-        {{validationError('name').message}}
+      <ul>
+        <li v-for="err in validationError('name')"> {{err.message}}</li>
+      </ul>
       </div>
     </div>
 
@@ -288,7 +290,9 @@ module.exports.DogFormElem = `
 
 
       <div id="dog-breed-err" v-if="validationError('breed')" class="alert alert-danger">
-        {{validationError('breed').message}}
+      <ul>
+        <li v-for="err in validationError('breed')"> {{err.message}}</li>
+      </ul>
       </div>
     </div>
 
@@ -373,7 +377,7 @@ export default {
   methods: {
     validationError(modelField) {
       if (this.errors == null) return false;
-      return this.errors.details.find(function (el) {
+      return this.errors.details.filter(function (el) {
         return el.path === modelField
       })
     }
@@ -660,7 +664,9 @@ module.exports.ProjectForm = `
 
 
       <div id="project-name-err" v-if="validationError('name')" class="alert alert-danger">
-        {{validationError('name').message}}
+      <ul>
+        <li v-for="err in validationError('name')"> {{err.message}}</li>
+      </ul>
       </div>
     </div>
 
@@ -672,7 +678,9 @@ module.exports.ProjectForm = `
 
 
       <div id="project-description-err" v-if="validationError('description')" class="alert alert-danger">
-        {{validationError('description').message}}
+      <ul>
+        <li v-for="err in validationError('description')"> {{err.message}}</li>
+      </ul>
       </div>
     </div>
 
@@ -761,7 +769,7 @@ export default {
   methods: {
     validationError(modelField) {
       if (this.errors == null) return false;
-      return this.errors.details.find(function (el) {
+      return this.errors.details.filter(function (el) {
         return el.path === modelField
       })
     }
@@ -1128,7 +1136,9 @@ module.exports.BookForm = `
 
 
       <div id="book-title-err" v-if="validationError('title')" class="alert alert-danger">
-        {{validationError('title').message}}
+        <ul>
+          <li v-for="err in validationError('title')"> {{err.message}}</li>
+        </ul>
       </div>
     </div>
 
@@ -1140,7 +1150,9 @@ module.exports.BookForm = `
 
 
       <div id="book-genre-err" v-if="validationError('genre')" class="alert alert-danger">
-        {{validationError('genre').message}}
+        <ul>
+          <li v-for="err in validationError('genre')"> {{err.message}}</li>
+        </ul>
       </div>
     </div>
 
@@ -1229,9 +1241,9 @@ export default {
   methods: {
     validationError(modelField) {
       if (this.errors == null) return false;
-        return this.errors.details.find(function (el) {
-          return el.path === modelField
-        })
+      return this.errors.details.filter(function (el) {
+        return el.path === modelField
+      })
     }
   },
 	mounted: function() {
@@ -1591,7 +1603,9 @@ module.exports.IndividualForm = `
 
 
       <div id="individual-name-err" v-if="validationError('name')" class="alert alert-danger">
-        {{validationError('name').message}}
+      <ul>
+        <li v-for="err in validationError('name')"> {{err.message}}</li>
+      </ul>
       </div>
     </div>
 
@@ -1643,7 +1657,7 @@ export default {
   methods: {
     validationError(modelField) {
       if (this.errors == null) return false;
-      return this.errors.details.find(function (el) {
+      return this.errors.details.filter(function (el) {
         return el.path === modelField
       })
     }
@@ -1677,7 +1691,9 @@ module.exports.TranscriptForm =`
 
 
       <div id="transcript_count-gene-err" v-if="validationError('gene')" class="alert alert-danger">
-        {{validationError('gene').message}}
+      <ul>
+        <li v-for="err in validationError('gene')"> {{err.message}}</li>
+      </ul>
       </div>
     </div>
 
@@ -1689,7 +1705,9 @@ module.exports.TranscriptForm =`
 
 
       <div id="transcript_count-variable-err" v-if="validationError('variable')" class="alert alert-danger">
-        {{validationError('variable').message}}
+      <ul>
+        <li v-for="err in validationError('variable')"> {{err.message}}</li>
+      </ul>
       </div>
     </div>
 
@@ -1701,7 +1719,9 @@ module.exports.TranscriptForm =`
 
 
       <div id="transcript_count-count-err" v-if="validationError('count')" class="alert alert-danger">
-        {{validationError('count').message}}
+      <ul>
+        <li v-for="err in validationError('count')"> {{err.message}}</li>
+      </ul>
       </div>
     </div>
 
@@ -1713,7 +1733,9 @@ module.exports.TranscriptForm =`
 
 
       <div id="transcript_count-tissue_or_condition-err" v-if="validationError('tissue_or_condition')" class="alert alert-danger">
-        {{validationError('tissue_or_condition').message}}
+      <ul>
+        <li v-for="err in validationError('tissue_or_condition')"> {{err.message}}</li>
+      </ul>
       </div>
     </div>
 
@@ -1772,7 +1794,7 @@ export default {
   methods: {
     validationError(modelField) {
       if (this.errors == null) return false;
-      return this.errors.details.find(function (el) {
+      return this.errors.details.filter(function (el) {
         return el.path === modelField
       })
     }
@@ -2107,7 +2129,9 @@ module.exports.PersonForm = `
 
 
       <div id="person-firstName-err" v-if="validationError('firstName')" class="alert alert-danger">
-        {{validationError('firstName').message}}
+      <ul>
+        <li v-for="err in validationError('firstName')"> {{err.message}}</li>
+      </ul>
       </div>
     </div>
 
@@ -2119,7 +2143,9 @@ module.exports.PersonForm = `
 
 
       <div id="person-lastName-err" v-if="validationError('lastName')" class="alert alert-danger">
-        {{validationError('lastName').message}}
+      <ul>
+        <li v-for="err in validationError('lastName')"> {{err.message}}</li>
+      </ul>
       </div>
     </div>
 
@@ -2131,7 +2157,9 @@ module.exports.PersonForm = `
 
 
       <div id="person-email-err" v-if="validationError('email')" class="alert alert-danger">
-        {{validationError('email').message}}
+      <ul>
+        <li v-for="err in validationError('email')"> {{err.message}}</li>
+      </ul>
       </div>
     </div>
 
@@ -2214,7 +2242,7 @@ export default {
   methods: {
     validationError(modelField) {
       if (this.errors == null) return false;
-      return this.errors.details.find(function (el) {
+      return this.errors.details.filter(function (el) {
         return el.path === modelField
       })
     }
