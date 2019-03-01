@@ -505,6 +505,21 @@ readOneDog : function({url, variables, token}){
       deleteDog(id:$id)
     }\`
     return requestGraphql({url, query, variables, token});
+  },
+
+  //simple queries needed in spa components
+
+  vueTable: \`{vueTableDog{data {id  name breed person{firstName  lastName } researcher{firstName }} total per_page current_page last_page prev_page_url next_page_url from to}}\`,
+
+  getAll: function(label, sublabel){
+    return \`query
+      dogs($search: searchDogInput $pagination: paginationInput)
+     {dogs(search:$search pagination:$pagination){id \${label} \${sublabel} } }\`
+  },
+
+  getOne: function(subQuery, label, sublabel){
+    return \` query readOneDog($id: ID!, $offset:Int, $limit:Int) {
+      readOneDog(id:$id){ \${subQuery}(pagination:{limit: $limit offset:$offset }){ id \${label} \${sublabel} } } }\`
   }
 }
 `
@@ -1298,6 +1313,20 @@ export default {
       deletePerson(id:$id)
     }\`
     return requestGraphql({url, query, variables, token});
+  },
+
+  //simple queries needed in spa components
+  vueTable: \`{vueTablePerson{data {id  firstName lastName email countFilteredDogs countFilteredBooks} total per_page current_page last_page prev_page_url next_page_url from to}}\`,
+
+  getAll: function(label, sublabel){
+      return \`query
+      people($search: searchPersonInput $pagination: paginationInput)
+     {people(search:$search pagination:$pagination){id \${label} \${sublabel} } }\`
+  },
+
+  getOne: function(subQuery, label, sublabel){
+    return \` query readOnePerson($id: ID!, $offset:Int, $limit:Int) {
+      readOnePerson(id:$id){ \${subQuery}(pagination:{limit: $limit offset:$offset }){ id \${label} \${sublabel} } } }\`
   }
 }
 `
@@ -1823,9 +1852,9 @@ export default {
   let query = \` mutation addBook(
    $title:String  $genre:String    $publisherId:Int    $addPeople:[ID]  ){
     addBook(
-     title:$title   genre:$genre       publisherId:$publisherId      addPeople:$addPeople    ){id  title   genre   }
+     title:$title   genre:$genre       publisherId:$publisherId      addPeople:$addPeople     ){id  title   genre   }
   }
-  \`
+\`
   return requestGraphql({url, query, variables, token});
 },
 
@@ -1833,17 +1862,17 @@ export default {
   readOneBook : function({url, variables, token}){
     let query = \`query readOneBook($id:ID!){
       readOneBook(id:$id){id  title   genre         publisher{ name
-      }  countFilteredPeople   }
-    }\`
+         }        countFilteredPeople
+    }
+  }\`
     return requestGraphql({url, query, variables, token});
   },
 
   update : function({url, variables, token}){
     let query = \`mutation updateBook($id:ID!
-     $title:String  $genre:String      $publisherId:Int $addPeople:[ID] $removePeople:[ID]){
+     $title:String  $genre:String      $publisherId:Int      $addPeople:[ID] $removePeople:[ID]     ){
       updateBook(id:$id
-       title:$title   genre:$genre         publisherId:$publisherId  addPeople:$addPeople removePeople:$removePeople)
-      {id  title   genre  }
+       title:$title   genre:$genre         publisherId:$publisherId        addPeople:$addPeople removePeople:$removePeople       ){id  title   genre  }
     }\`
 
     return requestGraphql({url, query, variables, token});
@@ -1854,7 +1883,24 @@ export default {
       deleteBook(id:$id)
     }\`
     return requestGraphql({url, query, variables, token});
+  },
+
+
+  //simple queries needed in spa components
+
+  vueTable : \`{vueTableBook{data {id  title genre publisher{name } countFilteredPeople} total per_page current_page last_page prev_page_url next_page_url from to}}\`,
+
+  getAll: function(label, sublabel){
+      return \`query
+      books($search: searchBookInput $pagination: paginationInput)
+     {books(search:$search pagination:$pagination){id \${label} \${sublabel} } }\`
+  },
+
+  getOne: function(subQuery, label, sublabel){
+    return \` query readOneBook($id: ID!, $offset:Int, $limit:Int) {
+      readOneBook(id:$id){ \${subQuery}(pagination:{limit: $limit offset:$offset }){ id \${label} \${sublabel} } } }\`
   }
+
 }
 `
 

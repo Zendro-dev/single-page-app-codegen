@@ -95,7 +95,7 @@ exports.typeAttributes = function(attributesArray) {
  * @param  {string} word String input to uncapitalize
  * @return {string}      String with lower case in the initial character
  */
-uncapitalizeString = function(word){
+exports.uncapitalizeString = function(word){
   let length = word.length;
   if(length==1){
     return word.toLowerCase();
@@ -111,7 +111,7 @@ uncapitalizeString = function(word){
  * @param  {type} word String input to capitalize
  * @return {type}      String with upper case in the initial character
  */
-capitalizeString = function(word){
+exports.capitalizeString = function(word){
   let length = word.length;
   if(length==1){
     return word.toUpperCase();
@@ -171,10 +171,10 @@ exports.fillOptionsForViews = function(fileData){
     // namePl: inflection.pluralize(fileData.model.toLowerCase()),
     // namePlLc: inflection.pluralize(fileData.model.toLowerCase()).toLowerCase(),
     // nameCp: inflection.capitalize(fileData.model),
-    nameLc: uncapitalizeString(fileData.model),
-    namePl: inflection.pluralize(uncapitalizeString(fileData.model)),
-    namePlLc: inflection.pluralize(uncapitalizeString(fileData.model)),
-    nameCp: capitalizeString(fileData.model),
+    nameLc: exports.uncapitalizeString(fileData.model),
+    namePl: inflection.pluralize(exports.uncapitalizeString(fileData.model)),
+    namePlLc: inflection.pluralize(exports.uncapitalizeString(fileData.model)),
+    nameCp: exports.capitalizeString(fileData.model),
     attributesArr: attributesArrayFromFile(fileData.attributes),
     typeAttributes: exports.typeAttributes(attributesArrayFromFile(fileData.attributes)),
     belongsTosArr: associations.belongsTos,
