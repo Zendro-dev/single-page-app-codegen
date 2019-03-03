@@ -844,6 +844,7 @@ module.exports.DogDetailView = `
 <script>
 import Vue from 'vue'
 import scrollListElement from './scrollListElement.vue'
+import Queries from '../requests/index'
 
 Vue.component('scroll-list', scrollListElement)
 
@@ -922,8 +923,9 @@ module.exports.projectDetailView = `
           :url="this.$baseUrl()"
           :idSelected="rowData.id"
           :countQuery="rowData.countFilteredResearchers"
-          query="readOneProject"
-          subQuery="researchersFilter"
+          v-bind:queryOne="researchersSubquery"
+          queryOneName="readOneProject"
+          subQueryName="researchersFilter"
           label="firstName"
           subLabel="lastName"
         > </scroll-list>
@@ -937,6 +939,7 @@ module.exports.projectDetailView = `
 <script>
 import Vue from 'vue'
 import scrollListElement from './scrollListElement.vue'
+import Queries from '../requests/index'
 
 Vue.component('scroll-list', scrollListElement)
 
@@ -951,6 +954,11 @@ export default {
     }
   },
   computed: {
+
+    researchersSubquery: function(){
+      return Queries.Project.getOne("researchersFilter", "firstName", "lastName");
+    },
+
           specieInitialLabel: function () {
       var x = this.rowData.specie
       if (x !== null && typeof x === 'object' &&
@@ -1581,8 +1589,9 @@ module.exports.individualDetailView = `
         :url="this.$baseUrl()"
         :idSelected="rowData.id"
         :countQuery="rowData.countFilteredTranscript_counts"
-        query="readOneIndividual"
-        subQuery="transcript_countsFilter"
+        v-bind:queryOne="transcript_countsSubquery"
+        queryOneName="readOneIndividual"
+        subQueryName="transcript_countsFilter"
         label="gene"
         subLabel="variable"
         > </scroll-list>
@@ -1595,6 +1604,7 @@ module.exports.individualDetailView = `
 <script>
 import Vue from 'vue'
 import scrollListElement from './scrollListElement.vue'
+import Queries from '../requests/index'
 
 Vue.component('scroll-list', scrollListElement)
 
@@ -1609,6 +1619,9 @@ export default {
     }
   },
   computed: {
+      transcript_countsSubquery: function(){
+        return Queries.Individual.getOne("transcript_countsFilter", "gene", "variable");
+      }
     },
   methods: {
     onClick (event) {
@@ -2553,4 +2566,97 @@ export default {
   }
 }
 </script>
+`
+
+module.exports.personDetailView = `
+<template>
+  <div @click="onClick">
+    <div class="inline field">
+      <label>id: </label>
+      <span>{{rowData.id}}</span>
+    </div>
+          <div class="inline field">
+        <label>firstName:</label>
+        <span>{{rowData.firstName}}</span>
+      </div>
+          <div class="inline field">
+        <label>lastName:</label>
+        <span>{{rowData.lastName}}</span>
+      </div>
+          <div class="inline field">
+        <label>email:</label>
+        <span>{{rowData.email}}</span>
+      </div>
+
+    <div id="person-dogs-div" class="row w-100">
+      <div class="col">
+        <label>dogs:</label>
+        <scroll-list class="list-group"
+          :url="this.$baseUrl()"
+          :idSelected="rowData.id"
+          :countQuery="rowData.countFilteredDogs"
+          v-bind:queryOne="dogsSubquery"
+          queryOneName="readOnePerson"
+          subQueryName="dogsFilter"
+          label="name"
+          subLabel=""
+        > </scroll-list>
+      </div>
+    </div>
+
+    <div id="person-books-div" class="row w-100">
+      <div class="col">
+        <label>books:</label>
+        <scroll-list class="list-group"
+          :url="this.$baseUrl()"
+          :idSelected="rowData.id"
+          :countQuery="rowData.countFilteredBooks"
+          v-bind:queryOne="booksSubquery"
+          queryOneName="readOnePerson"
+          subQueryName="booksFilter"
+          label="title"
+          subLabel=""
+        > </scroll-list>
+      </div>
+    </div>
+
+  </div>
+</template>
+
+<script>
+import Vue from 'vue'
+import scrollListElement from './scrollListElement.vue'
+import Queries from '../requests/index'
+
+Vue.component('scroll-list', scrollListElement)
+
+export default {
+  props: {
+    rowData: {
+      type: Object,
+      required: true
+    },
+    rowIndex: {
+      type: Number
+    }
+  },
+  computed: {
+
+    dogsSubquery: function(){
+      return Queries.Person.getOne("dogsFilter","name", "" );
+    },
+
+    booksSubquery: function(){
+      return Queries.Person.getOne("booksFilter", "title","");
+    }
+
+  },
+  methods: {
+    onClick (event) {
+      console.log('my-detail-row: on-click', event.target)
+    }
+  }
+}
+</script>
+
 `

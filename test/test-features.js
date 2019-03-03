@@ -251,6 +251,15 @@ describe('VueTable GraphQl Query', function(){
         let test_detailView = testData.individualDetailView.replace(/\s/g, '');
         expect(created_detailView).to.be.equal(test_detailView);
     });
+
+    let modelsObjPerson = funks.fillOptionsForViews(models.person) ;
+    it('fix queries - person',async function(){
+       let file = await funks.renderTemplate('detailView',modelsObjPerson);
+        let created_detailView = file.replace(/\s/g, '');
+        let test_detailView = testData.personDetailView.replace(/\s/g, '');
+        expect(created_detailView).to.be.equal(test_detailView);
+    });
+
   });
 
   describe('UploadForm', function(){

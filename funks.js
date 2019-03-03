@@ -222,26 +222,36 @@ parseAssociationsFromFile = function(associations){
 
       if(type === "belongsTo"){
         let bt = {
-          "targetModel": association.target.toLowerCase(),
+          //"targetModel": association.target.toLowerCase(),
+          "targetModel": exports.uncapitalizeString(association.target),
           "foreignKey": association.targetKey,
           "primaryKey" : "id",
           "label" : association.label,
           //sublabel can be undefined
           "sublabel" : association.sublabel,
-          "targetModelLc" : association.target.toLowerCase(),
-          "targetModelPlLc" : inflection.pluralize(association.target).toLowerCase(),
-          "targetModelCp" : inflection.capitalize(association.target),
-          "targetModelPlCp": inflection.capitalize(inflection.pluralize(association.target)),
-          "relationName" : name
+          // "targetModelLc" : association.target.toLowerCase(),
+          // "targetModelPlLc" : inflection.pluralize(association.target).toLowerCase(),
+          // "targetModelCp" : inflection.capitalize(association.target),
+          // "targetModelPlCp": inflection.capitalize(inflection.pluralize(association.target)),
+          "targetModelLc": exports.uncapitalizeString(association.target),
+          "targetModelPlLc": inflection.pluralize(exports.uncapitalizeString(association.target)),
+          "targetModelCp": exports.capitalizeString(association.target),
+          "targetModelPlCp": inflection.pluralize(exports.capitalizeString(association.target)),
+          "relationName" : name,
+          "relationNameCp": exports.capitalizeString(name)
         }
 
         assoc.belongsTos.push(bt);
       }else if(type==="hasMany" || type==="belongsToMany"){
         let hm = {
           "relationName" : name,
-          "targetModelPlLc" : inflection.pluralize(association.target).toLowerCase(),
-          "targetModelCp" : inflection.capitalize(association.target),
-          "targetModelPlCp": inflection.capitalize(inflection.pluralize(association.target)),
+          "relationNameCp": exports.capitalizeString(name),
+          // "targetModelPlLc" : inflection.pluralize(association.target).toLowerCase(),
+          // "targetModelCp" : inflection.capitalize(association.target),
+          // "targetModelPlCp": inflection.capitalize(inflection.pluralize(association.target)),
+          "targetModelPlLc": inflection.pluralize(exports.uncapitalizeString(association.target)),
+          "targetModelCp": exports.capitalizeString(association.target),
+          "targetModelPlCp": inflection.pluralize(exports.capitalizeString(association.target)),
           "label" : association.label,
           //sublabel can be undefined
           "sublabel" : association.sublabel
