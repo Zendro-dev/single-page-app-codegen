@@ -276,9 +276,9 @@ module.exports.DogFormElem = `
 
 
       <div id="dog-name-err" v-if="validationError('name')" class="alert alert-danger">
-      <ul>
-        <li v-for="err in validationError('name')"> {{err.message}}</li>
-      </ul>
+        <ul>
+          <li v-for="err in validationError('name')">{{err.message}}</li>
+        </ul>
       </div>
     </div>
 
@@ -290,9 +290,9 @@ module.exports.DogFormElem = `
 
 
       <div id="dog-breed-err" v-if="validationError('breed')" class="alert alert-danger">
-      <ul>
-        <li v-for="err in validationError('breed')"> {{err.message}}</li>
-      </ul>
+        <ul>
+          <li v-for="err in validationError('breed')">{{err.message}}</li>
+        </ul>
       </div>
     </div>
 
@@ -307,7 +307,10 @@ module.exports.DogFormElem = `
                     subLabel = "lastName"
                         valueKey="id"
         targetModel="Person"
-        v-bind:initialInput="personInitialLabel">
+        v-bind:initialInput="personInitialLabel"
+        v-bind:query="personQuery"
+        queryName ="people"
+        >
       </foreign-key-form-element>
     </div>
 
@@ -320,12 +323,12 @@ module.exports.DogFormElem = `
         label="firstName"
                         valueKey="id"
         targetModel="Researcher"
-        v-bind:initialInput="researcherInitialLabel">
+        v-bind:initialInput="researcherInitialLabel"
+        v-bind:query="researcherQuery"
+        queryName= "researchers"
+        >
       </foreign-key-form-element>
     </div>
-
-
-
 
 
   </div>
@@ -340,17 +343,22 @@ Vue.component('foreign-key-form-element', foreignKeyFormElement)
 
 import inflection from 'inflection'
 import axios from 'axios'
+import Queries from '../requests/index'
 
 export default {
   props: [ 'dog', 'errors', 'mode' ],
   data(){
     return{
-      target_models: [
-             ],
-      model: 'dog'
     }
   },
   computed: {
+
+    personQuery : function(){
+      return Queries.Person.getAll("firstName", "lastName");
+    },
+    researcherQuery: function(){
+      return Queries.Researcher.getAll("firstName", "");
+    },
             personInitialLabel: function () {
       var x = this.dog.person
       if (x !== null && typeof x === 'object' &&
@@ -396,6 +404,7 @@ export default {
   }
 }
 </script>
+
 `
 module.exports.DogCreateForm = `
 <template>
@@ -710,7 +719,10 @@ module.exports.ProjectForm = `
                     subLabel = "nombre_cientifico"
                         valueKey="id"
         targetModel="Specie"
-        v-bind:initialInput="specieInitialLabel">
+        v-bind:initialInput="specieInitialLabel"
+        v-bind:query = "specieQuery"
+        queryName = "species"
+        >
       </foreign-key-form-element>
     </div>
 
@@ -732,8 +744,11 @@ module.exports.ProjectForm = `
         targetModel = "Researcher"
         removeName="removeResearchers"
         addName="addResearchers"
-        query="readOneProject"
-        subQuery="researchersFilter"
+        v-bind:queryOne="researchersSubquery"
+        queryOneName="readOneProject"
+        subQueryName="researchersFilter"
+        v-bind:query = "researchersQuery"
+        queryName = "researchers"
         >
       </has-many-form-element>
     </div>
@@ -755,21 +770,28 @@ import hasManyFormElemn from './hasManyFormElemn.vue'
 Vue.component('has-many-form-element', hasManyFormElemn)
 import inflection from 'inflection'
 import axios from 'axios'
+import Queries from '../requests/index'
 
 export default {
   props: [ 'project', 'errors', 'mode' ],
   data(){
     return{
-      target_models: [
-                     {
-            model:'Researcher',
-            label: 'firstName',
-            sublabel: 'lastName'
-        }              ],
-      model: 'project'
     }
   },
   computed: {
+
+    specieQuery: function(){
+      return Queries.Specie.getAll("nombre","nombre_cientifico");
+    },
+
+    researchersQuery: function(){
+      return Queries.Researcher.getAll("firstName","lastName");
+    },
+
+    researchersSubquery: function(){
+      return Queries.Project.getOne("researchersFilter", "firstName","lastName");
+    },
+
           specieInitialLabel: function () {
       var x = this.project.specie
       if (x !== null && typeof x === 'object' &&
@@ -1189,7 +1211,9 @@ module.exports.BookForm = `
         label="name"
                         valueKey="id"
         targetModel="Publisher"
-        v-bind:initialInput="publisherInitialLabel">
+        v-bind:initialInput="publisherInitialLabel"
+        v-bind:query="publisherQuery"
+        queryName="publishers">
       </foreign-key-form-element>
     </div>
 
@@ -1211,8 +1235,11 @@ module.exports.BookForm = `
         targetModel = "Person"
         removeName="removePeople"
         addName="addPeople"
-        query="readOneBook"
-        subQuery="peopleFilter"
+        v-bind:queryOne = "peopleSubquery"
+        queryOneName="readOneBook"
+        subQueryName="peopleFilter"
+        v-bind:query="peopleQuery"
+        queryName ="people"
         >
       </has-many-form-element>
     </div>
@@ -1234,21 +1261,28 @@ import hasManyFormElemn from './hasManyFormElemn.vue'
 Vue.component('has-many-form-element', hasManyFormElemn)
 import inflection from 'inflection'
 import axios from 'axios'
+import Queries from '../requests/index'
 
 export default {
   props: [ 'book', 'errors', 'mode' ],
   data(){
     return{
-      target_models: [
-                     {
-            model:'Person',
-            label: 'firstName',
-            sublabel: 'email'
-        }              ],
-      model: 'book'
     }
   },
   computed: {
+
+    publisherQuery: function(){
+      return Queries.Publisher.getAll("name","");
+    },
+
+    peopleQuery: function(){
+      return Queries.Person.getAll("firstName", "email");
+    },
+
+    peopleSubquery: function(){
+      return Queries.Book.getOne("peopleFilter", "firstName", "email");
+    },
+
             publisherInitialLabel: function () {
       var x = this.book.publisher
       if (x !== null && typeof x === 'object' &&
@@ -1666,8 +1700,11 @@ module.exports.IndividualForm = `
         targetModel = "Transcript_count"
         removeName="removeTranscript_counts"
         addName="addTranscript_counts"
-        query="readOneIndividual"
-        subQuery="transcript_countsFilter"
+        v-bind:queryOne = "transcript_countsSubquery"
+        queryOneName="readOneIndividual"
+        subQueryName="transcript_countsFilter"
+        v-bind:query="transcript_countsQuery"
+        queryName="transcript_counts"
         >
       </has-many-form-element>
     </div>
@@ -1681,21 +1718,25 @@ import hasManyFormElemn from './hasManyFormElemn.vue'
 Vue.component('has-many-form-element', hasManyFormElemn)
 import inflection from 'inflection'
 import axios from 'axios'
+import Queries from '../requests/index'
 
 export default {
   props: [ 'individual', 'errors', 'mode' ],
   data(){
     return{
-      target_models: [ {
-        model:'Transcript_count',
-        label: 'gene',
-        sublabel: 'variable'
-      } ],
-      model: 'individual'
+
     }
   },
   computed: {
+
+    transcript_countsQuery : function(){
+        return Queries.Transcript_count.getAll("gene", "variable");
     },
+
+    transcript_countsSubquery : function(){
+      return Queries.Individual.getOne("transcript_countsFilter","gene", "variable");
+    }
+  },
   methods: {
     validationError(modelField) {
       if (this.errors == null) return false;
@@ -1791,7 +1832,10 @@ module.exports.TranscriptForm =`
         label="name"
                         valueKey="id"
         targetModel = "Individual"
-        v-bind:initialInput="individualInitialLabel">
+        v-bind:initialInput="individualInitialLabel"
+        v-bind:query="individualQuery"
+        queryName="individuals"
+        >
       </foreign-key-form-element>
     </div>
 
@@ -1811,17 +1855,20 @@ Vue.component('foreign-key-form-element', foreignKeyFormElement)
 
 import inflection from 'inflection'
 import axios from 'axios'
+import Queries from '../requests/index'
 
 export default {
   props: [ 'transcript_count', 'errors', 'mode' ],
   data(){
     return{
-      target_models: [
-             ],
-      model: 'transcript_count'
     }
   },
   computed: {
+
+    individualQuery: function(){
+      return Queries.Individual.getAll("name","");
+    },
+
           individualInitialLabel: function () {
       var x = this.transcript_count.individual
       if (x !== null && typeof x === 'object' &&
@@ -2237,8 +2284,11 @@ module.exports.PersonForm = `
         targetModel = "Dog"
         removeName="removeDogs"
         addName="addDogs"
-        query="readOnePerson"
-        subQuery="dogsFilter"
+        v-bind:queryOne="dogsSubquery"
+        queryOneName="readOnePerson"
+        subQueryName="dogsFilter"
+        v-bind:query="dogsQuery"
+        queryName="dogs"
         >
       </has-many-form-element>
     </div>
@@ -2258,8 +2308,11 @@ module.exports.PersonForm = `
         targetModel = "Book"
         removeName="removeBooks"
         addName="addBooks"
-        query="readOnePerson"
-        subQuery="booksFilter"
+        v-bind:queryOne="booksSubquery"
+        queryOneName="readOnePerson"
+        subQueryName="booksFilter"
+        v-bind:query="booksQuery"
+        queryName = "books"
         >
       </has-many-form-element>
     </div>
@@ -2278,26 +2331,32 @@ import hasManyFormElemn from './hasManyFormElemn.vue'
 Vue.component('has-many-form-element', hasManyFormElemn)
 import inflection from 'inflection'
 import axios from 'axios'
+import Queries from '../requests/index'
 
 export default {
   props: [ 'person', 'errors', 'mode' ],
   data(){
     return{
-      target_models: [
-                     {
-            model:'Dog',
-            label: 'name',
-            sublabel: ''
-        },                      {
-            model:'Book',
-            label: 'title',
-            sublabel: ''
-        }              ],
-      model: 'person'
     }
   },
   computed: {
+    dogsQuery : function(){
+      return Queries.Dog.getAll("name","");
     },
+
+    dogsSubquery: function(){
+      return Queries.Person.getOne("dogsFilter","name", "" );
+    },
+
+    booksQuery: function(){
+      return Queries.Book.getAll("title","");
+    },
+
+    booksSubquery: function(){
+      return Queries.Person.getOne("booksFilter", "title","");
+    }
+
+  },
   methods: {
     validationError(modelField) {
       if (this.errors == null) return false;

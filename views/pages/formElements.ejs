@@ -34,7 +34,10 @@
         <%}-%>
         valueKey="<%- bt.primaryKey -%>"
         targetModel="<%-bt.targetModelCp%>"
-        v-bind:initialInput="<%- bt.targetModelLc -%>InitialLabel">
+        v-bind:initialInput="<%- bt.relationName -%>InitialLabel"
+        v-bind:query= "<%-bt.relationName-%>Query"
+        queryName = "<%-bt.targetModelPlLc-%>"
+        >
       </foreign-key-form-element>
     </div>
 
@@ -60,10 +63,13 @@
         valueKey="id"
         model="<%-nameCp-%>"
         targetModel = "<%-manyRel.targetModelCp-%>"
-        removeName="remove<%-manyRel.targetModelPlCp-%>"
-        addName="add<%-manyRel.targetModelPlCp-%>"
-        query="readOne<%- nameCp -%>"
-        subQuery="<%- manyRel.targetModelPlLc -%>Filter"
+        removeName="remove<%-manyRel.relationNameCp-%>"
+        addName="add<%-manyRel.relationNameCp-%>"
+        v-bind:queryOne= "<%-manyRel.relationName-%>Subquery"
+        queryOneName="readOne<%- nameCp -%>"
+        subQueryName="<%- manyRel.relationName -%>Filter"
+        v-bind:query = "<%-manyRel.targetModelPlLc-%>Query"
+        queryName = "<%-manyRel.targetModelPlLc-%>"
         >
       </has-many-form-element>
     </div>
@@ -93,28 +99,44 @@ Vue.component('has-many-form-element', hasManyFormElemn)
 <% } -%>
 import inflection from 'inflection'
 import axios from 'axios'
+import Queries from '../requests/index'
 
 export default {
   props: [ '<%- nameLc -%>', 'errors', 'mode' ],
   data(){
     return{
-      target_models: [
-       <%for( i=0; i<hasManysArr.length; i++ ) { -%>
-      <%let hm = hasManysArr[i]-%>
-        {
-            model:'<%-hm.targetModelCp-%>',
-            label: '<%-hm.label-%>',
-            sublabel: '<%-hm.sublabel-%>'
-        }<%if(i!==hasManysArr.length-1){-%>,<%}-%>
-        <%}-%>
-      ],
-      model: '<%- nameLc -%>'
     }
   },
   computed: {
+
+    <% for ( i=0; i<belongsTosArr.length; i++ ) { -%>
+      <%let btr = belongsTosArr[i] -%>
+
+      <%-btr.relationName-%>Query: function(){
+        return Queries.<%-btr.targetModelCp-%>.getAll("<%-btr.label-%>", <%if(btr.sublabel){%>"<%-btr.sublabel-%>"<%}else{-%>""<%}%>);
+      },
+
+    <%}-%>
+
+
+    <% for ( i=0; i<hasManysArr.length; i++ ) { -%>
+      <% var rel = hasManysArr[i] -%>
+
+      <%-rel.relationName-%>Query : function(){
+        return Queries.<%- rel.targetModelCp -%>.getAll("<%-rel.label-%>",<%if(rel.sublabel){%>"<%-rel.sublabel-%>"<%}else{-%>""<%}%>);
+      },
+
+      <%-rel.relationName-%>Subquery : function(){
+        return Queries.<%-nameCp-%>.getOne("<%-rel.relationName-%>Filter","<%-rel.label-%>",<%if(rel.sublabel){%>"<%-rel.sublabel-%>"<%}else{-%>""<%}%>);
+      }
+      <% if (i < (hasManysArr.length - 1) || belongsTosArr.length>0) { -%>
+      ,
+      <% } -%>
+    <%}-%>
+
     <% for ( i=0; i<belongsTosArr.length; i++ ) { -%>
     <% var bt = belongsTosArr[i] -%>
-    <%- bt.targetModelLc -%>InitialLabel: function () {
+    <%- bt.relationName -%>InitialLabel: function () {
       var x = this.<%- nameLc -%>.<%- bt.relationName %>
       if (x !== null && typeof x === 'object' &&
           x['<%- bt.label -%>'] !== null &&
