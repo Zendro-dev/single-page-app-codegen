@@ -61,7 +61,7 @@ export default {
 <%- bt.relationName %>{<%-bt.label-%> <%if(bt.sublabel){-%> <%-bt.sublabel %> <%}-%>}<%}-%>
 <%for(i=0; i<hasManysArr.length; i++){-%>
 <%let manyRel = hasManysArr[i]-%>
-countFiltered<%-manyRel.relationNameCp-%><%}-%>
+countFiltered<%-manyRel.relationNameCp-%> <%}-%>
 } total per_page current_page last_page prev_page_url next_page_url from to}}`,
 
   getAll: function(label, sublabel){
