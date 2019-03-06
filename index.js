@@ -59,8 +59,8 @@ fs.readdirSync(program.jsonFiles).forEach( async (json_file) =>{
   let grapqlRequestPath = path.resolve(directory, "src", "requests", ejbOpts.nameLc + ".js")
   promises.push( funks.renderToFile(grapqlRequestPath, "graphqlRequests", ejbOpts))
   // constants
-  let constants = path.resolve(directory, "src", "sciencedb-globals.js")
-  promises.push( funks.renderToFile(constants, 'global_constant', ejbOpts))
+  //let constants = path.resolve(directory, "src", "sciencedb-globals.js")
+  //promises.push( funks.renderToFile(constants, 'global_constant', ejbOpts))
 });
 
  Promise.all(promises).then( (values) =>{
