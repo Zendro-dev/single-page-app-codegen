@@ -52,9 +52,9 @@
       <has-many-form-element
         :searchUrl="this.$baseUrl()"
         :idSelected="<%- nameLc -%>.id"
-        :countQuery="<%- nameLc -%>.countFiltered<%- manyRel.targetModelPlCp -%>"
+        :countQuery="<%- nameLc -%>.countFiltered<%- manyRel.relationNameCp -%>"
         :mode="mode"
-        :addItems.sync="<%- nameLc -%>.add<%- manyRel.targetModelPlCp -%>"
+        :addItems.sync="<%- nameLc -%>.add<%- manyRel.relationNameCp -%>"
         label="<%- manyRel.label -%>"
         <%let sublabel = ""-%>
         <%if(manyRel.sublabel){-%>
@@ -68,7 +68,7 @@
         v-bind:queryOne= "<%-manyRel.relationName-%>Subquery"
         queryOneName="readOne<%- nameCp -%>"
         subQueryName="<%- manyRel.relationName -%>Filter"
-        v-bind:query = "<%-manyRel.targetModelPlLc-%>Query"
+        v-bind:query = "<%-manyRel.relationName-%>Query"
         queryName = "<%-manyRel.targetModelPlLc-%>"
         >
       </has-many-form-element>

@@ -59,7 +59,7 @@ export default {
 
     getAssociationsIds(){
       <%for( i=0; i<hasManysArr.length; i++ ){-%>
-        this.<%- nameLc -%>.add<%-hasManysArr[i].targetModelPlCp%> = this.getOnlyIds(this.<%- nameLc -%>.add<%-hasManysArr[i].targetModelPlCp%>);
+        this.<%- nameLc -%>.add<%-hasManysArr[i].relationNameCp%> = this.getOnlyIds(this.<%- nameLc -%>.add<%-hasManysArr[i].relationNameCp%>);
       <%}-%>
     }
   }
