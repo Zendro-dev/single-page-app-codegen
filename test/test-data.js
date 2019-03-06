@@ -2719,3 +2719,61 @@ export default {
 </script>
 
 `
+module.exports.academicTeamRequests = `
+
+import requestGraphql from './request'
+
+export default {
+
+  create : function({url, variables, token}){
+  let query = \` mutation addAcademicTeam(
+   $name:String  $department:String  $subject:String      $addMembers:[ID]  ){
+    addAcademicTeam(
+     name:$name   department:$department   subject:$subject           addMembers:$addMembers     ){id  name   department   subject   }
+  }
+  \`
+  return requestGraphql({url, query, variables, token});
+},
+
+
+  readOneAcademicTeam : function({url, variables, token}){
+    let query = \`query readOneAcademicTeam($id:ID!){
+      readOneAcademicTeam(id:$id){id  name   department   subject               countFilteredMembers     }
+    }\`
+    return requestGraphql({url, query, variables, token});
+  },
+
+  update : function({url, variables, token}){
+    let query = \`mutation updateAcademicTeam($id:ID!
+     $name:String  $department:String  $subject:String          $addMembers:[ID] $removeMembers:[ID]     ){
+      updateAcademicTeam(id:$id
+       name:$name   department:$department   subject:$subject               addMembers:$addMembers removeMembers:$removeMembers       ){id  name   department   subject  }
+    }\`
+
+    return requestGraphql({url, query, variables, token});
+  },
+
+  deleteAcademicTeam : function({url, variables, token}){
+    let query = \`mutation deleteAcademicTeam($id:ID!){
+      deleteAcademicTeam(id:$id)
+    }\`
+    return requestGraphql({url, query, variables, token});
+  },
+
+  //simple queries needed in spa components
+
+  vueTable: \`{vueTableAcademicTeam{data {id  name department subjectcountFilteredMembers} total per_page current_page last_page prev_page_url next_page_url from to}}\`,
+
+  getAll: function(label, sublabel){
+    return \`query
+    academicTeams($search: searchAcademicTeamInput $pagination: paginationInput)
+   {academicTeams(search:$search pagination:$pagination){id \${label} \${sublabel} } }\`
+  },
+
+  getOne: function(subQuery,label, sublabel){
+    return \`query readOneAcademicTeam($id: ID!, $offset:Int, $limit:Int) {
+      readOneAcademicTeam(id:$id){ \${subQuery}(pagination:{limit: $limit offset:$offset }){ id \${label} \${sublabel} } } }\`
+  }
+
+}
+`

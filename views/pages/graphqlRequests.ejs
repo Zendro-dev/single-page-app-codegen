@@ -6,12 +6,12 @@ export default {
   let query = ` mutation add<%- nameCp -%>(
   <% for ( i=0; i<attributesArr.length; i++ ){-%> $<%-attributesArr[i][0]%>:<%-attributesArr[i][1]-%> <%}-%>
   <% for( i=0; i<belongsTosArr.length; i++ ){-%> $<%-belongsTosArr[i].foreignKey%>:Int <%}-%>
-  <% for( i=0; i<hasManysArr.length; i++ ){-%> $add<%-hasManysArr[i].targetModelPlCp%>:[ID]<%}-%>
+  <% for( i=0; i<hasManysArr.length; i++ ){-%> $add<%-hasManysArr[i].relationNameCp%>:[ID]<%}-%>
   ){
     add<%- nameCp -%>(
     <% for ( i=0; i<attributesArr.length; i++ ){-%> <%-attributesArr[i][0]%>:$<%-attributesArr[i][0]-%>  <%}-%>
     <% for( i=0; i<belongsTosArr.length; i++ ){-%> <%-belongsTosArr[i].foreignKey%>:$<%-belongsTosArr[i].foreignKey%> <%}-%>
-    <% for( i=0; i<hasManysArr.length; i++ ){-%> add<%-hasManysArr[i].targetModelPlCp%>:$add<%-hasManysArr[i].targetModelPlCp%> <%}-%>
+    <% for( i=0; i<hasManysArr.length; i++ ){-%> add<%-hasManysArr[i].relationNameCp%>:$add<%-hasManysArr[i].relationNameCp%> <%}-%>
     ){id <% for ( i=0; i<attributesArr.length; i++ ) {-%> <%- attributesArr[i][0] %>  <%}-%> }
   }
   `
@@ -24,7 +24,7 @@ export default {
       readOne<%- nameCp -%>(id:$id){id <% for ( i=0; i<attributesArr.length; i++ ) {-%> <%- attributesArr[i][0] %>  <%}-%>
       <% for( i=0; i<belongsTosArr.length; i++ ){-%> <%-belongsTosArr[i].relationName%>{ <%-belongsTosArr[i].label%>
         <%if(belongsTosArr[i].sublabel){%> <%-belongsTosArr[i].sublabel-%> <%}-%> } <%}-%>
-      <% for( i=0; i<hasManysArr.length; i++ ){-%> countFiltered<%-hasManysArr[i].targetModelPlCp%> <%}-%>
+      <% for( i=0; i<hasManysArr.length; i++ ){-%> countFiltered<%-hasManysArr[i].relationNameCp%> <%}-%>
     }
     }`
     return requestGraphql({url, query, variables, token});
@@ -34,12 +34,12 @@ export default {
     let query = `mutation update<%- nameCp -%>($id:ID!
     <% for ( i=0; i<attributesArr.length; i++ ){-%> $<%-attributesArr[i][0]%>:<%-attributesArr[i][1]-%> <%}-%>
     <% for( i=0; i<belongsTosArr.length; i++ ){-%> $<%-belongsTosArr[i].foreignKey%>:Int <%}-%>
-    <% for( i=0; i<hasManysArr.length; i++ ){-%> $add<%-hasManysArr[i].targetModelPlCp%>:[ID] $remove<%-hasManysArr[i].targetModelPlCp%>:[ID] <%}-%>
+    <% for( i=0; i<hasManysArr.length; i++ ){-%> $add<%-hasManysArr[i].relationNameCp%>:[ID] $remove<%-hasManysArr[i].relationNameCp%>:[ID] <%}-%>
     ){
       update<%- nameCp -%>(id:$id
       <% for ( i=0; i<attributesArr.length; i++ ){-%> <%-attributesArr[i][0]%>:$<%-attributesArr[i][0]-%>  <%}-%>
       <% for( i=0; i<belongsTosArr.length; i++ ){-%> <%-belongsTosArr[i].foreignKey%>:$<%-belongsTosArr[i].foreignKey%> <%}-%>
-      <% for( i=0; i<hasManysArr.length; i++ ){-%> add<%-hasManysArr[i].targetModelPlCp%>:$add<%-hasManysArr[i].targetModelPlCp%> remove<%-hasManysArr[i].targetModelPlCp%>:$remove<%-hasManysArr[i].targetModelPlCp%> <%}-%>
+      <% for( i=0; i<hasManysArr.length; i++ ){-%> add<%-hasManysArr[i].relationNameCp%>:$add<%-hasManysArr[i].relationNameCp%> remove<%-hasManysArr[i].relationNameCp%>:$remove<%-hasManysArr[i].relationNameCp%> <%}-%>
       ){id <% for ( i=0; i<attributesArr.length; i++ ) {-%> <%- attributesArr[i][0] %>  <%}-%>}
     }`
 
@@ -61,7 +61,7 @@ export default {
 <%- bt.relationName-%>{<%-bt.label-%> <%if(bt.sublabel){-%> <%-bt.sublabel%> <%}-%>}<%}-%>
 <%for(i=0; i<hasManysArr.length; i++){-%>
 <%let manyRel = hasManysArr[i]-%>
-countFiltered<%-manyRel.targetModelPlCp-%><%}-%>
+countFiltered<%-manyRel.relationNameCp-%><%}-%>
 } total per_page current_page last_page prev_page_url next_page_url from to}}`,
 
   getAll: function(label, sublabel){

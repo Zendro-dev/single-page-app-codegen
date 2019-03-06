@@ -184,6 +184,15 @@ describe('VueTable GraphQl Query', function(){
         expect(created_requests).to.be.equal(test_requests);
     });
 
+    let modelsObjAcademicTeam = funks.fillOptionsForViews(models.academicTeam) ;
+
+    it('associations name - academicTeam',async function(){
+       let file = await funks.renderTemplate('graphqlRequests',modelsObjAcademicTeam);
+        let created_requests = file.replace(/\s/g, '');
+        let test_requests = testData.academicTeamRequests.replace(/\s/g, '');
+        expect(created_requests).to.be.equal(test_requests);
+    });
+
   });
 
   describe('EditForm', function(){
