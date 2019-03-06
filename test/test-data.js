@@ -137,6 +137,7 @@ import axios from 'axios'
 
 import Vue from 'vue'
 import VueEvents from 'vue-events'
+import Queries from '../requests/index'
 Vue.use(VueEvents)
 
 Vue.component('book-custom-actions', BookCustomActions)
@@ -181,7 +182,7 @@ export default {
         }
       ],
       moreParams: {
-      query: \`{vueTableBook{data {id  title genre publisher{name } countFilteredPeople} total per_page current_page last_page prev_page_url next_page_url from to}}\`
+        query: Queries.Book.vueTable
       }
     }
   },
@@ -199,12 +200,12 @@ export default {
     },
     onFilterSet(filterText) {
       this.moreParams [
-        'filter']= filterText.trim()
+        'filter'] = filterText.trim()
       Vue.nextTick(() => this.$refs.vuetable.refresh())
     },
     onFilterReset() {
       this.moreParams = {
-        query: \`{vueTableBook{data {id  title genre publisher{name } countFilteredPeople} total per_page current_page last_page prev_page_url next_page_url from to}}\`
+        query: Queries.Book.vueTable
       }
       Vue.nextTick(() => this.$refs.vuetable.refresh())
     },
@@ -1044,6 +1045,7 @@ import axios from 'axios'
 
 import Vue from 'vue'
 import VueEvents from 'vue-events'
+import Queries from '../requests/index'
 Vue.use(VueEvents)
 
 Vue.component('dog-custom-actions', DogCustomActions)
@@ -1088,7 +1090,7 @@ export default {
         }
       ],
       moreParams: {
-        query: \`{vueTableDog{data {id  name breed person{firstName  lastName } researcher{firstName }} total per_page current_page last_page prev_page_url next_page_url from to}}\`
+        query: Queries.Dog.vueTable
       }
     }
   },
@@ -1111,7 +1113,7 @@ export default {
     },
     onFilterReset() {
       this.moreParams = {
-        query: \`{vueTableDog{data {id  name breed person{firstName  lastName } researcher{firstName }} total per_page current_page last_page prev_page_url next_page_url from to}}\`
+        query: Queries.Dog.vueTable
       }
       Vue.nextTick(() => this.$refs.vuetable.refresh())
     },
@@ -1484,6 +1486,7 @@ import axios from 'axios'
 
 import Vue from 'vue'
 import VueEvents from 'vue-events'
+import Queries from '../requests/index'
 Vue.use(VueEvents)
 
 Vue.component('individual-custom-actions', individualCustomActions)
@@ -1524,7 +1527,7 @@ export default {
         }
       ],
       moreParams: {
-        query: \`{vueTableIndividual{data {id  name countFilteredTranscript_counts} total per_page current_page last_page prev_page_url next_page_url from to}}\`
+        query: Queries.Individual.vueTable
       }
     }
   },
@@ -1547,8 +1550,8 @@ export default {
     },
     onFilterReset() {
       this.moreParams = {
-        query: \`{vueTableIndividual{data {id  name countFilteredTranscript_counts} total per_page current_page last_page prev_page_url next_page_url from to}}\`
-      }
+        query: Queries.Individual.vueTable
+        }
       Vue.nextTick(() => this.$refs.vuetable.refresh())
     },
     onCsvExport () {
@@ -2495,6 +2498,7 @@ import axios from 'axios'
 
 import Vue from 'vue'
 import VueEvents from 'vue-events'
+import Queries from '../requests/index'
 Vue.use(VueEvents)
 
 Vue.component('transcriptCount-custom-actions', transcriptCountCustomActions)
@@ -2547,7 +2551,7 @@ export default {
         }
       ],
       moreParams: {
-        query: \`{vueTableTranscriptCount{data {id  gene variable count tissue_or_condition individual{name }} total per_page current_page last_page prev_page_url next_page_url from to}}\`
+        query: Queries.TranscriptCount.vueTable
       }
     }
   },
@@ -2570,8 +2574,8 @@ export default {
     },
     onFilterReset() {
       this.moreParams = {
-        query: \`{vueTableTranscriptCount{data {id  gene variable count tissue_or_condition individual{name }} total per_page current_page last_page prev_page_url next_page_url from to}}\`
-      }
+        query: Queries.TranscriptCount.vueTable
+        }
       Vue.nextTick(() => this.$refs.vuetable.refresh())
     },
     onCsvExport () {
