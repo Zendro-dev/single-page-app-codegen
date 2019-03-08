@@ -154,6 +154,35 @@ exports.parseFile = function(jFile){
 }
 
 
+
+/**
+ * checkJsonDataFile - description
+ *
+ * @param  {object} json_file_data Javascript object parser from json file containgin a model info
+ * @return {object}                Contains a boolean indicatin if the model data is described correctly and an array of errors.
+ */
+exports.checkJsonDataFile = function(json_file_data){
+  let result = {
+    pass : true,
+    errors: []
+  }
+
+  //check for label field in each association
+  if(json_file_data.associations !== undefined){
+    Object.entries(json_file_data.associations).forEach( ([name, association]) =>{
+      if(association.label === undefined){
+        result.pass = false;
+        result.errors.push(`ERROR IN MODEL ${json_file_data.model}: Label is mandatory field. It should be defined in association ${name}`);
+      }
+
+   })
+  }
+
+  return result;
+}
+
+
+
 /**
  * fillOptionsForViews - Creates object with all extra info and with all data model info that templates will use.
  *
