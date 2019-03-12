@@ -281,3 +281,14 @@ describe('VueTable GraphQl Query', function(){
         expect(created_customActions).to.be.equal(test_customActions);
     });
   });
+
+  describe('Routes', function(){
+    let modelsObj = funks.fillOptionsForViews(models.book) ;
+
+    it('routes - book',async function(){
+       let file = await funks.renderTemplate('routes',modelsObj);
+        let created_customActions = file.replace(/\s/g, '');
+        let test_customActions = testData.routes_book.replace(/\s/g, '');
+        expect(created_customActions).to.be.equal(test_customActions);
+    });
+  });
