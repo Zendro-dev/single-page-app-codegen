@@ -15,4 +15,3 @@ COPY ./integration_test_run/src/components/* ./src/components/
 COPY ./integration_test_run/src/router/* ./src/router/
 COPY ./integration_test_run/src/requests/* ./src/requests/
 COPY ./integration_test_run/src/sciencedb-globals.js ./src/
-

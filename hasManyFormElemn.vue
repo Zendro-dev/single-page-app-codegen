@@ -24,8 +24,9 @@
       :url="this.$baseUrl()"
       :idSelected="idSelected"
       :countQuery="countItems"
-      :query="query"
-      :subQuery="subQuery"
+      :queryOne="queryOne"
+      :queryOneName="queryOneName"
+      :subQueryName="subQueryName"
       :label="label"
       :subLabel="parseSublabel"
       :displayItems="addItems"
@@ -52,8 +53,8 @@ export default {
   data() {
     return {
       parseSublabel : this.subLabel ? this.subLabel : "",
-      queryName : inflection.pluralize(this.targetModel.toLowerCase()),
-      queryAll: '',
+      //queryName : inflection.pluralize(this.targetModel.toLowerCase()),
+      //queryAll: '',
       search : {
         operator: "or",
         search: [{
@@ -70,7 +71,7 @@ export default {
       countItems: this.countQuery
     }
   },
-  props: ['model', 'searchUrl', 'idSelected','query', 'subQuery' ,'label', 'subLabel', 'countQuery','valueKey','targetModel', 'removeName', 'addName', 'mode', 'addItems'],
+  props: ['model', 'searchUrl', 'idSelected','queryOne', 'queryOneName', 'query', 'queryName','subQueryName' ,'label', 'subLabel', 'countQuery','valueKey','targetModel', 'removeName', 'addName', 'mode', 'addItems'],
   components: {
     Autocomplete
   },
@@ -147,22 +148,22 @@ export default {
           // The options to pass in the autocomplete
           resolve(response.data[this.queryName])
         });
-        data.append('query', this.queryAll);
+        data.append('query', this.query);
         data.append('variables', JSON.stringify({search:this.search, pagination: this.pagination}))
         ajax.send(data);
       })
     },
     createQuery(){
-      this.queryAll = `query
-      ${this.queryName}($search: search${inflection.capitalize(this.targetModel)}Input $pagination: paginationInput)
-       {${this.queryName}(search:$search pagination:$pagination){id ${this.label} ${this.parseSublabel}} }`
+      // this.queryAll = `query
+      // ${this.queryName}($search: search${inflection.capitalize(this.targetModel)}Input $pagination: paginationInput)
+      //  {${this.queryName}(search:$search pagination:$pagination){id ${this.label} ${this.parseSublabel}} }`
     }
   },
   mounted: function(){
     this.addSublabelFilter();
   },
   created(){
-    this.createQuery();
+    //this.createQuery();
     if(this.mode==='create'){
       this.$emit('update:addItems', []);
     }

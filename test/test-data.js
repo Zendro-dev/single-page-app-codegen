@@ -137,6 +137,7 @@ import axios from 'axios'
 
 import Vue from 'vue'
 import VueEvents from 'vue-events'
+import Queries from '../requests/index'
 Vue.use(VueEvents)
 
 Vue.component('book-custom-actions', BookCustomActions)
@@ -181,7 +182,7 @@ export default {
         }
       ],
       moreParams: {
-      query: \`{vueTableBook{data {id  title genre publisher{name } countFilteredPeople} total per_page current_page last_page prev_page_url next_page_url from to}}\`
+        query: Queries.Book.vueTable
       }
     }
   },
@@ -199,12 +200,12 @@ export default {
     },
     onFilterSet(filterText) {
       this.moreParams [
-        'filter']= filterText.trim()
+        'filter'] = filterText.trim()
       Vue.nextTick(() => this.$refs.vuetable.refresh())
     },
     onFilterReset() {
       this.moreParams = {
-        query: \`{vueTableBook{data {id  title genre publisher{name } countFilteredPeople} total per_page current_page last_page prev_page_url next_page_url from to}}\`
+        query: Queries.Book.vueTable
       }
       Vue.nextTick(() => this.$refs.vuetable.refresh())
     },
@@ -276,7 +277,9 @@ module.exports.DogFormElem = `
 
 
       <div id="dog-name-err" v-if="validationError('name')" class="alert alert-danger">
-        {{validationError('name').message}}
+        <ul>
+          <li v-for="err in validationError('name')">{{err.message}}</li>
+        </ul>
       </div>
     </div>
 
@@ -288,7 +291,9 @@ module.exports.DogFormElem = `
 
 
       <div id="dog-breed-err" v-if="validationError('breed')" class="alert alert-danger">
-        {{validationError('breed').message}}
+        <ul>
+          <li v-for="err in validationError('breed')">{{err.message}}</li>
+        </ul>
       </div>
     </div>
 
@@ -303,7 +308,10 @@ module.exports.DogFormElem = `
                     subLabel = "lastName"
                         valueKey="id"
         targetModel="Person"
-        v-bind:initialInput="personInitialLabel">
+        v-bind:initialInput="personInitialLabel"
+        v-bind:query="personQuery"
+        queryName ="people"
+        >
       </foreign-key-form-element>
     </div>
 
@@ -316,12 +324,12 @@ module.exports.DogFormElem = `
         label="firstName"
                         valueKey="id"
         targetModel="Researcher"
-        v-bind:initialInput="researcherInitialLabel">
+        v-bind:initialInput="researcherInitialLabel"
+        v-bind:query="researcherQuery"
+        queryName= "researchers"
+        >
       </foreign-key-form-element>
     </div>
-
-
-
 
 
   </div>
@@ -336,17 +344,22 @@ Vue.component('foreign-key-form-element', foreignKeyFormElement)
 
 import inflection from 'inflection'
 import axios from 'axios'
+import Queries from '../requests/index'
 
 export default {
   props: [ 'dog', 'errors', 'mode' ],
   data(){
     return{
-      target_models: [
-             ],
-      model: 'dog'
     }
   },
   computed: {
+
+    personQuery : function(){
+      return Queries.Person.getAll("firstName", "lastName");
+    },
+    researcherQuery: function(){
+      return Queries.Researcher.getAll("firstName", "");
+    },
             personInitialLabel: function () {
       var x = this.dog.person
       if (x !== null && typeof x === 'object' &&
@@ -373,7 +386,7 @@ export default {
   methods: {
     validationError(modelField) {
       if (this.errors == null) return false;
-      return this.errors.details.find(function (el) {
+      return this.errors.details.filter(function (el) {
         return el.path === modelField
       })
     }
@@ -392,6 +405,7 @@ export default {
   }
 }
 </script>
+
 `
 module.exports.DogCreateForm = `
 <template>
@@ -501,6 +515,21 @@ readOneDog : function({url, variables, token}){
       deleteDog(id:$id)
     }\`
     return requestGraphql({url, query, variables, token});
+  },
+
+  //simple queries needed in spa components
+
+  vueTable: \`{vueTableDog{data {id  name breed person{firstName  lastName } researcher{firstName }} total per_page current_page last_page prev_page_url next_page_url from to}}\`,
+
+  getAll: function(label, sublabel){
+    return \`query
+      dogs($search: searchDogInput $pagination: paginationInput)
+     {dogs(search:$search pagination:$pagination){id \${label} \${sublabel} } }\`
+  },
+
+  getOne: function(subQuery, label, sublabel){
+    return \` query readOneDog($id: ID!, $offset:Int, $limit:Int) {
+      readOneDog(id:$id){ \${subQuery}(pagination:{limit: $limit offset:$offset }){ id \${label} \${sublabel} } } }\`
   }
 }
 `
@@ -660,7 +689,9 @@ module.exports.ProjectForm = `
 
 
       <div id="project-name-err" v-if="validationError('name')" class="alert alert-danger">
-        {{validationError('name').message}}
+      <ul>
+        <li v-for="err in validationError('name')"> {{err.message}}</li>
+      </ul>
       </div>
     </div>
 
@@ -672,7 +703,9 @@ module.exports.ProjectForm = `
 
 
       <div id="project-description-err" v-if="validationError('description')" class="alert alert-danger">
-        {{validationError('description').message}}
+      <ul>
+        <li v-for="err in validationError('description')"> {{err.message}}</li>
+      </ul>
       </div>
     </div>
 
@@ -687,7 +720,10 @@ module.exports.ProjectForm = `
                     subLabel = "nombre_cientifico"
                         valueKey="id"
         targetModel="Specie"
-        v-bind:initialInput="specieInitialLabel">
+        v-bind:initialInput="specieInitialLabel"
+        v-bind:query = "specieQuery"
+        queryName = "species"
+        >
       </foreign-key-form-element>
     </div>
 
@@ -709,8 +745,11 @@ module.exports.ProjectForm = `
         targetModel = "Researcher"
         removeName="removeResearchers"
         addName="addResearchers"
-        query="readOneProject"
-        subQuery="researchersFilter"
+        v-bind:queryOne="researchersSubquery"
+        queryOneName="readOneProject"
+        subQueryName="researchersFilter"
+        v-bind:query = "researchersQuery"
+        queryName = "researchers"
         >
       </has-many-form-element>
     </div>
@@ -732,21 +771,28 @@ import hasManyFormElemn from './hasManyFormElemn.vue'
 Vue.component('has-many-form-element', hasManyFormElemn)
 import inflection from 'inflection'
 import axios from 'axios'
+import Queries from '../requests/index'
 
 export default {
   props: [ 'project', 'errors', 'mode' ],
   data(){
     return{
-      target_models: [
-                     {
-            model:'Researcher',
-            label: 'firstName',
-            sublabel: 'lastName'
-        }              ],
-      model: 'project'
     }
   },
   computed: {
+
+    specieQuery: function(){
+      return Queries.Specie.getAll("nombre","nombre_cientifico");
+    },
+
+    researchersQuery: function(){
+      return Queries.Researcher.getAll("firstName","lastName");
+    },
+
+    researchersSubquery: function(){
+      return Queries.Project.getOne("researchersFilter", "firstName","lastName");
+    },
+
           specieInitialLabel: function () {
       var x = this.project.specie
       if (x !== null && typeof x === 'object' &&
@@ -761,7 +807,7 @@ export default {
   methods: {
     validationError(modelField) {
       if (this.errors == null) return false;
-      return this.errors.details.find(function (el) {
+      return this.errors.details.filter(function (el) {
         return el.path === modelField
       })
     }
@@ -821,6 +867,7 @@ module.exports.DogDetailView = `
 <script>
 import Vue from 'vue'
 import scrollListElement from './scrollListElement.vue'
+import Queries from '../requests/index'
 
 Vue.component('scroll-list', scrollListElement)
 
@@ -899,8 +946,9 @@ module.exports.projectDetailView = `
           :url="this.$baseUrl()"
           :idSelected="rowData.id"
           :countQuery="rowData.countFilteredResearchers"
-          query="readOneProject"
-          subQuery="researchersFilter"
+          v-bind:queryOne="researchersSubquery"
+          queryOneName="readOneProject"
+          subQueryName="researchersFilter"
           label="firstName"
           subLabel="lastName"
         > </scroll-list>
@@ -914,6 +962,7 @@ module.exports.projectDetailView = `
 <script>
 import Vue from 'vue'
 import scrollListElement from './scrollListElement.vue'
+import Queries from '../requests/index'
 
 Vue.component('scroll-list', scrollListElement)
 
@@ -928,6 +977,11 @@ export default {
     }
   },
   computed: {
+
+    researchersSubquery: function(){
+      return Queries.Project.getOne("researchersFilter", "firstName", "lastName");
+    },
+
           specieInitialLabel: function () {
       var x = this.rowData.specie
       if (x !== null && typeof x === 'object' &&
@@ -991,6 +1045,7 @@ import axios from 'axios'
 
 import Vue from 'vue'
 import VueEvents from 'vue-events'
+import Queries from '../requests/index'
 Vue.use(VueEvents)
 
 Vue.component('dog-custom-actions', DogCustomActions)
@@ -1035,7 +1090,7 @@ export default {
         }
       ],
       moreParams: {
-        query: \`{vueTableDog{data {id  name breed person{firstName  lastName } researcher{firstName }} total per_page current_page last_page prev_page_url next_page_url from to}}\`
+        query: Queries.Dog.vueTable
       }
     }
   },
@@ -1058,7 +1113,7 @@ export default {
     },
     onFilterReset() {
       this.moreParams = {
-        query: \`{vueTableDog{data {id  name breed person{firstName  lastName } researcher{firstName }} total per_page current_page last_page prev_page_url next_page_url from to}}\`
+        query: Queries.Dog.vueTable
       }
       Vue.nextTick(() => this.$refs.vuetable.refresh())
     },
@@ -1128,7 +1183,9 @@ module.exports.BookForm = `
 
 
       <div id="book-title-err" v-if="validationError('title')" class="alert alert-danger">
-        {{validationError('title').message}}
+        <ul>
+          <li v-for="err in validationError('title')"> {{err.message}}</li>
+        </ul>
       </div>
     </div>
 
@@ -1140,7 +1197,9 @@ module.exports.BookForm = `
 
 
       <div id="book-genre-err" v-if="validationError('genre')" class="alert alert-danger">
-        {{validationError('genre').message}}
+        <ul>
+          <li v-for="err in validationError('genre')"> {{err.message}}</li>
+        </ul>
       </div>
     </div>
 
@@ -1154,7 +1213,9 @@ module.exports.BookForm = `
         label="name"
                         valueKey="id"
         targetModel="Publisher"
-        v-bind:initialInput="publisherInitialLabel">
+        v-bind:initialInput="publisherInitialLabel"
+        v-bind:query="publisherQuery"
+        queryName="publishers">
       </foreign-key-form-element>
     </div>
 
@@ -1176,8 +1237,11 @@ module.exports.BookForm = `
         targetModel = "Person"
         removeName="removePeople"
         addName="addPeople"
-        query="readOneBook"
-        subQuery="peopleFilter"
+        v-bind:queryOne = "peopleSubquery"
+        queryOneName="readOneBook"
+        subQueryName="peopleFilter"
+        v-bind:query="peopleQuery"
+        queryName ="people"
         >
       </has-many-form-element>
     </div>
@@ -1199,21 +1263,28 @@ import hasManyFormElemn from './hasManyFormElemn.vue'
 Vue.component('has-many-form-element', hasManyFormElemn)
 import inflection from 'inflection'
 import axios from 'axios'
+import Queries from '../requests/index'
 
 export default {
   props: [ 'book', 'errors', 'mode' ],
   data(){
     return{
-      target_models: [
-                     {
-            model:'Person',
-            label: 'firstName',
-            sublabel: 'email'
-        }              ],
-      model: 'book'
     }
   },
   computed: {
+
+    publisherQuery: function(){
+      return Queries.Publisher.getAll("name","");
+    },
+
+    peopleQuery: function(){
+      return Queries.Person.getAll("firstName", "email");
+    },
+
+    peopleSubquery: function(){
+      return Queries.Book.getOne("peopleFilter", "firstName", "email");
+    },
+
             publisherInitialLabel: function () {
       var x = this.book.publisher
       if (x !== null && typeof x === 'object' &&
@@ -1229,9 +1300,9 @@ export default {
   methods: {
     validationError(modelField) {
       if (this.errors == null) return false;
-        return this.errors.details.find(function (el) {
-          return el.path === modelField
-        })
+      return this.errors.details.filter(function (el) {
+        return el.path === modelField
+      })
     }
   },
 	mounted: function() {
@@ -1286,6 +1357,20 @@ export default {
       deletePerson(id:$id)
     }\`
     return requestGraphql({url, query, variables, token});
+  },
+
+  //simple queries needed in spa components
+  vueTable: \`{vueTablePerson{data {id  firstName lastName email countFilteredDogs countFilteredBooks} total per_page current_page last_page prev_page_url next_page_url from to}}\`,
+
+  getAll: function(label, sublabel){
+      return \`query
+      people($search: searchPersonInput $pagination: paginationInput)
+     {people(search:$search pagination:$pagination){id \${label} \${sublabel} } }\`
+  },
+
+  getOne: function(subQuery, label, sublabel){
+    return \` query readOnePerson($id: ID!, $offset:Int, $limit:Int) {
+      readOnePerson(id:$id){ \${subQuery}(pagination:{limit: $limit offset:$offset }){ id \${label} \${sublabel} } } }\`
   }
 }
 `
@@ -1401,6 +1486,7 @@ import axios from 'axios'
 
 import Vue from 'vue'
 import VueEvents from 'vue-events'
+import Queries from '../requests/index'
 Vue.use(VueEvents)
 
 Vue.component('individual-custom-actions', individualCustomActions)
@@ -1441,7 +1527,7 @@ export default {
         }
       ],
       moreParams: {
-        query: \`{vueTableIndividual{data {id  name countFilteredTranscript_counts} total per_page current_page last_page prev_page_url next_page_url from to}}\`
+        query: Queries.Individual.vueTable
       }
     }
   },
@@ -1464,8 +1550,8 @@ export default {
     },
     onFilterReset() {
       this.moreParams = {
-        query: \`{vueTableIndividual{data {id  name countFilteredTranscript_counts} total per_page current_page last_page prev_page_url next_page_url from to}}\`
-      }
+        query: Queries.Individual.vueTable
+        }
       Vue.nextTick(() => this.$refs.vuetable.refresh())
     },
     onCsvExport () {
@@ -1540,8 +1626,9 @@ module.exports.individualDetailView = `
         :url="this.$baseUrl()"
         :idSelected="rowData.id"
         :countQuery="rowData.countFilteredTranscript_counts"
-        query="readOneIndividual"
-        subQuery="transcript_countsFilter"
+        v-bind:queryOne="transcript_countsSubquery"
+        queryOneName="readOneIndividual"
+        subQueryName="transcript_countsFilter"
         label="gene"
         subLabel="variable"
         > </scroll-list>
@@ -1554,6 +1641,7 @@ module.exports.individualDetailView = `
 <script>
 import Vue from 'vue'
 import scrollListElement from './scrollListElement.vue'
+import Queries from '../requests/index'
 
 Vue.component('scroll-list', scrollListElement)
 
@@ -1568,6 +1656,9 @@ export default {
     }
   },
   computed: {
+      transcript_countsSubquery: function(){
+        return Queries.Individual.getOne("transcript_countsFilter", "gene", "variable");
+      }
     },
   methods: {
     onClick (event) {
@@ -1591,7 +1682,9 @@ module.exports.IndividualForm = `
 
 
       <div id="individual-name-err" v-if="validationError('name')" class="alert alert-danger">
-        {{validationError('name').message}}
+      <ul>
+        <li v-for="err in validationError('name')"> {{err.message}}</li>
+      </ul>
       </div>
     </div>
 
@@ -1610,8 +1703,11 @@ module.exports.IndividualForm = `
         targetModel = "Transcript_count"
         removeName="removeTranscript_counts"
         addName="addTranscript_counts"
-        query="readOneIndividual"
-        subQuery="transcript_countsFilter"
+        v-bind:queryOne = "transcript_countsSubquery"
+        queryOneName="readOneIndividual"
+        subQueryName="transcript_countsFilter"
+        v-bind:query="transcript_countsQuery"
+        queryName="transcript_counts"
         >
       </has-many-form-element>
     </div>
@@ -1625,25 +1721,29 @@ import hasManyFormElemn from './hasManyFormElemn.vue'
 Vue.component('has-many-form-element', hasManyFormElemn)
 import inflection from 'inflection'
 import axios from 'axios'
+import Queries from '../requests/index'
 
 export default {
   props: [ 'individual', 'errors', 'mode' ],
   data(){
     return{
-      target_models: [ {
-        model:'Transcript_count',
-        label: 'gene',
-        sublabel: 'variable'
-      } ],
-      model: 'individual'
+
     }
   },
   computed: {
+
+    transcript_countsQuery : function(){
+        return Queries.Transcript_count.getAll("gene", "variable");
     },
+
+    transcript_countsSubquery : function(){
+      return Queries.Individual.getOne("transcript_countsFilter","gene", "variable");
+    }
+  },
   methods: {
     validationError(modelField) {
       if (this.errors == null) return false;
-      return this.errors.details.find(function (el) {
+      return this.errors.details.filter(function (el) {
         return el.path === modelField
       })
     }
@@ -1677,7 +1777,9 @@ module.exports.TranscriptForm =`
 
 
       <div id="transcript_count-gene-err" v-if="validationError('gene')" class="alert alert-danger">
-        {{validationError('gene').message}}
+      <ul>
+        <li v-for="err in validationError('gene')"> {{err.message}}</li>
+      </ul>
       </div>
     </div>
 
@@ -1689,7 +1791,9 @@ module.exports.TranscriptForm =`
 
 
       <div id="transcript_count-variable-err" v-if="validationError('variable')" class="alert alert-danger">
-        {{validationError('variable').message}}
+      <ul>
+        <li v-for="err in validationError('variable')"> {{err.message}}</li>
+      </ul>
       </div>
     </div>
 
@@ -1701,7 +1805,9 @@ module.exports.TranscriptForm =`
 
 
       <div id="transcript_count-count-err" v-if="validationError('count')" class="alert alert-danger">
-        {{validationError('count').message}}
+      <ul>
+        <li v-for="err in validationError('count')"> {{err.message}}</li>
+      </ul>
       </div>
     </div>
 
@@ -1713,7 +1819,9 @@ module.exports.TranscriptForm =`
 
 
       <div id="transcript_count-tissue_or_condition-err" v-if="validationError('tissue_or_condition')" class="alert alert-danger">
-        {{validationError('tissue_or_condition').message}}
+      <ul>
+        <li v-for="err in validationError('tissue_or_condition')"> {{err.message}}</li>
+      </ul>
       </div>
     </div>
 
@@ -1727,7 +1835,10 @@ module.exports.TranscriptForm =`
         label="name"
                         valueKey="id"
         targetModel = "Individual"
-        v-bind:initialInput="individualInitialLabel">
+        v-bind:initialInput="individualInitialLabel"
+        v-bind:query="individualQuery"
+        queryName="individuals"
+        >
       </foreign-key-form-element>
     </div>
 
@@ -1747,17 +1858,20 @@ Vue.component('foreign-key-form-element', foreignKeyFormElement)
 
 import inflection from 'inflection'
 import axios from 'axios'
+import Queries from '../requests/index'
 
 export default {
   props: [ 'transcript_count', 'errors', 'mode' ],
   data(){
     return{
-      target_models: [
-             ],
-      model: 'transcript_count'
     }
   },
   computed: {
+
+    individualQuery: function(){
+      return Queries.Individual.getAll("name","");
+    },
+
           individualInitialLabel: function () {
       var x = this.transcript_count.individual
       if (x !== null && typeof x === 'object' &&
@@ -1772,7 +1886,7 @@ export default {
   methods: {
     validationError(modelField) {
       if (this.errors == null) return false;
-      return this.errors.details.find(function (el) {
+      return this.errors.details.filter(function (el) {
         return el.path === modelField
       })
     }
@@ -1801,9 +1915,9 @@ export default {
   let query = \` mutation addBook(
    $title:String  $genre:String    $publisherId:Int    $addPeople:[ID]  ){
     addBook(
-     title:$title   genre:$genre       publisherId:$publisherId      addPeople:$addPeople    ){id  title   genre   }
+     title:$title   genre:$genre       publisherId:$publisherId      addPeople:$addPeople     ){id  title   genre   }
   }
-  \`
+\`
   return requestGraphql({url, query, variables, token});
 },
 
@@ -1811,17 +1925,17 @@ export default {
   readOneBook : function({url, variables, token}){
     let query = \`query readOneBook($id:ID!){
       readOneBook(id:$id){id  title   genre         publisher{ name
-      }  countFilteredPeople   }
-    }\`
+         }        countFilteredPeople
+    }
+  }\`
     return requestGraphql({url, query, variables, token});
   },
 
   update : function({url, variables, token}){
     let query = \`mutation updateBook($id:ID!
-     $title:String  $genre:String      $publisherId:Int $addPeople:[ID] $removePeople:[ID]){
+     $title:String  $genre:String      $publisherId:Int      $addPeople:[ID] $removePeople:[ID]     ){
       updateBook(id:$id
-       title:$title   genre:$genre         publisherId:$publisherId  addPeople:$addPeople removePeople:$removePeople)
-      {id  title   genre  }
+       title:$title   genre:$genre         publisherId:$publisherId        addPeople:$addPeople removePeople:$removePeople       ){id  title   genre  }
     }\`
 
     return requestGraphql({url, query, variables, token});
@@ -1832,7 +1946,24 @@ export default {
       deleteBook(id:$id)
     }\`
     return requestGraphql({url, query, variables, token});
+  },
+
+
+  //simple queries needed in spa components
+
+  vueTable : \`{vueTableBook{data {id  title genre publisher{name } countFilteredPeople} total per_page current_page last_page prev_page_url next_page_url from to}}\`,
+
+  getAll: function(label, sublabel){
+      return \`query
+      books($search: searchBookInput $pagination: paginationInput)
+     {books(search:$search pagination:$pagination){id \${label} \${sublabel} } }\`
+  },
+
+  getOne: function(subQuery, label, sublabel){
+    return \` query readOneBook($id: ID!, $offset:Int, $limit:Int) {
+      readOneBook(id:$id){ \${subQuery}(pagination:{limit: $limit offset:$offset }){ id \${label} \${sublabel} } } }\`
   }
+
 }
 `
 
@@ -2107,7 +2238,9 @@ module.exports.PersonForm = `
 
 
       <div id="person-firstName-err" v-if="validationError('firstName')" class="alert alert-danger">
-        {{validationError('firstName').message}}
+      <ul>
+        <li v-for="err in validationError('firstName')"> {{err.message}}</li>
+      </ul>
       </div>
     </div>
 
@@ -2119,7 +2252,9 @@ module.exports.PersonForm = `
 
 
       <div id="person-lastName-err" v-if="validationError('lastName')" class="alert alert-danger">
-        {{validationError('lastName').message}}
+      <ul>
+        <li v-for="err in validationError('lastName')"> {{err.message}}</li>
+      </ul>
       </div>
     </div>
 
@@ -2131,7 +2266,9 @@ module.exports.PersonForm = `
 
 
       <div id="person-email-err" v-if="validationError('email')" class="alert alert-danger">
-        {{validationError('email').message}}
+      <ul>
+        <li v-for="err in validationError('email')"> {{err.message}}</li>
+      </ul>
       </div>
     </div>
 
@@ -2150,8 +2287,11 @@ module.exports.PersonForm = `
         targetModel = "Dog"
         removeName="removeDogs"
         addName="addDogs"
-        query="readOnePerson"
-        subQuery="dogsFilter"
+        v-bind:queryOne="dogsSubquery"
+        queryOneName="readOnePerson"
+        subQueryName="dogsFilter"
+        v-bind:query="dogsQuery"
+        queryName="dogs"
         >
       </has-many-form-element>
     </div>
@@ -2171,8 +2311,11 @@ module.exports.PersonForm = `
         targetModel = "Book"
         removeName="removeBooks"
         addName="addBooks"
-        query="readOnePerson"
-        subQuery="booksFilter"
+        v-bind:queryOne="booksSubquery"
+        queryOneName="readOnePerson"
+        subQueryName="booksFilter"
+        v-bind:query="booksQuery"
+        queryName = "books"
         >
       </has-many-form-element>
     </div>
@@ -2191,30 +2334,36 @@ import hasManyFormElemn from './hasManyFormElemn.vue'
 Vue.component('has-many-form-element', hasManyFormElemn)
 import inflection from 'inflection'
 import axios from 'axios'
+import Queries from '../requests/index'
 
 export default {
   props: [ 'person', 'errors', 'mode' ],
   data(){
     return{
-      target_models: [
-                     {
-            model:'Dog',
-            label: 'name',
-            sublabel: ''
-        },                      {
-            model:'Book',
-            label: 'title',
-            sublabel: ''
-        }              ],
-      model: 'person'
     }
   },
   computed: {
+    dogsQuery : function(){
+      return Queries.Dog.getAll("name","");
     },
+
+    dogsSubquery: function(){
+      return Queries.Person.getOne("dogsFilter","name", "" );
+    },
+
+    booksQuery: function(){
+      return Queries.Book.getAll("title","");
+    },
+
+    booksSubquery: function(){
+      return Queries.Person.getOne("booksFilter", "title","");
+    }
+
+  },
   methods: {
     validationError(modelField) {
       if (this.errors == null) return false;
-      return this.errors.details.find(function (el) {
+      return this.errors.details.filter(function (el) {
         return el.path === modelField
       })
     }
@@ -2303,4 +2452,374 @@ export default {
 }
 </script>
 
+`
+
+module.exports.transcriptCount_table = `
+<template>
+  <div class="ui container">
+    <filter-bar></filter-bar>
+    <div class="inline field pull-left">
+      <router-link v-bind:to="'transcriptCount'"><button class="ui primary button">Add transcriptCount</button></router-link>
+      <button class="ui primary button" @click="downloadExampleCsv">CSV Example Table</button>
+      <router-link v-bind:to="'/transcriptCounts/upload_csv'"><button class="ui primary button">CSV Upload</button></router-link>
+    </div>
+    <vuetable ref="vuetable"
+      :api-url="this.$baseUrl()"
+      :fields="fields"
+      :per-page="20"
+      :appendParams="moreParams"
+      :http-options="{ headers: {Authorization: \`Bearer \${this.$store.getters.authToken}\`} }"
+      pagination-path="data.vueTableTranscriptCount"
+      detail-row-component="transcriptCount-detail-row"
+      data-path="data.vueTableTranscriptCount.data"
+      @vuetable:pagination-data="onPaginationData"
+      @vuetable:cell-clicked="onCellClicked"
+      @vuetable:load-error="onError"
+    ></vuetable>
+    <div class="vuetable-pagination ui basic segment grid">
+      <vuetable-pagination-info ref="paginationInfo"
+      ></vuetable-pagination-info>
+      <vuetable-pagination ref="pagination"
+        @vuetable-pagination:change-page="onChangePage"
+      ></vuetable-pagination>
+    </div>
+  </div>
+</template>
+
+<script>
+import Vuetable from 'vuetable-2/src/components/Vuetable.vue'
+import VuetablePagination from 'vuetable-2/src/components/VuetablePagination.vue'
+import VuetablePaginationInfo from 'vuetable-2/src/components/VuetablePaginationInfo.vue'
+import transcriptCountCustomActions from './transcriptCountCustomActions.vue'
+import transcriptCountDetailRow from './transcriptCountDetailRow.vue'
+import FilterBar from './FilterBar.vue'
+
+import axios from 'axios'
+
+import Vue from 'vue'
+import VueEvents from 'vue-events'
+import Queries from '../requests/index'
+Vue.use(VueEvents)
+
+Vue.component('transcriptCount-custom-actions', transcriptCountCustomActions)
+Vue.component('transcriptCount-detail-row', transcriptCountDetailRow)
+Vue.component('filter-bar', FilterBar)
+
+export default {
+  components: {
+    Vuetable,
+    VuetablePagination,
+    VuetablePaginationInfo,
+    transcriptCountDetailRow
+  },
+  data() {
+    return {
+      fields: [{
+          name: 'id',
+          title: 'ID',
+          titleClass: 'center aligned',
+          dataClass: 'right aligned'
+        },
+        // For now, we do not render checkboxes, as we yet have to provide
+        // functions for selected rows.
+        //{
+        //  name: '__checkbox',
+        //  titleClass: 'center aligned',
+        //  dataClass: 'center aligned'
+        //},
+                  {
+            name: 'gene',
+            sortField: 'gene'
+          },
+                  {
+            name: 'variable',
+            sortField: 'variable'
+          },
+                  {
+            name: 'count',
+            sortField: 'count'
+          },
+                  {
+            name: 'tissue_or_condition',
+            sortField: 'tissue_or_condition'
+          },
+                {
+          name: '__component:transcriptCount-custom-actions',
+          title: 'Actions',
+          titleClass: 'center aligned',
+          dataClass: 'center aligned'
+        }
+      ],
+      moreParams: {
+        query: Queries.TranscriptCount.vueTable
+      }
+    }
+  },
+  methods: {
+    onPaginationData(paginationData) {
+      this.$refs.pagination.setPaginationData(paginationData)
+      this.$refs.paginationInfo.setPaginationData(paginationData)
+    },
+    onChangePage(page) {
+      this.$refs.vuetable.changePage(page)
+    },
+    onCellClicked(data, field, event) {
+      console.log('cellClicked: ', field.name)
+      this.$refs.vuetable.toggleDetailRow(data.id)
+    },
+    onFilterSet(filterText) {
+      this.moreParams [
+        'filter'] = filterText.trim()
+      Vue.nextTick(() => this.$refs.vuetable.refresh())
+    },
+    onFilterReset() {
+      this.moreParams = {
+        query: Queries.TranscriptCount.vueTable
+        }
+      Vue.nextTick(() => this.$refs.vuetable.refresh())
+    },
+    onCsvExport () {
+      var t = this;
+      var url = this.$baseUrl()() + '/transcriptCounts/example_csv' + '?array=[' + this.$refs.vuetable.selectedTo.join(",") + ']'
+
+      axios.get(url).then(function (response) {
+
+        var a = document.createElement("a");
+        document.body.appendChild(a);
+        a.style = "display: none";
+        var blob = new Blob([response.data], {type: "octet/stream"});
+        var url = window.URL.createObjectURL(blob);
+        a.href = url;
+        a.download = 'transcriptCount' + '.csv';
+        a.click();
+        window.URL.revokeObjectURL(url);
+      }).catch(function (error) {
+        t.error = error
+      })
+    },
+    downloadExampleCsv: function() {
+      var t = this
+      axios.get(t.$baseUrl() + '/transcriptCounts/example_csv', {
+        responseType: 'blob'
+      }).then((response) => {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'transcriptCounts.csv');
+        document.body.appendChild(link);
+        link.click();
+      }).catch(res => {
+        var err = (res && res.response && res.response.data && res.response
+          .data.message ?
+          res.response.data.message : res)
+        t.$root.$emit('globalError', err)
+        t.$router.push('/')
+      })
+    },
+    onError: function(res) {
+      var err = (res && res.response && res.response.data && res.response.data.message ?
+        res.response.data.message : res)
+      this.$root.$emit('globalError', err)
+      this.$router.push('/')
+    }
+  },
+  mounted() {
+    this.$events.$on('filter-set', eventData => this.onFilterSet(eventData))
+    this.$events.$on('filter-reset', e => this.onFilterReset())
+  }
+}
+</script>
+`
+
+module.exports.personDetailView = `
+<template>
+  <div @click="onClick">
+    <div class="inline field">
+      <label>id: </label>
+      <span>{{rowData.id}}</span>
+    </div>
+          <div class="inline field">
+        <label>firstName:</label>
+        <span>{{rowData.firstName}}</span>
+      </div>
+          <div class="inline field">
+        <label>lastName:</label>
+        <span>{{rowData.lastName}}</span>
+      </div>
+          <div class="inline field">
+        <label>email:</label>
+        <span>{{rowData.email}}</span>
+      </div>
+
+    <div id="person-dogs-div" class="row w-100">
+      <div class="col">
+        <label>dogs:</label>
+        <scroll-list class="list-group"
+          :url="this.$baseUrl()"
+          :idSelected="rowData.id"
+          :countQuery="rowData.countFilteredDogs"
+          v-bind:queryOne="dogsSubquery"
+          queryOneName="readOnePerson"
+          subQueryName="dogsFilter"
+          label="name"
+          subLabel=""
+        > </scroll-list>
+      </div>
+    </div>
+
+    <div id="person-books-div" class="row w-100">
+      <div class="col">
+        <label>books:</label>
+        <scroll-list class="list-group"
+          :url="this.$baseUrl()"
+          :idSelected="rowData.id"
+          :countQuery="rowData.countFilteredBooks"
+          v-bind:queryOne="booksSubquery"
+          queryOneName="readOnePerson"
+          subQueryName="booksFilter"
+          label="title"
+          subLabel=""
+        > </scroll-list>
+      </div>
+    </div>
+
+  </div>
+</template>
+
+<script>
+import Vue from 'vue'
+import scrollListElement from './scrollListElement.vue'
+import Queries from '../requests/index'
+
+Vue.component('scroll-list', scrollListElement)
+
+export default {
+  props: {
+    rowData: {
+      type: Object,
+      required: true
+    },
+    rowIndex: {
+      type: Number
+    }
+  },
+  computed: {
+
+    dogsSubquery: function(){
+      return Queries.Person.getOne("dogsFilter","name", "" );
+    },
+
+    booksSubquery: function(){
+      return Queries.Person.getOne("booksFilter", "title","");
+    }
+
+  },
+  methods: {
+    onClick (event) {
+      console.log('my-detail-row: on-click', event.target)
+    }
+  }
+}
+</script>
+
+`
+module.exports.academicTeamRequests = `
+
+import requestGraphql from './request'
+
+export default {
+
+  create : function({url, variables, token}){
+  let query = \` mutation addAcademicTeam(
+   $name:String  $department:String  $subject:String      $addMembers:[ID]  ){
+    addAcademicTeam(
+     name:$name   department:$department   subject:$subject           addMembers:$addMembers     ){id  name   department   subject   }
+  }
+  \`
+  return requestGraphql({url, query, variables, token});
+},
+
+
+  readOneAcademicTeam : function({url, variables, token}){
+    let query = \`query readOneAcademicTeam($id:ID!){
+      readOneAcademicTeam(id:$id){id  name   department   subject               countFilteredMembers     }
+    }\`
+    return requestGraphql({url, query, variables, token});
+  },
+
+  update : function({url, variables, token}){
+    let query = \`mutation updateAcademicTeam($id:ID!
+     $name:String  $department:String  $subject:String          $addMembers:[ID] $removeMembers:[ID]     ){
+      updateAcademicTeam(id:$id
+       name:$name   department:$department   subject:$subject               addMembers:$addMembers removeMembers:$removeMembers       ){id  name   department   subject  }
+    }\`
+
+    return requestGraphql({url, query, variables, token});
+  },
+
+  deleteAcademicTeam : function({url, variables, token}){
+    let query = \`mutation deleteAcademicTeam($id:ID!){
+      deleteAcademicTeam(id:$id)
+    }\`
+    return requestGraphql({url, query, variables, token});
+  },
+
+  //simple queries needed in spa components
+
+  vueTable: \`{vueTableAcademicTeam{data {id  name department subjectcountFilteredMembers} total per_page current_page last_page prev_page_url next_page_url from to}}\`,
+
+  getAll: function(label, sublabel){
+    return \`query
+    academicTeams($search: searchAcademicTeamInput $pagination: paginationInput)
+   {academicTeams(search:$search pagination:$pagination){id \${label} \${sublabel} } }\`
+  },
+
+  getOne: function(subQuery,label, sublabel){
+    return \`query readOneAcademicTeam($id: ID!, $offset:Int, $limit:Int) {
+      readOneAcademicTeam(id:$id){ \${subQuery}(pagination:{limit: $limit offset:$offset }){ id \${label} \${sublabel} } } }\`
+  }
+
+}
+`
+
+module.exports.routes_book = `
+import books from '@/components/books'
+import BookCreate from '@/components/BookCreateForm'
+import BookEdit from '@/components/BookEditForm'
+import BookUploadCsv from '@/components/BookUploadCsvForm'
+
+export default [
+  {
+    path: '/books',
+    name: 'books',
+    component: books,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/book/:id',
+    name: 'BookEdit',
+    component: BookEdit,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/book',
+    name: 'BookCreate',
+    component: BookCreate,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/books/upload_csv',
+    name: 'BookUploadCsv',
+    component: BookUploadCsv,
+    meta: {
+      requiresAuth: true
+    }
+  }
+]
 `

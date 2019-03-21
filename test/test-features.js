@@ -65,6 +65,15 @@ describe('VueTable GraphQl Query', function(){
         expect(created_table).to.be.equal(test_table);
     });
 
+    let modelsObjTranscript = funks.fillOptionsForViews(models.transcriptCount);
+    it('VueTable  - transcriptCount',async function(){
+       let file = await funks.renderTemplate('tableView',modelsObjTranscript);
+        let created_table = file.replace(/\s/g, '');
+        let test_table = testData.transcriptCount_table.replace(/\s/g, '');
+        expect(created_table).to.be.equal(test_table);
+    });
+
+
   });
 
   describe('FormElementVue ', function(){
@@ -175,6 +184,15 @@ describe('VueTable GraphQl Query', function(){
         expect(created_requests).to.be.equal(test_requests);
     });
 
+    let modelsObjAcademicTeam = funks.fillOptionsForViews(models.academicTeam) ;
+
+    it('associations name - academicTeam',async function(){
+       let file = await funks.renderTemplate('graphqlRequests',modelsObjAcademicTeam);
+        let created_requests = file.replace(/\s/g, '');
+        let test_requests = testData.academicTeamRequests.replace(/\s/g, '');
+        expect(created_requests).to.be.equal(test_requests);
+    });
+
   });
 
   describe('EditForm', function(){
@@ -242,6 +260,15 @@ describe('VueTable GraphQl Query', function(){
         let test_detailView = testData.individualDetailView.replace(/\s/g, '');
         expect(created_detailView).to.be.equal(test_detailView);
     });
+
+    let modelsObjPerson = funks.fillOptionsForViews(models.person) ;
+    it('fix queries - person',async function(){
+       let file = await funks.renderTemplate('detailView',modelsObjPerson);
+        let created_detailView = file.replace(/\s/g, '');
+        let test_detailView = testData.personDetailView.replace(/\s/g, '');
+        expect(created_detailView).to.be.equal(test_detailView);
+    });
+
   });
 
   describe('UploadForm', function(){
@@ -251,6 +278,17 @@ describe('VueTable GraphQl Query', function(){
        let file = await funks.renderTemplate('uploadCsvForm',modelsObj);
         let created_customActions = file.replace(/\s/g, '');
         let test_customActions = testData.DogUploadFormCsv.replace(/\s/g, '');
+        expect(created_customActions).to.be.equal(test_customActions);
+    });
+  });
+
+  describe('Routes', function(){
+    let modelsObj = funks.fillOptionsForViews(models.book) ;
+
+    it('routes - book',async function(){
+       let file = await funks.renderTemplate('routes',modelsObj);
+        let created_customActions = file.replace(/\s/g, '');
+        let test_customActions = testData.routes_book.replace(/\s/g, '');
         expect(created_customActions).to.be.equal(test_customActions);
     });
   });

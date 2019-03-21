@@ -17,10 +17,9 @@
     <div id="<%- nameLc -%>-<%- bt.targetModelLc -%>-div">
       <div class="inline field">
         <label><%- bt.relationName -%>:</label>
-        <span>{{<%- bt.targetModelLc -%>InitialLabel}}</span>
+        <span>{{<%- bt.relationName -%>InitialLabel}}</span>
       </div>
     </div>
-
   <% } -%>
 
   <% for ( i=0; i<hasManysArr.length; i++ ) { -%>
@@ -32,16 +31,15 @@
         <scroll-list class="list-group"
           :url="this.$baseUrl()"
           :idSelected="rowData.id"
-          :countQuery="rowData.countFiltered<%-rel.targetModelPlCp-%>"
-          query="readOne<%-nameCp-%>"
-          subQuery="<%-rel.targetModelPlLc-%>Filter"
+          :countQuery="rowData.countFiltered<%-rel.relationNameCp-%>"
+          v-bind:queryOne="<%-rel.relationName-%>Subquery"
+          queryOneName="readOne<%-nameCp-%>"
+          subQueryName="<%-rel.relationName-%>Filter"
           label="<%-rel.label-%>"
           subLabel=<%if(rel.sublabel){%>"<%-rel.sublabel-%>"<%}else{-%>""<%}%>
         > </scroll-list>
       </div>
     </div>
-
-
 <%}-%>
 
   </div>
@@ -50,6 +48,7 @@
 <script>
 import Vue from 'vue'
 import scrollListElement from './scrollListElement.vue'
+import Queries from '../requests/index'
 
 Vue.component('scroll-list', scrollListElement)
 
@@ -64,9 +63,19 @@ export default {
     }
   },
   computed: {
+    <% for ( i=0; i<hasManysArr.length; i++ ) { -%>
+      <% var rel = hasManysArr[i] -%>
+      <%-rel.relationName-%>Subquery : function(){
+        return Queries.<%-nameCp-%>.getOne("<%-rel.relationName-%>Filter","<%-rel.label-%>",<%if(rel.sublabel){%>"<%-rel.sublabel-%>"<%}else{-%>""<%}%>);
+      }
+      <% if (i < (hasManysArr.length - 1) || belongsTosArr.length>0) { -%>
+      ,
+      <% } -%>
+    <%}-%>
+
   <% for ( i=0; i<belongsTosArr.length; i++ ) { -%>
     <% var bt = belongsTosArr[i] -%>
-    <%- bt.targetModelLc -%>InitialLabel: function () {
+    <%- bt.relationName -%>InitialLabel: function () {
       var x = this.rowData.<%- bt.relationName %>
       if (x !== null && typeof x === 'object' &&
           x['<%- bt.label -%>'] !== null &&

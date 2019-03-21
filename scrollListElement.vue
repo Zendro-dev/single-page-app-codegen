@@ -49,8 +49,9 @@ export default {
   props: {
     url: String,
     idSelected: String,
-    query: String ,
-    subQuery: String,
+    queryOne: String ,
+    queryOneName: String,
+    subQueryName: String,
     label: String,
     subLabel: String,
     countQuery: Number,
@@ -72,10 +73,10 @@ export default {
     getNextElements(){
       if(this.checkAndSetLimits()){
         axios.post(this.url,{
-          query:this.data_query,
+          query:this.queryOne,
           variables:{id:this.idSelected, limit: this.limit, offset: this.offset}
         }).then( res =>{
-          this.items.push(...res.data.data[this.query][this.subQuery]);
+          this.items.push(...res.data.data[this.queryOneName][this.subQueryName]);
           this.offset+= this.limit;
         });
       }
@@ -97,12 +98,6 @@ export default {
 
       },
   created(){
-    //console.log("CATCHING EDIT: ",this.edit);
-    this.data_query =
-    `query ${this.query}($id: ID!, $offset:Int, $limit:Int) {
-      ${this.query}(id:$id){ ${this.subQuery}(pagination:{limit: $limit offset:$offset }){ id ${this.label} ${this.subLabel} } } }`;
-
-      //console.log("FROM SCROLL MODE: ", this.mode);
     //get initial elements
     if(this.mode!=='create'){
       this.getNextElements();

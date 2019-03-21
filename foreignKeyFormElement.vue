@@ -25,12 +25,11 @@ import axios from 'axios'
 import inflection from 'inflection'
 Vue.component('autocomplete', Autocomplete)
 
+
 export default {
   data() {
     return {
       parseSublabel : this.subLabel ? this.subLabel : "",
-      queryName : inflection.pluralize(this.targetModel.toLowerCase()),
-      query: '',
       search : {
         operator: "or",
         search: [{
@@ -46,7 +45,7 @@ export default {
       }
     }
   },
-  props: ['searchUrl', 'label', 'subLabel', 'valueKey', 'initialInput', 'foreignKey', 'targetModel'],
+  props: ['searchUrl', 'label', 'subLabel', 'valueKey', 'initialInput', 'foreignKey', 'queryName', 'query'],
   components: {
     Autocomplete,
   },
@@ -99,18 +98,10 @@ export default {
         data.append('variables', JSON.stringify({search:this.search, pagination: this.pagination}))
         ajax.send(data);
       })
-    },
-    createQuery(){
-      this.query = `query
-      ${this.queryName}($search: search${inflection.capitalize(this.targetModel)}Input $pagination: paginationInput)
-       {${this.queryName}(search:$search pagination:$pagination){id ${this.label} ${this.parseSublabel}} }`
     }
   },
   mounted: function(){
     this.addSublabelFilter();
-  },
-  created(){
-    this.createQuery();
   }
 }
 </script>

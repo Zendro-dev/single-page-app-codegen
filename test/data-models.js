@@ -150,3 +150,46 @@ module.exports.transcript_count = {
     }
   }
 }
+
+module.exports.transcriptCount = {
+
+  "model" : "transcriptCount",
+  "storageType" : "SQL",
+  "attributes" : {
+    "gene" : "String",
+    "variable" : "String",
+    "count" : "Float",
+    "tissue_or_condition": "String"
+  },
+  "associations":{
+    "individual":{
+      "type" : "sql_belongsTo",
+      "target" : "individual",
+      "targetKey" : "individual_id",
+      "targetStorageType" : "sql",
+      "label" : "name"
+    }
+  }
+}
+
+
+module.exports.academicTeam = {
+  "model" : "academicTeam",
+  "storageType" : "SQL",
+  "attributes" : {
+    "name" : "String",
+    "department" : "String",
+    "subject": "String"
+  },
+  "associations":{
+    "members":{
+      "type" : "sql_hasMany",
+      "target" : "Researcher",
+      "targetKey" : "academicTeamId",
+      "targetStorageType" : "sql",
+      "label": "firstName",
+      "sublabel": "lastName"
+    }
+  }
+
+}

@@ -8,6 +8,7 @@ path = require('path');
 jsb = require('js-beautify').js_beautify;
 funks = require(path.resolve(__dirname, 'funks.js'));
 program = require('commander');
+const colors = require('colors/safe');
 
 modelsCreated = require(path.resolve(__dirname, 'modelsNames.js'));
 
@@ -22,9 +23,20 @@ var directory = program.args[0]
 
 console.log('\nRender GUI components for model in: ', directory);
 let promises = []
+let totalFiles = 0;
+let totalWrongFiles = 0;
 fs.readdirSync(program.jsonFiles).forEach( async (json_file) =>{
-
+  totalFiles++;
   let fileData = funks.parseFile(program.jsonFiles + '/'+json_file );
+  let check_json_model = funks.checkJsonDataFile(fileData);
+  if(!check_json_model .pass){
+    totalWrongFiles++;
+    check_json_model.errors.forEach( (error) =>{
+        console.log(colors.red(error));
+    });
+    return
+  }
+
   let ejbOpts = funks.fillOptionsForViews(fileData);
   console.log("Proccessing ", ejbOpts.name)
   let componentsDir = path.resolve(directory, "src", "components")
@@ -64,6 +76,7 @@ fs.readdirSync(program.jsonFiles).forEach( async (json_file) =>{
 });
 
  Promise.all(promises).then( (values) =>{
+
    //Copy static (not to be rendered) code into target dir, if not already
    //present:
    let filtBarPath = path.resolve(directory, 'src', 'components', 'FilterBar.vue')
@@ -93,6 +106,10 @@ fs.readdirSync(program.jsonFiles).forEach( async (json_file) =>{
    funks.renderToFile(sideNavPath, 'sideNav', modelsObj)
    let indexRequestPath = path.resolve(directory, "src", "requests", "index.js")
    funks.renderToFile(indexRequestPath, 'request_index', modelsObj)
+
+   //Log summary about the data models
+   console.log(colors.yellow(`From ${totalFiles} files in the folder. The files proccesed without error where ${totalFiles - totalWrongFiles}.`))
+   console.log(colors.yellow(`And ${totalWrongFiles} presented errors. Please see above for more info about each error.`))
  })
  .catch((error)=>{console.log(error); console.log("SOMETHING WRONG")});
 

@@ -8,20 +8,32 @@ export default [
       path: '/<%- namePlLc -%>',
       name: '<%- namePl -%>',
       component: <%- namePl -%>,
+      meta: {
+        requiresAuth: true
+      }
     },
     {
       path: '/<%- nameLc -%>/:id',
       name: '<%- name -%>Edit',
       component: <%- name -%>Edit,
+      meta: {
+        requiresAuth: true
+      }
     },
     {
       path: '/<%- nameLc -%>',
       name: '<%- name -%>Create',
       component: <%- name -%>Create,
+      meta: {
+        requiresAuth: true
+      }
     },
     {
       path: '/<%- namePlLc -%>/upload_csv',
       name: '<%- name -%>UploadCsv',
-      component: <%- name -%>UploadCsv
+      component: <%- name -%>UploadCsv,
+      meta: {
+        requiresAuth: true
+      }
     }
   ]

@@ -157,7 +157,6 @@ describe( 'Basic functionality', function() {
         expect(rows.length).to.eql(2);
     });
 
-
     it('07. Delete all', async function () {
 
         let rows = await page.$$eval('tbody > tr', row => row);
@@ -171,6 +170,40 @@ describe( 'Basic functionality', function() {
         expect(rows.length).to.eql(1);
     });
 
+    it('08. Check Cas_number works', async function () {
+
+        let SELECTOR = 'a[href="/cas_numbers"]';
+        await page.waitFor(SELECTOR);
+        await Promise.all([
+            page.click(SELECTOR),
+            page.waitForNavigation({ waitUntil: 'domcontentloaded' })
+        ]);
+
+        await delay(500);
+
+        SELECTOR = 'a[href="/cas_number"] > button';
+        await page.waitFor(SELECTOR);
+        await Promise.all([
+            page.click(SELECTOR),
+            page.waitForNavigation({ waitUntil: 'domcontentloaded' })
+        ]);
+
+        await page.type('#cas_number-CAS_number-div > input', 'AAAAAA');
+        await page.type('#cas_number-Cas_number-div > input', 'BBBBBB');
+        await page.click('button[type="submit"]');
+
+        await delay(500);
+        expect(await page.$('td.right.aligned') !== null).to.eql(true);
+
+        const cells = await page.$$('td');
+        let cnt = 0;
+        for (const cell of cells) {
+            const inner = await page.evaluate(el => el.innerText, cell);
+            if(inner === 'AAAAAA' || inner === 'BBBBBB') cnt++;
+        }
+
+        expect(cnt >= 2).to.eql(true);
+    });
 
 });
 

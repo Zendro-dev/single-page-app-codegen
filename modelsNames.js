@@ -1,6 +1,7 @@
 inflection = require('inflection');
 list = require('list-dir');
 _ = require('lodash');
+funks = require(path.resolve(__dirname, 'funks.js'));
 
 exports.getSavedModelsNames = function (newModel, directory) {
     var filesNames = list.sync(directory)
@@ -15,20 +16,20 @@ exports.getSavedModelsNames = function (newModel, directory) {
         var modelElem = model.replace("Routes.js", "");
         return {
             name:modelElem,
-            nameLc: modelElem.toLowerCase(),
+            nameLc: funks.uncapitalizeString(modelElem),
             namePl: inflection.pluralize(modelElem),
-            namePlLc: inflection.pluralize(modelElem).toLowerCase(),
-            nameCp: inflection.capitalize(modelElem)
+            namePlLc: funks.uncapitalizeString(inflection.pluralize(modelElem)),
+            nameCp: funks.capitalizeString(modelElem)
         }
     })
 
     if(newModel!= "" && !_.includes(models, newModel + "Routes.js")){
         createdModels.push({
             name:newModel,
-            nameLc: newModel.toLowerCase(),
+            nameLc: funks.uncapitalizeString(newModel),
             namePl: inflection.pluralize(newModel),
-            namePlLc: inflection.pluralize(newModel).toLowerCase(),
-            nameCp: inflection.capitalize(newModel)
+            namePlLc: funks.uncapitalizeString(inflection.pluralize(newModel)),
+            nameCp: funks.capitalizeString(newModel)
         })
     }
 

@@ -89,6 +89,38 @@ exports.typeAttributes = function(attributesArray) {
 }
 
 
+/**
+ * uncapitalizeString - set initial character to lower case
+ *
+ * @param  {string} word String input to uncapitalize
+ * @return {string}      String with lower case in the initial character
+ */
+exports.uncapitalizeString = function(word){
+  let length = word.length;
+  if(length==1){
+    return word.toLowerCase();
+  }else{
+    return word.slice(0,1).toLowerCase() + word.slice(1,length);
+  }
+}
+
+
+/**
+ * capitalizeString - set initial character to upper case
+ *
+ * @param  {type} word String input to capitalize
+ * @return {type}      String with upper case in the initial character
+ */
+exports.capitalizeString = function(word){
+  let length = word.length;
+  if(length==1){
+    return word.toUpperCase();
+  }else{
+    return word.slice(0,1).toUpperCase() + word.slice(1,length);
+  }
+}
+
+
 // Copies file found under sourcePath to targetPath if and only if target does
 // not exist:
 
@@ -122,6 +154,35 @@ exports.parseFile = function(jFile){
 }
 
 
+
+/**
+ * checkJsonDataFile - description
+ *
+ * @param  {object} json_file_data Javascript object parser from json file containgin a model info
+ * @return {object}                Contains a boolean indicatin if the model data is described correctly and an array of errors.
+ */
+exports.checkJsonDataFile = function(json_file_data){
+  let result = {
+    pass : true,
+    errors: []
+  }
+
+  //check for label field in each association
+  if(json_file_data.associations !== undefined){
+    Object.entries(json_file_data.associations).forEach( ([name, association]) =>{
+      if(association.label === undefined){
+        result.pass = false;
+        result.errors.push(`ERROR IN MODEL ${json_file_data.model}: Label is mandatory field. It should be defined in association ${name}`);
+      }
+
+   })
+  }
+
+  return result;
+}
+
+
+
 /**
  * fillOptionsForViews - Creates object with all extra info and with all data model info that templates will use.
  *
@@ -135,10 +196,14 @@ exports.fillOptionsForViews = function(fileData){
     baseUrl: fileData.baseUrl,
     //check compatibility with name in express_graphql_gen
     name: fileData.model,
-    nameLc: fileData.model.toLowerCase(),
-    namePl: inflection.pluralize(fileData.model.toLowerCase()),
-    namePlLc: inflection.pluralize(fileData.model.toLowerCase()).toLowerCase(),
-    nameCp: inflection.capitalize(fileData.model),
+    // nameLc: fileData.model.toLowerCase(),
+    // namePl: inflection.pluralize(fileData.model.toLowerCase()),
+    // namePlLc: inflection.pluralize(fileData.model.toLowerCase()).toLowerCase(),
+    // nameCp: inflection.capitalize(fileData.model),
+    nameLc: exports.uncapitalizeString(fileData.model),
+    namePl: inflection.pluralize(exports.uncapitalizeString(fileData.model)),
+    namePlLc: inflection.pluralize(exports.uncapitalizeString(fileData.model)),
+    nameCp: exports.capitalizeString(fileData.model),
     attributesArr: attributesArrayFromFile(fileData.attributes),
     typeAttributes: exports.typeAttributes(attributesArrayFromFile(fileData.attributes)),
     belongsTosArr: associations.belongsTos,
@@ -171,7 +236,7 @@ attributesArrayFromFile = function(attributes){
  * parseAssociationsFromFile - Parse associations description for a given model
  *
  * @param  {object} associations Object where each key is an association and its value is the info related to that association.
- * @return {object}              Associations classified as 'belongsTos' and 'hasManys'. Each association will contain all extra information required by the tamplatees views. 
+ * @return {object}              Associations classified as 'belongsTos' and 'hasManys'. Each association will contain all extra information required by the tamplatees views.
  */
 parseAssociationsFromFile = function(associations){
   let assoc = {
@@ -186,26 +251,36 @@ parseAssociationsFromFile = function(associations){
 
       if(type === "belongsTo"){
         let bt = {
-          "targetModel": association.target.toLowerCase(),
+          //"targetModel": association.target.toLowerCase(),
+          "targetModel": exports.uncapitalizeString(association.target),
           "foreignKey": association.targetKey,
           "primaryKey" : "id",
           "label" : association.label,
           //sublabel can be undefined
           "sublabel" : association.sublabel,
-          "targetModelLc" : association.target.toLowerCase(),
-          "targetModelPlLc" : inflection.pluralize(association.target).toLowerCase(),
-          "targetModelCp" : inflection.capitalize(association.target),
-          "targetModelPlCp": inflection.capitalize(inflection.pluralize(association.target)),
-          "relationName" : name
+          // "targetModelLc" : association.target.toLowerCase(),
+          // "targetModelPlLc" : inflection.pluralize(association.target).toLowerCase(),
+          // "targetModelCp" : inflection.capitalize(association.target),
+          // "targetModelPlCp": inflection.capitalize(inflection.pluralize(association.target)),
+          "targetModelLc": exports.uncapitalizeString(association.target),
+          "targetModelPlLc": inflection.pluralize(exports.uncapitalizeString(association.target)),
+          "targetModelCp": exports.capitalizeString(association.target),
+          "targetModelPlCp": inflection.pluralize(exports.capitalizeString(association.target)),
+          "relationName" : name,
+          "relationNameCp": exports.capitalizeString(name)
         }
 
         assoc.belongsTos.push(bt);
       }else if(type==="hasMany" || type==="belongsToMany"){
         let hm = {
           "relationName" : name,
-          "targetModelPlLc" : inflection.pluralize(association.target).toLowerCase(),
-          "targetModelCp" : inflection.capitalize(association.target),
-          "targetModelPlCp": inflection.capitalize(inflection.pluralize(association.target)),
+          "relationNameCp": exports.capitalizeString(name),
+          // "targetModelPlLc" : inflection.pluralize(association.target).toLowerCase(),
+          // "targetModelCp" : inflection.capitalize(association.target),
+          // "targetModelPlCp": inflection.capitalize(inflection.pluralize(association.target)),
+          "targetModelPlLc": inflection.pluralize(exports.uncapitalizeString(association.target)),
+          "targetModelCp": exports.capitalizeString(association.target),
+          "targetModelPlCp": inflection.pluralize(exports.capitalizeString(association.target)),
           "label" : association.label,
           //sublabel can be undefined
           "sublabel" : association.sublabel
