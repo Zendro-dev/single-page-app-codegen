@@ -1,5 +1,5 @@
 {
-  "name": "gui-generator",
+  "name": "single-page-app-codegen",
   "version": "1.0.0",
   "description": "Enables auto generation of basic List, Create, Edit, and Delete Views for data models.",
   "main": "index.js",
