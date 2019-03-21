@@ -4,7 +4,7 @@
   "description": "Enables auto generation of basic List, Create, Edit, and Delete Views for data models.",
   "main": "index.js",
   "bin": {
-    "gui-generator": "./index.js"
+    "single-page-app-codegen": "./index.js"
   },
   "scripts": {
     "test": "mocha ./test/test-features.js",
