@@ -247,7 +247,8 @@ parseAssociationsFromFile = function(associations){
   if(associations!==undefined){
 
     Object.entries(associations).forEach( ([name, association]) =>{
-      let type = association.type.split("_")[1];
+      //let type = association.type.split("_")[1];
+      let type = association.type;
 
       if(type === "belongsTo"){
         let bt = {
