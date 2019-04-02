@@ -622,9 +622,9 @@ export default {
 module.exports.DogCustomActions = `
 <template>
   <div class="custom-actions">
-    <button v-on:click="detailsToggle()" class="ui basic button"><i class="zoom icon"></i></button>
-    <router-link v-bind:to="'dog/' + rowData.id"><button class="ui basic button"><i class="edit icon"></i></button></router-link>
-    <button v-on:click="confirmDelete()" class="ui basic button"><i class="delete icon"></i></button>
+    <button v-on:click="detailsToggle()" class="ui basic button"><font-awesome-icon icon="info" /></button>
+    <router-link v-bind:to="'dog/' + rowData.id"><button class="ui basic button"><font-awesome-icon icon="edit" /></button></router-link>
+    <button v-on:click="confirmDelete()" class="ui basic button"><font-awesome-icon icon="trash" /></button>
   </div>
 </template>
 
