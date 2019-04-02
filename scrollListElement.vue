@@ -7,7 +7,7 @@
         :tobottom="toBottom"
     >
         <div class="item" v-for="(udf, index) of items" :key="index">
-          <i v-if="mode=='edit'" v-on:click="onRemove(udf)" class="delete icon"></i>
+          <font-awesome-icon v-if="mode=='edit'" v-on:click="onRemove(udf)" icon="times" />
           {{ udf[label]}} <span v-if="subLabel!==''"> {{ udf[subLabel]}} </span>
         </div>
 
@@ -21,7 +21,7 @@
       :tobottom="toBottom">
 
       <div v-if="mode=='create'" class="item" v-for="(udf, index) of displayItems" :key="index">
-        <i  v-on:click="onRemove(udf)" class="delete icon"></i>
+        <font-awesome-icon v-on:click="onRemove(udf)" icon="times" />
         {{ udf[label]}} <span v-if="subLabel!==''"> {{ udf[subLabel]}} </span>
       </div>
 
