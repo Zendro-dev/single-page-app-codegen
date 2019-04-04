@@ -53,6 +53,12 @@ export default {
     return requestGraphql({url, query, variables, token});
   },
 
+  tableTemplate: function({url}){
+    let query = `query {csvTableTemplate<%- nameCp -%> }`
+
+    return requestGraphql({url,query});
+  },
+
   //simple queries needed in spa components
 
   vueTable: `{vueTable<%-nameCp-%>{data {id <% for( i=0; i<attributesArr.length; i++ ){-%> <%-attributesArr[i][0] %> <%}-%>

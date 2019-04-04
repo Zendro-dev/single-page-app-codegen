@@ -99,7 +99,7 @@ module.exports.book_table = `
     <filter-bar></filter-bar>
     <div class="inline field pull-left">
       <router-link v-bind:to="'book'"><button class="ui primary button">Add book</button></router-link>
-      <button class="ui primary button" @click="downloadExampleCsv">CSV Example Table</button>
+      <button class="ui primary button" @click="downloadExampleCsv">CSV Template Table</button>
       <router-link v-bind:to="'/books/upload_csv'"><button class="ui primary button">CSV Upload</button></router-link>
     </div>
     <vuetable ref="vuetable"
@@ -229,22 +229,21 @@ export default {
       })
     },
     downloadExampleCsv: function() {
-      var t = this
-      axios.get(t.$baseUrl() + '/books/example_csv', {
-        responseType: 'blob'
-      }).then((response) => {
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', 'books.csv');
-        document.body.appendChild(link);
-        link.click();
-      }).catch(res => {
-        var err = (res && res.response && res.response.data && res.response
-          .data.message ?
-          res.response.data.message : res)
-        t.$root.$emit('globalError', err)
-        t.$router.push('/')
+      Queries.Book.tableTemplate({url: this.$baseUrl()}).then(response =>{
+        if(response.data && response.data.data && response.data.data.csvTableTemplateBook){
+            let file = response.data.data.csvTableTemplateBook.join('\\n');
+            const url = window.URL.createObjectURL(new Blob([file]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'template_book.csv');
+            document.body.appendChild(link);
+            link.click();
+        }else{
+            this.$root.$emit('globalError', response)
+        }
+      }).catch( err =>{
+        this.$root.$emit('globalError', err)
+        this.$router.push('/')
       })
     },
     onError: function(res) {
@@ -517,6 +516,11 @@ readOneDog : function({url, variables, token}){
     return requestGraphql({url, query, variables, token});
   },
 
+  tableTemplate: function({url}){
+    let query = \`query {csvTableTemplateDog }\`
+
+    return requestGraphql({url,query});
+  },
   //simple queries needed in spa components
 
   vueTable: \`{vueTableDog{data {id  name breed person{firstName  lastName } researcher{firstName }} total per_page current_page last_page prev_page_url next_page_url from to}}\`,
@@ -1007,7 +1011,7 @@ module.exports.dog_table = `
     <filter-bar></filter-bar>
     <div class="inline field pull-left">
       <router-link v-bind:to="'dog'"><button class="ui primary button">Add dog</button></router-link>
-      <button class="ui primary button" @click="downloadExampleCsv">CSV Example Table</button>
+      <button class="ui primary button" @click="downloadExampleCsv">CSV Template Table</button>
       <router-link v-bind:to="'/dogs/upload_csv'"><button class="ui primary button">CSV Upload</button></router-link>
     </div>
     <vuetable ref="vuetable"
@@ -1137,22 +1141,21 @@ export default {
       })
     },
     downloadExampleCsv: function() {
-      var t = this
-      axios.get(t.$baseUrl() + '/dogs/example_csv', {
-        responseType: 'blob'
-      }).then((response) => {
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', 'dogs.csv');
-        document.body.appendChild(link);
-        link.click();
-      }).catch(res => {
-        var err = (res && res.response && res.response.data && res.response
-          .data.message ?
-          res.response.data.message : res)
-        t.$root.$emit('globalError', err)
-        t.$router.push('/')
+      Queries.Dog.tableTemplate({url: this.$baseUrl()}).then(response =>{
+        if(response.data && response.data.data && response.data.data.csvTableTemplateDog){
+            let file = response.data.data.csvTableTemplateDog.join('\\n');
+            const url = window.URL.createObjectURL(new Blob([file]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'template_dog.csv');
+            document.body.appendChild(link);
+            link.click();
+        }else{
+            this.$root.$emit('globalError', response)
+        }
+      }).catch( err =>{
+        this.$root.$emit('globalError', err)
+        this.$router.push('/')
       })
     },
     onError: function(res) {
@@ -1359,6 +1362,11 @@ export default {
     return requestGraphql({url, query, variables, token});
   },
 
+  tableTemplate: function({url}){
+    let query = \`query {csvTableTemplatePerson }\`
+
+    return requestGraphql({url,query});
+  },
   //simple queries needed in spa components
   vueTable: \`{vueTablePerson{data {id  firstName lastName email countFilteredDogs countFilteredBooks} total per_page current_page last_page prev_page_url next_page_url from to}}\`,
 
@@ -1448,7 +1456,7 @@ module.exports.individual_table= `
     <filter-bar></filter-bar>
     <div class="inline field pull-left">
       <router-link v-bind:to="'individual'"><button class="ui primary button">Add individual</button></router-link>
-      <button class="ui primary button" @click="downloadExampleCsv">CSV Example Table</button>
+      <button class="ui primary button" @click="downloadExampleCsv">CSV Template Table</button>
       <router-link v-bind:to="'/individuals/upload_csv'"><button class="ui primary button">CSV Upload</button></router-link>
     </div>
     <vuetable ref="vuetable"
@@ -1574,22 +1582,21 @@ export default {
       })
     },
     downloadExampleCsv: function() {
-      var t = this
-      axios.get(t.$baseUrl() + '/individuals/example_csv', {
-        responseType: 'blob'
-      }).then((response) => {
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', 'individuals.csv');
-        document.body.appendChild(link);
-        link.click();
-      }).catch(res => {
-        var err = (res && res.response && res.response.data && res.response
-          .data.message ?
-          res.response.data.message : res)
-        t.$root.$emit('globalError', err)
-        t.$router.push('/')
+      Queries.Individual.tableTemplate({url: this.$baseUrl()}).then(response =>{
+        if(response.data && response.data.data && response.data.data.csvTableTemplateIndividual){
+            let file = response.data.data.csvTableTemplateIndividual.join('\\n');
+            const url = window.URL.createObjectURL(new Blob([file]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'template_individual.csv');
+            document.body.appendChild(link);
+            link.click();
+        }else{
+            this.$root.$emit('globalError', response)
+        }
+      }).catch( err =>{
+        this.$root.$emit('globalError', err)
+        this.$router.push('/')
       })
     },
     onError: function(res) {
@@ -1946,6 +1953,12 @@ export default {
       deleteBook(id:$id)
     }\`
     return requestGraphql({url, query, variables, token});
+  },
+
+  tableTemplate: function({url}){
+    let query = \`query {csvTableTemplateBook }\`
+
+    return requestGraphql({url,query});
   },
 
 
@@ -2460,7 +2473,7 @@ module.exports.transcriptCount_table = `
     <filter-bar></filter-bar>
     <div class="inline field pull-left">
       <router-link v-bind:to="'transcriptCount'"><button class="ui primary button">Add transcriptCount</button></router-link>
-      <button class="ui primary button" @click="downloadExampleCsv">CSV Example Table</button>
+      <button class="ui primary button" @click="downloadExampleCsv">CSV Template Table</button>
       <router-link v-bind:to="'/transcriptCounts/upload_csv'"><button class="ui primary button">CSV Upload</button></router-link>
     </div>
     <vuetable ref="vuetable"
@@ -2598,22 +2611,21 @@ export default {
       })
     },
     downloadExampleCsv: function() {
-      var t = this
-      axios.get(t.$baseUrl() + '/transcriptCounts/example_csv', {
-        responseType: 'blob'
-      }).then((response) => {
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', 'transcriptCounts.csv');
-        document.body.appendChild(link);
-        link.click();
-      }).catch(res => {
-        var err = (res && res.response && res.response.data && res.response
-          .data.message ?
-          res.response.data.message : res)
-        t.$root.$emit('globalError', err)
-        t.$router.push('/')
+      Queries.TranscriptCount.tableTemplate({url: this.$baseUrl()}).then(response =>{
+        if(response.data && response.data.data && response.data.data.csvTableTemplateTranscriptCount){
+            let file = response.data.data.csvTableTemplateTranscriptCount.join('\\n');
+            const url = window.URL.createObjectURL(new Blob([file]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'template_transcriptCount.csv');
+            document.body.appendChild(link);
+            link.click();
+        }else{
+            this.$root.$emit('globalError', response)
+        }
+      }).catch( err =>{
+        this.$root.$emit('globalError', err)
+        this.$router.push('/')
       })
     },
     onError: function(res) {
@@ -2762,6 +2774,12 @@ export default {
       deleteAcademicTeam(id:$id)
     }\`
     return requestGraphql({url, query, variables, token});
+  },
+
+  tableTemplate: function({url}){
+    let query = \`query {csvTableTemplateAcademicTeam }\`
+
+    return requestGraphql({url,query});
   },
 
   //simple queries needed in spa components
