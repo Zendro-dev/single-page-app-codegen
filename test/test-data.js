@@ -2117,7 +2117,7 @@ export default {
       try{
         let formData = new FormData();
         let tableFile = document.querySelector('#uploadTableFile');
-        if( (tableFile.files[0].size/ 1024*1024) > t.$MAX_UPLOAD_SIZE()){
+        if( (tableFile.files[0].size/ (1024*1024) ) > t.$MAX_UPLOAD_SIZE()){
           throw \`File exceeds limit of \${t.$MAX_UPLOAD_SIZE()} MB\`
         }
         formData.append(formElm, tableFile.files[0]);
