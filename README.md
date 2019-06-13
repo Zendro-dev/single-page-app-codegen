@@ -9,14 +9,15 @@ From the command line prompt
 ````
  gui-generator -h
 
-  Usage: gui-generator [options] <directory>
+  Usage: gui-generator [options]
   
-  <directory> path where GUI components will be rendered
+  Code generator for SPA
 
   Options:
+    -f, --jsonFiles <filesFolder>      Folder containing one json file for each model
+    -o, --outputDirectory <directory>  Directory where generated code will be written
+    -h, --help                         output usage information
 
-    --jsonFiles <files-directory>      Directory containing one json file for each model.
-    -h, --help                         Output usage information
 ````
 `<directory>` should contain a skeleton of the GUI, for download the skeleton and more details in how to run the GUI see [THIS](https://github.com/ScienceDb/single-page-app).
 
@@ -40,7 +41,7 @@ Name | Type | Description
 *name* | String | Name of the model (it is recommended uppercase for the initial character).
 *storageType* | String | Type of storage where the model is stored. So far can be one of __sql__ or __Webservice__
 *attributes* | Object | The key of each entry is the name of the attribute and the value should be the a string indicating the type of the attribute. See [table](types-spec) below for allowed types. Example: ```{ "attribute1" : "String", "attribute2: "Int" }```
-*associations* | Object | The key of each entry is the name of the association and the value should be an object describing the associations. See [Associations Spec](associations-spec) section below for the specifications of the associations. 
+*associations* | Object | The key of each entry is the name of the association and the value should be an object describing the associations. See [Associations Spec](associations-spec) section below for the specifications of the associations.
 
 EXAMPLES OF VALIDS JSON FILES
 
@@ -93,8 +94,8 @@ EXAMPLES OF VALIDS JSON FILES
 ### Types Spec
 The following types are allowed for the attributes field
 
- Type | 
-------- | 
+ Type |
+------- |
 String |
 Int |
 Float |
@@ -113,7 +114,7 @@ We will consider six possible type of associations depending on the Storage:
 6. cross_hasMany
 
 First four type of associations explain them selves and they are intended to be used when both, source and target models, are stored in SQL databases.
-Last two type of associations are intended to be used when at least one of the models involved is stored in a WebService. 
+Last two type of associations are intended to be used when at least one of the models involved is stored in a WebService.
 
 For all type of association, except for association  of type 4 (sql_belongsToMany), the necessary arguments would be:
 
@@ -133,7 +134,7 @@ name | Type | Description
 *sourceKey* | String | Key to identify the source id
 *keysIn* | String | Name of the cross table
 
-## NOTE: 
+## NOTE:
 THE SAME DATA MODELS DESCRIPTION(.json files) WILL BE USEFUL FOR GENERATING BOTH, THE [BACKEND](https://github.com/ScienceDb/graphql-server-model-codegen) AND THE FRONTEND OR GUI HERE DESCRIBED.
 
 Fields *`label`* and *`sublabel`* in the specification are only needed by the GUI generator, but backend generator will only read required information, therefore extra fields such as *`label`* and *`sublabel`* will be ignored by the backend generator.
