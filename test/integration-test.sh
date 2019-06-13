@@ -56,7 +56,7 @@ mkdir -p ./docker/integration_test_run/src/router
 mkdir -p ./docker/integration_test_run/src/requests
 
 # Generate App code for the integration test models
-node ./index.js --jsonFiles ./test/integration-test-input/ ./docker/integration_test_run/
+node ./index.js -f ./test/integration-test-input/ -o ./docker/integration_test_run/
 
 # Prepare integration tests input to generate code on the GraphQL server
 cp -r ./test/integration-test-input ./docker/integration_test_run/src/
@@ -93,4 +93,3 @@ bash -c "psql -U sciencedb -d sciencedb_development -P pager=off --single-transa
 mocha --timeout 15000 ./test/integration-tests-mocha.js
 
 cleanup
-

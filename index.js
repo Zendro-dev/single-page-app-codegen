@@ -15,13 +15,21 @@ modelsCreated = require(path.resolve(__dirname, 'modelsNames.js'));
 
 // Parse command-line-arguments and execute:
 program
-  .arguments('<directory>')
-  .option('--jsonFiles <filesFolder>', 'Folder containing one json file for each model')
+  .description('Code generator for SPA')
+  .option('-f, --jsonFiles <filesFolder>', 'Folder containing one json file for each model')
+  .option('-o, --outputDirectory <directory>', 'Directory where generated code will be written')
   .parse(process.argv);
 // Do your job:
-var directory = program.args[0]
 
-console.log('\nRender GUI components for model in: ', directory);
+if(!program.jsonFiles){
+  console.log("ERROR: You must indicate the json files in order to generate the code.");
+  process.exit(1);
+}
+
+
+let directory = program.outputDirectory || __dirname;
+
+console.log('\nRender GUI components for model in: ', path.resolve(directory));
 let promises = []
 let totalFiles = 0;
 let totalWrongFiles = 0;
@@ -29,7 +37,7 @@ fs.readdirSync(program.jsonFiles).forEach( async (json_file) =>{
   totalFiles++;
   let fileData = funks.parseFile(program.jsonFiles + '/'+json_file );
   let check_json_model = funks.checkJsonDataFile(fileData);
-  if(!check_json_model .pass){
+  if(!check_json_model.pass){
     totalWrongFiles++;
     check_json_model.errors.forEach( (error) =>{
         console.log(colors.red(error));

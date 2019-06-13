@@ -36,7 +36,7 @@ after (async function () {
 describe( 'Basic functionality', function() {
 
     it('01. Server OK', async function () {
-        expect(await page.title()).to.eql('Reconstruct DB');
+        expect(await page.title()).to.eql('ScienceDb-SPA');
     });
 
     it('02. Login', async function () {
@@ -51,7 +51,7 @@ describe( 'Basic functionality', function() {
 
         await delay(500);
 
-        expect(await page.title()).to.eql('Reconstruct DB');
+        expect(await page.title()).to.eql('ScienceDb-SPA');
 
     });
 

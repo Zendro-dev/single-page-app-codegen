@@ -19,7 +19,7 @@ COPY ./integration_test_run/src/integration-test-input ./input
 # Configure the database connections
 COPY sequelize_config.json ./config/config.json
 
-RUN cd ./generator && node index.js generate ../input .. && node index.js generate ./static-json-files ..
+RUN cd ./generator && node index.js -f ../input -o .. && node index.js -f ./static-json-files -o ..
 
 #TODO: print code generation to console
 
