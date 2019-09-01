@@ -7,11 +7,4 @@ WORKDIR /usr/src/app
 RUN apk update && \
  apk add git && apk add bash && \
  git clone https://github.com/ScienceDb/single-page-app.git . && \
- npm install npm@6.0.0
-
-
-# Copy generated files for App
-COPY ./integration_test_run/src/components/* ./src/components/
-COPY ./integration_test_run/src/router/* ./src/router/
-COPY ./integration_test_run/src/requests/* ./src/requests/
-COPY ./integration_test_run/src/sciencedb-globals.js ./src/
+ npm install

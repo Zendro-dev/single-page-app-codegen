@@ -7,6 +7,8 @@ services:
       dockerfile: Dockerfile.postgres
     ports:
      - 1234:5432
+    volumes:
+      - ../test/integration-test.sql:/usr/src/app/integration-test.sql
 
   spa_science_db_graphql_server:
     depends_on:
@@ -14,13 +16,25 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.graphql_server
+
+    volumes:
+      - ./integration_test_run/src/integration-test-input:/usr/src/app/input
+      - ./sequelize_config.json:/usr/src/app/config/config.json
     ports:
       - 3000:3000
     environment:
       - PORT=3000
-    # Await POSTGRES role and DB creation, migrate schema, then start web
-    # server:
-    command: bash -C './migrateDbAndStartServer.sh'
+    command:
+      - /bin/sh
+      - -c
+      - | 
+        cd ./generator
+        # Generate code
+        node index.js -f ../input -o ..
+        node index.js -f ./static-json-files -o ..
+        # Await POSTGRES role and DB creation, migrate schema, then start web:
+        cd ..
+        ./migrateDbAndStartServer.sh
 
   spa_science_db_app_server:
     depends_on:
@@ -29,8 +43,24 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.app
+    volumes:
+      - ./integration_test_run/src/components:/usr/src/app/src/gencode/components
+      - ./integration_test_run/src/router:/usr/src/app/src/gencode/router
+      - ./integration_test_run/src/requests:/usr/src/app/src/gencode/requests
+      - ./integration_test_run/src/sciencedb-globals.js:/usr/src/app/src/gencode/sciencedb-globals.js
     ports:
       - 8080:8080
     environment:
       - PORT=8080
-    command: npm run serve
+    
+    command:
+      - /bin/sh
+      - -c
+      - |
+        # Copy SPA code
+        cp /usr/src/app/src/gencode/components/* /usr/src/app/src/components/
+        cp /usr/src/app/src/gencode/router/* /usr/src/app/src/router/
+        cp /usr/src/app/src/gencode/requests/* /usr/src/app/src/requests/
+        cp /usr/src/app/src/gencode/sciencedb-globals.js /usr/src/app/src/
+        # Run server
+        npm run serve

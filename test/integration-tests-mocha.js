@@ -13,8 +13,8 @@ before (async function () {
         headless: false,
         // do not run too fast
         slowMo: 10,
-        // 10sec max wait for response
-        timeout: 10000
+        // 30sec max wait for response
+        timeout: 30000
     };
 
     browser = await puppeteer.launch(opts);
@@ -29,7 +29,6 @@ after (async function () {
     //await page.close();
     //browser.close();
 });
-
 
 
 // tests
