@@ -10,7 +10,7 @@ From the command line prompt
  gui-generator -h
 
   Usage: gui-generator [options]
-  
+
   Code generator for SPA
 
   Options:
@@ -38,12 +38,12 @@ For each model we need to specify the following fields in the json file:
 
 Name | Type | Description
 ------- | ------- | --------------
-*name* | String | Name of the model (it is recommended uppercase for the initial character).
+*model* | String | Name of the model (it is recommended uppercase for the initial character).
 *storageType* | String | Type of storage where the model is stored. So far can be one of __sql__ or __Webservice__
-*attributes* | Object | The key of each entry is the name of the attribute and the value should be the a string indicating the type of the attribute. See [table](types-spec) below for allowed types. Example: ```{ "attribute1" : "String", "attribute2: "Int" }```
+*attributes* | Object | The key of each entry is the name of the attribute and theres two options for the value . Either can be a string indicating the type of the attribute or an object where the user can indicates the type of the attribute(in the _type_ field) but also can indicates an attribute's description (in the _description_ field). See the [table](#types-spec) below for allowed types. Example of option one: ```{ "attribute1" : "String", "attribute2: "Int" }``` Example of option two: ``` { "attribute1" : {"type" :"String", "description": "Some description"}, "attribute2: "Int ```
 *associations* | Object | The key of each entry is the name of the association and the value should be an object describing the associations. See [Associations Spec](associations-spec) section below for the specifications of the associations.
 
-EXAMPLES OF VALIDS JSON FILES
+EXAMPLES OF VALID JSON FILES
 
 ```
 //Dog.json
@@ -57,10 +57,10 @@ EXAMPLES OF VALIDS JSON FILES
 
   "associations" : {
     "person" : {
-      "type" : "sql_belongsTo",
+      "type" : "belongsTo",
       "target" : "Person",
       "targetKey" : "personId",
-      "label": "firstName"
+      "targetStorageType" : "sql"
     }
   }
 }
@@ -78,15 +78,13 @@ EXAMPLES OF VALIDS JSON FILES
   },
   "associations":{
       "books" : {
-          "type" : "cross_hasMany",
+          "type" : "hasMany",
           "target" : "Book",
           "targetKey" : "publisherId",
-          "label": "title",
-          "sublabel": "genre"
+          "targetStorageType" : "sql"
         }
   }
 }
-
 ```
 
 
@@ -100,39 +98,129 @@ String |
 Int |
 Float |
 Boolean |
+Date |
+Time |
+DateTime |
 
+For more info about `Date`, `Time`, and `DateTime` types, please see this [info](https://github.com/excitement-engineer/graphql-iso-date/blob/HEAD/rfc3339.txt).
 
+Example:
+* Date: A date string, such as `2007-12-03`.
+* Time: A time string at UTC, such as `10:15:30Z`.
+* DateTime: A date-time string at UTC, such as `2007-12-03T10:15:30Z`
 
 ### Associations Spec
 
-We will consider six possible type of associations depending on the Storage:
-1. sql_belongsTo
-2. sql_hasOne
-3. sql_hasMany
-4. sql_belongsToMany
-5. cross_hasOne
-6. cross_hasMany
+We will consider four possible types of associations:
+1. belongsTo
+2. hasOne
+3. hasMany
+4. belongsToMany
 
-First four type of associations explain them selves and they are intended to be used when both, source and target models, are stored in SQL databases.
-Last two type of associations are intended to be used when at least one of the models involved is stored in a WebService.
-
-For all type of association, except for association  of type 4 (sql_belongsToMany), the necessary arguments would be:
+For all type of association, except for association of type 4 (belongsToMany), the necessary arguments would be:
 
 name | Type | Description
 ------- | ------- | --------------
-*type* | String | Type of association (one of the six described above).
-*target* | String | Name of model to which the current model will be associated with
-*targetKey* | String | Key to identify the field in the target
-*targetStorageType* | String | Type of storage where the target model is stored. So far can be one of __sql__ or __Webservice__
-*label* | String | Name of the column in the target model to be used as a display name in the GUI
-*sublabel* | String | Optional name of the column in the target model to be used as a sub-label in the GUI
+*type* | String | Type of association (like belongsTo, etc.)
+*target* | String | Name of model to which the current model will be associated with.
+*targetKey* | String | A unique identifier of the association for the case where there appear more than one association with the same model.
+*targetStorageType* | String | Type of storage where the target model is stored. So far can be one of __sql__ or __Webservice__.
+*label* | String | Name of the column in the target model to be used as a display name in the GUI.
+*sublabel* | String | Optional name of the column in the target model to be used as a sub-label in the GUI.
 
-When the association is of the type 4, it's necessary to describe a couple of two extra arguments given that the association is made with a cross table. The extra two arguments will be:
+When association is of type 4, it's necessary to describe two extra arguments given that the association is made with a cross table. These arguments are:
 
 name | Type | Description
 ------- | ------- | --------------
 *sourceKey* | String | Key to identify the source id
 *keysIn* | String | Name of the cross table
+
+## NOTE:
+Be aware that in the case of an association _belongsToMany_ the user is required to describe the cross table used in the field _keysIn_ as a model in its own. For example, if we have a model `User` and a model `Role` and they are associated in a _manytomany_ way, then we also need to describe the `role_to_user` model:
+
+```
+//User model
+{
+  "model" : "User",
+  "storageType" : "SQL",
+  "attributes" : {
+    "email" : "String",
+    "password" : "String"
+  },
+  "associations" :{
+    "roles" : {
+      "type" : "belongsToMany",
+      "target" : "Role",
+      "targetKey" : "role_Id",
+      "sourceKey" : "user_Id",
+      "keysIn" : "role_to_user",
+      "targetStorageType" : "sql",
+      "label": "name"
+    }
+  }
+
+}
+```
+
+```
+//Role model
+{
+  "model" : "Role",
+  "storageType" : "SQL",
+  "attributes" : {
+    "name" : "String",
+    "description" : "String"
+  },
+  "associations" : {
+    "users" : {
+      "type" : "belongsToMany",
+      "target" : "User",
+      "targetKey" : "user_Id",
+      "sourceKey" : "role_Id",
+      "keysIn" : "role_to_user",
+      "targetStorageType" : "sql",
+      "label": "email"
+    }
+  }
+}
+```
+
+```
+//role_to_user model
+{
+  "model" : "role_to_user",
+  "storageType" : "SQL",
+  "attributes" : {
+    "user_Id" : "Int",
+    "role_Id" : "Int"
+  }
+}
+
+```
+
+## NOTE:
+ It's important to notice that when a model involves a _belongsTo_ association then foreign key that refers remote elements should be explicitly written into the attributes field of the given local model.
+
+Example:
+```
+{
+  "model" : "book",
+  "storageType" : "sql",
+  "attributes" : {
+    "title" : {"type":"String", "description": "The book's title"},
+    "publisher_id": "Int"
+  },
+  "associations":{
+      "publisher" : {
+        "type" : "belongsTo", // FK to publisher will be stored in the Book model
+        "target" : "publisher", // Model's name is `publisher`
+        "targetKey" : "publisher_id", // Local alias for this association
+        "targetStorageType" : Webservice", //  It's a remote database
+        "label" : "name" // Show in GUI the name of the publisher taken from external DB
+        }
+  }
+}
+```
 
 ## NOTE:
 THE SAME DATA MODELS DESCRIPTION(.json files) WILL BE USEFUL FOR GENERATING BOTH, THE [BACKEND](https://github.com/ScienceDb/graphql-server-model-codegen) AND THE FRONTEND OR GUI HERE DESCRIBED.
@@ -152,7 +240,7 @@ EXAMPLES OF VALID JSON FILE:
 
   "associations" : {
     "person" : {
-      "type" : "sql_belongsTo",
+      "type" : "belongsTo",
       "target" : "Person",
       "targetKey" : "personId",
       "targetStorageType" : "sql",
@@ -175,7 +263,7 @@ EXAMPLES OF VALID JSON FILE:
     },
  "associations" : {
         "authors" : {
-            "type" : "sql_belongsToMany",
+            "type" : "belongsToMany",
             "target" : "Person",
             "targetKey" : "person_id",
             "sourceKey" : "book_id",
