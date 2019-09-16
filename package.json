@@ -2,6 +2,10 @@
   "name": "single-page-app-codegen",
   "version": "1.0.0",
   "description": "Enables auto generation of basic List, Create, Edit, and Delete Views for data models.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ScienceDb/single-page-app-codegen"
+  },
   "main": "index.js",
   "bin": {
     "single-page-app-codegen": "./index.js"
