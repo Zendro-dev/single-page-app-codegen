@@ -219,18 +219,14 @@
             sortable: true,
             value: 'id',
           },
+        <% for ( i=0; i<attributesArr.length; i++ ) { -%>
           {
-            text: 'Name',
-            align: 'start',
+            text: '<%- attributesArr[i][0] -%>',
+            align: 'center',
             sortable: true,
-            value: 'name',
-          },
-          {
-            text: 'Description',
-            align: 'start',
-            sortable: true,
-            value: 'description',
-          },
+            value: '<%- attributesArr[i][0] -%>',
+          } 
+        <% } -%>
           {
             text: 'Actions',
             align: 'center',
