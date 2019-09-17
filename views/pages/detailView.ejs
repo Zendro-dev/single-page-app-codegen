@@ -1,15 +1,15 @@
 <template>
   <div @click="onClick">
-    <div class="inline field">
-      <label>id: </label>
-      <span>{{rowData.id}}</span>
-    </div>
-    <% for ( i=0; i<attributesArr.length; i++ ) { -%>
-      <div class="inline field">
-        <label><%- attributesArr[i][0] -%>:</label>
-        <span>{{rowData.<%- attributesArr[i][0] -%>}}</span>
-      </div>
-    <% } -%>
+
+    <v-card flat color="#FFFFFF">
+    
+      <v-card-title>ID</v-card-title>
+      <v-card-text>{{rowData.id}}</v-card-text>
+
+      <% for ( i=0; i<attributesArr.length; i++ ) { -%>
+          <v-card-title><%- attributesArr[i][0] -%></v-card-title>
+          <v-card-text>{{rowData.<%- attributesArr[i][0] -%>}}</v-card-text>
+      <% } -%>
 
   <% for ( i=0; i<belongsTosArr.length; i++ ) { -%>
     <% var bt = belongsTosArr[i] -%>
@@ -27,7 +27,9 @@
 
     <div id="<%- nameLc -%>-<%- rel.relationName -%>-div" class="row w-100">
       <div class="col">
-        <label><%- rel.relationName -%>:</label>
+        
+        <v-card-title><%- rel.relationName -%>:</v-card-title>
+        
         <scroll-list class="list-group"
           :url="this.$baseUrl()"
           :idSelected="rowData.id"

@@ -79,6 +79,144 @@ countFiltered<%-manyRel.relationNameCp-%> <%}-%>
   getOne: function(subQuery,label, sublabel){
     return `query readOne<%- nameCp -%>($id: ID!, $offset:Int, $limit:Int) {
       readOne<%- nameCp -%>(id:$id){ ${subQuery}(pagination:{limit: $limit offset:$offset }){ id ${label} ${sublabel} } } }`
+  },
+
+  /*
+    @v-data-table support
+  */
+  //get item count
+  getCount: function(url, searchText){
+    /*
+      Set @search arg
+    */
+   var s = '';
+   var query = '';
+
+   if(searchText !== null && searchText !== '') 
+   {
+      s = `search: {operator:or, search: [ 
+        <% for ( i=0; i<attributesArr.length; i++ ) { -%>
+          {field:<%- attributesArr[i][0] -%>, value:{value:"%${searchText}%"}, operator:like}, 
+        <% } -%>
+      ]}`
+      //query with search
+      query = `{ count<%- namePlCp -%>(${s}) }`;
+   }
+   else {
+      //query without search
+      query =`{ count<%- namePlCp -%> }`;
+   }
+
+   return requestGraphql({url,query});
+  },
+
+  getItems: function(url, searchText, sortBy, sortDesc, paginationOffset, paginationLimit){
+    /*
+      Set search
+    */
+    var s = null;
+    if(searchText !== null && searchText !== '')
+    {
+        s = `search: {operator:or, search: [
+          <% for ( i=0; i<attributesArr.length; i++ ) { -%>
+            {field:<%- attributesArr[i][0] -%>, value:{value:"%${searchText}%"}, operator:like}, 
+          <% } -%>
+        ]}`
+    }
+    /*
+      Set order
+    */
+    var o = null;
+    if(sortBy.length > 0)
+    {
+        /*
+          Add sort fields
+        */
+        o = `order: [`;
+        for(var i=0; i<sortBy.length; i++)
+        {
+          //ser order
+          var order = 'ASC';
+          if(sortDesc[i])
+          {
+            order = 'DESC'
+          }
+          
+          //add sort field
+          o = o + `{field: ${sortBy[i]}, order: ${order}}`
+        }
+        o = o + `]`
+    }
+
+    /*
+      Set pagination
+    */
+    var p = `pagination: {offset: ${paginationOffset}, limit: ${paginationLimit}}`
+
+    /*
+      Set graphQL query
+    */
+    var query = '';
+
+    //if has search
+    if(s !== null)
+    {
+      //if has order
+      if(o != null)
+      {
+        //query with search & sort & pagination
+        query = 
+        `{
+          <%- namePlLc -%>(${s}, ${o}, ${p}) {
+                <% for ( i=0; i<attributesArr.length; i++ ) { -%>
+                    <%- attributesArr[i][0] -%> 
+                <% } -%>
+                }
+        }`
+      }//end: if has order
+      else { //has not order
+        
+        //query with search & pagination
+        query = 
+        `{
+          <%- namePlLc -%>(${s}, ${p}) {
+                <% for ( i=0; i<attributesArr.length; i++ ) { -%>
+                    <%- attributesArr[i][0] -%> 
+                <% } -%>
+                }
+        }`
+      }//end: else: has not order
+    }//end: if has search
+    else { // has not search
+      
+      //if has order
+      if(o != null)
+      {
+        //query with sort & pagination
+        query = 
+        `{
+          <%- namePlLc -%>(${o}, ${p}) {
+                <% for ( i=0; i<attributesArr.length; i++ ) { -%>
+                    <%- attributesArr[i][0] -%> 
+                <% } -%>
+                }
+        }`
+      }//end: if has order
+      else { //has not order
+        
+        //query with pagination only
+        query = 
+        `{
+          <%- namePlLc -%>(${p}) {
+                <% for ( i=0; i<attributesArr.length; i++ ) { -%>
+                    <%- attributesArr[i][0] -%> 
+                <% } -%>
+                }
+        }`
+      }//end: else: has not order
+    }//end: else: has not search
+
+    return requestGraphql({url,query});
   }
 
 }

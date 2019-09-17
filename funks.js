@@ -204,6 +204,7 @@ exports.fillOptionsForViews = function(fileData){
     namePl: inflection.pluralize(exports.uncapitalizeString(fileData.model)),
     namePlLc: inflection.pluralize(exports.uncapitalizeString(fileData.model)),
     nameCp: exports.capitalizeString(fileData.model),
+    nameUc: fileData.model.toUpperCase(),
     attributesArr: attributesArrayFromFile(fileData.attributes),
     typeAttributes: exports.typeAttributes(attributesArrayFromFile(fileData.attributes)),
     belongsTosArr: associations.belongsTos,

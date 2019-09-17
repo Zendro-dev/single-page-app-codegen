@@ -1,163 +1,928 @@
 <template>
   <div class="ui container">
-    <filter-bar></filter-bar>
-    <div class="inline field pull-left">
-      <router-link v-bind:to="'<%- nameLc -%>'"><button class="ui primary button">Add <%- nameLc -%></button></router-link>
-      <button class="ui primary button" @click="downloadExampleCsv">CSV Template Table</button>
-      <router-link v-bind:to="'/<%- namePlLc -%>/upload_csv'"><button class="ui primary button">CSV Upload</button></router-link>
-    </div>
-    <vuetable ref="vuetable"
-      :api-url="this.$baseUrl()"
-      :fields="fields"
-      :per-page="20"
-      :appendParams="moreParams"
-      :http-options="{ headers: {Authorization: `Bearer ${this.$store.getters.authToken}`} }"
-      pagination-path="data.vueTable<%-nameCp-%>"
-      detail-row-component="<%- nameLc -%>-detail-row"
-      data-path="data.vueTable<%-nameCp-%>.data"
-      @vuetable:pagination-data="onPaginationData"
-      @vuetable:cell-clicked="onCellClicked"
-      @vuetable:load-error="onError"
-    ></vuetable>
-    <div class="vuetable-pagination ui basic segment grid">
-      <vuetable-pagination-info ref="paginationInfo"
-      ></vuetable-pagination-info>
-      <vuetable-pagination ref="pagination"
-        @vuetable-pagination:change-page="onChangePage"
-      ></vuetable-pagination>
-    </div>
+    <!-- 
+      * Snackbar (1)
+      *
+      * Display quick messages. Has a timeout of 6 seconds to becomes invisible after showed.
+    -->
+    <v-row justify="center">
+      <v-col :cols="cols" :sm="smCols" :md="mdCols">
+        <v-snackbar
+          v-model="snackbar"
+          :color="snackbarColor"
+          :multi-line="snackbarMultiline"
+          :timeout="snackbarTimeout"
+          top
+        >
+          <span v-html="snackbarText"></span>
+
+          <v-btn
+            class="mx-2"
+            :color="snackbarColor"
+            fab
+            small
+            dark
+            elevation="0"
+            @click="snackbar = false"
+          >
+            <v-icon>close</v-icon>
+          </v-btn>
+        </v-snackbar>
+      </v-col>
+    </v-row>
+    <!-- 
+      * End: Snackbar (1)
+    -->
+    <!-- 
+      * Snackbar (2)
+      *
+      * Display quick messages. Has a timeout of 6 seconds to becomes invisible after showed.
+      * This snackbar is used when snackbar.1 is busy.
+    -->
+    <v-row justify="center">
+      <v-col :cols="cols" :sm="smCols" :md="mdCols">
+        <v-snackbar
+          v-model="snackbar2"
+          :color="snackbarColor2"
+          :multi-line="snackbarMultiline2"
+          :timeout="snackbarTimeout2"
+          top
+        >
+          <span v-html="snackbarText2"></span>
+
+          <v-btn
+            class="mx-2"
+            :color="snackbarColor2"
+            fab
+            small
+            dark
+            elevation="0"
+            @click="snackbar2 = false"
+          >
+            <v-icon>close</v-icon>
+          </v-btn>
+        </v-snackbar>
+      </v-col>
+    </v-row>
+    <!-- 
+      * End: Snackbar (1)
+    -->
+
+    <!-- 
+      * Dialog
+      *
+      * Used to request confirmation to an action
+    -->
+    <v-row justify="center">
+      <v-dialog v-model="dialog" persistent :max-width="dialogMaxWidth">
+        <v-card>
+          <v-card-title class="headline">{{dialogHeadline}}</v-card-title>
+          <v-card-text>
+            <span v-html="dialogText"></span>
+          </v-card-text>
+          <v-card-actions>
+            <div class="flex-grow-1"></div>
+            <v-btn v-if="dialogAcceptText" :color="dialogAcceptColor" text @click="onDialogAccepted()">{{dialogAcceptText}}</v-btn>
+            <v-btn v-if="dialogCancelText" :color="dialogCancelColor" text @click="onDialogCanceled()">{{dialogCancelText}}</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </v-row>
+    <!-- 
+      * End: Dialog
+    -->
+
+    <!--
+      *
+      * Vuetify Table
+      * 
+    -->
+    <v-card min-width="600">
+      
+      <v-card-title>
+        <%-namePlCp-%>
+        <div class="flex-grow-1"></div>
+        <v-text-field v-model="search" append-icon="search" label="Search" single-line hide-details></v-text-field>
+        <!--
+          *
+          * Vuetify Buttons
+          * 
+        -->
+        <v-container fluid>
+          
+          <!-- button.add -->
+          <router-link v-bind:to="'<%- nameLc -%>'">
+            <v-btn color="primary" dark class="mx-2 my-5">
+              <v-icon small left>add</v-icon>
+              ADD <%- nameUc -%>
+            </v-btn>
+          </router-link>
+
+          <!-- button.download -->
+          <v-btn color="primary" dark class="mx-2 my-5" @click="downloadExampleCsv">
+            <v-icon small left>arrow_downward</v-icon>
+            CSV DOWNLOAD
+          </v-btn>
+          
+          <!-- button.upload -->
+          <router-link v-bind:to="'/<%- namePlLc -%>/upload_csv'">
+            <v-btn color="primary" dark class="mx-2 my-5">
+              <v-icon small left>arrow_upward</v-icon>
+              CSV UPLOAD
+            </v-btn>
+          </router-link>
+        </v-container>
+      </v-card-title>
+
+      <!--
+        *
+        * Table
+        * 
+      -->
+      <v-data-table
+        :headers="headers"
+        :items="items"
+        :search.sync="search"
+        :items-per-page="itemsPerPage"
+        :page.sync="page"
+        :options.sync="options"
+        :server-items-length="totalItems"
+        :loading="loading"
+        :loading-text="loadingText"
+        :single-expand="singleExpand"
+        :expanded.sync="expanded"
+        :sort-by.sync="sortBy"
+        :sort-desc.sync="sortDesc"
+        :multi-sort="multiSort"
+        :footer-props="footerProps"
+        :mobile-breakpoint="768"
+        :fixed-header="fixedHeader"
+        show-expand
+        
+      >
+        <!--
+          *
+          * Expanded item
+          * 
+        -->
+        <template v-slot:expanded-item="{ item, headers }">
+          
+          <td :colspan="headers.length" class="pa-0 ma-0">
+            <<%- name -%>-detail-row :rowData="item"></<%- name -%>-detail-row>
+          </td>
+
+        </template>
+
+        <!--
+          *
+          * Actions
+          * 
+        -->
+        <template v-slot:item.action="{ item }">
+          
+          <!-- action.edit -->
+          <router-link v-bind:to="'<%- name -%>/' + item.id">
+            <v-btn text icon color="indigo">
+              <v-icon small>edit</v-icon>
+            </v-btn>
+          </router-link>
+
+          <!-- action.delete -->
+          <v-btn text icon color="indigo" @click="getDeleteConfirmation(item)">
+            <v-icon small>delete</v-icon>
+          </v-btn>
+        </template>
+        
+      </v-data-table>
+    </v-card>
   </div>
 </template>
 
 <script>
-import Vuetable from 'vuetable-2/src/components/Vuetable.vue'
-import VuetablePagination from 'vuetable-2/src/components/VuetablePagination.vue'
-import VuetablePaginationInfo from 'vuetable-2/src/components/VuetablePaginationInfo.vue'
-import <%- name -%>CustomActions from './<%- name -%>CustomActions.vue'
-import <%- name -%>DetailRow from './<%- name -%>DetailRow.vue'
-import FilterBar from './FilterBar.vue'
-
-import axios from 'axios'
-
-import Vue from 'vue'
-import VueEvents from 'vue-events'
-import Queries from '../requests/index'
-Vue.use(VueEvents)
-
-Vue.component('<%- nameLc -%>-custom-actions', <%- name -%>CustomActions)
-Vue.component('<%- nameLc -%>-detail-row', <%- name -%>DetailRow)
-Vue.component('filter-bar', FilterBar)
-
-export default {
-  components: {
-    Vuetable,
-    VuetablePagination,
-    VuetablePaginationInfo,
-    <%- name -%>DetailRow
-  },
-  data() {
-    return {
-      fields: [{
-          name: 'id',
-          title: 'ID',
-          titleClass: 'center aligned',
-          dataClass: 'right aligned'
-        },
-        // For now, we do not render checkboxes, as we yet have to provide
-        // functions for selected rows.
-        //{
-        //  name: '__checkbox',
-        //  titleClass: 'center aligned',
-        //  dataClass: 'center aligned'
-        //},
-        <% for ( i=0; i<attributesArr.length; i++ ) { -%>
+  import Vue from "vue";
+  import Queries from "../requests/index";
+  import <%- name -%>DetailRow from "./<%- name -%>DetailRow.vue";
+  import axios from "axios";
+  
+  Vue.component("<%- name -%>-detail-row", <%- name -%>DetailRow);
+  
+  export default {
+    components: {
+      <%- name -%>DetailRow,
+    },
+    data() {
+      return {
+        headers: [
           {
-            name: '<%- attributesArr[i][0] -%>',
-            sortField: '<%- attributesArr[i][0] -%>'
+            text: 'ID',
+            align: 'center',
+            sortable: true,
+            value: 'id',
           },
-        <% } -%>
+          {
+            text: 'Name',
+            align: 'start',
+            sortable: true,
+            value: 'name',
+          },
+          {
+            text: 'Description',
+            align: 'start',
+            sortable: true,
+            value: 'description',
+          },
+          {
+            text: 'Actions',
+            align: 'center',
+            sortable: false,
+            value: 'action',
+          },
+        ],
+        /*
+          @v-data-table: props
+        */
+        search: "",
+        items: [],
+        itemsPerPage: 10,
+        maxItemsPerPage: 500,
+        itemsPerPageOptions: [5,10,20,40,-1],
+        itemsPerPageAllText: 'Max (500)',
+        page: 1,
+        currentPage: 0,
+        totalItems: 0,
+        fixedHeader: false, //does not work on IE11
+        options: {},
+        loading: false,
+        loadingText: "",
+        singleExpand: false,
+        expanded: [],
+        sortBy: [],
+        sortDesc: [],
+        multiSort: true,
+        footerProps: {
+          itemsPerPageOptions: this.itemsPerPageOptions,
+          itemsPerPageAllText: this.itemsPerPageAllText,
+          pagination: {
+            page: 0,
+            itemsPerPage: 0,
+            pageStart: 0,
+            pageStop: 0,
+            pageCount: 0,
+            itemsLength: 0
+          }
+        },
+  
+  
+        /*
+          @flow-control props
+        */
+        resettingModel: false,
+  
+        /*
+          @layout props
+        */
+        cols: 12,
+        mdCols: 5,
+        smCols: 5,
+  
+        /*
+          @snackbar props
+        */
+        snackbar: false,
+        snackbarText: "",
+        snackbarColor: "error", //or "primary", or...
+        snackbarTimeout: 0,
+        snackbarMultiline: true,
+  
+        snackbar2: false,
+        snackbarText2: "",
+        snackbarColor2: "error", //or "primary", or...
+        snackbarTimeout2: 0,
+        snackbarMultiline2: true,
+  
+        /*
+          @dialog props
+        */
+        dialog: false,
+        dialogMaxWidth: 500,
+        dialogHeadline: "",
+        dialogText: "",
+        dialogAcceptText: "",
+        dialogCancelText: "",
+        dialogAcceptColor: "primary darken-1",
+        dialogCancelColor: "primary darken-1",
+  
+        /*
+          @search-timer props
+        */
+        timerId: -1,
+        timerRunning: false,
+        timerInterval: 500,
+      };
+    }, //end: data{}
+    computed: {
+      /**
+       * Return the offset needed by pagination.
+       */
+      offset: function () {
+        console.log("newOffset: ", this.currentPage * this.itemsPerPage);
+        return (this.currentPage * this.itemsPerPage);
+      }
+    }, //end: computed {}
+    methods: {
+      getDataFromApi () {
+        /*
+          Run promises
+        */
+        this.getTotalItems();
+        this.getItems();
+  
+      },//end: getDataFromApi()
+  
+      /**
+       * Get (by promise) the items from server and sets @items[]
+       * 
+       */
+      getItems() {
+  
+        console.log("**GetttinItems**");
+        console.log("**IPP: ", this.itemsPerPage);
+        console.log("**totalItems: ", this.totalItems);
+  
+        //set loading
+        this.loading = true;
+  
+        //set itemsPerPage
+        var ipp = this.itemsPerPage;
+        if(this.itemsPerPage === -1) {
+          ipp = this.maxItemsPerPage
+        }
+  
+        //get items
+        var t = this;
+        Queries.<%- nameCp -%>.getItems(this.$baseUrl(), 
+                              this.search, 
+                              this.sortBy, 
+                              this.sortDesc,
+                              this.offset,
+                              ipp)
+          .then(response => {
+            //check response
+            if (
+              response.data &&
+              response.data.data &&
+              response.data.data.<%- namePlLc -%>
+            ) {
+  
+              //set items
+              t.items = response.data.data.<%- namePlLc -%>;
+              
+              //update footer
+              t.updateFooter()
+  
+              //reset loading
+              t.loading = false;
+  
+              //reset flag
+              t.resettingModel = false;
+  
+              //done
+              return;
+  
+            } else {
+  
+              //show snackbar.error
+              t.snackbar = false;
+              t.snackbarText =
+                "Error: at getItems() at Queries.<%- nameCp -%>.getItems()<br>"+
+                "Please contact your administrator for support.<br>"+
+                "Response: " + response;
+              t.snackbarColor = "error";
+              t.snackbarTimeout = 6000;
+              t.snackbar = true;
+  
+              //reset loading
+              t.loading = false;
+  
+              //reset flag
+              t.resettingModel = false;
+  
+              //done
+              return;
+            }
+          })
+          .catch(err => {
+  
+            //show snackbar.error
+              t.snackbar = false;
+              t.snackbarText =
+                "Error: at getItems() at Queries.<%- nameCp -%>.getItems()<br>"+
+                "Please contact your administrator for support.<br>"+
+                "Error: " + err;
+              t.snackbarColor = "error";
+              t.snackbarTimeout = 6000;
+              t.snackbar = true;
+  
+              //reset loading
+              t.loading = false;
+  
+              //reset flag
+              t.resettingModel = false;
+  
+              //done
+              return;
+          });
+      }, //end: getItems()
+  
+      /**
+       * Get (by promise) the total count of items from server ans sets @totalItems.
+       * 
+       */
+      getTotalItems() {
+        /*
+          Get: total items
+        */
+        var t = this;
+        Queries.<%- nameCp -%>.getCount(this.$baseUrl(), this.search)
+          .then(response => {
+            //Check response
+            if (
+              response.data &&
+              response.data.data
+            ) {
+              
+              //set totalItems
+              t.totalItems = response.data.data.count<%- namePlCp -%>;
+  
+              //reset loading
+              t.loading = false;
+  
+              console.log("count: ", t.totalItems);
+  
+              //done
+              return;
+  
+            } else {
+              //show snackbar.error
+              t.snackbar = false;
+              t.snackbarText =
+                "Error: at Queries.<%- nameCp -%>.getCount()<br>"+
+                "Please contact your administrator for support.<br>"+
+                "Info1: " + response;
+              t.snackbarColor = "error";
+              t.snackbarTimeout = 6000;
+              t.snackbar = true;
+  
+              //reset loading
+              t.loading = false;
+  
+              //done
+              return;
+            }
+          })
+          .catch(err => {
+  
+            //show snackbar.error
+            t.snackbar = false;
+            t.snackbarText =
+              "Error: at Queries.<%- nameCp -%>.getCount()<br>" +
+              "Please contact your administrator for support.<br>"+
+              "Info2: " + err;
+            t.snackbarColor = "error";
+            t.snackbarTimeout = 6000;
+            t.snackbar = true;
+  
+            //reset loading
+            t.loading = false;
+  
+            //done
+            return;
+          });
+  
+          //done
+          return;
+      },
+  
+      doSearch()
+      {
+        //get data
+        this.getDataFromApi();
+      },
+  
+      onCsvExport() {
+        var t = this;
+        var url =
+          this.$baseUrl()() +
+          "/<%- namePlLc -%>/example_csv" +
+          "?array=[" +
+          this.$refs.vuetable.selectedTo.join(",") +
+          "]";
+  
+        axios
+          .get(url)
+          .then(function(response) {
+            var a = document.createElement("a");
+            document.body.appendChild(a);
+            a.style = "display: none";
+            var blob = new Blob([response.data], { type: "octet/stream" });
+            var url = window.URL.createObjectURL(blob);
+            a.href = url;
+            a.download = "<%- name -%>" + ".csv";
+            a.click();
+            window.URL.revokeObjectURL(url);
+          })
+          .catch(function(error) {
+            t.error = error;
+          });
+      },
+      downloadExampleCsv: function() {
+        Queries.<%- nameCp -%>.tableTemplate({ url: this.$baseUrl() })
+          .then(response => {
+            if (
+              response.data &&
+              response.data.data &&
+              response.data.data.csvTableTemplate<%- nameCp -%>
+            ) {
+              let file = response.data.data.csvTableTemplate<%- nameCp -%>.join("\n");
+              const url = window.URL.createObjectURL(new Blob([file]));
+              const link = document.createElement("a");
+              link.href = url;
+              link.setAttribute("download", "template_<%- name -%>.csv");
+              document.body.appendChild(link);
+              link.click();
+            } else {
+              this.$root.$emit("globalError", response);
+            }
+          })
+          .catch(err => {
+            this.$root.$emit("globalError", err);
+            this.$router.push("/");
+          });
+      },
+      updateModel() {
+        
+        //set loading
+        this.loading = false;
+  
+        /*
+          Check total items
+        */
+        var t= this;
+        Queries.<%- nameCp -%>.getCount(this.$baseUrl(), this.search)
+          .then(response => {
+            //Check response
+            if (
+              response.data &&
+              response.data.data
+            ) {
+  
+              //if totalItems did change
+              if(t.totalItems !== response.data.data.count<%- namePlCp -%>) {
+  
+                //show snackbar.informative
+                t.snackbar = false;
+                t.snackbarText = "<b>The total number of objects in the model has changed.</b><br><br>" + 
+                                  "New total: " + response.data.data.count<%- namePlCp -%>;
+                t.snackbarColor = "info";
+                t.snackbarTimeout = 6000;
+                t.snackbar = true;
+                
+                /*
+                  Reset model
+                */
+                t.resetModel();
+              }
+              else {
+                /*
+                  Get items
+                */
+                t.getItems();
+              }
+  
+              //done
+              return;
+  
+            } else {
+              //show snackbar.error
+              t.snackbar = false;
+              t.snackbarText =
+                "Error: at updateModel() at Queries.<%- nameCp -%>.getCount()<br>"+
+                "Please contact your administrator for support.<br>"+
+                "Response: " + response;
+              t.snackbarColor = "error";
+              t.snackbarTimeout = 6000;
+              t.snackbar = true;
+  
+              //reset loading
+              t.loading = false;
+  
+              //done
+              return;
+            }
+          })
+          .catch(err => {
+  
+            //show snackbar.error
+            t.snackbar = false;
+            t.snackbarText =
+              "Error: at updateModel() at Queries.<%- nameCp -%>.getCount()<br>"+
+              "Please contact your administrator for support.<br>"+
+              "Error: " + err;
+            t.snackbarColor = "error";
+            t.snackbarTimeout = 6000;
+            t.snackbar = true;
+  
+            //reset loading
+            t.loading = false;
+  
+            //done
+            return;
+          });
+      },
+      resetModel() {
+        /*
+          Reset model
+        */
+        //set flag
+        this.resettingModel = true;
+  
+        //reset props
+        this.page = 1;
+        this.currentPage = 0;
+        this.options.page = 1;
+  
+        //get data
+        this.getDataFromApi();
+      },
+      updateFooter() {
+  
+        console.log("***this.options.page: ", this.options.page, " this.page: ", this.page);
+        console.log("***this.totalItems: ", this.totalItems);
+  
+        //calculate pageStop
+        var p = (this.options.page * this.itemsPerPage);
+        var ps = 0;
+  
+        // case 1: totalItems > p
+        if(this.totalItems > p) {
+          //full page
+          ps = p;
+  
+          console.log("case 1: footer");
+        }
+        else { //totalItems <= p
+  
+          //case 2: itemsPerPage > (p - totalItems)
+          if( this.itemsPerPage > (p-this.totalItems)) {
+            //not-full page
+            ps = this.totalItems;
+          }
+          else { //case 3: itemsPerPage <= (p - totalItems)
+            
+            //empty page, but there are items
+            if(this.totalItems > 0)
+            {
+              //reset flag (to enable updating)
+              this.resettingModel = false;
+  
+              //go to prev-page
+              this.page = (this.page-1);
+              this.currentPage = (this.currentPage - 1)
+              this.options.page = this.page;
+  
+              //done
+              return;
+            }
+            else{
+              //no more items
+              ps = 0;
+            }
+          }
+        }
+        
+        //set pagination
+        this.footerProps = {
+          itemsPerPageOptions: this.itemsPerPageOptions,
+          itemsPerPageAllText: this.itemsPerPageAllText,
+          pagination: {
+            page: this.options.page,
+            itemsPerPage: this.itemsPerPage,
+            pageStart: (this.currentPage * this.itemsPerPage),
+            pageStop: ps,
+            pageCount: Math.ceil(this.totalItems/this.itemsPerPage),
+            itemsLength: this.totalItems
+          }
+        }
+      },
+  
+      /*
+        Dialog handlers
+      */
+      onDialogAccepted() {
+        this.dialog = false; //default
+      },
+  
+      onDialogCanceled() {
+        this.dialog = false; //default
+      },
+      /**
+       * Shows confirmation-dialog before delete item.
+       *
+       * @param: {Object} item: item corresponding to the row that was clicked.
+       */
+      getDeleteConfirmation(item) {
+        //start loading animation
+        this.loadingText = "";
+        this.loading = true;
+  
+        //save current action item
+        this.currentActionItem = item;
+  
+        //set handler: on delete-dialog accepted
+        this.onDialogAccepted = function() {
+          //delete item:
+          this.deleteItem(this.currentActionItem);
+        };
+  
+        //set handler: on delete-dialog canceled
+        this.onDialogCanceled = function() {
+          //hide dialog
+          this.dialog = false;
+          //unset loading text
+          this.loadingText = "";
+          this.loading = false;
+        };
+  
+        //show confirmation dialog
+        this.dialogHeadline = "Are you sure you want to delete this item?";
+        this.dialogText = "Item<br><b>ID: " + item.id + "</b>";
+        this.dialogAcceptText = "YES, DELETE";
+        this.dialogCancelText = "DO NOT DELETE";
+        this.dialog = true;
+      }, //end: getDeleteConfirmation()
+      
+      /**
+       * Delete item.
+       *
+       * @param: {Object} item: item corresponding to the row that was clicked.
+       */
+      deleteItem(item) {
+        //hide dialog
+        this.dialog = false;
+        //set loading text
+        this.loadingText = "Deleting item...";
+        this.loading = true;
+  
+        /*
+          Delete item on server
+        */
+        var t = this;
+        Queries.<%- nameCp -%>.delete<%- nameCp -%>({
+          url: this.$baseUrl(),
+          variables: { id: item.id }
+        })
+          .then(function(response) {
+            
+            if(!t.snackbar) {
+              //show snackbar.success
+              t.snackbarText = "<b>Item removed successfully</b>";
+              t.snackbarColor = "success";
+              t.snackbarTimeout = 4000;
+              t.snackbar = true;
+            }
+            else {
+              //show snackbar.success
+              t.snackbarText2 = "<b>Item removed successfully</b>";
+              t.snackbarColor2 = "success";
+              t.snackbarTimeout2 = 4000;
+              t.snackbar2 = true;
+            }
+  
+            //get data
+            t.getDataFromApi();
+  
+          })
+          .catch(function(err) {
+            //show snackbar.error
+            t.snackbar = false;
+            t.snackbarText =
+              "Item with <b>ID: " +
+              item.id +
+              " could not be deleted.</b><br>"+
+              "Please contact your administrator for support.<br><br>"+
+              "Error: " + err;
+            t.snackbarColor = "error";
+            t.snackbarTimeout = 6000;
+            t.snackbar = true;
+          });
+  
+        //unset loading text
+        this.loadingText = "";
+        this.loading = false;
+  
+        //done
+        return;
+      }, //end: deleteItem()
+    }, //end: methods: {}
+  
+    /*
+      watch
+    */
+    watch: {
+      /*
+        watch@prop: options.page
+      */
+      'options.page': function (newValue, oldValue) {
+        console.log("options.page.old: ", oldValue);
+        console.log("options.page.new: ", newValue);
+        console.log("resettingModel: ", this.resettingModel);
+  
+        if(!this.resettingModel)
         {
-          name: '__component:<%- nameLc -%>-custom-actions',
-          title: 'Actions',
-          titleClass: 'center aligned',
-          dataClass: 'center aligned'
+          //set current page
+          this.page = newValue;
+          this.currentPage = (newValue - 1);
+          //update model
+          this.updateModel();
         }
-      ],
-      moreParams: {
-        query: Queries.<%- nameCp -%>.vueTable
-      }
-    }
-  },
-  methods: {
-    onPaginationData(paginationData) {
-      this.$refs.pagination.setPaginationData(paginationData)
-      this.$refs.paginationInfo.setPaginationData(paginationData)
-    },
-    onChangePage(page) {
-      this.$refs.vuetable.changePage(page)
-    },
-    onCellClicked(data, field, event) {
-      console.log('cellClicked: ', field.name)
-      this.$refs.vuetable.toggleDetailRow(data.id)
-    },
-    onFilterSet(filterText) {
-      this.moreParams [
-        'filter'] = filterText.trim()
-      Vue.nextTick(() => this.$refs.vuetable.refresh())
-    },
-    onFilterReset() {
-      this.moreParams = {
-        query: Queries.<%- nameCp -%>.vueTable
-      }
-      Vue.nextTick(() => this.$refs.vuetable.refresh())
-    },
-    onCsvExport () {
-      var t = this;
-      var url = this.$baseUrl()() + '/<%- namePlLc -%>/example_csv' + '?array=[' + this.$refs.vuetable.selectedTo.join(",") + ']'
-
-      axios.get(url).then(function (response) {
-
-        var a = document.createElement("a");
-        document.body.appendChild(a);
-        a.style = "display: none";
-        var blob = new Blob([response.data], {type: "octet/stream"});
-        var url = window.URL.createObjectURL(blob);
-        a.href = url;
-        a.download = '<%- nameLc -%>' + '.csv';
-        a.click();
-        window.URL.revokeObjectURL(url);
-      }).catch(function (error) {
-        t.error = error
-      })
-    },
-    downloadExampleCsv: function() {
-      Queries.<%-nameCp-%>.tableTemplate({url: this.$baseUrl()}).then(response =>{
-        if(response.data && response.data.data && response.data.data.csvTableTemplate<%-nameCp-%>){
-            let file = response.data.data.csvTableTemplate<%-nameCp-%>.join('\n');
-            const url = window.URL.createObjectURL(new Blob([file]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', 'template_<%- nameLc -%>.csv');
-            document.body.appendChild(link);
-            link.click();
-        }else{
-            this.$root.$emit('globalError', response)
+        else
+        {
+          //do nothing
         }
-      }).catch( err =>{
-        this.$root.$emit('globalError', err)
-        this.$router.push('/')
-      })
+      },
+  
+      /*
+        watch@prop: options.itemsPerPage
+      */
+      'options.itemsPerPage': function (newValue, oldValue) {
+          
+          console.log("options.ipp.old: ", oldValue);
+          console.log("options.ipp.new: ", newValue);
+  
+          //update itemsPerPage
+          this.itemsPerPage = this.options.itemsPerPage;
+  
+          //reset model
+          this.resetModel();
+      },
+  
+      /*
+        watch@prop: options.sortBy
+      */
+      'options.sortBy': function (newValue, oldValue) {
+        console.log("options.sortBy.old: ", oldValue);
+        console.log("options.sortBy.new: ", newValue);
+        console.log("resettingModel: ", this.resettingModel);
+        
+        //check empty change
+        let isEmptyChange = false;
+        if( typeof oldValue !== 'undefined' && 
+            typeof newValue !== 'undefined' &&
+            newValue.length === oldValue.length && 
+            newValue.length === 0) {
+          
+          //set emptyChange
+          isEmptyChange = true;
+        }
+        console.log("isEmptyChange: ", isEmptyChange);
+  
+        //if no reset process is running
+        if(!this.resettingModel && !isEmptyChange)
+        {
+          //update model
+          this.updateModel();
+        }
+        else
+        {
+          //do nothing
+        }
+      },    
+      search: {
+        handler() {
+          
+          //set loading
+          this.loading = true;
+  
+          //stop current timer
+          clearTimeout(this.timerId);
+  
+          //start new timer to: doSearch()
+          this.timerId = setTimeout(() => {this.doSearch()}, this.timerInterval);
+        }
+      },
+      options: {
+        handler() {
+          
+          console.log("options: ", this.options);
+        },
+        deep: true
+      }
     },
-    onError: function(res) {
-      var err = (res && res.response && res.response.data && res.response.data.message ?
-        res.response.data.message : res)
-      this.$root.$emit('globalError', err)
-      this.$router.push('/')
-    }
-  },
-  mounted() {
-    this.$events.$on('filter-set', eventData => this.onFilterSet(eventData))
-    this.$events.$on('filter-reset', e => this.onFilterReset())
-  }
-}
-</script>
+    /*
+      Hook: mounted
+    */
+    mounted() {
+     this.getDataFromApi();
+    },
+  };
+  </script>
