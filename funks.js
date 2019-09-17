@@ -250,7 +250,8 @@ parseAssociationsFromFile = function(associations){
       //let type = association.type.split("_")[1];
       let type = association.type;
 
-      if(type === "belongsTo"){
+      //if(type === "belongsTo"){
+      if(type === 'to_one' && association.keyIn !== association.target){
         let bt = {
           //"targetModel": association.target.toLowerCase(),
           "targetModel": exports.uncapitalizeString(association.target),
@@ -272,7 +273,8 @@ parseAssociationsFromFile = function(associations){
         }
 
         assoc.belongsTos.push(bt);
-      }else if(type==="hasMany" || type==="belongsToMany"){
+      //}else if(type==="hasMany" || type==="belongsToMany"){
+      }else if(type==="to_many"){
         let hm = {
           "relationName" : name,
           "relationNameCp": exports.capitalizeString(name),
