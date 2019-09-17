@@ -118,7 +118,6 @@ countFiltered<%-manyRel.relationNameCp-%> <%}-%>
     if(searchText !== null && searchText !== '')
     {
         s = `search: {operator:or, search: [
-            {field:id, value:{value:"%${searchText}%"}, operator:like},
           <% for ( i=0; i<attributesArr.length; i++ ) { -%>
             {field:<%- attributesArr[i][0] -%>, value:{value:"%${searchText}%"}, operator:like}, 
           <% } -%>

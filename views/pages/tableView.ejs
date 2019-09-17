@@ -321,7 +321,6 @@
        * Return the offset needed by pagination.
        */
       offset: function () {
-        console.log("newOffset: ", this.currentPage * this.itemsPerPage);
         return (this.currentPage * this.itemsPerPage);
       }
     }, //end: computed {}
@@ -340,10 +339,6 @@
        * 
        */
       getItems() {
-  
-        console.log("**GetttinItems**");
-        console.log("**IPP: ", this.itemsPerPage);
-        console.log("**totalItems: ", this.totalItems);
   
         //set loading
         this.loading = true;
@@ -452,8 +447,6 @@
   
               //reset loading
               t.loading = false;
-  
-              console.log("count: ", t.totalItems);
   
               //done
               return;
@@ -651,10 +644,7 @@
         this.getDataFromApi();
       },
       updateFooter() {
-  
-        console.log("***this.options.page: ", this.options.page, " this.page: ", this.page);
-        console.log("***this.totalItems: ", this.totalItems);
-  
+
         //calculate pageStop
         var p = (this.options.page * this.itemsPerPage);
         var ps = 0;
@@ -663,8 +653,6 @@
         if(this.totalItems > p) {
           //full page
           ps = p;
-  
-          console.log("case 1: footer");
         }
         else { //totalItems <= p
   
@@ -829,9 +817,6 @@
         watch@prop: options.page
       */
       'options.page': function (newValue, oldValue) {
-        console.log("options.page.old: ", oldValue);
-        console.log("options.page.new: ", newValue);
-        console.log("resettingModel: ", this.resettingModel);
   
         if(!this.resettingModel)
         {
@@ -851,9 +836,6 @@
         watch@prop: options.itemsPerPage
       */
       'options.itemsPerPage': function (newValue, oldValue) {
-          
-          console.log("options.ipp.old: ", oldValue);
-          console.log("options.ipp.new: ", newValue);
   
           //update itemsPerPage
           this.itemsPerPage = this.options.itemsPerPage;
@@ -866,9 +848,6 @@
         watch@prop: options.sortBy
       */
       'options.sortBy': function (newValue, oldValue) {
-        console.log("options.sortBy.old: ", oldValue);
-        console.log("options.sortBy.new: ", newValue);
-        console.log("resettingModel: ", this.resettingModel);
         
         //check empty change
         let isEmptyChange = false;
@@ -880,7 +859,6 @@
           //set emptyChange
           isEmptyChange = true;
         }
-        console.log("isEmptyChange: ", isEmptyChange);
   
         //if no reset process is running
         if(!this.resettingModel && !isEmptyChange)
@@ -906,13 +884,6 @@
           this.timerId = setTimeout(() => {this.doSearch()}, this.timerInterval);
         }
       },
-      options: {
-        handler() {
-          
-          console.log("options: ", this.options);
-        },
-        deep: true
-      }
     },
     /*
       Hook: mounted
