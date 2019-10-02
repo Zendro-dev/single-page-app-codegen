@@ -199,7 +199,7 @@ Be aware that in the case of this type of association the user is required to de
 ```
 
 ## NOTE:
- It's important to notice that when a model involves a _belongsTo_ association then foreign key that refers remote elements should be explicitly written into the attributes field of the given local model.
+It's important to notice that when a model involves a foreign key for the association, this key should be explicitly written into the attributes field of the given local model.
 
 Example:
 ```
