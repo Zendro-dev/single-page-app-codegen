@@ -101,6 +101,7 @@ module.exports.book_table = `
       <router-link v-bind:to="'book'"><button class="ui primary button">Add book</button></router-link>
       <button class="ui primary button" @click="downloadExampleCsv">CSV Template Table</button>
       <router-link v-bind:to="'/books/upload_csv'"><button class="ui primary button">CSV Upload</button></router-link>
+      <form :action="this.$exportUrl()"> <input type="hidden" name="model" value="Book" /> <button class="ui primary button" type="submit">Download CSV </button></form>
     </div>
     <vuetable ref="vuetable"
       :api-url="this.$baseUrl()"
@@ -1013,6 +1014,7 @@ module.exports.dog_table = `
       <router-link v-bind:to="'dog'"><button class="ui primary button">Add dog</button></router-link>
       <button class="ui primary button" @click="downloadExampleCsv">CSV Template Table</button>
       <router-link v-bind:to="'/dogs/upload_csv'"><button class="ui primary button">CSV Upload</button></router-link>
+      <form :action="this.$exportUrl()"> <input type="hidden" name="model" value="Dog" /> <button class="ui primary button" type="submit">Download CSV </button></form>
     </div>
     <vuetable ref="vuetable"
       :api-url="this.$baseUrl()"
@@ -1458,6 +1460,7 @@ module.exports.individual_table= `
       <router-link v-bind:to="'individual'"><button class="ui primary button">Add individual</button></router-link>
       <button class="ui primary button" @click="downloadExampleCsv">CSV Template Table</button>
       <router-link v-bind:to="'/individuals/upload_csv'"><button class="ui primary button">CSV Upload</button></router-link>
+      <form :action="this.$exportUrl()"> <input type="hidden" name="model" value="individual" /> <button class="ui primary button" type="submit">Download CSV </button></form>
     </div>
     <vuetable ref="vuetable"
       :api-url="this.$baseUrl()"
@@ -2475,6 +2478,7 @@ module.exports.transcriptCount_table = `
       <router-link v-bind:to="'transcriptCount'"><button class="ui primary button">Add transcriptCount</button></router-link>
       <button class="ui primary button" @click="downloadExampleCsv">CSV Template Table</button>
       <router-link v-bind:to="'/transcriptCounts/upload_csv'"><button class="ui primary button">CSV Upload</button></router-link>
+      <form :action="this.$exportUrl()"> <input type="hidden" name="model" value="transcriptCount" /> <button class="ui primary button" type="submit">Download CSV </button></form>
     </div>
     <vuetable ref="vuetable"
       :api-url="this.$baseUrl()"
