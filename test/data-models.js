@@ -8,7 +8,7 @@ module.exports.book = {
   "associations":{
 
       "people" : {
-          "type" : "belongsToMany",
+          "type" : "to_many",
           "target" : "Person",
           "targetKey" : "personId",
           "sourceKey" : "bookId",
@@ -18,7 +18,7 @@ module.exports.book = {
           "sublabel" : "email"
         },
       "publisher" : {
-        "type" : "belongsTo",
+        "type" : "to_one",
         "target" : "Publisher",
         "targetKey" : "publisherId",
         "targetStorageType" : "webservice",
@@ -36,7 +36,7 @@ module.exports.dog = {
 
   "associations" : {
     "person" : {
-      "type" : "belongsTo",
+      "type" : "to_one",
       "target" : "Person",
       "targetKey" : "personId",
       "targetStorageType" : "sql",
@@ -44,7 +44,7 @@ module.exports.dog = {
       "sublabel": "lastName"
     },
     "researcher":{
-      "type" : "belongsTo",
+      "type" : "to_one",
       "target": "Researcher",
       "targetKey": "researcherId",
       "targetStorageType": "SQL",
@@ -62,7 +62,7 @@ module.exports.project = {
   },
   "associations":{
     "specie":{
-      "type" : "belongsTo",
+      "type" : "to_one",
       "target" : "Specie",
       "targetKey" : "specieId",
       "targetStorageType" : "webservice",
@@ -71,7 +71,7 @@ module.exports.project = {
     },
 
     "researchers" : {
-      "type" : "belongsToMany",
+      "type" : "to_many",
       "target" : "Researcher",
       "targetKey" : "researcherId",
       "sourceKey" : "projectId",
@@ -93,7 +93,7 @@ module.exports.person = {
   },
   "associations":{
     "dogs":{
-      "type" : "hasMany",
+      "type" : "to_many",
       "target" : "Dog",
       "targetKey" : "personId",
       "targetStorageType" : "sql",
@@ -101,7 +101,7 @@ module.exports.person = {
     },
 
     "books":{
-      "type" : "belongsToMany",
+      "type" : "to_many",
       "target" : "Book",
       "targetKey" : "bookId",
       "sourceKey" : "personId",
@@ -120,7 +120,7 @@ module.exports.individual = {
   },
   "associations": {
     "transcript_counts": {
-      "type" : "hasMany",
+      "type" : "to_many",
       "target" : "transcript_count",
       "targetKey" : "individual_id",
       "targetStorageType" : "sql",
@@ -142,7 +142,7 @@ module.exports.transcript_count = {
   },
   "associations":{
     "individual":{
-      "type" : "belongsTo",
+      "type" : "to_one",
       "target" : "individual",
       "targetKey" : "individual_id",
       "targetStorageType" : "sql",
@@ -163,7 +163,7 @@ module.exports.transcriptCount = {
   },
   "associations":{
     "individual":{
-      "type" : "belongsTo",
+      "type" : "to_one",
       "target" : "individual",
       "targetKey" : "individual_id",
       "targetStorageType" : "sql",
@@ -183,7 +183,7 @@ module.exports.academicTeam = {
   },
   "associations":{
     "members":{
-      "type" : "hasMany",
+      "type" : "to_many",
       "target" : "Researcher",
       "targetKey" : "academicTeamId",
       "targetStorageType" : "sql",
