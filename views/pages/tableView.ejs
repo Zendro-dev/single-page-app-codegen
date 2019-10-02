@@ -5,6 +5,7 @@
       <router-link v-bind:to="'<%- nameLc -%>'"><button class="ui primary button">Add <%- nameLc -%></button></router-link>
       <button class="ui primary button" @click="downloadExampleCsv">CSV Template Table</button>
       <router-link v-bind:to="'/<%- namePlLc -%>/upload_csv'"><button class="ui primary button">CSV Upload</button></router-link>
+      <form :action="this.$exportUrl()"> <input type="hidden" name="model" value="<%- name -%>" /> <button class="ui primary button" type="submit">Download CSV </button></form>
     </div>
     <vuetable ref="vuetable"
       :api-url="this.$baseUrl()"
