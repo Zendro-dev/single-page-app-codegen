@@ -22,35 +22,78 @@ program
 // Do your job:
 
 if(!program.jsonFiles){
-  console.log("ERROR: You must indicate the json files in order to generate the code.");
+  //msg
+  console.log(colors.red('! Error: '), 'You must indicate the json files in order to generate the code.');
   process.exit(1);
 }
 
-
+// Output directory
 let directory = program.outputDirectory || __dirname;
+//msg
+console.log('Output base-directory: ', colors.grey(path.resolve(directory)));
 
-console.log('\nRender GUI components for model in: ', path.resolve(directory));
+// Check: required directories
+let allRequiredDirsExists = true;
+let requiredDirs=
+  ['src',
+    'src/components',
+    'src/requests'
+  ];
+//msg
+console.log(colors.white('\n@ Checking required directories on output base-directory...'));
+for(var i=0; i<requiredDirs.length; ++i) {
+  let dir = path.resolve(directory, requiredDirs[i]);
+  if (fs.existsSync(dir)) {
+    //msg
+    console.log('dir: ', dir, "... ", colors.green('ok') );
+  } else {
+    //msg
+    allRequiredDirsExists = false;
+    console.log('dir: ', dir, "... ", colors.red('does not exist') );
+  }
+}
+if(allRequiredDirsExists) {
+  //msg
+  console.log(colors.white('@ Checking required directories... ', colors.green('done')));
+} else {
+  //msg
+  console.log(colors.red('! Error: '), 'Some required directories does not exists on output base-directory');
+  process.exit(1);
+}
+
+// Start rendering phase
+//msg
+console.log(colors.white('\n@ Starting render GUI components for models in: \n', colors.green(path.resolve(directory))));
 let promises = []
 let totalFiles = 0;
 let totalWrongFiles = 0;
 fs.readdirSync(program.jsonFiles).forEach( async (json_file) =>{
   totalFiles++;
   let fileData = funks.parseFile(program.jsonFiles + '/'+json_file );
+  if(fileData === null) return;
+  //msg
+  console.log("\n@@ Proccessing model in: ", colors.blue(json_file));
   let check_json_model = funks.checkJsonDataFile(fileData);
   if(!check_json_model.pass){
     totalWrongFiles++;
     check_json_model.errors.forEach( (error) =>{
-        console.log(colors.red(error));
+      console.log(colors.red(error));
     });
-    return
+    //msg
+    console.log(colors.grey("@@@ Cheking json model definition... "), colors.red('error'));
+    return;
+  } else {
+    //msg
+    console.log(colors.grey("@@@ Cheking json model definition... "), colors.green('done'));
   }
 
   let ejbOpts = funks.fillOptionsForViews(fileData);
-  console.log("Proccessing ", ejbOpts.name)
   let componentsDir = path.resolve(directory, "src", "components")
+  
   // table
   let table = path.resolve(componentsDir, ejbOpts['namePl'] + '.vue')
   promises.push( funks.renderToFile(table, 'tableView', ejbOpts) )
+  
   // custom actions
   let customActions = path.resolve(componentsDir, ejbOpts.name +
     'CustomActions.vue')

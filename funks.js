@@ -4,6 +4,7 @@ var fs = require('fs-extra');
 var inflection = require('inflection')
 const {promisify} = require('util');
 const ejsRenderFile = promisify( ejs.renderFile )
+const colors = require('colors/safe');
 
 /**
  * renderTemplate - Generate the Javascript code as string using EJS templates views
@@ -149,7 +150,15 @@ exports.copyFileIfNotExists = async function(sourcePath, targetPath) {
  */
 exports.parseFile = function(jFile){
   let data=fs.readFileSync(jFile, 'utf8');
-  let words=JSON.parse(data);
+  let words = null;
+  try {
+    words=JSON.parse(data);
+  } catch (e) {
+    //msg
+    console.log(colors.red('\n! Error: '), 'Parsing JSON model definition file: ', colors.grey(jFile));
+    console.log(colors.red('!@ Error name: ', e.name, ': '), e.message);
+    words = null;
+  }
   return words;
 }
 
@@ -167,12 +176,84 @@ exports.checkJsonDataFile = function(json_file_data){
     errors: []
   }
 
+  //check for required json fields
+  //'model'
+  if(!json_file_data.hasOwnProperty('model')) {
+    result.pass = false;
+    result.errors.push(`ERROR: 'model' is a mandatory field.`);
+  } else {
+    //check 'model' type
+    if(typeof json_file_data.model !== 'string') {
+      result.pass = false;
+      result.errors.push(`ERROR: 'model' field must be a string.`);
+    }
+  }
+  //'storageType'
+  if(!json_file_data.hasOwnProperty('storageType')) {
+    result.pass = false;
+    result.errors.push(`ERROR: 'storageType' is a mandatory field.`);
+  } else {
+    //check 'storageType' type
+    if(typeof json_file_data.storageType !== 'string') {
+      result.pass = false;
+      result.errors.push(`ERROR: 'storageType' field must be a string.`);
+    }
+  }
+  //'attributes'
+  if(!json_file_data.hasOwnProperty('attributes')) {
+    result.pass = false;
+    result.errors.push(`ERROR: 'attributes' is a mandatory field.`);
+  } else {
+    //check for attributes type
+    if(typeof json_file_data.attributes !== 'object') {
+      result.pass = false;
+      result.errors.push(`ERROR: 'attributes' field must be an object.`);
+    } else {
+      //check for non empty attributes object
+      let keys = Object.keys(json_file_data.attributes);
+      console.log("json_file_data.attributes: ", json_file_data.attributes)
+      if(keys.length === 0) {
+        result.pass = false;
+        result.errors.push(`ERROR: 'attributes' object can not be empty`);
+      } else {
+        //check for correct attributes types
+        for(var i=0; i<keys.length; ++i) {
+          switch(json_file_data.attributes[keys[i]]) {
+            case 'String':
+            case 'Int':
+            case 'Float':
+            case 'Boolean':
+            case 'Date':
+            case 'Time':
+            case 'DateTime':
+              //ok
+              break;
+            
+            default:
+              //not ok
+              result.pass = false;
+              result.errors.push(`ERROR: 'attribute.${keys[i]}' has an invalid type. One of the following types is expected: [String, Int, Float, Boolean, Date, Time, DateTime]. But '${json_file_data.attributes[keys[i]]}' was obtained.`);
+              break;
+          }
+        }
+      }
+    }
+  }
+  //'associations'
+  if(json_file_data.hasOwnProperty('associations')) {
+    //check 'associations' type
+    if(typeof json_file_data.associations !== 'object') {
+      result.pass = false;
+      result.errors.push(`ERROR: 'associations' field must be an object.`);
+    }
+  }
+
   //check for label field in each association
   if(json_file_data.associations !== undefined){
     Object.entries(json_file_data.associations).forEach( ([name, association]) =>{
       if(association.label === undefined){
         result.pass = false;
-        result.errors.push(`ERROR IN MODEL ${json_file_data.model}: Label is mandatory field. It should be defined in association ${name}`);
+        result.errors.push(`ERROR IN MODEL ${json_file_data.model}: 'label' is mandatory field. It should be defined in association ${name}`);
       }
 
    })
