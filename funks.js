@@ -32,18 +32,17 @@ exports.renderTemplate = async function(templateName, options) {
  * @return {promise}              Promise will be resolved with success message if the file is written successfully, rejected with error otherwise.
  */
 exports.renderToFile = async function(outFile, templateName, options) {
-  // console.log("options:\n" + JSON.stringify(options) + "\n");
   let fileCont = await exports.renderTemplate(templateName, options)
   p = new Promise((resolve, reject) =>{
 
     fs.writeFile(outFile, fileCont,
       function(err) {
         if (err) {
-          console.log(err)
+          console.log(err);
           reject(err);
           //return err
         } else {
-          console.log("Wrote rendered content into '%s'.", outFile)
+          console.log("@@@ file generated: ", colors.grey(outFile));
           resolve();
         }
       })
@@ -211,7 +210,6 @@ exports.checkJsonDataFile = function(json_file_data){
     } else {
       //check for non empty attributes object
       let keys = Object.keys(json_file_data.attributes);
-      console.log("json_file_data.attributes: ", json_file_data.attributes)
       if(keys.length === 0) {
         result.pass = false;
         result.errors.push(`ERROR: 'attributes' object can not be empty`);
@@ -277,18 +275,16 @@ exports.fillOptionsForViews = function(fileData){
     baseUrl: fileData.baseUrl,
     //check compatibility with name in express_graphql_gen
     name: fileData.model,
-    // nameLc: fileData.model.toLowerCase(),
-    // namePl: inflection.pluralize(fileData.model.toLowerCase()),
-    // namePlLc: inflection.pluralize(fileData.model.toLowerCase()).toLowerCase(),
-    // nameCp: inflection.capitalize(fileData.model),
     nameLc: exports.uncapitalizeString(fileData.model),
     namePl: inflection.pluralize(exports.uncapitalizeString(fileData.model)),
     namePlLc: inflection.pluralize(exports.uncapitalizeString(fileData.model)),
+    namePlCp: inflection.pluralize(exports.capitalizeString(fileData.model)),
     nameCp: exports.capitalizeString(fileData.model),
     attributesArr: attributesArrayFromFile(fileData.attributes),
     typeAttributes: exports.typeAttributes(attributesArrayFromFile(fileData.attributes)),
     belongsTosArr: associations.belongsTos,
-    hasManysArr: associations.hasManys
+    hasManysArr: associations.hasManys,
+    sortedAssociations: associations.sortedAssociations
   }
 
   return opts;
@@ -322,7 +318,8 @@ attributesArrayFromFile = function(attributes){
 parseAssociationsFromFile = function(associations){
   let assoc = {
     "belongsTos" : [],
-    "hasManys" : []
+    "hasManys" : [],
+    "sortedAssociations" : []
   }
 
   if(associations!==undefined){
@@ -334,48 +331,57 @@ parseAssociationsFromFile = function(associations){
       //if(type === "belongsTo"){
       if(type === 'to_one' && association.keyIn !== association.target){
         let bt = {
-          //"targetModel": association.target.toLowerCase(),
-          "targetModel": exports.uncapitalizeString(association.target),
           "foreignKey": association.targetKey,
           "primaryKey" : "id",
-          "label" : association.label,
-          //sublabel can be undefined
-          "sublabel" : association.sublabel,
-          // "targetModelLc" : association.target.toLowerCase(),
-          // "targetModelPlLc" : inflection.pluralize(association.target).toLowerCase(),
-          // "targetModelCp" : inflection.capitalize(association.target),
-          // "targetModelPlCp": inflection.capitalize(inflection.pluralize(association.target)),
+
+          "relationName" : name,
+          "relationNameCp": exports.capitalizeString(name),
+          "targetModel": exports.uncapitalizeString(association.target),
           "targetModelLc": exports.uncapitalizeString(association.target),
           "targetModelPlLc": inflection.pluralize(exports.uncapitalizeString(association.target)),
           "targetModelCp": exports.capitalizeString(association.target),
           "targetModelPlCp": inflection.pluralize(exports.capitalizeString(association.target)),
-          "relationName" : name,
-          "relationNameCp": exports.capitalizeString(name)
+          "label" : association.label,
+          "sublabel" : association.sublabel
         }
 
         assoc.belongsTos.push(bt);
+        assoc.sortedAssociations.push(bt);
+
       //}else if(type==="hasMany" || type==="belongsToMany"){
       }else if(type==="to_many"){
         let hm = {
           "relationName" : name,
           "relationNameCp": exports.capitalizeString(name),
-          // "targetModelPlLc" : inflection.pluralize(association.target).toLowerCase(),
-          // "targetModelCp" : inflection.capitalize(association.target),
-          // "targetModelPlCp": inflection.capitalize(inflection.pluralize(association.target)),
+          "targetModel": exports.uncapitalizeString(association.target),
+          "targetModelLc": exports.uncapitalizeString(association.target),
           "targetModelPlLc": inflection.pluralize(exports.uncapitalizeString(association.target)),
           "targetModelCp": exports.capitalizeString(association.target),
           "targetModelPlCp": inflection.pluralize(exports.capitalizeString(association.target)),
           "label" : association.label,
-          //sublabel can be undefined
           "sublabel" : association.sublabel
         }
 
         assoc.hasManys.push(hm);
+        assoc.sortedAssociations.push(hm);
+        
       }else{
         //association hasOne??
         console.log("Association type"+ association.type + "not supported.");
       }
     });
+
+    //sort associations
+    assoc.sortedAssociations.sort(function (a, b) {
+      if (a.targetModelCp > b.targetModelCp) {
+        return 1;
+      }
+      if (a.targetModelCp < b.targetModelCp) {
+        return -1;
+      }
+      return 0;
+    });
   }
+
   return assoc;
 }

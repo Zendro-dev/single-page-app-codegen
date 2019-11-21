@@ -45,11 +45,11 @@ for(var i=0; i<requiredDirs.length; ++i) {
   let dir = path.resolve(directory, requiredDirs[i]);
   if (fs.existsSync(dir)) {
     //msg
-    console.log('dir: ', dir, "... ", colors.green('ok') );
+    console.log('dir: ', colors.grey(dir), "... ", colors.green('ok') );
   } else {
     //msg
     allRequiredDirsExists = false;
-    console.log('dir: ', dir, "... ", colors.red('does not exist') );
+    console.log('dir: ', colors.grey(dir), "... ", colors.red('does not exist') );
   }
 }
 if(allRequiredDirsExists) {
@@ -88,79 +88,94 @@ fs.readdirSync(program.jsonFiles).forEach( async (json_file) =>{
   }
 
   let ejbOpts = funks.fillOptionsForViews(fileData);
-  let componentsDir = path.resolve(directory, "src", "components")
-  
-  // table
-  let table = path.resolve(componentsDir, ejbOpts['namePl'] + '.vue')
-  promises.push( funks.renderToFile(table, 'tableView', ejbOpts) )
-  
-  // custom actions
-  let customActions = path.resolve(componentsDir, ejbOpts.name +
-    'CustomActions.vue')
-  promises.push( funks.renderToFile(customActions, 'customActions', ejbOpts))
-  // details
-  let details = path.resolve(componentsDir, ejbOpts.name + 'DetailRow.vue')
-  promises.push( funks.renderToFile(details, 'detailView', ejbOpts))
-  // form elements
-  // console.log("belongsTosArr: " + JSON.stringify(ejbOpts.belongsTosArr));
-  let formElmns = path.resolve(componentsDir, ejbOpts.name + 'FormElemns.vue')
-  promises.push( funks.renderToFile(formElmns, 'formElements', ejbOpts))
-  // create form
-  let createForm = path.resolve(componentsDir, ejbOpts.name + 'CreateForm.vue')
-  promises.push( funks.renderToFile(createForm, 'createForm', ejbOpts))
-  // upload CSV / XLSX form
-  let uploadCsvForm = path.resolve(componentsDir, ejbOpts.name + 'UploadCsvForm.vue')
-  promises.push( funks.renderToFile(uploadCsvForm, 'uploadCsvForm', ejbOpts))
-  // edit form
-  let editForm = path.resolve(componentsDir, ejbOpts.name + 'EditForm.vue')
-  promises.push( funks.renderToFile(editForm, 'editForm', ejbOpts))
-  // routes
-  let routesExt = path.resolve(directory, "src", "router", ejbOpts.name +
-    "Routes.js")
-  promises.push( funks.renderToFile(routesExt, 'routes', ejbOpts))
-  //graphql request
-  let grapqlRequestPath = path.resolve(directory, "src", "requests", ejbOpts.nameLc + ".js")
-  promises.push( funks.renderToFile(grapqlRequestPath, "graphqlRequests", ejbOpts))
-  // constants
-  let constants = path.resolve(directory, "src", "sciencedb-globals.js")
-  promises.push( funks.renderToFile(constants, 'global_constant', ejbOpts))
+
+  /// modelTable ///
+  // Create required directories
+  let modelTableDirs = [
+    path.resolve(directory, `src/components/mainPanel/tablePanel/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}CreatePanel/components/${ejbOpts.nameLc}AssociationsPage/`),
+    path.resolve(directory, `src/components/mainPanel/tablePanel/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}CreatePanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/components`),
+    path.resolve(directory, `src/components/mainPanel/tablePanel/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/${ejbOpts.nameLc}AssociationsPage/`),
+    path.resolve(directory, `src/components/mainPanel/tablePanel/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/components`),
+    path.resolve(directory, `src/components/mainPanel/tablePanel/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}DetailPanel/components/${ejbOpts.nameLc}AssociationsPage/`),
+    path.resolve(directory, `src/components/mainPanel/tablePanel/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}DetailPanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/components`),
+  ]
+  //associations
+  for(var i=0; i<ejbOpts.sortedAssociations.length; i++)
+  {
+    let assocLc = ejbOpts.sortedAssociations[i].targetModelLc;
+    let assocPlLc = ejbOpts.sortedAssociations[i].targetModelPlLc;
+    modelTableDirs.push(path.resolve(directory, `src/components/mainPanel/tablePanel/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}CreatePanel/components/${ejbOpts.nameLc}AssociationsPage/${assocLc}TransferLists/${assocPlLc}ToAddTransferView/components`));
+    modelTableDirs.push(path.resolve(directory, `src/components/mainPanel/tablePanel/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/${ejbOpts.nameLc}AssociationsPage/${assocLc}TransferLists/${assocPlLc}ToAddTransferView/components`));
+    modelTableDirs.push(path.resolve(directory, `src/components/mainPanel/tablePanel/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/${ejbOpts.nameLc}AssociationsPage/${assocLc}TransferLists/${assocPlLc}ToRemoveTransferView/components`));
+    modelTableDirs.push(path.resolve(directory, `src/components/mainPanel/tablePanel/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}DetailPanel/components/${ejbOpts.nameLc}AssociationsPage/${assocLc}CompactView/components`));
+  }
+  //create dirs
+  for(var i=0; i<modelTableDirs.length; i++) {
+    let dir = modelTableDirs[i];
+    if(!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, {recursive: true});
+      //msg
+      console.log("@@@ dir created: ", colors.grey(dir));
+    }
+  }
+
+  console.log("ejbOpts: ", ejbOpts);
+  //console.log("fileData: ", fileData);
+
+  /**
+   * modelTable
+   * 
+   * */
+
+  // template 1: ModelEnhancedTable
+  var fpath = path.resolve(directory, `src/components/mainPanel/tablePanel/${ejbOpts.nameLc}Table/`, `${ejbOpts.nameCp}EnhancedTable.js`);
+  promises.push( funks.renderToFile(fpath, 'ModelEnhancedTable', ejbOpts) );
+
+  // template 2: ModelUploadFileDialog
+  fpath = path.resolve(directory, `src/components/mainPanel/tablePanel/${ejbOpts.nameLc}Table/components/`, `${ejbOpts.nameCp}UploadFileDialog.js`);
+  promises.push( funks.renderToFile(fpath, 'ModelUploadFileDialog', ejbOpts) );
+
+  // template 3: ModelEnhancedTableToolbar
+  fpath = path.resolve(directory, `src/components/mainPanel/tablePanel/${ejbOpts.nameLc}Table/components/`, `${ejbOpts.nameCp}EnhancedTableToolbar.js`);
+  promises.push( funks.renderToFile(fpath, 'ModelEnhancedTableToolbar', ejbOpts) );
+
+  // template 4: ModelEnhancedTableHead
+  fpath = path.resolve(directory, `src/components/mainPanel/tablePanel/${ejbOpts.nameLc}Table/components/`, `${ejbOpts.nameCp}EnhancedTableHead.js`);
+  promises.push( funks.renderToFile(fpath, 'ModelEnhancedTableHead', ejbOpts) );
+
+  // template 5: ModelDeleteConfirmationDialog
+  fpath = path.resolve(directory, `src/components/mainPanel/tablePanel/${ejbOpts.nameLc}Table/components/`, `${ejbOpts.nameCp}DeleteConfirmationDialog.js`);
+  promises.push( funks.renderToFile(fpath, 'ModelDeleteConfirmationDialog', ejbOpts) );
+
+  /**
+   * modelTable - modelCreatePanel 
+   * 
+   * */
+
+  // template 6: ModelCreatePanel
+  fpath = path.resolve(directory, `src/components/mainPanel/tablePanel/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}CreatePanel/`, `${ejbOpts.nameCp}CreatePanel.js`);
+  promises.push( funks.renderToFile(fpath, 'ModelCreatePanel', ejbOpts) );
+
+  // template 7: ModelTabsA
+  fpath = path.resolve(directory, `src/components/mainPanel/tablePanel/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}CreatePanel/components/`, `${ejbOpts.nameCp}TabsA.js`);
+  promises.push( funks.renderToFile(fpath, 'ModelTabsA', ejbOpts) );
+
+  // template 8: ModelConfirmationDialog-Create
+  fpath = path.resolve(directory, `src/components/mainPanel/tablePanel/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}CreatePanel/components/`, `${ejbOpts.nameCp}ConfirmationDialog.js`);
+  promises.push( funks.renderToFile(fpath, 'ModelConfirmationDialog-Create', ejbOpts) );
+
+  // template 9: ModelAttributesPage-Create
+  fpath = path.resolve(directory, `src/components/mainPanel/tablePanel/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}CreatePanel/components/${ejbOpts.nameLc}AttributesPage/`, `${ejbOpts.nameCp}AttributesPage.js`);
+  promises.push( funks.renderToFile(fpath, 'ModelAttributesPage-Create', ejbOpts) );
+
+  // template 10: ModelAttributesFormView-Create
+  fpath = path.resolve(directory, `src/components/mainPanel/tablePanel/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}CreatePanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/`, `${ejbOpts.nameCp}AttributesFormView.js`);
+  promises.push( funks.renderToFile(fpath, 'ModelAttributesFormView-Create', ejbOpts) );
+
 });
 
+
  Promise.all(promises).then( (values) =>{
-
-   //Copy static (not to be rendered) code into target dir, if not already
-   //present:
-   let filtBarPath = path.resolve(directory, 'src', 'components', 'FilterBar.vue')
-   funks.copyFileIfNotExists(path.resolve(__dirname, 'FilterBar.vue'), filtBarPath)
-   let forKeyPath = path.resolve(directory, 'src', 'components',
-     'foreignKeyFormElement.vue')
-   funks.copyFileIfNotExists(path.resolve(__dirname, 'foreignKeyFormElement.vue'),
-     forKeyPath)
-   let hasManyPath = path.resolve(directory, 'src', 'components',
-     'hasManyFormElemn.vue')
-   funks.copyFileIfNotExists(path.resolve(__dirname, 'hasManyFormElemn.vue'),
-     hasManyPath)
-   let datePickerPath = path.resolve(directory, 'src', 'components',
-     'datePicker.vue')
-   funks.copyFileIfNotExists(path.resolve(__dirname, 'datePicker.vue'),
-     datePickerPath)
-   let addNewPath = path.resolve(directory, 'src', 'components', 'AddNewEntityButton.vue')
-   funks.copyFileIfNotExists(path.resolve(__dirname, 'AddNewEntityButton.vue'), addNewPath)
-   let scrollPath = path.resolve(directory, 'src', 'components', 'scrollListElement.vue')
-   funks.copyFileIfNotExists(path.resolve(__dirname,'scrollListElement.vue'), scrollPath)
-
-   //automatically injects models components into routes array (routes_index.js file)
-   let modelsObj = modelsCreated.getSavedModelsNames("", directory);
-   let indexRoutesExt = path.resolve(directory, "src", "router", "routes_index.js")
-   funks.renderToFile(indexRoutesExt, 'routes_index', modelsObj)
-   let sideNavPath = path.resolve(directory,"src","components","SideNav.vue")
-   funks.renderToFile(sideNavPath, 'sideNav', modelsObj)
-   let indexRequestPath = path.resolve(directory, "src", "requests", "index.js")
-   funks.renderToFile(indexRequestPath, 'request_index', modelsObj)
-
-   //Log summary about the data models
-   console.log(colors.yellow(`From ${totalFiles} files in the folder. The files proccesed without error where ${totalFiles - totalWrongFiles}.`))
-   console.log(colors.yellow(`And ${totalWrongFiles} presented errors. Please see above for more info about each error.`))
  })
  .catch((error)=>{console.log(error); console.log("SOMETHING WRONG")});
 
