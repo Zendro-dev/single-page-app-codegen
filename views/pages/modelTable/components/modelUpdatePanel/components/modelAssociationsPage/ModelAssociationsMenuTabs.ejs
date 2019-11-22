@@ -1,0 +1,33 @@
+import React from 'react';
+import PropTypes from 'prop-types';
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
+
+export default function <%- nameCp _%>AssociationsMenuTabs(props) {
+  const {
+    associationSelected,
+    handleClick,
+  } = props;
+
+  return (
+    <div>
+      <Tabs
+        value={associationSelected}
+        onChange={handleClick}
+        indicatorColor="primary"
+        textColor="primary"
+        variant="scrollable"
+        scrollButtons="auto"
+      >
+        <Tab key='no-associations' label='No associations' value='no-associations' />
+<%for( i=0; i<sortedAssociations.length; i++ ){-%>
+        <Tab key='<%- sortedAssociations[i].targetModelPlLc _%>' label='<%- sortedAssociations[i].targetModelPlCp _%>' value='<%- sortedAssociations[i].targetModelLc _%>' />
+<%}-%>
+      </Tabs>
+    </div>
+  );
+}
+<%- nameCp _%>AssociationsMenuTabs.propTypes = {
+  associationSelected: PropTypes.string.isRequired,
+  handleClick: PropTypes.func.isRequired,
+};

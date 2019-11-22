@@ -38,12 +38,9 @@ exports.renderToFile = async function(outFile, templateName, options) {
     fs.writeFile(outFile, fileCont,
       function(err) {
         if (err) {
-          console.log(err);
           reject(err);
-          //return err
         } else {
-          console.log("@@@ file generated: ", colors.grey(outFile));
-          resolve();
+          resolve(outFile);
         }
       })
   });
@@ -154,7 +151,7 @@ exports.parseFile = function(jFile){
     words=JSON.parse(data);
   } catch (e) {
     //msg
-    console.log(colors.red('\n! Error: '), 'Parsing JSON model definition file: ', colors.grey(jFile));
+    console.log(colors.red('\n! Error: '), 'Parsing JSON model definition file: ', colors.dim(jFile));
     console.log(colors.red('!@ Error name: ', e.name, ': '), e.message);
     words = null;
   }
