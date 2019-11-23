@@ -1,0 +1,11 @@
+
+export default () => [
+<%for( i=0; i<models.length; i++ ){-%>
+  {
+    id: <%- i _%>,
+    name: '<%- models[i].nameLc _%>',
+    title: '<%- models[i].nameCp _%>',
+    url: '/main/model/<%- models[i].nameLc _%>',
+  },
+<%}-%>
+]

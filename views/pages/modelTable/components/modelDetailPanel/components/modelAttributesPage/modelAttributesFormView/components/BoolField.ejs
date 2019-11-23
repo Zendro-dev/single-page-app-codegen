@@ -24,10 +24,7 @@ export default function BoolField(props) {
     text,
     valueOk,
     autoFocus,
-    handleChange,
-    handleBlur,
     handleReady,
-    handleKeyDown,
   } = props;
 
   const [checked, setChecked] = React.useState(false);
@@ -46,9 +43,6 @@ export default function BoolField(props) {
       } else {
         setChecked(false);
         setIndeterminate(true);
-        if(handleChange !== undefined) {
-          handleChange(null, null, itemKey);
-        }
       }
     } 
     else {
@@ -75,21 +69,6 @@ export default function BoolField(props) {
               color="primary"
               indeterminate={indeterminate}
               autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
-              onChange={(event) => {
-                setChecked(event.target.checked);
-                setIndeterminate(false);
-                
-                if(event.target.checked) {
-                  if(handleChange !== undefined) {
-                    handleChange(event, 'true', itemKey);
-                  }
-                }
-                else {
-                  if(handleChange !== undefined) {
-                    handleChange(event, 'false', itemKey);
-                  }
-                }
-              }}
             />
           }
         />
@@ -103,8 +82,5 @@ BoolField.propTypes = {
   text: PropTypes.string,
   valueOk: PropTypes.number.isRequired,
   autoFocus: PropTypes.bool,
-  handleChange: PropTypes.func.isRequired,
-  handleBlur: PropTypes.func.isRequired,
   handleReady: PropTypes.func.isRequired,
-  handleKeyDown: PropTypes.func.isRequired
 };

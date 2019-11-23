@@ -21,7 +21,8 @@ const useStyles = makeStyles(theme => ({
   },
   card: {
     margin: theme.spacing(1),
-    maxHeight: '77vh',
+    height: '70vh',
+    maxHeight: '70vh',
     overflow: 'auto',
   },
   cardContent: {
@@ -29,19 +30,16 @@ const useStyles = makeStyles(theme => ({
     marginRight: theme.spacing(5),
     minWidth: 200,
   },
+  ibox: {
+    padding: theme.spacing(2),
+  },
 }));
 
 export default function <%- nameCp _%>AttributesFormView(props) {
   const classes = useStyles();
-  const { item, 
-          valueOkStates, 
-          handleBlur, 
-          handleFieldReady, 
-          handleChange,
-          handleKeyDown,
-        } = props;
+  const { item, valueOkStates } = props;
 
-  function itemHasKey(item, index) {
+ function itemHasKey(item, index) {
     if(item !== undefined) {
       return item.key === this.key;
     } else {
@@ -68,6 +66,7 @@ export default function <%- nameCp _%>AttributesFormView(props) {
     if(valueOkStates.length > 0) {
       it = valueOkStates.find(itemHasKey, {key:key});
     }
+
     if(it !== undefined) {
       return it.valueOk;
     } else {
@@ -80,7 +79,7 @@ export default function <%- nameCp _%>AttributesFormView(props) {
       <Grid container justify='center'>
         <Grid item xs={12}>
           <Card className={classes.card}>
-            
+
             {/* Header */}
             <CardHeader
               avatar={
@@ -94,7 +93,7 @@ export default function <%- nameCp _%>AttributesFormView(props) {
               subheader={getItemsOk()+' / <%- attributesArr.length %> completed'}
             >
             </CardHeader>
-            
+
             {/* 
               Fields 
             */}
@@ -121,10 +120,6 @@ export default function <%- nameCp _%>AttributesFormView(props) {
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
-                handleBlur={handleBlur}
-                handleReady={handleFieldReady}
-                handleChange={handleChange}
-                handleKeyDown={handleKeyDown}
               />
             </CardContent>
 <%}-%>
@@ -140,10 +135,6 @@ export default function <%- nameCp _%>AttributesFormView(props) {
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
-                handleBlur={handleBlur}
-                handleReady={handleFieldReady}
-                handleChange={handleChange}
-                handleKeyDown={handleKeyDown}
               />
             </CardContent>
 <%}-%>
@@ -159,10 +150,6 @@ export default function <%- nameCp _%>AttributesFormView(props) {
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
-                handleBlur={handleBlur}
-                handleReady={handleFieldReady}
-                handleChange={handleChange}
-                handleKeyDown={handleKeyDown}
               />
             </CardContent>
 <%}-%>
@@ -178,10 +165,6 @@ export default function <%- nameCp _%>AttributesFormView(props) {
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
-                handleBlur={handleBlur}
-                handleReady={handleFieldReady}
-                handleChange={handleChange}
-                handleKeyDown={handleKeyDown}
               />
             </CardContent>
 <%}-%>
@@ -197,10 +180,6 @@ export default function <%- nameCp _%>AttributesFormView(props) {
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
-                handleBlur={handleBlur}
-                handleReady={handleFieldReady}
-                handleChange={handleChange}
-                handleKeyDown={handleKeyDown}
               />
             </CardContent>
 <%}-%>
@@ -216,10 +195,6 @@ export default function <%- nameCp _%>AttributesFormView(props) {
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
-                handleBlur={handleBlur}
-                handleReady={handleFieldReady}
-                handleChange={handleChange}
-                handleKeyDown={handleKeyDown}
               />
             </CardContent>
 <%}-%>
@@ -235,10 +210,6 @@ export default function <%- nameCp _%>AttributesFormView(props) {
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
-                handleBlur={handleBlur}
-                handleReady={handleFieldReady}
-                handleChange={handleChange}
-                handleKeyDown={handleKeyDown}
               />
             </CardContent>
 <%}-%>
@@ -253,9 +224,4 @@ export default function <%- nameCp _%>AttributesFormView(props) {
 <%- nameCp _%>AttributesFormView.propTypes = {
   item: PropTypes.object.isRequired,
   valueOkStates: PropTypes.array.isRequired,
-  handleBlur: PropTypes.func.isRequired,
-  handleFieldReady: PropTypes.func.isRequired,
-  handleChange: PropTypes.func.isRequired,
-  handleKeyDown: PropTypes.func.isRequired,
 };
-

@@ -1,0 +1,35 @@
+import React from 'react';
+import { 
+  Switch,
+  Route
+} from 'react-router-dom'
+
+<%for( i=0; i<models.length; i++ ){-%>
+import <%- models[i].nameCp %>Table from './modelsTables/<%- models[i].nameLc _%>Table/<%- models[i].nameCp _%>EnhancedTable'
+<%}-%>
+
+import RoleTable from './adminTables/roleTable/RoleEnhancedTable'
+import UserTable from './adminTables/userTable/UserEnhancedTable'
+import NotFoundSection from '../pages/NotFoundSectionPage'
+
+
+export default function TablesSwitch() {
+  return (
+    
+    <Switch>
+
+        {/* Models */}
+<%for( i=0; i<models.length; i++ ){-%>
+        <Route exact path="/main/model/<%- models[i].nameLc _%>" component={<%- models[i].nameCp _%>Table} />
+<%}-%>
+
+        {/* Accounts admin */}
+        <Route exact path="/main/admin/role" component={RoleTable} />
+        <Route exact path="/main/admin/user" component={UserTable} />
+
+        {/* Default */}
+        <Route path="/main/" component={NotFoundSection} />
+
+    </Switch>
+  );
+}

@@ -68,11 +68,13 @@ export default function BoolField(props) {
         <FormControlLabel
           control={
             <Checkbox
+              id={"bool-field-"+itemKey+'-'+label}
               className={classes.checkbox}
               inputRef={inputRef}
               checked={checked} 
               color="primary"
               indeterminate={indeterminate}
+              autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
               onChange={(event) => {
                 setChecked(event.target.checked);
                 setIndeterminate(false);

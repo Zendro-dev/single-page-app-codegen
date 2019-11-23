@@ -1,0 +1,9 @@
+<%for( i=0; i<models.length; i++ ){-%>
+import <%- models[i].nameLc _%>Queries from './<%- models[i].nameLc _%>'
+<%}-%>
+
+export default {
+<%for( i=0; i<models.length; i++ ){-%>
+  <%- models[i].nameLc _%>: <%- models[i].nameLc _%>Queries,
+<%}-%>
+}
