@@ -510,6 +510,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
             {/* Toolbar */}
             <<%- sortedAssociations[aindex].targetModelPlCp _%>ToAddTransferViewToolbar 
               title={'Not associated <%- sortedAssociations[aindex].targetModelPlLc _%>'}
+              titleIcon={1}
               search={search}
               onSearchEnter={handleSearchEnter}
             />
@@ -547,9 +548,9 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
                   <List dense component="div" role="list" >
                     {items.map(it => {
                       let key = it.id;
-                      let label = it.<%- sortedAssociations[aindex].label _%>;
-                      let sublabel = it.<%- sortedAssociations[aindex].sublabel _%>;
-
+                      let label = <%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='') ? `it.${sortedAssociations[aindex].label}` : 'undefined' _%>;
+                      let sublabel = <%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='') ? `it.${sortedAssociations[aindex].sublabel}` : 'undefined' _%>;
+                      
                       return (
                         <ListItem key={key} 
                           role="listitem" 
@@ -660,7 +661,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
             {/* Toolbar */}
             <<%- sortedAssociations[aindex].targetModelPlCp _%>ToAddTransferViewToolbar 
               title={'<%- sortedAssociations[aindex].targetModelPlCp %> to add'}
-              titleIcon={true}
+              titleIcon={2}
               search={searchB}
               onSearchEnter={handleSearchEnterB}
 
@@ -720,9 +721,9 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
                   <List dense component="div" role="list">
                     {itemsB.map(it => {
                       let key = it.id;
-                      let label = it.<%- sortedAssociations[aindex].label _%>;
-                      let sublabel = it.<%- sortedAssociations[aindex].sublabel _%>;
-
+                      let label = <%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='') ? `it.${sortedAssociations[aindex].label}` : 'undefined' _%>;
+                      let sublabel = <%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='') ? `it.${sortedAssociations[aindex].sublabel}` : 'undefined' _%>;
+                      
                       return (
                         <ListItem key={key} 
                           role="listitem" 

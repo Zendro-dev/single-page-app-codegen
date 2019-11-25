@@ -33,17 +33,17 @@ const useStyles = makeStyles(theme => ({
         overflowX: 'auto',
     },
     tableWrapper: {
-      height: '65vh',
-      maxHeight: '65vh',
+      height: '64vh',
+      maxHeight: '64vh',
       overflow: 'auto',
     },
     loading: {
-      height: '65vh',
-      maxHeight: '65vh',
+      height: '64vh',
+      maxHeight: '64vh',
     },
     noData: {
-      height: '65vh',
-      maxHeight: '65vh',
+      height: '64vh',
+      maxHeight: '64vh',
     },
 }));
 
@@ -421,12 +421,14 @@ export default function <%- nameCp -%>EnhancedTable() {
               <Table stickyHeader size='medium'>
 
                 {/* Table Head */}
-                <<%- nameCp -%>EnhancedTableHead
-                  order={order}
-                  orderBy={orderBy}
-                  rowCount={count}
-                  onRequestSort={handleRequestSort}
-                />
+                {(!isOnApiRequest && count > 0) && (
+                  <<%- nameCp -%>EnhancedTableHead
+                    order={order}
+                    orderBy={orderBy}
+                    rowCount={count}
+                    onRequestSort={handleRequestSort}
+                  />
+                )}
 
                 {/* Table Body */}
 
@@ -510,23 +512,21 @@ export default function <%- nameCp -%>EnhancedTable() {
                                 {item.id}
                               </TableCell>
 
-                              {/* email */}
+<%for( i=0; i<attributesArr.length; i++ ){
+  let a = attributesArr[i][0];
+  let label = a[0].toUpperCase() + a.slice(1);
+  let type = attributesArr[i][1];
+-%>
+                              {/* <%- label %> */}
                               <TableCell
-                                key='email'
-                                align='left'
+                                key='<%- a -%>'
+                                align='<%- (type==='Int' || type === 'Float') ? 'right' : 'left' _%>'
                                 padding="default"
                               >
-                                {item.email}
+                                {item.<%- a _%>}
                               </TableCell>
 
-                              {/* password */}
-                              <TableCell
-                                key='password'
-                                align='left'
-                                padding="default"
-                              >
-                                {item.password}
-                              </TableCell>
+<%}-%>
                             </TableRow>,
                           ]);
                         })

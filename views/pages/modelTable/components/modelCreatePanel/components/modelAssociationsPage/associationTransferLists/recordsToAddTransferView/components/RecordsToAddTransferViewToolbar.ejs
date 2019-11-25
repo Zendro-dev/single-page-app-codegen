@@ -13,6 +13,7 @@ import ClearInactive from '@material-ui/icons/BackspaceOutlined';
 import ClearActive from '@material-ui/icons/Backspace';
 import Search from '@material-ui/icons/Search';
 import AddList from '@material-ui/icons/AddToPhotosTwoTone';
+import NotAssociatedList from '@material-ui/icons/CheckBoxOutlineBlankTwoTone';
 
 const useToolbarStyles = makeStyles(theme => ({
     root: {
@@ -50,9 +51,14 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
             {/* Title */}
             <Grid item xs={12} >
               <Grid container justify='flex-start' alignItems='center' wrap='nowrap' spacing={2}>
-                {(titleIcon !== undefined) && (
+                {(titleIcon !== undefined && titleIcon === 1) && (
                   <Grid item>
-                    <AddList color="primary" fontSize="small" />
+                    <NotAssociatedList fontSize="small" color="disabled" />
+                  </Grid>
+                )}
+                {(titleIcon !== undefined && titleIcon === 2) && (
+                  <Grid item>
+                    <AddList fontSize="small" color="disabled" />
                   </Grid>
                 )}
                 
@@ -152,5 +158,6 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
 <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddTransferViewToolbar.propTypes = {
   search: PropTypes.string.isRequired,
   title: PropTypes.string.isRequired,
+  titleIcon: PropTypes.number,
   onSearchEnter: PropTypes.func.isRequired,
 };

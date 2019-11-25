@@ -1,11 +1,23 @@
 
-export default () => [
+export default () => ({
+  models: [
 <%for( i=0; i<models.length; i++ ){-%>
-  {
-    id: <%- i _%>,
-    name: '<%- models[i].nameLc _%>',
-    title: '<%- models[i].nameCp _%>',
-    url: '/main/model/<%- models[i].nameLc _%>',
-  },
+    {
+      id: <%- i _%>,
+      name: '<%- models[i].nameLc _%>',
+      title: '<%- models[i].nameCp _%>',
+      url: '/main/model/<%- models[i].nameLc _%>',
+    },
 <%}-%>
-]
+  ],
+  adminModels: [
+<%for( i=0; i<adminModels.length; i++ ){-%>
+    {
+      id: <%- models.length + i _%>,
+      name: '<%- adminModels[i].nameLc _%>',
+      title: '<%- adminModels[i].nameCp _%>',
+      url: '/main/admin/<%- adminModels[i].nameLc _%>',
+    },
+<%}-%>
+  ]
+})

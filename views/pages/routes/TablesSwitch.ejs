@@ -7,11 +7,10 @@ import {
 <%for( i=0; i<models.length; i++ ){-%>
 import <%- models[i].nameCp %>Table from './modelsTables/<%- models[i].nameLc _%>Table/<%- models[i].nameCp _%>EnhancedTable'
 <%}-%>
-
-import RoleTable from './adminTables/roleTable/RoleEnhancedTable'
-import UserTable from './adminTables/userTable/UserEnhancedTable'
+<%for( i=0; i<adminModels.length; i++ ){-%>
+import <%- adminModels[i].nameCp %>Table from './adminTables/<%- adminModels[i].nameLc _%>Table/<%- adminModels[i].nameCp _%>EnhancedTable'
+<%}-%>
 import NotFoundSection from '../pages/NotFoundSectionPage'
-
 
 export default function TablesSwitch() {
   return (
@@ -23,9 +22,10 @@ export default function TablesSwitch() {
         <Route exact path="/main/model/<%- models[i].nameLc _%>" component={<%- models[i].nameCp _%>Table} />
 <%}-%>
 
-        {/* Accounts admin */}
-        <Route exact path="/main/admin/role" component={RoleTable} />
-        <Route exact path="/main/admin/user" component={UserTable} />
+        {/* Admin models */}
+<%for( i=0; i<adminModels.length; i++ ){-%>
+        <Route exact path="/main/admin/<%- adminModels[i].nameLc _%>" component={<%- adminModels[i].nameCp _%>Table} />
+<%}-%>
 
         {/* Default */}
         <Route path="/main/" component={NotFoundSection} />

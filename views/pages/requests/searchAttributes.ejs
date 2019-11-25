@@ -9,6 +9,15 @@ export default function getSearchAttributes(filterName) {
 <%}-%>
       };
 <%}-%>
+<%for( i=0; i<adminModels.length; i++ ){-%>
+    case '<%- adminModels[i].nameLc _%>':
+      return {
+        "id": "Int",
+<%for( j=0; j<adminModels[i].attributesArr.length; j++ ){-%>
+        "<%- adminModels[i].attributesArr[j][0] _%>": "<%- adminModels[i].attributesArr[j][1] _%>",
+<%}-%>
+    };
+<%}-%>
 
     default:
       return {};

@@ -150,10 +150,10 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
     }
 
     /*
-      API Request: associationFilter
+      API Request: <%- sortedAssociations[aindex].targetModelPlCp _%>Filter
     */
-    let label = '<%- sortedAssociations[aindex].label _%>';
-    let sublabel = '<%- sortedAssociations[aindex].sublabel _%>';
+    let label = '<%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='') ? `${sortedAssociations[aindex].label}` : '' _%>';
+    let sublabel = '<%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='') ? `${sortedAssociations[aindex].sublabel}` : '' _%>';
 
     api.<%- nameLc _%>.get<%- sortedAssociations[aindex].targetModelPlCp _%>Filter(
       graphqlServerUrl, 
@@ -174,8 +174,8 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
                */
               console.log("newData: ", response.data.data);
 
-              setCount(response.data.data.readOneUser.countFiltered<%- sortedAssociations[aindex].targetModelPlCp _%>);
-              setItems(response.data.data.readOneUser.<%- sortedAssociations[aindex].targetModelPlLc _%>Filter);
+              setCount(response.data.data.readOne<%- nameCp _%>.countFiltered<%- sortedAssociations[aindex].targetModelPlCp _%>);
+              setItems(response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].targetModelPlLc _%>Filter);
               setIsOnApiRequest(false);
               return;
 
@@ -260,9 +260,9 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
                     <List dense component="div" role="list" >
                       {items.map(it => {
                         let key = it.id;
-                        let label = it.<%- sortedAssociations[aindex].label _%>;
-                        let sublabel = it.<%- sortedAssociations[aindex].sublabel _%>;
-
+                        let label = <%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='') ? `it.${sortedAssociations[aindex].label}` : 'undefined' _%>;
+                        let sublabel = <%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='') ? `it.${sortedAssociations[aindex].sublabel}` : 'undefined' _%>;
+       
                         return (
                           <ListItem key={key} 
                             role="listitem" 

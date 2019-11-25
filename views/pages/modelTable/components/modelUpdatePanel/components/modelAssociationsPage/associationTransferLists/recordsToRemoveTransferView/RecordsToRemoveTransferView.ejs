@@ -245,8 +245,8 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
     /*
       API Request: associationFilter
     */
-    let label = '<%- sortedAssociations[aindex].label _%>';
-    let sublabel = '<%- sortedAssociations[aindex].sublabel _%>';
+    let label = '<%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='') ? `${sortedAssociations[aindex].label}` : '' _%>';
+    let sublabel = '<%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='') ? `${sortedAssociations[aindex].sublabel}` : '' _%>';
 
     api.<%- nameLc _%>.get<%- sortedAssociations[aindex].targetModelPlCp _%>Filter(
     graphqlServerUrl, 
@@ -513,8 +513,8 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
                     <List dense component="div" role="list" >
                       {items.map(it => {
                         let key = it.id;
-                        let label = it.<%- sortedAssociations[aindex].label _%>;
-                        let sublabel = it.<%- sortedAssociations[aindex].sublabel _%>;
+                        let label = <%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='') ? `it.${sortedAssociations[aindex].label}` : 'undefined' _%>;
+                        let sublabel = <%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='') ? `it.${sortedAssociations[aindex].sublabel}` : 'undefined' _%>;
                         let disabled = lidsToRemove.current.find(id => id === it.id) !== undefined;
 
                         return (
@@ -567,7 +567,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
                                               }}
                                               disabled={disabled}
                                             >
-                                              <Remove color={!disabled ? "secondary" : "default"} />
+                                              <Add color={!disabled ? "secondary" : "disabled"} />
                                             </IconButton>
                                           </span>
                                         </Tooltip>
@@ -691,9 +691,9 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
                     <List dense component="div" role="list">
                       {itemsB.map(it => {
                         let key = it.id;
-                        let label = it.<%- sortedAssociations[aindex].label _%>;
-                        let sublabel = it.<%- sortedAssociations[aindex].sublabel _%>;
-
+                        let label = <%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='') ? `it.${sortedAssociations[aindex].label}` : 'undefined' _%>;
+                        let sublabel = <%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='') ? `it.${sortedAssociations[aindex].sublabel}` : 'undefined' _%>;
+                        
                         return (
                           <ListItem key={key} 
                             role="listitem"
@@ -739,7 +739,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
                                           handleRemoveItem(event, it);
                                         }}
                                       >
-                                        <Add color="primary" />
+                                        <Remove color="primary" />
                                       </IconButton>
                                     </Tooltip>
                                   </Grid>

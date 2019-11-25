@@ -22,7 +22,7 @@ export default {
       query = `{ count<%- namePlCp _%>(${s}) }`;
     }
     else {
-      query = `{ count<%- namePlCp _%> }`;
+      query = `{ count<%- namePlCp %> }`;
     }
 
     /**
@@ -70,8 +70,8 @@ export default {
         query =
           `{ <%- namePlLc _%>( ${s}, ${o}, ${p} ) {
             id,
-<%for( i=0; i<attributesArr.length; i++ ){-%>
-            <%- attributesArr[i][0] %>,
+<%_for( i=0; i<attributesArr.length; i++ ){-%>
+            <%- attributesArr[i][0] -%>,
 <%}-%>
            }}`
       }
@@ -80,8 +80,8 @@ export default {
         query =
           `{ <%- namePlLc _%>( ${s}, ${p} ) {
             id,
-<%for( i=0; i<attributesArr.length; i++ ){-%>
-            <%- attributesArr[i][0] %>,
+<%_for( i=0; i<attributesArr.length; i++ ){-%>
+            <%- attributesArr[i][0] -%>,
 <%}-%>
            }}`
       }
@@ -93,8 +93,8 @@ export default {
         query =
           `{ <%- namePlLc _%>( ${o}, ${p} ) {
             id,
-<%for( i=0; i<attributesArr.length; i++ ){-%>
-            <%- attributesArr[i][0] %>,
+<%_for( i=0; i<attributesArr.length; i++ ){-%>
+            <%- attributesArr[i][0] -%>,
 <%}-%>
            }}`
       }
@@ -103,8 +103,8 @@ export default {
         query =
           `{ <%- namePlLc _%>( ${p} ) {
             id,
-<%for( i=0; i<attributesArr.length; i++ ){-%>
-            <%- attributesArr[i][0] %>,
+<%_for( i=0; i<attributesArr.length; i++ ){-%>
+            <%- attributesArr[i][0] -%>,
 <%}-%>
            }}`
       }
@@ -131,17 +131,17 @@ export default {
     var query = 
       `mutation{ 
         add<%- nameCp %>(
-<%for( i=0; i<attributesArr.length; i++ ){-%>
+<%_for( i=0; i<attributesArr.length; i++ ){-%>
           <%- attributesArr[i][0] _%>: "${values.<%- attributesArr[i][0] _%>}",
 <%}-%>
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
+<%_for( i=0; i<sortedAssociations.length; i++ ){-%>
           add<%- sortedAssociations[i].targetModelPlCp _%>: [${values.add<%- sortedAssociations[i].targetModelPlCp _%>.join()}],
 <%}-%>
           ) 
           { 
             id,
-<%for( i=0; i<attributesArr.length; i++ ){-%>
-            <%- attributesArr[i][0] %>,
+<%_for( i=0; i<attributesArr.length; i++ ){-%>
+            <%- attributesArr[i][0] -%>,
 <%}-%> 
           } }`;
 
@@ -167,18 +167,18 @@ export default {
       `mutation{ 
         update<%- nameCp %>(
           id: "${itemId}",
-<%for( i=0; i<attributesArr.length; i++ ){-%>
+<%_for( i=0; i<attributesArr.length; i++ ){-%>
           <%- attributesArr[i][0] _%>: "${values.<%- attributesArr[i][0] _%>}",
 <%}-%>
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
+<%_for( i=0; i<sortedAssociations.length; i++ ){-%>
           add<%- sortedAssociations[i].targetModelPlCp _%>: [${values.add<%- sortedAssociations[i].targetModelPlCp _%>.join()}],
           remove<%- sortedAssociations[i].targetModelPlCp _%>: [${values.remove<%- sortedAssociations[i].targetModelPlCp _%>.join()}],    
 <%}-%>
           )
           { 
             id,
-<%for( i=0; i<attributesArr.length; i++ ){-%>
-            <%- attributesArr[i][0] %>,
+<%_for( i=0; i<attributesArr.length; i++ ){-%>
+            <%- attributesArr[i][0] -%>,
 <%}-%> 
           } }`;
 
@@ -242,7 +242,7 @@ export default {
       query = 
       `{ readOne<%- nameCp %>(id: ${itemId}) { 
         <%- sortedAssociations[i].targetModelPlLc _%>Filter( ${s}, ${p} ) { 
-          id, 
+          id,
           ${label}, 
           ${sublabel},
         }, 
