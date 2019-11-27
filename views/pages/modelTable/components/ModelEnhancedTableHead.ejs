@@ -27,7 +27,7 @@ export default function <%- nameCp -%>EnhancedTableHead(props) {
 
         {/* Actions */}
         <TableCell padding="checkbox" align='center' size='small' colSpan={2}>
-          <Typography color="inherit" variant="overline">
+          <Typography color="inherit" variant="caption">
             Actions
           </Typography>
         </TableCell>
@@ -48,7 +48,7 @@ export default function <%- nameCp -%>EnhancedTableHead(props) {
             direction={order}
             onClick={(event) => { onRequestSort(event, 'id') }}
           >
-            <Typography color="inherit" variant="overline">
+            <Typography color="inherit" variant="caption">
               Id
             </Typography>
           </TableSortLabel>
@@ -71,7 +71,7 @@ export default function <%- nameCp -%>EnhancedTableHead(props) {
               direction={order}
               onClick={(event) => {onRequestSort(event, '<%- a -%>')}}
           >
-            <Typography color="inherit" variant="overline">
+            <Typography color="inherit" variant="caption">
               <%- label %>
             </Typography>
           </TableSortLabel>

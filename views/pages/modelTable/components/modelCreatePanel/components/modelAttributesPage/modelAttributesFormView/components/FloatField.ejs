@@ -23,15 +23,16 @@ export default function FloatField(props) {
     text,
     valueOk,
     autoFocus,
-    handleChange,
-    handleBlur,
     handleReady,
-    handleKeyDown,
+    handleSetValue,
+    handleSetValueOk,
   } = props;
 
   const [value, setValue] = React.useState('');
+  const [error, setError] = React.useState(false);
   const inputRef = useRef(null);
   const fieldRef = useRef(null);
+  const floatValue = useRef(null);
 
   useEffect(() => {
     if(text !== undefined && text !== null && text !== '') {
@@ -44,41 +45,57 @@ export default function FloatField(props) {
   }, []);
 
   return (
-    <TextField
-      id={"float-field-"+itemKey+'-'+label}
-      label={label}
-      ref={fieldRef}
-      inputRef={inputRef}
-      type="number"
-      value={value}
-      className={classes.textField}
-      margin="normal"
-      variant="standard"
-      autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
-      InputProps={{
-        endAdornment:
-          <InputAdornment position="end">
-            {(valueOk!==undefined&&valueOk===1) ? <CheckIcon color="primary" fontSize="small" /> : ''}
-          </InputAdornment>
-      }}
-      onChange={(event) => {
-        setValue(event.target.value);
+      <TextField
+        id={"float-field-"+itemKey+'-'+label}
+        label={label}
+        ref={fieldRef}
+        inputRef={inputRef}
+        type="number"
+        defaultValue={value}
+        className={classes.textField}
+        margin="normal"
+        variant="standard"
+        placeholder="number"
+        helperText={error ? "Invalid number" : ""}
+        error={error}
+        autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
+        InputProps={{
+          endAdornment:
+            <InputAdornment position="end">
+              {(valueOk!==undefined&&valueOk===1) ? <CheckIcon color="primary" fontSize="small" /> : ''}
+            </InputAdornment>
+        }}
+        InputLabelProps={{shrink: true}}
+        onChange={(event) => {
+          floatValue.current = parseFloat(event.target.value);
+          handleSetValue(floatValue.current, itemKey);
 
-        if(handleChange !== undefined) {
-          handleChange(event, event.target.value, itemKey);
-        }
-      }}
-      onBlur={(event) => {
-        if(handleBlur !== undefined) {
-          handleBlur(event, event.target.value, itemKey);
-        }
-      }}
-      onKeyDown={(event) => {
-        if(handleKeyDown !== undefined) {
-          handleKeyDown(event, event.target.value, itemKey);
-        }
-      }}
-    />
+          if(event.target.value !== '') {
+            setError(false);
+            handleSetValueOk(0, itemKey);
+          } else {
+            setError(true);
+            handleSetValueOk(-1, itemKey);
+          }
+        }}
+        onBlur={(event) => {
+          setError(false);
+
+          if(Number.isNaN(floatValue.current) || floatValue.current === null) {
+            handleSetValueOk(0, itemKey);
+            
+          } else {
+            handleSetValueOk(1, itemKey);
+          }
+        }}
+        onKeyDown={(event) => {
+          if(event.key === 'Enter') {
+            if(!Number.isNaN(floatValue.current)) {
+              handleSetValueOk(1, itemKey);
+            }
+          }
+        }}
+      />
   );
 }
 FloatField.propTypes = {
@@ -88,8 +105,7 @@ FloatField.propTypes = {
   text: PropTypes.string,
   valueOk: PropTypes.number.isRequired,
   autoFocus: PropTypes.bool,
-  handleChange: PropTypes.func.isRequired,
-  handleBlur: PropTypes.func.isRequired,
   handleReady: PropTypes.func.isRequired,
-  handleKeyDown: PropTypes.func.isRequired
+  handleSetValue: PropTypes.func.isRequired,
+  handleSetValueOk: PropTypes.func.isRequired,
 };

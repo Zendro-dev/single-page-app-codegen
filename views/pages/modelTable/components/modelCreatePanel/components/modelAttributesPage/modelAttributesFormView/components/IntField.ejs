@@ -23,15 +23,17 @@ export default function IntField(props) {
     text,
     valueOk,
     autoFocus,
-    handleChange,
-    handleBlur,
     handleReady,
-    handleKeyDown,
+    handleSetValue,
+    handleSetValueOk,
   } = props;
 
   const [value, setValue] = React.useState('');
+  const [error, setError] = React.useState(false);
+  const [intWarning, setIntWarning] = React.useState(false);
   const inputRef = useRef(null);
   const fieldRef = useRef(null);
+  const intValue = useRef(null);
 
   useEffect(() => {
     if(text !== undefined && text !== null && text !== '') {
@@ -44,41 +46,64 @@ export default function IntField(props) {
   }, []);
 
   return (
-    <TextField
-      id={"int-field-"+itemKey+'-'+label}
-      label={label}
-      ref={fieldRef}
-      inputRef={inputRef}
-      type="number"
-      value={value}
-      className={classes.textField}
-      margin="normal"
-      variant="standard"
-      autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
-      InputProps={{
-        endAdornment:
-          <InputAdornment position="end">
-            {(valueOk!==undefined&&valueOk===1) ? <CheckIcon color="primary" fontSize="small" /> : ''}
-          </InputAdornment>
-      }}
-      onChange={(event) => {
-        setValue(event.target.value);
+      <TextField
+        id={"int-field-"+itemKey+'-'+label}
+        label={label}
+        ref={fieldRef}
+        inputRef={inputRef}
+        type="number"
+        defaultValue={value}
+        className={classes.textField}
+        margin="normal"
+        variant="standard"
+        placeholder="integer"
+        helperText={error ? "Invalid number" : (intWarning ? `This is an Integer field, decimals will be omitted. Value taken: ${intValue.current}` : "")}
+        error={error}
+        autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
+        InputProps={{
+          endAdornment:
+            <InputAdornment position="end">
+              {(valueOk!==undefined&&valueOk===1) ? <CheckIcon color="primary" fontSize="small" /> : ''}
+            </InputAdornment>
+        }}
+        InputLabelProps={{shrink: true}}
+        onChange={(event) => {
+          intValue.current = parseInt(event.target.value);
+          handleSetValue(intValue.current, itemKey);
 
-        if(handleChange !== undefined) {
-          handleChange(event, event.target.value, itemKey);
-        }
-      }}
-      onBlur={(event) => {
-        if(handleBlur !== undefined) {
-          handleBlur(event, event.target.value, itemKey);
-        }
-      }}
-      onKeyDown={(event) => {
-        if(handleKeyDown !== undefined) {
-          handleKeyDown(event, event.target.value, itemKey);
-        }
-      }}
-    />
+          if(event.target.value !== '') {
+            setError(false);
+            handleSetValueOk(0, itemKey);
+
+            if(/^[+-]?[0-9]+$/.test(event.target.value)) {
+              setIntWarning(false);
+            } else {
+              setIntWarning(true);
+            }
+          } else {
+            setError(true);
+            setIntWarning(false);
+            handleSetValueOk(-1, itemKey);
+          }
+        }}
+        onBlur={(event) => {
+          setError(false);
+
+          if(Number.isNaN(intValue.current)) {
+            handleSetValueOk(0, itemKey);
+            
+          } else {
+            handleSetValueOk(1, itemKey);
+          }
+        }}
+        onKeyDown={(event) => {
+          if(event.key === 'Enter') {
+            if(!Number.isNaN(intValue.current)) {
+              handleSetValueOk(1, itemKey);
+            }
+          }
+        }}
+      />
   );
 }
 IntField.propTypes = {
@@ -88,8 +113,7 @@ IntField.propTypes = {
   text: PropTypes.string,
   valueOk: PropTypes.number.isRequired,
   autoFocus: PropTypes.bool,
-  handleChange: PropTypes.func.isRequired,
-  handleBlur: PropTypes.func.isRequired,
   handleReady: PropTypes.func.isRequired,
-  handleKeyDown: PropTypes.func.isRequired
+  handleSetValue: PropTypes.func.isRequired,
+  handleSetValueOk: PropTypes.func.isRequired,
 };

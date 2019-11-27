@@ -26,11 +26,14 @@ export default function TimeField(props) {
     handleBlur,
     handleReady,
     handleKeyDown,
+    handleSetValue,
+    handleSetValueOk,
   } = props;
   
   const [selectedDate, setSelectedDate] = React.useState(null);
   const inputRef = useRef(null);
   const strDate = useRef('');
+  const isValid = useRef(false);
 
   useEffect(() => {
     if(text !== undefined && text !== null && text !== '') {
@@ -63,54 +66,34 @@ export default function TimeField(props) {
               </InputAdornment>
           }}
           onChange={(date, value) => {
-            console.log("#- time.change: date: ", date, " value: ", value);
-            strDate.current = value;
             setSelectedDate(date);
-          }}
-          onBlur={(event) => {
-            console.log("#- time.blur: date: ", strDate.current);
-            if(strDate.current === null) {
-              if(handleBlur !== undefined) {
-                handleBlur(event, '', itemKey);
+
+            if(date !== null) {
+              strDate.current = date.format("HH:mm:ss.SSSZ");
+              isValid.current = date._isValid;
+
+              if(date._isValid !== undefined && date._isValid) {
+                handleSetValue(strDate.current, itemKey, 'Time');
+              } else {
+                handleSetValueOk(-1, itemKey);
               }
             } else {
-              if(handleBlur !== undefined) {
-                handleBlur(event, strDate.current, itemKey);
-              }
+              isValid.current = false;
+              handleSetValueOk(-1, itemKey);
+            }
+          }}
+          onBlur={(event) => {
+            if(isValid.current) {
+              handleBlur(event, strDate.current, itemKey);
+            } else {
+              handleSetValueOk(-1, itemKey);
             }
           }}
           onKeyDown={(event) => {
-            console.log("#- time.keyDown: date: ", strDate.current);
-            if(strDate.current === null) {
-              if(handleKeyDown !== undefined) {
-                handleKeyDown(event, '', itemKey);
-              }
+            if(isValid.current) {
+              handleKeyDown(event, strDate.current, itemKey);
             } else {
-              if(handleKeyDown !== undefined) {
-                handleKeyDown(event, strDate.current, itemKey);
-              }
-            }
-          }}
-          onError={(error, value) => {
-            console.log("#- time.error: error: ", error, " value: ", value, " date: ", strDate.current);
-            //no error
-            if(error === '') {
-              //empty value
-              if(value === null || value === '') {
-                if(handleChange !== undefined) {
-                  handleChange(error, '', itemKey);
-                }
-              } else {
-                //no empty value
-                if(handleChange !== undefined) {
-                  handleChange(error, value, itemKey);
-                }
-              }
-            } else {
-              //error
-              if(handleChange !== undefined) {
-                handleChange(error, null, itemKey);
-              }
+              handleSetValueOk(-1, itemKey);
             }
           }}
         />
@@ -124,8 +107,9 @@ TimeField.propTypes = {
   text: PropTypes.string,
   valueOk: PropTypes.number.isRequired,
   autoFocus: PropTypes.bool,
-  handleChange: PropTypes.func.isRequired,
   handleBlur: PropTypes.func.isRequired,
   handleReady: PropTypes.func.isRequired,
-  handleKeyDown: PropTypes.func.isRequired
+  handleKeyDown: PropTypes.func.isRequired,
+  handleSetValue: PropTypes.func.isRequired,
+  handleSetValueOk: PropTypes.func.isRequired,
 };

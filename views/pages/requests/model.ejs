@@ -132,7 +132,7 @@ export default {
       `mutation{ 
         add<%- nameCp %>(
 <%_for( i=0; i<attributesArr.length; i++ ){-%>
-          <%- attributesArr[i][0] _%>: "${values.<%- attributesArr[i][0] _%>}",
+          <%- attributesArr[i][0] _%>: ${values.<%- attributesArr[i][0] _%>},
 <%}-%>
 <%_for( i=0; i<sortedAssociations.length; i++ ){-%>
           add<%- sortedAssociations[i].targetModelPlCp _%>: [${values.add<%- sortedAssociations[i].targetModelPlCp _%>.join()}],
@@ -308,7 +308,7 @@ function getSearchArgument(filterName, searchText, ops) {
   var ands = '';
   var andSearch = null;
 
-  if(searchText !== null && searchText !== '' && modelAttributes > 0) {
+  if(searchText !== null && searchText !== '' && modelAttributes.length > 0) {
     /*
       Make AND fields
     */

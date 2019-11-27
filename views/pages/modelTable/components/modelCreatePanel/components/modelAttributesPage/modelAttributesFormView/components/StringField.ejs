@@ -23,10 +23,9 @@ export default function StringField(props) {
     text,
     valueOk,
     autoFocus,
-    handleChange,
-    handleBlur,
     handleReady,
-    handleKeyDown,
+    handleSetValue,
+    handleSetValueOk,
   } = props;
   
   const [value, setValue] = React.useState('');
@@ -34,9 +33,12 @@ export default function StringField(props) {
   const fieldRef = useRef(null);
 
   useEffect(() => {
-    if(text !== undefined && text !== null && text !== '') {
+    if(text !== undefined && text !== null && typeof text === 'string' && text.trim() !== '') {
       setValue(text);
+      handleSetValue(text, itemKey);
+      handleSetValueOk(1, itemKey);
     }
+    
     if(handleReady !== undefined) {
       handleReady(itemKey, fieldRef, inputRef);
     }
@@ -63,18 +65,29 @@ export default function StringField(props) {
       }}
       onChange={(event) => {
         setValue(event.target.value);
-        if(handleChange !== undefined) {
-          handleChange(event, event.target.value, itemKey);
+        let v = event.target.value;
+        
+        if(v === null || v === undefined || typeof v !== 'string' || v.trim() === '') {
+          handleSetValue(null, itemKey);
+        } else {
+          handleSetValue(v, itemKey);
         }
+        handleSetValueOk(0, itemKey);
       }}
       onBlur={(event) => {
-        if(handleBlur !== undefined) {
-          handleBlur(event, event.target.value, itemKey);
+        if(value === null || value === undefined || typeof value !== 'string' || value.trim() === '') {
+          handleSetValueOk(0, itemKey);
+        } else {
+          handleSetValueOk(1, itemKey);
         }
       }}
       onKeyDown={(event) => {
-        if(handleKeyDown !== undefined) {
-          handleKeyDown(event, event.target.value, itemKey);
+        if(event.key === 'Enter') {
+          if(value === null || value === undefined || typeof value !== 'string' || value.trim() === '') {
+            handleSetValueOk(0, itemKey);
+          } else {
+            handleSetValueOk(1, itemKey);
+          }
         }
       }}
     />
@@ -87,8 +100,7 @@ StringField.propTypes = {
   text: PropTypes.string,
   valueOk: PropTypes.number.isRequired,
   autoFocus: PropTypes.bool,
-  handleChange: PropTypes.func.isRequired,
-  handleBlur: PropTypes.func.isRequired,
   handleReady: PropTypes.func.isRequired,
-  handleKeyDown: PropTypes.func.isRequired
+  handleSetValue: PropTypes.func.isRequired,
+  handleSetValueOk: PropTypes.func.isRequired,
 };

@@ -24,14 +24,12 @@ export default function BoolField(props) {
     text,
     valueOk,
     autoFocus,
-    handleChange,
-    handleBlur,
     handleReady,
-    handleKeyDown,
+    handleSetValue,
+    handleSetValueOk,
   } = props;
 
   const [checked, setChecked] = React.useState(false);
-  const [indeterminate, setIndeterminate] = React.useState(true);
   const fieldRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -39,21 +37,23 @@ export default function BoolField(props) {
     if(text !== undefined && text !== null && (text === 'true' || text === 'false')) {
       if(text === 'true') {
         setChecked(true);
-        setIndeterminate(false);
+        handleSetValue(true, itemKey);
+        handleSetValueOk(1, itemKey);
+
+
       } else if (text === 'false') {
         setChecked(false);
-        setIndeterminate(false);
+        handleSetValue(false, itemKey);
+        handleSetValueOk(1, itemKey);
+
       } else {
-        setChecked(false);
-        setIndeterminate(true);
-        if(handleChange !== undefined) {
-          handleChange(null, null, itemKey);
-        }
+        handleSetValue(null, itemKey);
+        handleSetValueOk(0, itemKey);
       }
     } 
     else {
-      setChecked(false);
-      setIndeterminate(true);
+      handleSetValue(null, itemKey);
+      handleSetValueOk(0, itemKey);
     }
 
     if(handleReady !== undefined) {
@@ -73,21 +73,24 @@ export default function BoolField(props) {
               inputRef={inputRef}
               checked={checked} 
               color="primary"
-              indeterminate={indeterminate}
+              indeterminate={(valueOk===0)}
               autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
               onChange={(event) => {
                 setChecked(event.target.checked);
-                setIndeterminate(false);
                 
                 if(event.target.checked) {
-                  if(handleChange !== undefined) {
-                    handleChange(event, 'true', itemKey);
-                  }
+                  handleSetValue(true, itemKey);
+                  handleSetValueOk(1, itemKey);
                 }
                 else {
-                  if(handleChange !== undefined) {
-                    handleChange(event, 'false', itemKey);
-                  }
+                  handleSetValue(false, itemKey);
+                  handleSetValueOk(1, itemKey);
+                }
+              }}
+              onKeyDown={(event) => {
+                if(event.key === 'Delete') {
+                  handleSetValue(null, itemKey);
+                  handleSetValueOk(0, itemKey);
                 }
               }}
             />
@@ -103,8 +106,7 @@ BoolField.propTypes = {
   text: PropTypes.string,
   valueOk: PropTypes.number.isRequired,
   autoFocus: PropTypes.bool,
-  handleChange: PropTypes.func.isRequired,
-  handleBlur: PropTypes.func.isRequired,
   handleReady: PropTypes.func.isRequired,
-  handleKeyDown: PropTypes.func.isRequired
+  handleSetValue: PropTypes.func.isRequired,
+  handleSetValueOk: PropTypes.func.isRequired,
 };

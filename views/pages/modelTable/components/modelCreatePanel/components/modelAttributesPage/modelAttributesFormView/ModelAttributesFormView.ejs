@@ -38,40 +38,19 @@ export default function <%- nameCp _%>AttributesFormView(props) {
           handleFieldReady, 
           handleChange,
           handleKeyDown,
+          handleSetValue,
+          handleSetValueOk,
         } = props;
-
-  function itemHasKey(item, index) {
-    if (item !== undefined) {
-      return item.key === this.key;
-    } else {
-      return false;
-    }
-  }
 
   function getItemsOk() {
     let countOk=0;
-    if(valueOkStates.length > 0) {
-      for(var i=0; i<valueOkStates.length; ++i)
-      {
-        if(valueOkStates[i].valueOk === 1) {
-          countOk++;
-        }
+    let a = Object.entries(valueOkStates);
+    for(var i=0; i<a.length; ++i) {
+      if(a[i][1] === 1) {
+        countOk++;
       }
     }
     return countOk;
-  }
-
-  function getValueOkStatus(key) {
-    let it = undefined;
-
-    if(valueOkStates.length > 0) {
-      it = valueOkStates.find(itemHasKey, {key:key});
-    }
-    if(it !== undefined) {
-      return it.valueOk;
-    } else {
-      return 0;
-    }
   }
 
   return (
@@ -109,14 +88,13 @@ export default function <%- nameCp _%>AttributesFormView(props) {
                 itemKey='<%- a %>'
                 name='<%- a %>'
                 label='<%- label %>'
-                valueOk={getValueOkStatus('<%- a %>')}
+                valueOk={valueOkStates.<%- a _%>}
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
-                handleBlur={handleBlur}
                 handleReady={handleFieldReady}
-                handleChange={handleChange}
-                handleKeyDown={handleKeyDown}
+                handleSetValue={handleSetValue}
+                handleSetValueOk={handleSetValueOk}
               />
             </CardContent>
 <%}-%>
@@ -127,14 +105,13 @@ export default function <%- nameCp _%>AttributesFormView(props) {
                 itemKey='<%- a %>'
                 name='<%- a %>'
                 label='<%- label %>'
-                valueOk={getValueOkStatus('<%- a %>')}
+                valueOk={valueOkStates.<%- a _%>}
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
-                handleBlur={handleBlur}
                 handleReady={handleFieldReady}
-                handleChange={handleChange}
-                handleKeyDown={handleKeyDown}
+                handleSetValue={handleSetValue}
+                handleSetValueOk={handleSetValueOk}
               />
             </CardContent>
 <%}-%>
@@ -145,14 +122,13 @@ export default function <%- nameCp _%>AttributesFormView(props) {
                 itemKey='<%- a %>'
                 name='<%- a %>'
                 label='<%- label %>'
-                valueOk={getValueOkStatus('<%- a %>')}
+                valueOk={valueOkStates.<%- a _%>}
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
-                handleBlur={handleBlur}
                 handleReady={handleFieldReady}
-                handleChange={handleChange}
-                handleKeyDown={handleKeyDown}
+                handleSetValue={handleSetValue}
+                handleSetValueOk={handleSetValueOk}
               />
             </CardContent>
 <%}-%>
@@ -163,14 +139,15 @@ export default function <%- nameCp _%>AttributesFormView(props) {
                 itemKey='<%- a %>'
                 name='<%- a %>'
                 label='<%- label %>'
-                valueOk={getValueOkStatus('<%- a %>')}
+                valueOk={valueOkStates.<%- a _%>}
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
                 handleBlur={handleBlur}
                 handleReady={handleFieldReady}
-                handleChange={handleChange}
                 handleKeyDown={handleKeyDown}
+                handleSetValue={handleSetValue}
+                handleSetValueOk={handleSetValueOk}
               />
             </CardContent>
 <%}-%>
@@ -181,14 +158,15 @@ export default function <%- nameCp _%>AttributesFormView(props) {
                 itemKey='<%- a %>'
                 name='<%- a %>'
                 label='<%- label %>'
-                valueOk={getValueOkStatus('<%- a %>')}
+                valueOk={valueOkStates.<%- a _%>}
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
                 handleBlur={handleBlur}
                 handleReady={handleFieldReady}
-                handleChange={handleChange}
                 handleKeyDown={handleKeyDown}
+                handleSetValue={handleSetValue}
+                handleSetValueOk={handleSetValueOk}
               />
             </CardContent>
 <%}-%>
@@ -199,14 +177,15 @@ export default function <%- nameCp _%>AttributesFormView(props) {
                 itemKey='<%- a %>'
                 name='<%- a %>'
                 label='<%- label %>'
-                valueOk={getValueOkStatus('<%- a %>')}
+                valueOk={valueOkStates.<%- a _%>}
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
                 handleBlur={handleBlur}
                 handleReady={handleFieldReady}
-                handleChange={handleChange}
                 handleKeyDown={handleKeyDown}
+                handleSetValue={handleSetValue}
+                handleSetValueOk={handleSetValueOk}
               />
             </CardContent>
 <%}-%>
@@ -217,14 +196,15 @@ export default function <%- nameCp _%>AttributesFormView(props) {
                 itemKey='<%- a %>'
                 name='<%- a %>'
                 label='<%- label %>'
-                valueOk={getValueOkStatus('<%- a %>')}
+                valueOk={valueOkStates.<%- a _%>}
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
                 handleBlur={handleBlur}
                 handleReady={handleFieldReady}
-                handleChange={handleChange}
                 handleKeyDown={handleKeyDown}
+                handleSetValue={handleSetValue}
+                handleSetValueOk={handleSetValueOk}
               />
             </CardContent>
 <%}-%>
@@ -237,9 +217,11 @@ export default function <%- nameCp _%>AttributesFormView(props) {
   );
 }
 <%- nameCp _%>AttributesFormView.propTypes = {
-  valueOkStates: PropTypes.array.isRequired,
+  valueOkStates: PropTypes.object.isRequired,
   handleBlur: PropTypes.func.isRequired,
   handleFieldReady: PropTypes.func.isRequired,
   handleChange: PropTypes.func.isRequired,
   handleKeyDown: PropTypes.func.isRequired,
+  handleSetValue: PropTypes.func.isRequired,
+  handleSetValueOk: PropTypes.func.isRequired,
 };

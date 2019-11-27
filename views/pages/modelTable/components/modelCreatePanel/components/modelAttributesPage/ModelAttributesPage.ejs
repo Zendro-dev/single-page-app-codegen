@@ -18,6 +18,8 @@ export default function <%- nameCp _%>AttributesPage(props) {
     hidden,
     handleFieldChange,
     handleOkStateUpdate,
+    handleSetValue,
+    handleSetValueOk,
   } = props;
   
   const fieldRefs = useRef([]);
@@ -30,8 +32,8 @@ export default function <%- nameCp _%>AttributesPage(props) {
     }
   }
 
-  const handleFieldBlur = (event, name, value, key) => {
-    handleOkStateUpdate(name, value, key);
+  const handleFieldBlur = (event, value, key) => {
+    handleOkStateUpdate(value, key);
   };
 
   const handleFieldReady = (key, textFieldRef, inputRef) => {
@@ -47,9 +49,9 @@ export default function <%- nameCp _%>AttributesPage(props) {
     }
   };
 
-  const handleFieldsKeyDown = (event, name, value, key) => {
+  const handleFieldsKeyDown = (event, value, key) => {
     if(event.key === 'Enter') {
-        handleOkStateUpdate(name, value, key);
+        handleOkStateUpdate(value, key);
     }
   };
 
@@ -70,6 +72,8 @@ export default function <%- nameCp _%>AttributesPage(props) {
               handleFieldReady={handleFieldReady}
               handleChange={handleFieldChange}
               handleKeyDown={handleFieldsKeyDown}
+              handleSetValue={handleSetValue}
+              handleSetValueOk={handleSetValueOk}
             />
           </Grid>
         </Grid>
@@ -78,8 +82,10 @@ export default function <%- nameCp _%>AttributesPage(props) {
   );
 }
 <%- nameCp _%>AttributesPage.propTypes = {
-  valueOkStates: PropTypes.array.isRequired,
+  valueOkStates: PropTypes.object.isRequired,
   hidden: PropTypes.bool.isRequired,
   handleFieldChange: PropTypes.func.isRequired,
-  handleOkStateUpdate: PropTypes.func.isRequired
+  handleOkStateUpdate: PropTypes.func.isRequired,
+  handleSetValue: PropTypes.func.isRequired,
+  handleSetValueOk: PropTypes.func.isRequired,
 };
