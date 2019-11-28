@@ -34,10 +34,7 @@ const useStyles = makeStyles(theme => ({
 export default function <%- nameCp _%>AttributesFormView(props) {
   const classes = useStyles();
   const { valueOkStates, 
-          handleBlur, 
           handleFieldReady, 
-          handleChange,
-          handleKeyDown,
           handleSetValue,
           handleSetValueOk,
         } = props;
@@ -143,9 +140,7 @@ export default function <%- nameCp _%>AttributesFormView(props) {
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
-                handleBlur={handleBlur}
                 handleReady={handleFieldReady}
-                handleKeyDown={handleKeyDown}
                 handleSetValue={handleSetValue}
                 handleSetValueOk={handleSetValueOk}
               />
@@ -162,9 +157,7 @@ export default function <%- nameCp _%>AttributesFormView(props) {
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
-                handleBlur={handleBlur}
                 handleReady={handleFieldReady}
-                handleKeyDown={handleKeyDown}
                 handleSetValue={handleSetValue}
                 handleSetValueOk={handleSetValueOk}
               />
@@ -181,9 +174,7 @@ export default function <%- nameCp _%>AttributesFormView(props) {
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
-                handleBlur={handleBlur}
                 handleReady={handleFieldReady}
-                handleKeyDown={handleKeyDown}
                 handleSetValue={handleSetValue}
                 handleSetValueOk={handleSetValueOk}
               />
@@ -200,9 +191,7 @@ export default function <%- nameCp _%>AttributesFormView(props) {
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
-                handleBlur={handleBlur}
                 handleReady={handleFieldReady}
-                handleKeyDown={handleKeyDown}
                 handleSetValue={handleSetValue}
                 handleSetValueOk={handleSetValueOk}
               />
@@ -218,10 +207,7 @@ export default function <%- nameCp _%>AttributesFormView(props) {
 }
 <%- nameCp _%>AttributesFormView.propTypes = {
   valueOkStates: PropTypes.object.isRequired,
-  handleBlur: PropTypes.func.isRequired,
   handleFieldReady: PropTypes.func.isRequired,
-  handleChange: PropTypes.func.isRequired,
-  handleKeyDown: PropTypes.func.isRequired,
   handleSetValue: PropTypes.func.isRequired,
   handleSetValueOk: PropTypes.func.isRequired,
 };

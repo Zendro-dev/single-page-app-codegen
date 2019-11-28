@@ -215,12 +215,6 @@ export default function <%- nameCp _%>CreatePanel(props) {
     setTabsValue(newValue);
   };
 
-  const handleFieldChange = (event, value, key) => {
-    values.current[key] = value;
-    valuesOkRefs.current[key] = 0;
-    setValueOkStates({...valuesOkRefs.current});
-  }
-
   const handleSetValue = (value, key, type) => {
     let nvalue = value;
     if(type === 'String') {
@@ -240,11 +234,6 @@ export default function <%- nameCp _%>CreatePanel(props) {
 
   const handleSetValueOk = (valueOk, key) => {
     valuesOkRefs.current[key] = valueOk;
-    setValueOkStates({...valuesOkRefs.current});
-  }
-
-  const handleOkStateUpdate = (value, key) => {
-    valuesOkRefs.current[key] = getAcceptableStatus(key, value);
     setValueOkStates({...valuesOkRefs.current});
   }
 
@@ -388,8 +377,6 @@ export default function <%- nameCp _%>CreatePanel(props) {
             <<%- nameCp _%>AttributesPage
               hidden={tabsValue !== 0}
               valueOkStates={valueOkStates}
-              handleFieldChange={handleFieldChange}
-              handleOkStateUpdate={handleOkStateUpdate}
               handleSetValue={handleSetValue}
               handleSetValueOk={handleSetValueOk}
             />
