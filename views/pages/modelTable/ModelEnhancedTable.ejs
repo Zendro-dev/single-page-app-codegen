@@ -45,6 +45,21 @@ const useStyles = makeStyles(theme => ({
       height: '64vh',
       maxHeight: '64vh',
     },
+    iconSee: {
+      '&:hover': {
+        color: '#3f51b5'
+      }
+    },
+    iconEdit: {
+      '&:hover': {
+        color: '#3f51b5'
+      }
+    },
+    iconDelete: {
+      '&:hover': {
+        color: '#f50057'
+      }
+    },
 }));
 
 export default function <%- nameCp -%>EnhancedTable() {
@@ -418,7 +433,7 @@ export default function <%- nameCp -%>EnhancedTable() {
 
             {/* Table */}
             <div className={classes.tableWrapper}>
-              <Table stickyHeader size='medium'>
+              <Table stickyHeader size='small'>
 
                 {/* Table Head */}
                 {(!isOnApiRequest && count > 0) && (
@@ -457,13 +472,13 @@ export default function <%- nameCp -%>EnhancedTable() {
                               <TableCell padding="checkbox">
                                 <Tooltip title="View all info">
                                   <IconButton
-                                    color="primary"
+                                    color="default"
                                     onClick={event => {
                                       event.stopPropagation();
                                       handleClickOnRow(event, item);
                                     }}
                                   >
-                                    <SeeInfo />
+                                    <SeeInfo fontSize="small" className={classes.iconSee}/>
                                   </IconButton>
                                 </Tooltip>
                               </TableCell>
@@ -476,13 +491,13 @@ export default function <%- nameCp -%>EnhancedTable() {
                               <TableCell padding='checkbox' align='center'>
                                 <Tooltip title="Edit">
                                   <IconButton
-                                    color="primary"
+                                    color="default"
                                     onClick={(event) => {
                                       event.stopPropagation();
                                       handleUpdateClicked(event, item);
                                     }}
                                   >
-                                    <Edit fontSize="small" />
+                                    <Edit fontSize="small" className={classes.iconEdit} />
                                   </IconButton>
                                 </Tooltip>
                               </TableCell>
@@ -490,13 +505,13 @@ export default function <%- nameCp -%>EnhancedTable() {
                               <TableCell padding='checkbox' align='center'>
                                 <Tooltip title="Delete">
                                   <IconButton
-                                    color="secondary"
+                                    color="default"
                                     onClick={(event) => {
                                       event.stopPropagation();
                                       handleDeleteClicked(event, item);
                                     }}
                                   >
-                                    <Delete fontSize="small" />
+                                    <Delete fontSize="small" className={classes.iconDelete} />
                                   </IconButton>
                                 </Tooltip>
                               </TableCell>

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import moment from "moment";
 import MomentUtils from "@date-io/moment";
@@ -22,22 +22,30 @@ export default function TimeField(props) {
     text,
     valueOk,
     autoFocus,
-    handleChange,
-    handleBlur,
     handleReady,
-    handleKeyDown,
     handleSetValue,
     handleSetValueOk,
   } = props;
   
-  const [selectedDate, setSelectedDate] = React.useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
   const inputRef = useRef(null);
-  const strDate = useRef('');
-  const isValid = useRef(false);
+  const mdate = useRef(moment.invalid());
 
   useEffect(() => {
-    if(text !== undefined && text !== null && text !== '') {
-      setSelectedDate(moment(text));
+    if(text !== undefined && text !== null && typeof text === 'string' && text.trim() !== '') {
+      
+      let m = moment(text);
+      if(m.isValid()) {
+        mdate.current = m;
+        setSelectedDate(m);
+        handleSetValue(m.format("HH:mm:ss.SSSZ"), itemKey);
+        handleSetValueOk(1, itemKey);
+      } else {
+        mdate.current = moment.invalid();
+        setSelectedDate(null);
+        handleSetValue(null, itemKey);
+        handleSetValueOk(0, itemKey);
+      }
     }
 
     if(handleReady !== undefined) {
@@ -69,31 +77,33 @@ export default function TimeField(props) {
             setSelectedDate(date);
 
             if(date !== null) {
-              strDate.current = date.format("HH:mm:ss.SSSZ");
-              isValid.current = date._isValid;
+              mdate.current = date;
 
-              if(date._isValid !== undefined && date._isValid) {
-                handleSetValue(strDate.current, itemKey, 'Time');
+              if(mdate.current.isValid()) {
+                handleSetValue(mdate.current.format("HH:mm:ss.SSSZ"), itemKey);
+                handleSetValueOk(1, itemKey);
               } else {
+                handleSetValue(null, itemKey);
                 handleSetValueOk(-1, itemKey);
               }
             } else {
-              isValid.current = false;
-              handleSetValueOk(-1, itemKey);
+              mdate.current = moment.invalid();
+              handleSetValue(null, itemKey);
+              handleSetValueOk(0, itemKey);
             }
           }}
+
           onBlur={(event) => {
-            if(isValid.current) {
-              handleBlur(event, strDate.current, itemKey);
-            } else {
-              handleSetValueOk(-1, itemKey);
+            if(mdate.current.isValid()) {
+              handleSetValueOk(1, itemKey);
             }
           }}
+
           onKeyDown={(event) => {
-            if(isValid.current) {
-              handleKeyDown(event, strDate.current, itemKey);
-            } else {
-              handleSetValueOk(-1, itemKey);
+            if(event.key === 'Enter') {
+              if(mdate.current.isValid()) {
+                handleSetValueOk(1, itemKey);
+              }
             }
           }}
         />
@@ -107,9 +117,7 @@ TimeField.propTypes = {
   text: PropTypes.string,
   valueOk: PropTypes.number.isRequired,
   autoFocus: PropTypes.bool,
-  handleBlur: PropTypes.func.isRequired,
   handleReady: PropTypes.func.isRequired,
-  handleKeyDown: PropTypes.func.isRequired,
   handleSetValue: PropTypes.func.isRequired,
   handleSetValueOk: PropTypes.func.isRequired,
 };

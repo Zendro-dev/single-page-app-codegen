@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
@@ -28,17 +28,37 @@ export default function IntField(props) {
     handleSetValueOk,
   } = props;
 
-  const [value, setValue] = React.useState('');
-  const [error, setError] = React.useState(false);
-  const [intWarning, setIntWarning] = React.useState(false);
+  const [error, setError] = useState(false);
+  const [intWarning, setIntWarning] = useState(false);
   const inputRef = useRef(null);
   const fieldRef = useRef(null);
+  const defaultValue = useRef((text !== undefined) ? text : '');
   const intValue = useRef(null);
+  const textValue = useRef(null);
 
   useEffect(() => {
-    if(text !== undefined && text !== null && text !== '') {
-      setValue(text);
+    if(text !== undefined && text !== null && typeof text === 'string' && text.trim() !== '') {
+      textValue.current = text;
+      intValue.current = parseInt(text);
+
+      console.log("i: text", textValue.current, " int: ", intValue.current)
+
+      if(!(isNaN(textValue.current)) && !(isNaN(intValue.current))) {
+        handleSetValue(intValue.current, itemKey);
+        handleSetValueOk(1, itemKey);
+
+        if(/^[+-]?[0-9]+$/.test(text)) {
+          setIntWarning(false);
+        } else {
+          setIntWarning(true);
+        }
+
+      } else {
+        handleSetValue(null, itemKey);
+        handleSetValueOk(0, itemKey);
+      }
     }
+
     if(handleReady !== undefined) {
       handleReady(itemKey, fieldRef, inputRef);
     }
@@ -52,7 +72,7 @@ export default function IntField(props) {
         ref={fieldRef}
         inputRef={inputRef}
         type="number"
-        defaultValue={value}
+        defaultValue={defaultValue.current}
         className={classes.textField}
         margin="normal"
         variant="standard"
@@ -67,12 +87,14 @@ export default function IntField(props) {
             </InputAdornment>
         }}
         InputLabelProps={{shrink: true}}
+        
         onChange={(event) => {
+          textValue.current = event.target.value;
           intValue.current = parseInt(event.target.value);
-          handleSetValue(intValue.current, itemKey);
 
-          if(event.target.value !== '') {
+          if(textValue.current !== null && textValue.current !== '' && !(isNaN(textValue.current)) && !(isNaN(intValue.current))) {
             setError(false);
+            handleSetValue(intValue.current, itemKey);
             handleSetValueOk(0, itemKey);
 
             if(/^[+-]?[0-9]+$/.test(event.target.value)) {
@@ -83,23 +105,26 @@ export default function IntField(props) {
           } else {
             setError(true);
             setIntWarning(false);
+            handleSetValue(null, itemKey);
             handleSetValueOk(-1, itemKey);
           }
         }}
+
         onBlur={(event) => {
           setError(false);
-
-          if(Number.isNaN(intValue.current)) {
-            handleSetValueOk(0, itemKey);
-            
-          } else {
+          if(textValue.current !== null && textValue.current !== '' && !(isNaN(textValue.current)) && !(isNaN(intValue.current))) {
             handleSetValueOk(1, itemKey);
+          } else {
+            handleSetValueOk(0, itemKey);
           }
         }}
+
         onKeyDown={(event) => {
           if(event.key === 'Enter') {
-            if(!Number.isNaN(intValue.current)) {
+            if(textValue.current !== null && textValue.current !== '' && !(isNaN(textValue.current)) && !(isNaN(intValue.current))) {
               handleSetValueOk(1, itemKey);
+            } else {
+              handleSetValueOk(0, itemKey);
             }
           }
         }}

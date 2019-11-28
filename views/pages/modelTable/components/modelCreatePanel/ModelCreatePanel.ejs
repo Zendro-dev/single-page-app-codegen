@@ -77,12 +77,7 @@ export default function <%- nameCp _%>CreatePanel(props) {
   function getInitialValues() {
     let initialValues = {};
     
-<%for( i=0; i<attributesArr.length; i++ ){
-  let initValue = '';
-  if(attributesArr[i][1] === 'Boolean' || attributesArr[i][1] === 'Date' || attributesArr[i][1] === 'DateTime' || attributesArr[i][1] === 'Time') {
-    initValue = null;
-  }
--%>
+<%for( i=0; i<attributesArr.length; i++ ){-%>
     initialValues.<%- attributesArr[i][0] %> = null;
 <%}-%>
 
@@ -92,13 +87,8 @@ export default function <%- nameCp _%>CreatePanel(props) {
   function getInitialValueOkStates() {
     let initialValueOkStates = {};
 
-<%for( i=0; i<attributesArr.length; i++ ){
-  let initValueOk = 0;
-  if(attributesArr[i][1] === 'Boolean' || attributesArr[i][1] === 'Date' || attributesArr[i][1] === 'DateTime' || attributesArr[i][1] === 'Time') {
-    initValueOk = -1;
-  }
--%>
-    initialValueOkStates.<%- attributesArr[i][0] %> = <%- initValueOk _%>;
+<%for( i=0; i<attributesArr.length; i++ ){-%>
+    initialValueOkStates.<%- attributesArr[i][0] %> = 0;
 <%}-%>
 
     return initialValueOkStates;
@@ -165,15 +155,26 @@ export default function <%- nameCp _%>CreatePanel(props) {
   }
 
   function doSave(event) {
+    let keys = Object.keys(values.current);
+    let variables = {};
+    for(var i=0; i<keys.length; i++) {
+      if(values.current[keys[i]] !== null && valuesOkRefs.current[keys[i]] === 1) {
+        variables[keys[i]] = values.current[keys[i]];
+      }
+    }
+
     //addItems
 <%for( i=0; i<sortedAssociations.length; i++ ){-%>
-    values.current.add<%- sortedAssociations[i].targetModelPlCp %> = <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current;
+    variables.add<%- sortedAssociations[i].targetModelPlCp %> = <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current;
 <%}-%>
+
+    console.log("values: ", values.current);
+    console.log("valuesOk: ", valueOkStates);
 
     /*
       API Request: createItem
     */
-    api.<%- nameLc _%>.createItem(graphqlServerUrl, values.current)
+    api.<%- nameLc _%>.createItem(graphqlServerUrl, variables)
       .then(response => {
         //Check response
         if (

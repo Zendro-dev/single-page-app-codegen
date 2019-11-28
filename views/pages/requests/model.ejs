@@ -127,21 +127,27 @@ export default {
    * @param {String} url GraphQL Server url.
    * @param {Object} values Object with values to create new item. 
    */
-  createItem(url, values) {
+  createItem(url, variables) {
     var query = 
-      `mutation{ 
+      `mutation
         add<%- nameCp %>(
 <%_for( i=0; i<attributesArr.length; i++ ){-%>
-          <%- attributesArr[i][0] _%>: ${values.<%- attributesArr[i][0] _%>},
+          $<%- attributesArr[i][0] _%>:<%- attributesArr[i][1] _%>,
 <%}-%>
 <%_for( i=0; i<sortedAssociations.length; i++ ){-%>
-          add<%- sortedAssociations[i].targetModelPlCp _%>: [${values.add<%- sortedAssociations[i].targetModelPlCp _%>.join()}],
+          $add<%- sortedAssociations[i].targetModelPlCp _%>: [ID],
 <%}-%>
-          ) 
-          { 
+          ) { add<%- nameCp %>(
+<%_for( i=0; i<attributesArr.length; i++ ){-%>
+            <%- attributesArr[i][0] _%>:$<%- attributesArr[i][0] _%>,
+<%}-%>
+<%_for( i=0; i<sortedAssociations.length; i++ ){-%>
+            add<%- sortedAssociations[i].targetModelPlCp _%>: $add<%- sortedAssociations[i].targetModelPlCp _%>,
+<%}-%>
+          ) {
             id,
 <%_for( i=0; i<attributesArr.length; i++ ){-%>
-            <%- attributesArr[i][0] -%>,
+            <%- attributesArr[i][0] _%>,
 <%}-%> 
           } }`;
 
@@ -149,8 +155,9 @@ export default {
      * Debug
      */
     console.log("createItem.query: gql:\n", query);
+    console.log("createItem.variables: gql:\n", variables);
 
-    return requestGraphql({ url, query });
+    return requestGraphql({ url, query, variables });
   },
 
   /**

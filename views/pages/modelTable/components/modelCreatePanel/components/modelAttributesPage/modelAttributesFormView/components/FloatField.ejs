@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
@@ -28,16 +28,27 @@ export default function FloatField(props) {
     handleSetValueOk,
   } = props;
 
-  const [value, setValue] = React.useState('');
-  const [error, setError] = React.useState(false);
+  const [error, setError] = useState(false);
   const inputRef = useRef(null);
   const fieldRef = useRef(null);
+  const defaultValue = useRef((text !== undefined) ? text : '');
   const floatValue = useRef(null);
+  const textValue = useRef(null);
 
   useEffect(() => {
-    if(text !== undefined && text !== null && text !== '') {
-      setValue(text);
+    if(text !== undefined && text !== null && typeof text === 'string' && text.trim() !== '') {
+      textValue.current = text;
+      floatValue.current = parseFloat(text);
+
+      if(!isNaN(text)) {
+        handleSetValue(floatValue.current, itemKey);
+        handleSetValueOk(1, itemKey);
+      } else {
+        handleSetValue(null, itemKey);
+        handleSetValueOk(0, itemKey);
+      }
     }
+
     if(handleReady !== undefined) {
       handleReady(itemKey, fieldRef, inputRef);
     }
@@ -51,7 +62,7 @@ export default function FloatField(props) {
         ref={fieldRef}
         inputRef={inputRef}
         type="number"
-        defaultValue={value}
+        defaultValue={defaultValue.current}
         className={classes.textField}
         margin="normal"
         variant="standard"
@@ -66,32 +77,37 @@ export default function FloatField(props) {
             </InputAdornment>
         }}
         InputLabelProps={{shrink: true}}
-        onChange={(event) => {
-          floatValue.current = parseFloat(event.target.value);
-          handleSetValue(floatValue.current, itemKey);
 
-          if(event.target.value !== '') {
+        onChange={(event) => {
+          textValue.current = event.target.value;
+          floatValue.current = parseFloat(event.target.value);
+
+          if(textValue.current !== null && textValue.current !== '' && !isNaN(textValue.current)) {
             setError(false);
+            handleSetValue(floatValue.current, itemKey);
             handleSetValueOk(0, itemKey);
           } else {
             setError(true);
+            handleSetValue(null, itemKey);
             handleSetValueOk(-1, itemKey);
           }
         }}
+
         onBlur={(event) => {
           setError(false);
-
-          if(Number.isNaN(floatValue.current) || floatValue.current === null) {
-            handleSetValueOk(0, itemKey);
-            
-          } else {
+          if(textValue.current !== null && textValue.current !== '' && !isNaN(textValue.current)) {
             handleSetValueOk(1, itemKey);
+          } else {
+            handleSetValueOk(0, itemKey);
           }
         }}
+
         onKeyDown={(event) => {
           if(event.key === 'Enter') {
-            if(!Number.isNaN(floatValue.current)) {
+            if(textValue.current !== null && textValue.current !== '' && !isNaN(textValue.current)) {
               handleSetValueOk(1, itemKey);
+            } else {
+              handleSetValueOk(0, itemKey);
             }
           }
         }}
