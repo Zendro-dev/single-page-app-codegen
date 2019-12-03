@@ -17,7 +17,6 @@ export default function <%- nameCp _%>AttributesPage(props) {
     valueOkStates,
     hidden,
     handleSetValue,
-    handleSetValueOk,
   } = props;
   
   const fieldRefs = useRef([]);
@@ -58,7 +57,6 @@ export default function <%- nameCp _%>AttributesPage(props) {
               valueOkStates={valueOkStates}
               handleFieldReady={handleFieldReady}
               handleSetValue={handleSetValue}
-              handleSetValueOk={handleSetValueOk}
             />
           </Grid>
         </Grid>
@@ -70,5 +68,4 @@ export default function <%- nameCp _%>AttributesPage(props) {
   valueOkStates: PropTypes.object.isRequired,
   hidden: PropTypes.bool.isRequired,
   handleSetValue: PropTypes.func.isRequired,
-  handleSetValueOk: PropTypes.func.isRequired,
 };

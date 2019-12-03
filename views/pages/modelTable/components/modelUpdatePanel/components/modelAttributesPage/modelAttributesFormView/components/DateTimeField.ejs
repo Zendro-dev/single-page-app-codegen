@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import moment from "moment";
 import MomentUtils from "@date-io/moment";
@@ -22,19 +22,27 @@ export default function DateTimeField(props) {
     text,
     valueOk,
     autoFocus,
-    handleChange,
-    handleBlur,
     handleReady,
-    handleKeyDown,
+    handleSetValue,
   } = props;
   
-  const [selectedDate, setSelectedDate] = React.useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
   const inputRef = useRef(null);
-  const strDate = useRef('');
+  const mdate = useRef(moment.invalid());
 
   useEffect(() => {
-    if(text !== undefined && text !== null && text !== '') {
-      setSelectedDate(moment(text));
+    if(text !== undefined && text !== null && typeof text === 'string' && text.trim() !== '') {
+      
+      let m = moment(text);
+      if(m.isValid()) {
+        mdate.current = m;
+        setSelectedDate(m);
+        handleSetValue(text, 1, itemKey);
+      } else {
+        mdate.current = moment.invalid();
+        setSelectedDate(null);
+        handleSetValue(null, 0, itemKey);
+      }
     }
 
     if(handleReady !== undefined) {
@@ -61,53 +69,32 @@ export default function DateTimeField(props) {
               </InputAdornment>
           }}
           onChange={(date, value) => {
-            console.log("#- time.change: date: ", date, " value: ", value);
-            strDate.current = value;
             setSelectedDate(date);
-          }}
-          onBlur={(event) => {
-            console.log("#- time.blur: date: ", strDate.current);
-            if(strDate.current === null) {
-              if(handleBlur !== undefined) {
-                handleBlur(event, '', itemKey);
-              }
-            } else {
-              if(handleBlur !== undefined) {
-                handleBlur(event, strDate.current, itemKey);
-              }
-            }
-          }}
-          onKeyDown={(event) => {
-            console.log("#- time.keyDown: date: ", strDate.current);
-            if(strDate.current === null) {
-              if(handleKeyDown !== undefined) {
-                handleKeyDown(event, '', itemKey);
-              }
-            } else {
-              if(handleKeyDown !== undefined) {
-                handleKeyDown(event, strDate.current, itemKey);
-              }
-            }
-          }}
-          onError={(error, value) => {
-            console.log("#- time.error: error: ", error, " value: ", value, " date: ", strDate.current);
-            //no error
-            if(error === '') {
-              //empty value
-              if(value === null || value === '') {
-                if(handleChange !== undefined) {
-                  handleChange(error, '', itemKey);
-                }
+
+            if(date !== null) {
+              mdate.current = date;
+
+              if(mdate.current.isValid()) {
+                handleSetValue(mdate.current.format("YYYY-MM-DDTHH:mm:ss.SSSZ"), 1, itemKey);
               } else {
-                //no empty value
-                if(handleChange !== undefined) {
-                  handleChange(error, value, itemKey);
-                }
+                handleSetValue(null, -1, itemKey);
               }
             } else {
-              //error
-              if(handleChange !== undefined) {
-                handleChange(error, null, itemKey);
+              mdate.current = moment.invalid();
+              handleSetValue(null, 0, itemKey);
+            }
+          }}
+
+          onBlur={(event) => {
+            if(mdate.current.isValid()) {
+              handleSetValue(mdate.current.format("YYYY-MM-DDTHH:mm:ss.SSSZ"), 1, itemKey);
+            }
+          }}
+
+          onKeyDown={(event) => {
+            if(event.key === 'Enter') {
+              if(mdate.current.isValid()) {
+                handleSetValue(mdate.current.format("YYYY-MM-DDTHH:mm:ss.SSSZ"), 1, itemKey);
               }
             }
           }}
@@ -122,8 +109,6 @@ DateTimeField.propTypes = {
   text: PropTypes.string,
   valueOk: PropTypes.number.isRequired,
   autoFocus: PropTypes.bool,
-  handleChange: PropTypes.func.isRequired,
-  handleBlur: PropTypes.func.isRequired,
   handleReady: PropTypes.func.isRequired,
-  handleKeyDown: PropTypes.func.isRequired
+  handleSetValue: PropTypes.func.isRequired,
 };

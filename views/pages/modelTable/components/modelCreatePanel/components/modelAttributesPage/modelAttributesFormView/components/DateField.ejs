@@ -24,7 +24,6 @@ export default function DateField(props) {
     autoFocus,
     handleReady,
     handleSetValue,
-    handleSetValueOk,
   } = props;
   
   const [selectedDate, setSelectedDate] = useState(null);
@@ -38,13 +37,11 @@ export default function DateField(props) {
       if(m.isValid()) {
         mdate.current = m;
         setSelectedDate(m);
-        handleSetValue(m.format("YYYY-MM-DD"), itemKey);
-        handleSetValueOk(1, itemKey);
+        handleSetValue(text, 1, itemKey);
       } else {
         mdate.current = moment.invalid();
         setSelectedDate(null);
-        handleSetValue(null, itemKey);
-        handleSetValueOk(0, itemKey);
+        handleSetValue(null, 0, itemKey);
       }
     }
 
@@ -78,29 +75,26 @@ export default function DateField(props) {
               mdate.current = date;
 
               if(mdate.current.isValid()) {
-                handleSetValue(mdate.current.format("YYYY-MM-DD"), itemKey);
-                handleSetValueOk(1, itemKey);
+                handleSetValue(mdate.current.format("YYYY-MM-DD"), 1, itemKey);
               } else {
-                handleSetValue(null, itemKey);
-                handleSetValueOk(-1, itemKey);
+                handleSetValue(null, -1, itemKey);
               }
             } else {
               mdate.current = moment.invalid();
-              handleSetValue(null, itemKey);
-              handleSetValueOk(0, itemKey);
+              handleSetValue(null, 0, itemKey);
             }
           }}
 
           onBlur={(event) => {
             if(mdate.current.isValid()) {
-              handleSetValueOk(1, itemKey);
+              handleSetValue(mdate.current.format("YYYY-MM-DD"), 1, itemKey);
             }
           }}
 
           onKeyDown={(event) => {
             if(event.key === 'Enter') {
               if(mdate.current.isValid()) {
-                handleSetValueOk(1, itemKey);
+                handleSetValue(mdate.current.format("YYYY-MM-DD"), 1, itemKey);
               }
             }
           }}
@@ -117,5 +111,4 @@ DateField.propTypes = {
   autoFocus: PropTypes.bool,
   handleReady: PropTypes.func.isRequired,
   handleSetValue: PropTypes.func.isRequired,
-  handleSetValueOk: PropTypes.func.isRequired,
 };

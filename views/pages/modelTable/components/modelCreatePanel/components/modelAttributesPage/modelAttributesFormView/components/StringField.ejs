@@ -25,7 +25,6 @@ export default function StringField(props) {
     autoFocus,
     handleReady,
     handleSetValue,
-    handleSetValueOk,
   } = props;
   
   const [value, setValue] = useState('');
@@ -35,8 +34,7 @@ export default function StringField(props) {
   useEffect(() => {
     if(text !== undefined && text !== null && typeof text === 'string' && text.trim() !== '') {
       setValue(text);
-      handleSetValue(text, itemKey);
-      handleSetValueOk(1, itemKey);
+      handleSetValue(text, 1, itemKey);
     }
     
     if(handleReady !== undefined) {
@@ -68,25 +66,24 @@ export default function StringField(props) {
         let v = event.target.value;
         
         if(v === null || v === undefined || typeof v !== 'string' || v.trim() === '') {
-          handleSetValue(null, itemKey);
+          handleSetValue(null, 0, itemKey);
         } else {
-          handleSetValue(v, itemKey);
+          handleSetValue(v, 0, itemKey);
         }
-        handleSetValueOk(0, itemKey);
       }}
       onBlur={(event) => {
         if(value === null || value === undefined || typeof value !== 'string' || value.trim() === '') {
-          handleSetValueOk(0, itemKey);
+          handleSetValue(null, 0, itemKey);
         } else {
-          handleSetValueOk(1, itemKey);
+          handleSetValue(value, 1, itemKey);
         }
       }}
       onKeyDown={(event) => {
         if(event.key === 'Enter') {
           if(value === null || value === undefined || typeof value !== 'string' || value.trim() === '') {
-            handleSetValueOk(0, itemKey);
+            handleSetValue(null, 0, itemKey);
           } else {
-            handleSetValueOk(1, itemKey);
+            handleSetValue(value, 1, itemKey);
           }
         }
       }}
@@ -102,5 +99,4 @@ StringField.propTypes = {
   autoFocus: PropTypes.bool,
   handleReady: PropTypes.func.isRequired,
   handleSetValue: PropTypes.func.isRequired,
-  handleSetValueOk: PropTypes.func.isRequired,
 };

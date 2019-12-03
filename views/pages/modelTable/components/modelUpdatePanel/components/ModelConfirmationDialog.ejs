@@ -52,11 +52,9 @@ export default function <%- nameCp _%>ConfirmationDialog(props) {
         open={open}
         TransitionComponent={Transition}
         keepMounted
-        onClose={(event) => {
-          if(handleReject !== undefined) {
-            handleReject(event);
-          }
-        }}
+        fullWidth={true}
+        maxWidth='sm'
+        onClose={(event) => onReject(event, 400)}
       >
         <DialogTitle>{title}</DialogTitle>
         <DialogContent>

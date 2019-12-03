@@ -25,27 +25,63 @@ export default function FloatField(props) {
     autoFocus,
     handleReady,
     handleSetValue,
-    handleSetValueOk,
   } = props;
 
-  const [error, setError] = useState(false);
+  const [errorText, setErrorText] = useState(null);
+  const [helperText, setHelperText] = useState(null);
   const inputRef = useRef(null);
   const fieldRef = useRef(null);
   const defaultValue = useRef((text !== undefined) ? text : '');
   const floatValue = useRef(null);
   const textValue = useRef(null);
+  const error = useRef(false);
 
   useEffect(() => {
     if(text !== undefined && text !== null && typeof text === 'string' && text.trim() !== '') {
-      textValue.current = text;
-      floatValue.current = parseFloat(text);
-
-      if(!isNaN(text)) {
-        handleSetValue(floatValue.current, itemKey);
-        handleSetValueOk(1, itemKey);
+      //case: string
+      if(typeof text === 'string' && text.trim() !== '') {
+        textValue.current = text;
+        floatValue.current = parseFloat(text);
+      } else if(typeof text === 'number') {//case: number
+        textValue.current = text.toString();
+        floatValue.current = text;
       } else {
-        handleSetValue(null, itemKey);
-        handleSetValueOk(0, itemKey);
+        handleSetValue(null, 0, itemKey);
+
+        if(handleReady !== undefined) {
+          handleReady(itemKey, fieldRef, inputRef);
+        }
+        return;
+      }
+      //else...
+
+      if(!(isNaN(textValue.current)) && !(isNaN(floatValue.current))) {
+        handleSetValue(floatValue.current, 1, itemKey);
+
+        //check max float number
+        if(floatValue.current > 1.79769313486231e+308) {
+          error.current = true;
+          setErrorText(`This is a Float field, the maximum valid positive number is 1.79769313486231e+308. Entered value: ${floatValue.current}`);
+          setHelperText(null);
+          handleSetValue(null, -1, itemKey);
+        } else {
+          //check min float number
+          if(floatValue.current < -1.79769313486231e+308) {
+            error.current = true;
+            setErrorText(`This is a Float field, the minimum valid negative number is -1.79769313486231e+308. Entered value: ${floatValue.current}`);
+            setHelperText(null);
+            handleSetValue(null, -1, itemKey);
+          } else {
+            //check e-notation
+            if(text.includes("e")) {
+              setHelperText(`Value taken: ${floatValue.current}`);
+            } else {
+              setHelperText(null);
+            }
+          }
+        }
+      } else {
+        handleSetValue(null, 0, itemKey);
       }
     }
 
@@ -65,10 +101,10 @@ export default function FloatField(props) {
         defaultValue={defaultValue.current}
         className={classes.textField}
         margin="normal"
-        variant="standard"
+        variant="filled"
         placeholder="number"
-        helperText={error ? "Invalid number" : ""}
-        error={error}
+        helperText={errorText!==null ? errorText : (helperText!==null ? helperText : "")}
+        error={errorText!== null}
         autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
         InputProps={{
           endAdornment:
@@ -76,38 +112,81 @@ export default function FloatField(props) {
               {(valueOk!==undefined&&valueOk===1) ? <CheckIcon color="primary" fontSize="small" /> : ''}
             </InputAdornment>
         }}
-        InputLabelProps={{shrink: true}}
-
+        InputLabelProps={{ 
+          shrink: true
+        }}
+        inputProps={{ 
+          spellCheck: 'false'
+        }}
+        
         onChange={(event) => {
           textValue.current = event.target.value;
           floatValue.current = parseFloat(event.target.value);
 
-          if(textValue.current !== null && textValue.current !== '' && !isNaN(textValue.current)) {
-            setError(false);
-            handleSetValue(floatValue.current, itemKey);
-            handleSetValueOk(0, itemKey);
+          if(textValue.current !== null && textValue.current !== '' && !(isNaN(textValue.current)) && !(isNaN(floatValue.current))) {
+            error.current = false;
+            setErrorText(null);
+            handleSetValue(floatValue.current, 0, itemKey);
+
+            //check max float number
+            if(floatValue.current > 1.79769313486231e+308) {
+              error.current = true;
+              setErrorText(`This is a Float field, the maximum valid positive number is 1.79769313486231e+308. Entered value: ${floatValue.current}`);
+              setHelperText(null);
+              handleSetValue(null, -1, itemKey);
+              return;
+            }
+
+            //check min float number
+            if(floatValue.current < -1.79769313486231e+308) {
+              error.current = true;
+              setErrorText(`This is a Float field, the minimum valid negative number is -1.79769313486231e+308. Entered value: ${floatValue.current}`);
+              setHelperText(null);
+              handleSetValue(null, -1, itemKey);
+              return;
+            }
+
+             //check e-notation
+             if(event.target.value.includes("e")) {
+              setHelperText(`Value taken: ${floatValue.current}`);
+            } else {
+              setHelperText(null);
+            }
+            
           } else {
-            setError(true);
-            handleSetValue(null, itemKey);
-            handleSetValueOk(-1, itemKey);
+            error.current = false;
+            setErrorText('Invalid number');
+            setHelperText(null);
+            handleSetValue(null, -1, itemKey);
           }
         }}
 
         onBlur={(event) => {
-          setError(false);
-          if(textValue.current !== null && textValue.current !== '' && !isNaN(textValue.current)) {
-            handleSetValueOk(1, itemKey);
-          } else {
-            handleSetValueOk(0, itemKey);
+          if(!error.current) {
+            setErrorText(null);
+            if(textValue.current !== null && textValue.current !== '' && !(isNaN(textValue.current)) && !(isNaN(floatValue.current))) {
+              handleSetValue(floatValue.current, 1, itemKey);
+            } else {
+              handleSetValue(null, 0, itemKey);
+            }
           }
         }}
 
         onKeyDown={(event) => {
           if(event.key === 'Enter') {
-            if(textValue.current !== null && textValue.current !== '' && !isNaN(textValue.current)) {
-              handleSetValueOk(1, itemKey);
-            } else {
-              handleSetValueOk(0, itemKey);
+            if(!error.current) {
+              if(textValue.current !== null && textValue.current !== '' && !(isNaN(textValue.current)) && !(isNaN(floatValue.current))) {
+                handleSetValue(floatValue.current, 1, itemKey);
+              } else {
+                handleSetValue(null, 0, itemKey);
+              }
+            }
+          } else if(/^[+\-\.e]{1}$/.test(event.key)) {
+            if(textValue.current === null || textValue.current === '' || isNaN(textValue.current) || isNaN(floatValue.current)) {
+              error.current = false;
+              setErrorText('Invalid number');
+              setHelperText(null);
+              handleSetValue(null, -1, itemKey);
             }
           }
         }}
@@ -118,10 +197,12 @@ FloatField.propTypes = {
   itemKey: PropTypes.string.isRequired,
   name: PropTypes.string,
   label: PropTypes.string.isRequired,
-  text: PropTypes.string,
+  text: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.number,
+  ]),
   valueOk: PropTypes.number.isRequired,
   autoFocus: PropTypes.bool,
   handleReady: PropTypes.func.isRequired,
   handleSetValue: PropTypes.func.isRequired,
-  handleSetValueOk: PropTypes.func.isRequired,
 };

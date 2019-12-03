@@ -538,7 +538,7 @@ export default function <%- nameCp -%>EnhancedTable() {
                                 align='<%- (type==='Int' || type === 'Float') ? 'right' : 'left' _%>'
                                 padding="default"
                               >
-                                {item.<%- a _%>}
+                                {String((item.<%- a _%>!==null)?item.<%- a _%>:'')}
                               </TableCell>
 
 <%}-%>

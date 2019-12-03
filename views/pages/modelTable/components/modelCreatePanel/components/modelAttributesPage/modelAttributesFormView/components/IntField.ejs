@@ -25,37 +25,68 @@ export default function IntField(props) {
     autoFocus,
     handleReady,
     handleSetValue,
-    handleSetValueOk,
   } = props;
 
-  const [error, setError] = useState(false);
-  const [intWarning, setIntWarning] = useState(false);
+  const [errorText, setErrorText] = useState(null);
+  const [helperText, setHelperText] = useState(null);
   const inputRef = useRef(null);
   const fieldRef = useRef(null);
   const defaultValue = useRef((text !== undefined) ? text : '');
   const intValue = useRef(null);
   const textValue = useRef(null);
+  const error = useRef(false);
 
   useEffect(() => {
     if(text !== undefined && text !== null && typeof text === 'string' && text.trim() !== '') {
-      textValue.current = text;
-      intValue.current = parseInt(text);
+      //case: string
+      if(typeof text === 'string' && text.trim() !== '') {
+        textValue.current = text;
+        intValue.current = Math.round(parseFloat(text));
+      } else if(typeof text === 'number') {//case: number
+        textValue.current = text.toString();
+        intValue.current = text;
+      } else {
+        handleSetValue(null, 0, itemKey);
 
-      console.log("i: text", textValue.current, " int: ", intValue.current)
+        if(handleReady !== undefined) {
+          handleReady(itemKey, fieldRef, inputRef);
+        }
+        return;
+      }
+      //else...
 
       if(!(isNaN(textValue.current)) && !(isNaN(intValue.current))) {
-        handleSetValue(intValue.current, itemKey);
-        handleSetValueOk(1, itemKey);
+        handleSetValue(intValue.current, 1, itemKey);
 
-        if(/^[+-]?[0-9]+$/.test(text)) {
-          setIntWarning(false);
+        //check max int32-bit value
+        if(intValue.current > 2147483647) {
+          error.current = true;
+          setErrorText(`This is an Integer field, the maximum valid positive number is 2147483647. Entered value: ${intValue.current}`);
+          setHelperText(null);
+          handleSetValue(null, -1, itemKey);
         } else {
-          setIntWarning(true);
+          //check min int32-bit value
+          if(intValue.current < -2147483647) {
+            error.current = true;
+            setErrorText(`This is an Integer field, the minimum valid negative number is -2147483647. Entered value: ${intValue.current}`);
+            setHelperText(null);
+            handleSetValue(null, -1, itemKey);
+          } else {
+            //check decimal-notation
+            if(text.includes(".")) {
+              setHelperText(`This is an Integer field, the decimals will be rounded. Value taken: ${intValue.current}`);
+            } else {
+              //check e-notation
+              if(text.includes("e")) {
+                setHelperText(`Value taken: ${intValue.current}`);
+              } else {
+                setHelperText(null);
+              }
+            }
+          }
         }
-
       } else {
-        handleSetValue(null, itemKey);
-        handleSetValueOk(0, itemKey);
+        handleSetValue(null, 0, itemKey);
       }
     }
 
@@ -75,10 +106,10 @@ export default function IntField(props) {
         defaultValue={defaultValue.current}
         className={classes.textField}
         margin="normal"
-        variant="standard"
+        variant="filled"
         placeholder="integer"
-        helperText={error ? "Invalid number" : (intWarning ? `This is an Integer field, decimals will be omitted. Value taken: ${intValue.current}` : "")}
-        error={error}
+        helperText={errorText!==null ? errorText : (helperText!==null ? helperText : "")}
+        error={errorText!== null}
         autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
         InputProps={{
           endAdornment:
@@ -86,45 +117,86 @@ export default function IntField(props) {
               {(valueOk!==undefined&&valueOk===1) ? <CheckIcon color="primary" fontSize="small" /> : ''}
             </InputAdornment>
         }}
-        InputLabelProps={{shrink: true}}
+        InputLabelProps={{ 
+          shrink: true
+        }}
+        inputProps={{ 
+          spellCheck: 'false'
+        }}
         
         onChange={(event) => {
           textValue.current = event.target.value;
-          intValue.current = parseInt(event.target.value);
+          intValue.current = Math.round(parseFloat(event.target.value));
 
           if(textValue.current !== null && textValue.current !== '' && !(isNaN(textValue.current)) && !(isNaN(intValue.current))) {
-            setError(false);
-            handleSetValue(intValue.current, itemKey);
-            handleSetValueOk(0, itemKey);
+            error.current = false;
+            setErrorText(null);
+            handleSetValue(intValue.current, 0, itemKey);
 
-            if(/^[+-]?[0-9]+$/.test(event.target.value)) {
-              setIntWarning(false);
-            } else {
-              setIntWarning(true);
+            //check max int32-bit value
+            if(intValue.current > 2147483647) {
+              error.current = true;
+              setErrorText(`This is an Integer field, the maximum valid positive number is 2147483647. Entered value: ${intValue.current}`);
+              setHelperText(null);
+              handleSetValue(null, -1, itemKey);
+              return;
             }
+
+            //check min int32-bit value
+            if(intValue.current < -2147483647) {
+              error.current = true;
+              setErrorText(`This is an Integer field, the minimum valid negative number is -2147483647. Entered value: ${intValue.current}`);
+              setHelperText(null);
+              handleSetValue(null, -1, itemKey);
+              return;
+            }
+
+            //check decimal-notation
+            if(event.target.value.includes(".")) {
+              setHelperText(`This is an Integer field, the decimals will be rounded. Value taken: ${intValue.current}`);
+            } else {
+              //check e-notation
+              if(event.target.value.includes("e")) {
+                setHelperText(`Value taken: ${intValue.current}`);
+              } else {
+                setHelperText(null);
+              }
+            }
+            
           } else {
-            setError(true);
-            setIntWarning(false);
-            handleSetValue(null, itemKey);
-            handleSetValueOk(-1, itemKey);
+            error.current = false;
+            setErrorText('Invalid number');
+            setHelperText(null);
+            handleSetValue(null, -1, itemKey);
           }
         }}
 
         onBlur={(event) => {
-          setError(false);
-          if(textValue.current !== null && textValue.current !== '' && !(isNaN(textValue.current)) && !(isNaN(intValue.current))) {
-            handleSetValueOk(1, itemKey);
-          } else {
-            handleSetValueOk(0, itemKey);
+          if(!error.current) {
+            setErrorText(null);
+            if(textValue.current !== null && textValue.current !== '' && !(isNaN(textValue.current)) && !(isNaN(intValue.current))) {
+              handleSetValue(intValue.current, 1, itemKey);
+            } else {
+              handleSetValue(null, 0, itemKey);
+            }
           }
         }}
 
         onKeyDown={(event) => {
           if(event.key === 'Enter') {
-            if(textValue.current !== null && textValue.current !== '' && !(isNaN(textValue.current)) && !(isNaN(intValue.current))) {
-              handleSetValueOk(1, itemKey);
-            } else {
-              handleSetValueOk(0, itemKey);
+            if(!error.current) {
+              if(textValue.current !== null && textValue.current !== '' && !(isNaN(textValue.current)) && !(isNaN(intValue.current))) {
+                handleSetValue(intValue.current, 1, itemKey);
+              } else {
+                handleSetValue(null, 0, itemKey);
+              }
+            }
+          } else if(/^[+\-\.e]{1}$/.test(event.key)) {
+            if(textValue.current === null || textValue.current === '' || isNaN(textValue.current) || isNaN(intValue.current)) {
+              error.current = false;
+              setErrorText('Invalid number');
+              setHelperText(null);
+              handleSetValue(null, -1, itemKey);
             }
           }
         }}
@@ -135,10 +207,12 @@ IntField.propTypes = {
   itemKey: PropTypes.string.isRequired,
   name: PropTypes.string,
   label: PropTypes.string.isRequired,
-  text: PropTypes.string,
+  text: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.number,
+  ]),
   valueOk: PropTypes.number.isRequired,
   autoFocus: PropTypes.bool,
   handleReady: PropTypes.func.isRequired,
   handleSetValue: PropTypes.func.isRequired,
-  handleSetValueOk: PropTypes.func.isRequired,
 };

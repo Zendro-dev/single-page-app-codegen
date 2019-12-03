@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import Checkbox from '@material-ui/core/Checkbox';
@@ -24,36 +24,38 @@ export default function BoolField(props) {
     text,
     valueOk,
     autoFocus,
-    handleChange,
-    handleBlur,
     handleReady,
-    handleKeyDown,
+    handleSetValue,
   } = props;
 
-  const [checked, setChecked] = React.useState(false);
-  const [indeterminate, setIndeterminate] = React.useState(true);
+  const [checked, setChecked] = useState(false);
   const fieldRef = useRef(null);
   const inputRef = useRef(null);
 
   useEffect(() => {
-    if(text !== undefined && text !== null && (text === 'true' || text === 'false')) {
-      if(text === 'true') {
-        setChecked(true);
-        setIndeterminate(false);
-      } else if (text === 'false') {
-        setChecked(false);
-        setIndeterminate(false);
-      } else {
-        setChecked(false);
-        setIndeterminate(true);
-        if(handleChange !== undefined) {
-          handleChange(null, null, itemKey);
+    if(text !== undefined && text !== null) {
+      //case: string
+      if(typeof text === 'string' &&  (text === 'true' || text === 'false')) {
+        if(text === 'true') {
+          setChecked(true);
+          handleSetValue(true, 1, itemKey);
+  
+        } else if (text === 'false') {
+          setChecked(false);
+          handleSetValue(false, 1, itemKey);
+  
+        } else {
+          handleSetValue(null, 0, itemKey);
         }
+      } else if(typeof text === 'boolean') { //case: boolean
+        setChecked(text);
+        handleSetValue(text, 1, itemKey);
+      } else {
+        handleSetValue(null, 0, itemKey);
       }
     } 
     else {
-      setChecked(false);
-      setIndeterminate(true);
+      handleSetValue(null, 0, itemKey);
     }
 
     if(handleReady !== undefined) {
@@ -73,21 +75,22 @@ export default function BoolField(props) {
               inputRef={inputRef}
               checked={checked} 
               color="primary"
-              indeterminate={indeterminate}
+              indeterminate={(valueOk===0)}
               autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
               onChange={(event) => {
                 setChecked(event.target.checked);
-                setIndeterminate(false);
                 
                 if(event.target.checked) {
-                  if(handleChange !== undefined) {
-                    handleChange(event, 'true', itemKey);
-                  }
+                  handleSetValue(true, 1, itemKey);
                 }
                 else {
-                  if(handleChange !== undefined) {
-                    handleChange(event, 'false', itemKey);
-                  }
+                  handleSetValue(false, 1, itemKey);
+                }
+              }}
+              onKeyDown={(event) => {
+                if(event.key === 'Delete') {
+                  handleSetValue(null, 0, itemKey);
+                  setChecked(false);
                 }
               }}
             />
@@ -100,11 +103,12 @@ BoolField.propTypes = {
   itemKey: PropTypes.string.isRequired,
   name: PropTypes.string,
   label: PropTypes.string.isRequired,
-  text: PropTypes.string,
+  text: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.bool,
+  ]),
   valueOk: PropTypes.number.isRequired,
   autoFocus: PropTypes.bool,
-  handleChange: PropTypes.func.isRequired,
-  handleBlur: PropTypes.func.isRequired,
   handleReady: PropTypes.func.isRequired,
-  handleKeyDown: PropTypes.func.isRequired
+  handleSetValue: PropTypes.func.isRequired,
 };

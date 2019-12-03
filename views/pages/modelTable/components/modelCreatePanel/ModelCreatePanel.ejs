@@ -85,6 +85,12 @@ export default function <%- nameCp _%>CreatePanel(props) {
   }
 
   function getInitialValueOkStates() {
+    /*
+      status codes:
+        1: acceptable
+        0: unknown/not tested yet (this is set on initial render)/empty
+       -1: not acceptable 
+    */
     let initialValueOkStates = {};
 
 <%for( i=0; i<attributesArr.length; i++ ){-%>
@@ -92,36 +98,6 @@ export default function <%- nameCp _%>CreatePanel(props) {
 <%}-%>
 
     return initialValueOkStates;
-  }
-
-  function getAcceptableStatus(key, value) {
-    /*
-      For now, just context validations are done
-      to ensure that in future, this function can
-      be used to enforce acceptable conditions
-      retrieved from model specs.
-
-      status codes:
-        1: acceptable
-        0: unknown/not tested yet (this is set on initial render)/empty
-      -1: not acceptable 
-    */
-
-    /*
-      Check 1: null or undefined value
-    */
-    if(value === null || value === undefined) {
-      return -1;
-    }
-
-    /*
-      Check 2 (last): empty
-    */
-    if(typeof value === 'string' && value.trim() === '') {
-      return 0;
-    }
-
-    return 1;
   }
 
   function areThereAcceptableFields() {
@@ -155,6 +131,7 @@ export default function <%- nameCp _%>CreatePanel(props) {
   }
 
   function doSave(event) {
+    //variables
     let keys = Object.keys(values.current);
     let variables = {};
     for(var i=0; i<keys.length; i++) {
@@ -215,41 +192,27 @@ export default function <%- nameCp _%>CreatePanel(props) {
     setTabsValue(newValue);
   };
 
-  const handleSetValue = (value, key, type) => {
-    let nvalue = value;
-    if(type === 'String') {
-      if(value === "" || value === undefined || value === null) {
-        nvalue = null;
-      }
-    } else if(type === 'Int' || type === 'Float') {
-      if(value === "" || value === undefined || value === null || isNaN(value)) {
-        nvalue = null;
-      }
-    }
-    
-    values.current[key] = nvalue;
-    valuesOkRefs.current[key] = getAcceptableStatus(key, value);
-    setValueOkStates({...valuesOkRefs.current});
-  }
-
-  const handleSetValueOk = (valueOk, key) => {
-    valuesOkRefs.current[key] = valueOk;
+  const handleSetValue = (value, status, key) => {
+    values.current[key] = value;
+    valuesOkRefs.current[key] = status;
     setValueOkStates({...valuesOkRefs.current});
   }
 
   const handleSave = (event) => {
     if(areThereNotAcceptableFields()) {
       setConfirmationTitle("Some fields are not valid");
-      setConfirmationText("To continue, please validate these fields.")
-      setConfirmationAcceptText("I UNDERSTAND");
-      setConfirmationRejectText("");
+      setConfirmationText("To continue, please correct these fields.")
+      setConfirmationAcceptText("");
+      setConfirmationRejectText("I UNDERSTAND");
       handleAccept.current = () => {
         setConfirmationOpen(false);
       }
-      handleReject.current = undefined;
+      handleReject.current = () => {
+        setConfirmationOpen(false);
+      }
       setConfirmationOpen(true);
       return;
-  }
+    }
 
     if(areThereIncompleteFields()) {
       setConfirmationTitle("Some fields are empty");
@@ -378,7 +341,6 @@ export default function <%- nameCp _%>CreatePanel(props) {
               hidden={tabsValue !== 0}
               valueOkStates={valueOkStates}
               handleSetValue={handleSetValue}
-              handleSetValueOk={handleSetValueOk}
             />
 
             {/* Associations Page [1] */}
