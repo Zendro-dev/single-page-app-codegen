@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
+import moment from "moment";
 import <%- nameCp _%>AttributesPage from './components/<%- nameLc _%>AttributesPage/<%- nameCp _%>AttributesPage'
 import <%- nameCp _%>AssociationsPage from './components/<%- nameLc _%>AssociationsPage/<%- nameCp _%>AssociationsPage'
 import <%- nameCp _%>TabsA from './components/<%- nameCp _%>TabsA'
@@ -130,14 +131,17 @@ export default function <%- nameCp _%>UpdatePanel(props) {
   }
 
   function areThereChangedFields() {
-    let keys = Object.keys(values.current);
-
-    for(var i=0; i<keys.length; ++i) 
-    {
-      if(values.current[keys[i]] !== item[keys[i]]) {
-        return true;
-      }
-    }
+<%for( i=0; i<attributesArr.length; i++ ){-%>
+<% if(attributesArr[i][1] === 'DateTime') {-%>
+    if((values.current.<%- attributesArr[i][0] %> === null || item.<%- attributesArr[i][0] %> === null) && item.<%- attributesArr[i][0] %> !== values.current.<%- attributesArr[i][0] %>) { return true; }
+    if(values.current.<%- attributesArr[i][0] %> !== null && item.<%- attributesArr[i][0] %> !== null && !moment(values.current.<%- attributesArr[i][0] %>).isSame(item.<%- attributesArr[i][0] %>)) { return true; }
+<%} else if(attributesArr[i][1] === 'Time'){-%>
+    if((values.current.<%- attributesArr[i][0] %> === null || item.<%- attributesArr[i][0] %> === null) && item.<%- attributesArr[i][0] %> !== values.current.<%- attributesArr[i][0] %>) { return true; }
+    if(values.current.<%- attributesArr[i][0] %> !== null && item.<%- attributesArr[i][0] %> !== null && values.current.<%- attributesArr[i][0] %> !== moment(item.<%- attributesArr[i][0] %>, "HH:mm:ss.SSSZ").format("HH:mm:ss.SSSZ")) { return true; }
+<%} else {-%>
+    if(values.current.<%- attributesArr[i][0] %> !== item.<%- attributesArr[i][0] %>) { return true;}
+<%}-%>
+<%}-%>
     return false;
   }
 

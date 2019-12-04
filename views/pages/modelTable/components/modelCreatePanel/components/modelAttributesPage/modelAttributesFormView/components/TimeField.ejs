@@ -33,11 +33,12 @@ export default function TimeField(props) {
   useEffect(() => {
     if(text !== undefined && text !== null && typeof text === 'string' && text.trim() !== '') {
       
-      let m = moment(text);
+      let m = moment(text, "HH:mm:ss.SSSZ");
+
       if(m.isValid()) {
         mdate.current = m;
         setSelectedDate(m);
-        handleSetValue(text, 1, itemKey);
+        handleSetValue(mdate.current.format("HH:mm:ss.SSSZ"), 1, itemKey);
       } else {
         mdate.current = moment.invalid();
         setSelectedDate(null);

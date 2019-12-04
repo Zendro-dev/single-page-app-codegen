@@ -37,7 +37,7 @@ export default function DateTimeField(props) {
       if(m.isValid()) {
         mdate.current = m;
         setSelectedDate(m);
-        handleSetValue(text, 1, itemKey);
+        handleSetValue(mdate.current.format("YYYY-MM-DDTHH:mm:ss.SSSZ"), 1, itemKey);
       } else {
         mdate.current = moment.invalid();
         setSelectedDate(null);
