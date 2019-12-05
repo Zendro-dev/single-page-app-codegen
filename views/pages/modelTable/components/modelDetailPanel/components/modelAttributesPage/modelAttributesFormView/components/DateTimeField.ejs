@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import moment from "moment";
 import MomentUtils from "@date-io/moment";
@@ -25,13 +25,21 @@ export default function DateTimeField(props) {
     handleReady,
   } = props;
   
-  const [selectedDate, setSelectedDate] = React.useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
   const inputRef = useRef(null);
-  const strDate = useRef('');
+  const mdate = useRef(moment.invalid());
 
   useEffect(() => {
-    if(text !== undefined && text !== null && text !== '') {
-      setSelectedDate(moment(text));
+    if(text !== undefined && text !== null && typeof text === 'string' && text.trim() !== '') {
+      let m = moment(text);
+      
+      if(m.isValid()) {
+        mdate.current = m;
+        setSelectedDate(m);
+      } else {
+        mdate.current = moment.invalid();
+        setSelectedDate(null);
+      }
     }
 
     if(handleReady !== undefined) {
@@ -49,6 +57,7 @@ export default function DateTimeField(props) {
           format="YYYY-MM-DD HH:mm:ss.SSS"
           value={selectedDate}
           margin="normal"
+          variant="inline"
           inputVariant="outlined"
           autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
           InputProps={{
@@ -64,7 +73,6 @@ export default function DateTimeField(props) {
 }
 DateTimeField.propTypes = {
   itemKey: PropTypes.string.isRequired,
-  handleChange: PropTypes.func.isRequired,
   name: PropTypes.string,
   label: PropTypes.string.isRequired,
   text: PropTypes.string,

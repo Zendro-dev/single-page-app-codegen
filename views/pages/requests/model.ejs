@@ -122,10 +122,10 @@ export default {
   /**
    * createItem
    * 
-   * Add new item to GraphQL Server.
+   * Add new <%- nameCp %> item on GraphQL Server.
    * 
    * @param {String} url GraphQL Server url.
-   * @param {Object} values Object with values to create new item. 
+   * @param {Object} variables Object with values to create new <%- nameCp %> item. 
    */
   createItem(url, variables) {
     var query = 
@@ -134,16 +134,20 @@ export default {
 <%_for( i=0; i<attributesArr.length; i++ ){-%>
           $<%- attributesArr[i][0] _%>:<%- attributesArr[i][1] _%>,
 <%}-%>
-<%_for( i=0; i<sortedAssociations.length; i++ ){-%>
+<%_for( i=0; i<sortedAssociations.length; i++ ){
+  if(sortedAssociations[i].type === "to_many") {
+-%>
           $add<%- sortedAssociations[i].targetModelPlCp _%>: [ID],
-<%}-%>
+<%}}-%>
           ) { add<%- nameCp %>(
 <%_for( i=0; i<attributesArr.length; i++ ){-%>
             <%- attributesArr[i][0] _%>:$<%- attributesArr[i][0] _%>,
 <%}-%>
-<%_for( i=0; i<sortedAssociations.length; i++ ){-%>
+<%_for( i=0; i<sortedAssociations.length; i++ ){
+  if(sortedAssociations[i].type === "to_many") {
+-%>
             add<%- sortedAssociations[i].targetModelPlCp _%>: $add<%- sortedAssociations[i].targetModelPlCp _%>,
-<%}-%>
+<%}}-%>
           ) {
             id,
 <%_for( i=0; i<attributesArr.length; i++ ){-%>
@@ -163,29 +167,34 @@ export default {
   /**
    * updateItem
    * 
-   * Update an item on GraphQL Server.
+   * Update <%- nameCp %> item on GraphQL Server.
    * 
    * @param {String} url GraphQL Server url.
-   * @param {Number} itemId Model item id.
-   * @param {Object} values Object with values to create new item. 
+   * @param {Object} variables Object with values to update the given <%- nameCp %> item.  
    */
-  updateItem(url, itemId, values) {
+  updateItem(url, variables) {
     var query = 
-      `mutation{ 
+      `mutation
         update<%- nameCp %>(
-          id: "${itemId}",
+          $id:ID!
 <%_for( i=0; i<attributesArr.length; i++ ){-%>
-          <%- attributesArr[i][0] _%>: "${values.<%- attributesArr[i][0] _%>}",
+          $<%- attributesArr[i][0] _%>:<%- attributesArr[i][1] _%>,
 <%}-%>
 <%_for( i=0; i<sortedAssociations.length; i++ ){-%>
-          add<%- sortedAssociations[i].targetModelPlCp _%>: [${values.add<%- sortedAssociations[i].targetModelPlCp _%>.join()}],
-          remove<%- sortedAssociations[i].targetModelPlCp _%>: [${values.remove<%- sortedAssociations[i].targetModelPlCp _%>.join()}],    
+          $add<%- sortedAssociations[i].targetModelPlCp _%>: [ID],
 <%}-%>
-          )
-          { 
+          ) { update<%- nameCp %>(
+            id:$id
+<%_for( i=0; i<attributesArr.length; i++ ){-%>
+            <%- attributesArr[i][0] _%>:$<%- attributesArr[i][0] _%>,
+<%}-%>
+<%_for( i=0; i<sortedAssociations.length; i++ ){-%>
+            add<%- sortedAssociations[i].targetModelPlCp _%>: $add<%- sortedAssociations[i].targetModelPlCp _%>,
+<%}-%>
+          ) {
             id,
 <%_for( i=0; i<attributesArr.length; i++ ){-%>
-            <%- attributesArr[i][0] -%>,
+            <%- attributesArr[i][0] _%>,
 <%}-%> 
           } }`;
 
@@ -193,8 +202,9 @@ export default {
      * Debug
      */
     console.log("updateItem.query: gql:\n", query);
+    console.log("updateItem.variables: gql:\n", variables);
 
-    return requestGraphql({ url, query });
+    return requestGraphql({ url, query, variables });
   },
 
   /**
@@ -203,19 +213,26 @@ export default {
    * Delete an item on GraphQL Server.
    * 
    * @param {String} url GraphQL Server url.
-   * @param {Number} itemId Model item id.
+   * @param {Object} variables Object with values needed to delete the <%- nameCp %> item. 
    */
-  deleteItem(url, itemId) {
+  deleteItem(url, variables) {
     var query = 
-    `mutation{ 
-      delete<%- nameCp %>(id: ${itemId}) }`;
+      `mutation
+        delete<%- nameCp %>(
+          $id:ID! 
+        ) {
+          delete<%- nameCp %>(
+            id:$id
+
+        ) }`
 
     /**
      * Debug
      */
     console.log("deleteItem.query: gql:\n", query);
+    console.log("deleteItem.variables: gql:\n", variables);
 
-    return requestGraphql({ url, query });
+    return requestGraphql({ url, query, variables });
   },
 
 <%for( i=0; i<sortedAssociations.length; i++ ){-%>
@@ -236,17 +253,16 @@ export default {
    * @param {String} ops Object with adittional query options.
    */
   get<%- sortedAssociations[i].targetModelPlCp %>Filter(url, itemId, label, sublabel, searchText, paginationOffset, paginationLimit, ops) {
+<%_if( sortedAssociations[i].type === 'to_many' ){-%>
+
     //search
     var s = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops);
+    if(s === null) { s = ''}; 
 
     //pagination
     var p = `pagination: {offset: ${paginationOffset}, limit: ${paginationLimit}}`
 
-    var query = '';
-
-    //if has search
-    if (s !== null) {
-      query = 
+    var query = 
       `{ readOne<%- nameCp %>(id: ${itemId}) { 
         <%- sortedAssociations[i].targetModelPlLc _%>Filter( ${s}, ${p} ) { 
           id,
@@ -255,18 +271,15 @@ export default {
         }, 
         countFiltered<%- sortedAssociations[i].targetModelPlCp %>( ${s} ) 
       } }`;
-    }
-    else {
-      query = 
+<%} else {-%>
+    var query = 
       `{ readOne<%- nameCp %>(id: ${itemId}) { 
-        <%- sortedAssociations[i].targetModelPlLc _%>Filter( ${p} ) { 
-          id, 
+        <%- sortedAssociations[i].targetModel _%> { 
+          id,
           ${label}, 
           ${sublabel},
-        }, 
-        countFiltered<%- sortedAssociations[i].targetModelPlCp %> 
-      } }`;
-    }
+      } } }`;
+<%}-%>
 
     /**
      * Debug

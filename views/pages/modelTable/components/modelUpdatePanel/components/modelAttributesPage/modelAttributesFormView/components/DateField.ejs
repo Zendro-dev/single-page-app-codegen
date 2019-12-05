@@ -32,8 +32,8 @@ export default function DateField(props) {
 
   useEffect(() => {
     if(text !== undefined && text !== null && typeof text === 'string' && text.trim() !== '') {
-      
       let m = moment(text);
+      
       if(m.isValid()) {
         mdate.current = m;
         setSelectedDate(m);

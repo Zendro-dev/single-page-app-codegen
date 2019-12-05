@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
@@ -26,14 +26,15 @@ export default function StringField(props) {
     handleReady,
   } = props;
   
-  const [value, setValue] = React.useState('');
+  const [value, setValue] = useState('');
   const inputRef = useRef(null);
   const fieldRef = useRef(null);
 
   useEffect(() => {
-    if(text !== undefined && text !== null && text !== '') {
+    if(text !== undefined && text !== null && typeof text === 'string' && text.trim() !== '') {
       setValue(text);
     }
+    
     if(handleReady !== undefined) {
       handleReady(itemKey, fieldRef, inputRef);
     }
@@ -59,6 +60,12 @@ export default function StringField(props) {
           </InputAdornment>,
           readOnly: true
       }}
+      InputLabelProps={{ 
+        shrink: true
+      }}
+      inputProps={{ 
+        spellCheck: 'false'
+      }}
     />
   );
 }
@@ -69,5 +76,5 @@ StringField.propTypes = {
   text: PropTypes.string,
   valueOk: PropTypes.number.isRequired,
   autoFocus: PropTypes.bool,
-  handleReady: PropTypes.func,
+  handleReady: PropTypes.func
 };

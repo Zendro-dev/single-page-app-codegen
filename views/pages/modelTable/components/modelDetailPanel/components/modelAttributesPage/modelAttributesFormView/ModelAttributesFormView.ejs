@@ -17,13 +17,19 @@ import Attributes from '@material-ui/icons/HdrWeakTwoTone';
 
 const useStyles = makeStyles(theme => ({
   root: {
-    margin: theme.spacing(2),
+    margin: theme.spacing(0),
   },
   card: {
-    margin: theme.spacing(1),
-    height: '70vh',
+    marginTop: theme.spacing(1),
+    marginBottom: theme.spacing(3),
+    marginLeft: theme.spacing(3),
+    marginRight: theme.spacing(3),
     maxHeight: '70vh',
     overflow: 'auto',
+  },
+  cardB: {
+    margin: theme.spacing(0),
+    padding: theme.spacing(0),
   },
   cardContent: {
     marginLeft: theme.spacing(5),
@@ -39,47 +45,23 @@ export default function <%- nameCp _%>AttributesFormView(props) {
   const classes = useStyles();
   const { item, valueOkStates } = props;
 
- function itemHasKey(item, index) {
-    if(item !== undefined) {
-      return item.key === this.key;
-    } else {
-      return false;
-    }
-  }
-
   function getItemsOk() {
     let countOk=0;
-    if(valueOkStates.length > 0) {
-      for(var i=0; i<valueOkStates.length; ++i)
-      {
-        if(valueOkStates[i].valueOk === 1) {
-          countOk++;
-        }
+    let a = Object.entries(valueOkStates);
+    for(var i=0; i<a.length; ++i) {
+      if(a[i][1] === 1) {
+        countOk++;
       }
     }
     return countOk;
-  }
-
-  function getValueOkStatus(key) {
-    let it = undefined;
-
-    if(valueOkStates.length > 0) {
-      it = valueOkStates.find(itemHasKey, {key:key});
-    }
-
-    if(it !== undefined) {
-      return it.valueOk;
-    } else {
-      return 0;
-    }
   }
 
   return (
     <div className={classes.root}>
       <Grid container justify='center'>
         <Grid item xs={12}>
-          <Card className={classes.card}>
-
+            
+          <Card className={classes.cardB} elevation={0}>
             {/* Header */}
             <CardHeader
               avatar={
@@ -87,13 +69,15 @@ export default function <%- nameCp _%>AttributesFormView(props) {
               }
               title={
                 <Typography variant="h6">
-                  <%- nameCp %> attributes
+                    <%- nameCp %> attributes
                 </Typography>
               }
               subheader={getItemsOk()+' / <%- attributesArr.length %> completed'}
             >
             </CardHeader>
+          </Card>
 
+          <Card className={classes.card}>
             {/* 
               Fields 
             */}
@@ -116,7 +100,7 @@ export default function <%- nameCp _%>AttributesFormView(props) {
                 name='<%- a %>'
                 label='<%- label %>'
                 text={item.<%- a %>}
-                valueOk={getValueOkStatus('<%- a %>')}
+                valueOk={valueOkStates.<%- a _%>}
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
@@ -131,7 +115,7 @@ export default function <%- nameCp _%>AttributesFormView(props) {
                 name='<%- a %>'
                 label='<%- label %>'
                 text={item.<%- a %>}
-                valueOk={getValueOkStatus('<%- a %>')}
+                valueOk={valueOkStates.<%- a _%>}
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
@@ -146,7 +130,7 @@ export default function <%- nameCp _%>AttributesFormView(props) {
                 name='<%- a %>'
                 label='<%- label %>'
                 text={item.<%- a %>}
-                valueOk={getValueOkStatus('<%- a %>')}
+                valueOk={valueOkStates.<%- a _%>}
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
@@ -161,7 +145,7 @@ export default function <%- nameCp _%>AttributesFormView(props) {
                 name='<%- a %>'
                 label='<%- label %>'
                 text={item.<%- a %>}
-                valueOk={getValueOkStatus('<%- a %>')}
+                valueOk={valueOkStates.<%- a _%>}
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
@@ -176,7 +160,7 @@ export default function <%- nameCp _%>AttributesFormView(props) {
                 name='<%- a %>'
                 label='<%- label %>'
                 text={item.<%- a %>}
-                valueOk={getValueOkStatus('<%- a %>')}
+                valueOk={valueOkStates.<%- a _%>}
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
@@ -191,7 +175,7 @@ export default function <%- nameCp _%>AttributesFormView(props) {
                 name='<%- a %>'
                 label='<%- label %>'
                 text={item.<%- a %>}
-                valueOk={getValueOkStatus('<%- a %>')}
+                valueOk={valueOkStates.<%- a _%>}
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
@@ -206,7 +190,7 @@ export default function <%- nameCp _%>AttributesFormView(props) {
                 name='<%- a %>'
                 label='<%- label %>'
                 text={item.<%- a %>}
-                valueOk={getValueOkStatus('<%- a %>')}
+                valueOk={valueOkStates.<%- a _%>}
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
@@ -223,5 +207,5 @@ export default function <%- nameCp _%>AttributesFormView(props) {
 }
 <%- nameCp _%>AttributesFormView.propTypes = {
   item: PropTypes.object.isRequired,
-  valueOkStates: PropTypes.array.isRequired,
+  valueOkStates: PropTypes.object.isRequired,
 };

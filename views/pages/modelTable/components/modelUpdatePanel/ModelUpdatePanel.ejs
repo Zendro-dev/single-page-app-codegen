@@ -104,17 +104,10 @@ export default function <%- nameCp _%>UpdatePanel(props) {
     return initialValueOkStates;
   }
 
-  function itemHasKey(item, index) {
-    if(item !== undefined) {
-      return item.key === this.key;
-    } else {
-      return false;
-    }
-  }
-
   function areThereNotAcceptableFields() {
-    for(var i=0; i<valueOkStates.length; ++i) {
-      if(valueOkStates[i].valueOk === -1) {
+    let a = Object.entries(valueOkStates);
+    for(var i=0; i<a.length; ++i) {
+      if(a[i][1] === -1) {
         return true;
       }
     }
@@ -122,8 +115,9 @@ export default function <%- nameCp _%>UpdatePanel(props) {
   }
 
   function areThereIncompleteFields() {
-    for(var i=0; i<valueOkStates.length; ++i) {
-      if(valueOkStates[i].valueOk === 0) {
+    let a = Object.entries(valueOkStates);
+    for(var i=0; i<a.length; ++i) {
+      if(a[i][1] === 0) {
         return true;
       }
     }
@@ -154,6 +148,8 @@ export default function <%- nameCp _%>UpdatePanel(props) {
         variables[keys[i]] = values.current[keys[i]];
       }
     }
+    //id
+    variables.id = item.id;
 
     //addItems
 <%for( i=0; i<sortedAssociations.length; i++ ){-%>
@@ -171,7 +167,7 @@ export default function <%- nameCp _%>UpdatePanel(props) {
     /*
       API Request: updateItem
     */
-    api.<%- nameLc _%>.updateItem(graphqlServerUrl, item.id, variables)
+    api.<%- nameLc _%>.updateItem(graphqlServerUrl, variables)
       .then(response => {
         if (
           response.data &&

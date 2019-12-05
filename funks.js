@@ -327,6 +327,7 @@ parseAssociationsFromFile = function(associations){
       //if(type === "belongsTo"){
       if(type === 'to_one' && association.keyIn !== association.target){
         let bt = {
+          "type" : "to_one",
           "foreignKey": association.targetKey,
           "primaryKey" : "id",
 
@@ -347,6 +348,7 @@ parseAssociationsFromFile = function(associations){
       //}else if(type==="hasMany" || type==="belongsToMany"){
       }else if(type==="to_many"){
         let hm = {
+          "type" : "to_many",
           "relationName" : name,
           "relationNameCp": exports.capitalizeString(name),
           "targetModel": exports.uncapitalizeString(association.target),

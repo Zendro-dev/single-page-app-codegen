@@ -64,59 +64,64 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
               </Grid>
             </Grid>
 
-            {/* SearchField + Actions */}
-            <Grid item xs={12}>
-              <Grid container justify='flex-end' alignItems='center' wrap='nowrap'>
-                <Grid item>
-                  {/* Search field */}
-                  <TextField
-                    id="search-field"
-                    value={displayedSearch}
-                    placeholder="Search"
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Tooltip title="Search">
-                            <Search color="inherit" fontSize="small" />
-                          </Tooltip>
-                        </InputAdornment>
-                      ),
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <Tooltip title="Clear search">
-                            <span>
-                              {(!search) && (
-                                <IconButton
-                                  disabled={true}
-                                >
-                                  <ClearInactive color="inherit" fontSize="small" />
-                                </IconButton>
-                              )}
-                              {(search) && (
-                                <IconButton
-                                  onClick={() => {
-                                    onSearchEnter('');
-                                    setDisplayedSearch('');
-                                  }}
-                                >
-                                  <ClearActive color="secondary" fontSize="small" />
-                                </IconButton>
-                              )}
-                            </span>
-                          </Tooltip>
-                        </InputAdornment>
-                      ),
-                    }}
-                    onKeyPress={event => {
-                      if (event.key === 'Enter') {
-                        onSearchEnter(displayedSearch);
-                      }
-                    }}
-                    onChange={event => setDisplayedSearch(event.target.value)}
-                  />
+            {/* 
+              SearchField + Actions
+              Only rendered for to_many associations.
+            */}
+            {(<%- (sortedAssociations[aindex].type==='to_many') ? true : false _%>) && (
+              <Grid item xs={12}>
+                <Grid container justify='flex-end' alignItems='center' wrap='nowrap'>
+                  <Grid item>
+                    {/* Search field */}
+                    <TextField
+                      id="search-field"
+                      value={displayedSearch}
+                      placeholder="Search"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Tooltip title="Search">
+                              <Search color="inherit" fontSize="small" />
+                            </Tooltip>
+                          </InputAdornment>
+                        ),
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <Tooltip title="Clear search">
+                              <span>
+                                {(!search) && (
+                                  <IconButton
+                                    disabled={true}
+                                  >
+                                    <ClearInactive color="inherit" fontSize="small" />
+                                  </IconButton>
+                                )}
+                                {(search) && (
+                                  <IconButton
+                                    onClick={() => {
+                                      onSearchEnter('');
+                                      setDisplayedSearch('');
+                                    }}
+                                  >
+                                    <ClearActive color="secondary" fontSize="small" />
+                                  </IconButton>
+                                )}
+                              </span>
+                            </Tooltip>
+                          </InputAdornment>
+                        ),
+                      }}
+                      onKeyPress={event => {
+                        if (event.key === 'Enter') {
+                          onSearchEnter(displayedSearch);
+                        }
+                      }}
+                      onChange={event => setDisplayedSearch(event.target.value)}
+                    />
+                  </Grid>
                 </Grid>
               </Grid>
-            </Grid>
+            )}
 
             {/* Headers */}
             <Grid item xs={12} className={classes.headers}>

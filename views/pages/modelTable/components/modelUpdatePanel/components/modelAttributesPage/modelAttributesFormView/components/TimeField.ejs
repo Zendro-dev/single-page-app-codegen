@@ -32,7 +32,6 @@ export default function TimeField(props) {
 
   useEffect(() => {
     if(text !== undefined && text !== null && typeof text === 'string' && text.trim() !== '') {
-      
       let m = moment(text, "HH:mm:ss.SSSZ");
 
       if(m.isValid()) {

@@ -21,8 +21,12 @@ const useStyles = makeStyles(theme => ({
   },
   card: {
     margin: theme.spacing(1),
-    maxHeight: '77vh',
+    maxHeight: '70vh',
     overflow: 'auto',
+  },
+  cardB: {
+    margin: theme.spacing(0),
+    padding: theme.spacing(0),
   },
   cardContent: {
     marginLeft: theme.spacing(5),
@@ -54,8 +58,8 @@ export default function <%- nameCp _%>AttributesFormView(props) {
     <div className={classes.root}>
       <Grid container justify='center'>
         <Grid item xs={12}>
-          <Card className={classes.card}>
-            
+
+        <Card className={classes.cardB} elevation={0}>
             {/* Header */}
             <CardHeader
               avatar={
@@ -63,13 +67,15 @@ export default function <%- nameCp _%>AttributesFormView(props) {
               }
               title={
                 <Typography variant="h6">
-                  <%- nameCp %> attributes
+                    <%- nameCp %> attributes
                 </Typography>
               }
               subheader={getItemsOk()+' / <%- attributesArr.length %> completed'}
             >
             </CardHeader>
-            
+          </Card>
+
+          <Card className={classes.card}>
             {/* 
               Fields 
             */}

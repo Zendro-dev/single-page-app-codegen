@@ -30,6 +30,7 @@ const useStyles = makeStyles(theme => ({
     height: '64vh',
     maxHeight: '64vh',
     overflow: 'auto',
+    position: "relative",
   },
   listBox: {
     height: '33vh',
@@ -639,7 +640,14 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
             )}
 
             {/* Pagination */}
-            <TablePagination
+            <Box
+              p={0}
+              position="absolute"
+              bottom={0}
+              right={0}
+              zIndex="modal"
+            >
+              <TablePagination
                 rowsPerPageOptions={[10, 25, 50, 100]}
                 component="div"
                 count={count}
@@ -648,7 +656,8 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
                 page={page}
                 onChangePage={handleChangePage}
                 onChangeRowsPerPage={handleChangeRowsPerPage}
-            />
+              />
+            </Box>
           </Card>
         </Grid>
 
@@ -807,7 +816,14 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
             )}
 
             {/* Pagination */}
-            <TablePagination
+            <Box
+              p={0}
+              position="absolute"
+              bottom={0}
+              right={0}
+              zIndex="modal"
+            >
+              <TablePagination
                 rowsPerPageOptions={[10, 25, 50, 100]}
                 component="div"
                 count={countB}
@@ -816,7 +832,8 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
                 page={pageB}
                 onChangePage={handleChangePageB}
                 onChangeRowsPerPage={handleChangeRowsPerPageB}
-            />
+              />
+            </Box>
           </Card>
         </Grid>
       </Grid>

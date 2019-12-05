@@ -141,9 +141,11 @@ export default function <%- nameCp _%>CreatePanel(props) {
     }
 
     //addItems
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
+<%for( i=0; i<sortedAssociations.length; i++ ){
+  if(sortedAssociations[i].type === "to_many") {
+-%>
     variables.add<%- sortedAssociations[i].targetModelPlCp %> = <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current;
-<%}-%>
+<%}}-%>
 
     console.log("values: ", values.current);
     console.log("valuesOk: ", valueOkStates);

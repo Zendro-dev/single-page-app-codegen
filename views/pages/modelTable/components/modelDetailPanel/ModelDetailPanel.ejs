@@ -43,49 +43,19 @@ export default function <%- nameCp _%>DetailPanel(props) {
   const [valueOkStates, setValueOkStates] = useState(getInitialValueOkStates());
 
   function getInitialValueOkStates() {
-    let keys = Object.keys(item);
-    let initialValueOkStates = [];
-
-    for(var i=0; i<keys.length; ++i) {
-      if(keys[i] !== 'id') {
-        let o = {
-          key: keys[i],
-          valueOk: getAcceptableStatus(keys[i], item[keys[i]])
-        };
-        initialValueOkStates.push(o);
-      }
-    }
-    return initialValueOkStates;
-  }
-
-  function getAcceptableStatus(key, value) {
     /*
-      For now, just context validations are done
-      to ensure that in future, this function can
-      be used to enforce acceptable conditions
-      retrieved from model specs.
-
       status codes:
         1: acceptable
         0: unknown/not tested yet (this is set on initial render)/empty
-      -1: not acceptable 
+       -1: not acceptable 
     */
+    let initialValueOkStates = {};
 
-    /*
-      Check 1: null or undefined value
-    */
-    if(value === null || value === undefined) {
-      return -1;
-    }
+<%for( i=0; i<attributesArr.length; i++ ){-%>
+    initialValueOkStates.<%- attributesArr[i][0] %> = (item.<%- attributesArr[i][0] _%>!==null ? 1 : 0);
+<%}-%>
 
-    /*
-      Check 2 (last): empty
-    */
-    if(typeof value === 'string' && value.trim() === '') {
-      return 0;
-    }
-
-    return 1;
+    return initialValueOkStates;
   }
 
   const handleCancel = (event) => {

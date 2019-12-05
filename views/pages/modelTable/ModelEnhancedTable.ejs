@@ -258,10 +258,13 @@ export default function <%- nameCp -%>EnhancedTable() {
   }//end: getData()
 
   function doDelete(event, item) {
+    //variables
+    let variables = {id: item.id};
+
     /*
       API Request: deleteItem
     */
-    api.<%- nameLc -%>.deleteItem(graphqlServerUrl, item.id)
+    api.<%- nameLc -%>.deleteItem(graphqlServerUrl, variables)
       .then(response => {
         if(
           response.data &&
