@@ -174,7 +174,7 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
               response.data.data
           ) {
 <%_if( sortedAssociations[aindex].type === 'to_many' ){-%>
-              if(response.data.errors || !response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].targetModelPlLc _%>Filter) {
+              if(response.data.errors) {
                 //error
                 console.log("error0")
                 return;
@@ -188,12 +188,12 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
               let c = response.data.data.readOne<%- nameCp _%>.countFiltered<%- sortedAssociations[aindex].targetModelPlCp _%>;
               let its = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].targetModelPlLc _%>Filter;
 
-              setCount(typeof c==='number' ? c : 0);
-              setItems(Array.isArray(its) ? its : []);
+              setCount((c&&typeof c==='number') ? c : 0);
+              setItems((its&&Array.isArray(its)) ? its : []);
               setIsOnApiRequest(false);
               return;
 <%} else {-%>
-              if(response.data.errors || !response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].targetModel_%>) {
+              if(response.data.errors) {
                 //error
                 console.log("error0")
                 return;

@@ -271,7 +271,13 @@ export default function <%- nameCp _%>CreatePanel(props) {
     switch(associationKey) {
 <%for( i=0; i<sortedAssociations.length; i++ ){-%>
       case '<%- sortedAssociations[i].targetModel _%>':
+<%if(sortedAssociations[i].type === 'to_one'){-%>
+        <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current = [];
         <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current.push(itemId);
+        handleSetValue(itemId, 1, '<%- sortedAssociations[i].foreignKey _%>');
+<%} else {-%>
+        <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current.push(itemId);
+<%}-%>
         break;
 <%}-%>
 
@@ -283,6 +289,10 @@ export default function <%- nameCp _%>CreatePanel(props) {
   const handleUntransferFromAdd =(associationKey, itemId) => {
 <%for( i=0; i<sortedAssociations.length; i++ ){-%>
     if(associationKey === '<%- sortedAssociations[i].targetModel _%>') {
+<%if(sortedAssociations[i].type === 'to_one'){-%>
+      <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current = [];
+      handleSetValue(null, 0, '<%- sortedAssociations[i].foreignKey _%>');
+<%} else {-%>
       for(var i=0; i<<%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current.length; ++i)
       {
         if(<%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current[i] === itemId) {
@@ -290,6 +300,7 @@ export default function <%- nameCp _%>CreatePanel(props) {
           return;
         }
       }
+<%}-%>
       return;
     }//end: case '<%- sortedAssociations[i].targetModel _%>'
 <%}-%>

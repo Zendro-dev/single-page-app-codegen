@@ -180,17 +180,23 @@ export default {
 <%_for( i=0; i<attributesArr.length; i++ ){-%>
           $<%- attributesArr[i][0] _%>:<%- attributesArr[i][1] _%>,
 <%}-%>
-<%_for( i=0; i<sortedAssociations.length; i++ ){-%>
+<%_for( i=0; i<sortedAssociations.length; i++ ){
+  if(sortedAssociations[i].type === "to_many") {
+-%>
           $add<%- sortedAssociations[i].targetModelPlCp _%>: [ID],
-<%}-%>
+          $remove<%- sortedAssociations[i].targetModelPlCp _%>: [ID],
+<%}}-%>
           ) { update<%- nameCp %>(
             id:$id
 <%_for( i=0; i<attributesArr.length; i++ ){-%>
             <%- attributesArr[i][0] _%>:$<%- attributesArr[i][0] _%>,
 <%}-%>
-<%_for( i=0; i<sortedAssociations.length; i++ ){-%>
+<%_for( i=0; i<sortedAssociations.length; i++ ){
+  if(sortedAssociations[i].type === "to_many") {
+-%>
             add<%- sortedAssociations[i].targetModelPlCp _%>: $add<%- sortedAssociations[i].targetModelPlCp _%>,
-<%}-%>
+            remove<%- sortedAssociations[i].targetModelPlCp _%>: $remove<%- sortedAssociations[i].targetModelPlCp _%>,
+<%}}-%>
           ) {
             id,
 <%_for( i=0; i<attributesArr.length; i++ ){-%>
@@ -256,13 +262,12 @@ export default {
 <%_if( sortedAssociations[i].type === 'to_many' ){-%>
 
     //search
-    var s = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops);
-    if(s === null) { s = ''}; 
+    var s = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops); 
 
     //pagination
     var p = `pagination: {offset: ${paginationOffset}, limit: ${paginationLimit}}`
 
-    var query = 
+    var query = (s) ?
       `{ readOne<%- nameCp %>(id: ${itemId}) { 
         <%- sortedAssociations[i].targetModelPlLc _%>Filter( ${s}, ${p} ) { 
           id,
@@ -270,6 +275,14 @@ export default {
           ${sublabel},
         }, 
         countFiltered<%- sortedAssociations[i].targetModelPlCp %>( ${s} ) 
+      } }` :      
+      `{ readOne<%- nameCp %>(id: ${itemId}) { 
+        <%- sortedAssociations[i].targetModelPlLc _%>Filter( ${p} ) { 
+          id,
+          ${label}, 
+          ${sublabel},
+        }, 
+        countFiltered<%- sortedAssociations[i].targetModelPlCp %> 
       } }`;
 <%} else {-%>
     var query = 
@@ -301,10 +314,15 @@ export default {
    * @param {Number} itemId Model item id.
    */
   getAssociated<%- sortedAssociations[i].targetModelPlCp %>(url, itemId) {
+<%_if( sortedAssociations[i].type === 'to_many' ){-%>
     var query = 
       `{ readOne<%- nameCp %>( id: ${itemId} ){ 
         <%- sortedAssociations[i].targetModelPlLc _%>Filter{ id } } }`;
-
+<%} else {-%>
+    var query = 
+    `{ readOne<%- nameCp %>( id: ${itemId} ){ 
+      <%- sortedAssociations[i].targetModel _%>{ id } } }`;
+<%}-%>
     /**
      * Debug
      */

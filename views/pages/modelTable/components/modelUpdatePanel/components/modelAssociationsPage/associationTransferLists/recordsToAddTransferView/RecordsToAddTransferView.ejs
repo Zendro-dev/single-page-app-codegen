@@ -30,6 +30,7 @@ const useStyles = makeStyles(theme => ({
     height: '64vh',
     maxHeight: '64vh',
     overflow: 'auto',
+    position: "relative",
   },
   listBox: {
     height: '33vh',
@@ -102,8 +103,8 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
 
   useEffect(() => {
-    if(idsToAdd !== undefined && idsToAdd.length > 0) {
-      lidsToAdd.current.concat(idsToAdd);
+    if(idsToAdd !== undefined && Array.isArray(idsToAdd) && idsToAdd.length > 0) {
+      lidsToAdd.current = Array.from(idsToAdd);
       setThereAreItemsToAdd(true);
       getDataB();
     } else {
@@ -236,6 +237,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
           response.data &&
           response.data.data
         ) {
+<%_if( sortedAssociations[aindex].type === 'to_many' ){-%>
           //set ids
           let idso = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].targetModelPlLc _%>Filter;
           lidsAssociated.current = idso.map(function(item){ return item.id});
@@ -253,11 +255,27 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
             ops = {
               exclude: [{
                 type: 'Int',
-                values: {id: lidsToAdd.current.concat(lidsAssociated.current)}
+                values: {id: exIds}
               }]
             };
           }
 
+<%} else {-%>
+          //set id
+          let idso = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].targetModel_%>;
+          lidsAssociated.current = (idso&&typeof idso==='object') ? [idso.id] : [];
+
+          //set ops: excluded ids: toAddId
+          let ops = null;
+          if(lidsToAdd.current.length > 0) {
+            ops = {
+              exclude: [{
+                type: 'Int',
+                values: {id: lidsToAdd.current}
+              }]
+            };
+          }
+<%}-%>
           /*
             API Request: countItems
           */
@@ -346,13 +364,13 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
       .catch(err => {
 
         //error
-        console.log("error1.2");
+        console.log("error1.2: err: ", err);
         return;
       });
 
     }
     else { //do getData directly
-      
+<%_if( sortedAssociations[aindex].type === 'to_many' ){-%>
       //set ops: excluded ids: toAddIds + associatedIds
       let ops = null;
       let exIds = [];
@@ -366,10 +384,22 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
         ops = {
           exclude: [{
             type: 'Int',
-            values: {id: lidsToAdd.current.concat(lidsAssociated.current)}
+            values: {id: exIds}
           }]
         };
       }
+<%} else {-%>
+      //set ops: excluded ids: toAddId
+      let ops = null;
+      if(lidsToAdd.current.length > 0) {
+        ops = {
+          exclude: [{
+            type: 'Int',
+            values: {id: lidsToAdd.current}
+          }]
+        };
+      }
+<%}-%>
 
       /*
         API Request: countItems
@@ -477,6 +507,10 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
           values: {id: lidsToAdd.current}
         }]
       };
+    } else {
+      setIsOnApiRequestB(false);
+      setThereAreItemsToAdd(false);
+      return;
     }
 
     /*
@@ -588,8 +622,14 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
   };
 
   const handleAddItem = (event, item) => {
+<%if(sortedAssociations[aindex].type === 'to_one'){-%>
+    lidsToAdd.current = [];
     lidsToAdd.current.push(item.id);
     setThereAreItemsToAdd(true);
+<%} else {-%>
+    lidsToAdd.current.push(item.id);
+    setThereAreItemsToAdd(true);
+<%}-%>
 
     getData();
     getDataB();
@@ -597,6 +637,10 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
   };
 
   const handleRemoveItem = (event, item) => {
+<%if(sortedAssociations[aindex].type === 'to_one'){-%>
+    lidsToAdd.current = [];
+    setThereAreItemsToAdd(false);
+<%} else {-%>
     for(var i=0; i<lidsToAdd.current.length; ++i)
     {
       if(lidsToAdd.current[i] === item.id) {
@@ -608,7 +652,8 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
     if(lidsToAdd.current.length === 0) {
       setThereAreItemsToAdd(false);
     }
-    
+<%}-%>
+
     getDataB();
     getData();
     handleUntransfer('<%- sortedAssociations[aindex].targetModelLc _%>', item.id);
@@ -755,7 +800,15 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
               )}
 
               {/* Pagination */}
-              <TablePagination
+              {/* Pagination */}
+              <Box
+                p={0}
+                position="absolute"
+                bottom={0}
+                right={0}
+                zIndex="modal"
+              >
+                <TablePagination
                   rowsPerPageOptions={[10, 25, 50, 100]}
                   component="div"
                   count={count}
@@ -764,7 +817,8 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
                   page={page}
                   onChangePage={handleChangePage}
                   onChangeRowsPerPage={handleChangeRowsPerPage}
-              />
+                />
+              </Box>
             </Card>
           )}
         </Grid>
@@ -924,7 +978,14 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
               )}
 
               {/* Pagination */}
-              <TablePagination
+              <Box
+                p={0}
+                position="absolute"
+                bottom={0}
+                right={0}
+                zIndex="modal"
+              >
+                <TablePagination
                   rowsPerPageOptions={[10, 25, 50, 100]}
                   component="div"
                   count={countB}
@@ -933,7 +994,8 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
                   page={pageB}
                   onChangePage={handleChangePageB}
                   onChangeRowsPerPage={handleChangeRowsPerPageB}
-              />
+                />
+              </Box>
             </Card>
           )}
         </Grid>

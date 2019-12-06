@@ -1,7 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddTransferView from './<%- sortedAssociations[aindex].targetModelPlLc _%>ToAddTransferView/<%- sortedAssociations[aindex].targetModelPlCp _%>ToAddTransferView'
+<%if(sortedAssociations[aindex].type === 'to_many'){-%>
 import <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemoveTransferView from './<%- sortedAssociations[aindex].targetModelPlLc _%>ToRemoveTransferView/<%- sortedAssociations[aindex].targetModelPlCp _%>ToRemoveTransferView'
+<%}-%>
 import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Fade from '@material-ui/core/Fade';
@@ -18,11 +20,15 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>Transfer
   const {
     item,
     idsToAdd,
+<%if(sortedAssociations[aindex].type === 'to_many'){-%>
     idsToRemove,
+<%}-%>
     handleTransferToAdd,
     handleUntransferFromAdd,
+<%if(sortedAssociations[aindex].type === 'to_many'){-%>
     handleTransferToRemove,
     handleUntransferFromRemove,
+<%}-%>
   } = props;
   
   return (
@@ -44,7 +50,7 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>Transfer
               handleUntransfer={handleUntransferFromAdd}
             />
           </Grid>
-
+<%if(sortedAssociations[aindex].type === 'to_many'){-%>
           <Grid item xs={12}>
             <<%- sortedAssociations[aindex].targetModelPlCp _%>ToRemoveTransferView
               item={item}
@@ -53,6 +59,7 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>Transfer
               handleUntransfer={handleUntransferFromRemove}
             />
           </Grid>
+<%}-%>
 
         </Grid>
       </Fade>
@@ -62,9 +69,13 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>Transfer
 <%- sortedAssociations[aindex].targetModelCp _%>TransferLists.propTypes = {
   item: PropTypes.object.isRequired,
   idsToAdd: PropTypes.array.isRequired,
+<%if(sortedAssociations[aindex].type === 'to_many'){-%>
   idsToRemove: PropTypes.array.isRequired,
+<%}-%>
   handleTransferToAdd: PropTypes.func.isRequired,
   handleUntransferFromAdd: PropTypes.func.isRequired,
+<%if(sortedAssociations[aindex].type === 'to_many'){-%>
   handleTransferToRemove: PropTypes.func.isRequired,
   handleUntransferFromRemove: PropTypes.func.isRequired,
+<%}-%>
 };

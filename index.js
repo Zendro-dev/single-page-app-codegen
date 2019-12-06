@@ -349,14 +349,15 @@ fs.readdirSync(program.jsonFiles).forEach( async (json_file) =>{
     fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/${ejbOpts.nameLc}AssociationsPage/${ejbOpts.sortedAssociations[i].targetModelLc}TransferLists/${ejbOpts.sortedAssociations[i].targetModelPlLc}ToAddTransferView/components`, `${ejbOpts.sortedAssociations[i].targetModelPlCp}ToAddTransferViewToolbar.js`);
     promises.push( funks.renderToFile(fpath, 'modelTable/components/modelUpdatePanel/components/modelAssociationsPage/associationTransferLists/recordsToAddTransferView/components/RecordsToAddTransferViewToolbar', ejbOpts) );
 
-    // template 40: RecordsToRemoveTransferView
-    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/${ejbOpts.nameLc}AssociationsPage/${ejbOpts.sortedAssociations[i].targetModelLc}TransferLists/${ejbOpts.sortedAssociations[i].targetModelPlLc}ToRemoveTransferView`, `${ejbOpts.sortedAssociations[i].targetModelPlCp}ToRemoveTransferView.js`);
-    promises.push( funks.renderToFile(fpath, 'modelTable/components/modelUpdatePanel/components/modelAssociationsPage/associationTransferLists/recordsToRemoveTransferView/RecordsToRemoveTransferView', ejbOpts) );
+    if(ejbOpts.sortedAssociations[i].type === 'to_many') {
+      // template 40: RecordsToRemoveTransferView
+      fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/${ejbOpts.nameLc}AssociationsPage/${ejbOpts.sortedAssociations[i].targetModelLc}TransferLists/${ejbOpts.sortedAssociations[i].targetModelPlLc}ToRemoveTransferView`, `${ejbOpts.sortedAssociations[i].targetModelPlCp}ToRemoveTransferView.js`);
+      promises.push( funks.renderToFile(fpath, 'modelTable/components/modelUpdatePanel/components/modelAssociationsPage/associationTransferLists/recordsToRemoveTransferView/RecordsToRemoveTransferView', ejbOpts) );
 
-    // template 41: RecordsToRemoveTransferViewToolbar
-    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/${ejbOpts.nameLc}AssociationsPage/${ejbOpts.sortedAssociations[i].targetModelLc}TransferLists/${ejbOpts.sortedAssociations[i].targetModelPlLc}ToRemoveTransferView/components`, `${ejbOpts.sortedAssociations[i].targetModelPlCp}ToRemoveTransferViewToolbar.js`);
-    promises.push( funks.renderToFile(fpath, 'modelTable/components/modelUpdatePanel/components/modelAssociationsPage/associationTransferLists/recordsToRemoveTransferView/components/RecordsToRemoveTransferViewToolbar', ejbOpts) );
-
+      // template 41: RecordsToRemoveTransferViewToolbar
+      fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/${ejbOpts.nameLc}AssociationsPage/${ejbOpts.sortedAssociations[i].targetModelLc}TransferLists/${ejbOpts.sortedAssociations[i].targetModelPlLc}ToRemoveTransferView/components`, `${ejbOpts.sortedAssociations[i].targetModelPlCp}ToRemoveTransferViewToolbar.js`);
+      promises.push( funks.renderToFile(fpath, 'modelTable/components/modelUpdatePanel/components/modelAssociationsPage/associationTransferLists/recordsToRemoveTransferView/components/RecordsToRemoveTransferViewToolbar', ejbOpts) );
+    }
   }
 
    /**

@@ -70,8 +70,12 @@ export default function <%- nameCp _%>UpdatePanel(props) {
   const handleAccept = useRef(undefined);
   const handleReject = useRef(undefined);
 <%for( i=0; i<sortedAssociations.length; i++ ){-%>
+<%if(sortedAssociations[i].type === 'to_many'){-%>
   const <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd = useRef([]);
   const <%- sortedAssociations[i].targetModelPlLc _%>IdsToRemove = useRef([]);
+<%} else {-%>
+  const <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd = useRef((item.<%- sortedAssociations[i].foreignKey %> !== null) ? [item.<%- sortedAssociations[i].foreignKey _%>] : []);
+<%}-%>
 <%}-%>
   const values = useRef(getInitialValues());
   const valuesOkRefs = useRef(getInitialValueOkStates());
@@ -132,6 +136,8 @@ export default function <%- nameCp _%>UpdatePanel(props) {
 <%} else if(attributesArr[i][1] === 'Time'){-%>
     if((values.current.<%- attributesArr[i][0] %> === null || item.<%- attributesArr[i][0] %> === null) && item.<%- attributesArr[i][0] %> !== values.current.<%- attributesArr[i][0] %>) { return true; }
     if(values.current.<%- attributesArr[i][0] %> !== null && item.<%- attributesArr[i][0] %> !== null && values.current.<%- attributesArr[i][0] %> !== moment(item.<%- attributesArr[i][0] %>, "HH:mm:ss.SSSZ").format("HH:mm:ss.SSSZ")) { return true; }
+<%} else if(attributesArr[i][1] === 'Int'){-%>
+    if(Number(values.current.<%- attributesArr[i][0] %>) !== Number(item.<%- attributesArr[i][0] %>)) { return true;}
 <%} else {-%>
     if(values.current.<%- attributesArr[i][0] %> !== item.<%- attributesArr[i][0] %>) { return true;}
 <%}-%>
@@ -152,14 +158,18 @@ export default function <%- nameCp _%>UpdatePanel(props) {
     variables.id = item.id;
 
     //addItems
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
+<%for( i=0; i<sortedAssociations.length; i++ ){
+  if(sortedAssociations[i].type === "to_many") {
+-%>
     variables.add<%- sortedAssociations[i].targetModelPlCp %> = <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current;
-<%}-%>
+<%}}-%>
 
     //removeItems
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
+<%for( i=0; i<sortedAssociations.length; i++ ){
+  if(sortedAssociations[i].type === "to_many") {
+-%>
     variables.remove<%- sortedAssociations[i].targetModelPlCp %> = <%- sortedAssociations[i].targetModelPlLc _%>IdsToRemove.current;
-<%}-%>
+<%}}-%>
 
     console.log("values: ", values.current);
     console.log("valuesOk: ", valueOkStates);
@@ -176,7 +186,7 @@ export default function <%- nameCp _%>UpdatePanel(props) {
           /**
             * Debug
             */
-          console.log(">> mutation.add response: ", response.data.data);
+          console.log(">> mutation.update response: ", response.data.data);
           
           handleOk();
           return;
@@ -275,7 +285,13 @@ export default function <%- nameCp _%>UpdatePanel(props) {
     switch(associationKey) {
 <%for( i=0; i<sortedAssociations.length; i++ ){-%>
       case '<%- sortedAssociations[i].targetModel _%>':
+<%if(sortedAssociations[i].type === 'to_one'){-%>
+        <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current = [];
         <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current.push(itemId);
+        handleSetValue(itemId, 1, '<%- sortedAssociations[i].foreignKey _%>');
+<%} else {-%>
+        <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current.push(itemId);
+<%}-%>
         break;
 <%}-%>
 
@@ -287,6 +303,10 @@ export default function <%- nameCp _%>UpdatePanel(props) {
   const handleUntransferFromAdd =(associationKey, itemId) => {
 <%for( i=0; i<sortedAssociations.length; i++ ){-%>
     if(associationKey === '<%- sortedAssociations[i].targetModel _%>') {
+<%if(sortedAssociations[i].type === 'to_one'){-%>
+      <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current = [];
+      handleSetValue(null, 0, '<%- sortedAssociations[i].foreignKey _%>');
+<%} else {-%>
       for(var i=0; i<<%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current.length; ++i)
       {
         if(<%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current[i] === itemId) {
@@ -294,18 +314,23 @@ export default function <%- nameCp _%>UpdatePanel(props) {
           return;
         }
       }
+<%}-%>
       return;
     }//end: case '<%- sortedAssociations[i].targetModel _%>'
 <%}-%>
   }
 
+<%if(hasManysArr.length > 0) {-%>
+
   const handleTransferToRemove = (associationKey, itemId) => {
     switch(associationKey) {
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
+<%for( i=0; i<sortedAssociations.length; i++ ){
+  if(sortedAssociations[i].type === "to_many") {
+-%>
       case '<%- sortedAssociations[i].targetModel _%>':
         <%- sortedAssociations[i].targetModelPlLc _%>IdsToRemove.current.push(itemId);
         break;
-<%}-%>
+<%}}-%>
 
       default:
         break;
@@ -313,7 +338,9 @@ export default function <%- nameCp _%>UpdatePanel(props) {
   }
 
   const handleUntransferFromRemove =(associationKey, itemId) => {
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
+<%for( i=0; i<sortedAssociations.length; i++ ){
+  if(sortedAssociations[i].type === "to_many") {
+-%>
     if(associationKey === '<%- sortedAssociations[i].targetModel _%>') {
       for(var i=0; i<<%- sortedAssociations[i].targetModelPlLc _%>IdsToRemove.current.length; ++i)
       {
@@ -324,8 +351,9 @@ export default function <%- nameCp _%>UpdatePanel(props) {
       }
       return;
     }//end: case '<%- sortedAssociations[i].targetModel _%>'
-<%}-%>
+<%}}-%>
   }
+<%}-%>
 
   return (
     <Dialog fullScreen open={open} onClose={handleCancel} TransitionComponent={Transition}>
@@ -383,12 +411,15 @@ export default function <%- nameCp _%>UpdatePanel(props) {
               item={item}
 <%for( i=0; i<sortedAssociations.length; i++ ){-%>
               <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd={<%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current}
+<%if(sortedAssociations[i].type === 'to_many'){-%>
               <%- sortedAssociations[i].targetModelPlLc _%>IdsToRemove={<%- sortedAssociations[i].targetModelPlLc _%>IdsToRemove.current}
-<%}-%>
+<%}}-%>
               handleTransferToAdd={handleTransferToAdd}
               handleUntransferFromAdd={handleUntransferFromAdd}
+<%if(hasManysArr.length > 0) {-%>
               handleTransferToRemove={handleTransferToRemove}
               handleUntransferFromRemove={handleUntransferFromRemove}
+<%}-%>
             />
 
           </Grid>

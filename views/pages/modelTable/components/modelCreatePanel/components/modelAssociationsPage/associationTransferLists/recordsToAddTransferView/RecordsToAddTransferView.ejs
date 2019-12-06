@@ -102,8 +102,8 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
 
   useEffect(() => {
-    if(idsToAdd !== undefined && idsToAdd.length > 0) {
-      lidsToAdd.current.concat(idsToAdd);
+    if(idsToAdd !== undefined && Array.isArray(idsToAdd) && idsToAdd.length > 0) {
+      lidsToAdd.current = Array.from(idsToAdd);
       setThereAreItemsToAdd(true);
       getDataB();
     } else {
@@ -351,6 +351,10 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
           values: {id: lidsToAdd.current}
         }]
       };
+    } else {
+      setIsOnApiRequestB(false);
+      setThereAreItemsToAdd(false);
+      return;
     }
 
     /*
@@ -473,8 +477,14 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
   };
 
   const handleAddItem = (event, item) => {
+<%if(sortedAssociations[aindex].type === 'to_one'){-%>
+    lidsToAdd.current = [];
     lidsToAdd.current.push(item.id);
     setThereAreItemsToAdd(true);
+<%} else {-%>
+    lidsToAdd.current.push(item.id);
+    setThereAreItemsToAdd(true);
+<%}-%>
 
     getData();
     getDataB();
@@ -482,6 +492,10 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
   };
 
   const handleRemoveItem = (event, item) => {
+<%if(sortedAssociations[aindex].type === 'to_one'){-%>
+    lidsToAdd.current = [];
+    setThereAreItemsToAdd(false);
+  <%} else {-%>
     for(var i=0; i<lidsToAdd.current.length; ++i)
     {
       if(lidsToAdd.current[i] === item.id) {
@@ -493,6 +507,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
     if(lidsToAdd.current.length === 0) {
       setThereAreItemsToAdd(false);
     }
+  <%}-%>
 
     getDataB();
     getData();
@@ -652,7 +667,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
                 component="div"
                 count={count}
                 rowsPerPage={rowsPerPage}
-                labelRowsPerPage='rows'
+                labelRowsPerPage='Rows'
                 page={page}
                 onChangePage={handleChangePage}
                 onChangeRowsPerPage={handleChangeRowsPerPage}
@@ -828,7 +843,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
                 component="div"
                 count={countB}
                 rowsPerPage={rowsPerPageB}
-                labelRowsPerPage='rows'
+                labelRowsPerPage='Rows'
                 page={pageB}
                 onChangePage={handleChangePageB}
                 onChangeRowsPerPage={handleChangeRowsPerPageB}

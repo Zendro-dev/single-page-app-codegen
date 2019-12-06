@@ -24,12 +24,15 @@ export default function <%- nameCp _%>AssociationsPage(props) {
     item,
 <%for( i=0; i<sortedAssociations.length; i++ ){-%>
     <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd,
+<%if(sortedAssociations[i].type === 'to_many'){-%>
     <%- sortedAssociations[i].targetModelPlLc _%>IdsToRemove,
-<%}-%>
+<%}}-%>
     handleTransferToAdd,
     handleUntransferFromAdd,
+<%if(hasManysArr.length > 0) {-%>
     handleTransferToRemove,
     handleUntransferFromRemove,
+<%}-%>
   } = props;
   const [associationSelected, setAssociationSelected] = React.useState('<%- (sortedAssociations.length > 0) ? sortedAssociations[0].targetModelLc : 'no-associations' _%>');
 
@@ -63,11 +66,15 @@ export default function <%- nameCp _%>AssociationsPage(props) {
               <<%- sortedAssociations[i].targetModelCp _%>TransferLists
                 item={item}
                 idsToAdd={<%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd}
+<%if(sortedAssociations[i].type === 'to_many'){-%>
                 idsToRemove={<%- sortedAssociations[i].targetModelPlLc _%>IdsToRemove}
+<%}-%>
                 handleTransferToAdd={handleTransferToAdd}
                 handleUntransferFromAdd={handleUntransferFromAdd}
+<%if(sortedAssociations[i].type === 'to_many'){-%>
                 handleTransferToRemove={handleTransferToRemove}
                 handleUntransferFromRemove={handleUntransferFromRemove}
+<%}-%>
               />
             </Grid>
           )}
@@ -83,10 +90,13 @@ export default function <%- nameCp _%>AssociationsPage(props) {
   item: PropTypes.object.isRequired,
 <%for( i=0; i<sortedAssociations.length; i++ ){-%>
   <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd: PropTypes.array.isRequired,
+<%if(sortedAssociations[i].type === 'to_many'){-%>
   <%- sortedAssociations[i].targetModelPlLc _%>IdsToRemove: PropTypes.array.isRequired,
-<%}-%>
+<%}}-%>
   handleTransferToAdd: PropTypes.func.isRequired,
   handleUntransferFromAdd: PropTypes.func.isRequired,
+<%if(hasManysArr.length > 0) {-%>
   handleTransferToRemove: PropTypes.func.isRequired,
   handleUntransferFromRemove: PropTypes.func.isRequired,
+<%}-%>
 };
