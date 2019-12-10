@@ -22,29 +22,28 @@ const useStyles = makeStyles(theme => ({
   },
   card: {
     margin: theme.spacing(1),
-    height: <%- (sortedAssociations[aindex].type==='to_many') ? "'70vh'" : "'auto'" _%>,
-    maxHeight: '70vh',
+    height: 'auto',
+    maxHeight: `calc(64vh + 52px)`,
     overflow: 'auto',
     position: "relative",
   },
   listBox: {
-    height: <%- (sortedAssociations[aindex].type==='to_many') ? "'39vh'" : "'auto'" _%>,
-    maxHeight: '39vh',
+    height: 'auto',
     minHeight: 82,
+    maxHeight: '33vh',
     overflowY: 'auto',
     overflowX: 'hidden'
   },
   noDataBox: {
     width: "100%",
-    height: <%- (sortedAssociations[aindex].type==='to_many') ? "'39vh'" : "'auto'" _%>,
-    maxHeight: '39vh',
-    minHeight:82,
+    height: 'auto',
+    minHeight: 82,
+    maxHeight: '33vh',
   },
   loadingBox: {
     width: "100%",
-    height: <%- (sortedAssociations[aindex].type==='to_many') ? "'39vh'" : "'auto'" _%>,
-    maxHeight: '39vh',
-    minHeight: 82,
+    height: '100%',
+    maxHeight: '33vh',
   },
   row: {
     maxHeight: 70,
@@ -63,6 +62,7 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
   const classes = useStyles();
   const {
     item,
+    handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row,
   } = props;
 
   const [items, setItems] = useState([]);
@@ -77,6 +77,9 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
   const [areItemsReady, setAreItemsReady] = useState(false);
 
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
+
+  const lref = useRef(null);
+  const [lh, setLh] = useState(82);
 
   useEffect(() => {
     if(item !== undefined){
@@ -131,6 +134,8 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
   }, [rowsPerPage]);
 
   useEffect(() => {
+    updateHeights();
+
     if (!isOnApiRequest && isPendingApiRequest) {
       setIsPendingApiRequest(false);
 
@@ -227,7 +232,15 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
       });
   }
 
+  function updateHeights() {
+    if(lref.current) {
+      let h =lref.current.clientHeight;
+      setLh(h);
+    }
+  }
+
   const handleSearchEnter = text => {
+    updateHeights();
     setSearch(text);
   }
 
@@ -240,7 +253,7 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
   };
 
   const handleRowClicked = (event, item) => {
-    console.log("clicked: ", item);
+    handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row(event, item);
   }
 
   return (
@@ -289,7 +302,7 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
                   in={true}
                   unmountOnExit
                 >
-                  <Box className={classes.listBox}>
+                  <Box className={classes.listBox} ref={lref}>
                     <List dense component="div" role="list" >
                       {items.map(it => {
                         let key = it.id;
@@ -352,11 +365,13 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
                   <div>
                     <Grid container>
                       <Grid item xs={12}>
-                        <Grid container className={classes.loadingBox} justify="center" alignItems="center">
-                          <Grid item>
-                            <CircularProgress color='primary' disableShrink/>
+                        <Box height={lh}>
+                          <Grid container className={classes.loadingBox} justify="center" alignItems="center">
+                            <Grid item>
+                              <CircularProgress color='primary' disableShrink />
+                            </Grid>
                           </Grid>
-                        </Grid>
+                        </Box>
                       </Grid>
                     </Grid>
                   </div>
@@ -365,24 +380,16 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
 
               {/* Pagination */}
               {(<%- (sortedAssociations[aindex].type==='to_many') ? true : false _%>) && (
-                <Box
-                  p={0}
-                  position="absolute"
-                  bottom={0}
-                  right={0}
-                  zIndex="modal"
-                >
-                  <TablePagination
-                      rowsPerPageOptions={[10, 25, 50, 100]}
-                      component="div"
-                      count={count}
-                      rowsPerPage={rowsPerPage}
-                      labelRowsPerPage='Rows'
-                      page={page}
-                      onChangePage={handleChangePage}
-                      onChangeRowsPerPage={handleChangeRowsPerPage}
-                  />
-                </Box>
+                <TablePagination
+                  rowsPerPageOptions={[10, 25, 50, 100]}
+                  component="div"
+                  count={count}
+                  rowsPerPage={rowsPerPage}
+                  labelRowsPerPage='Rows'
+                  page={page}
+                  onChangePage={handleChangePage}
+                  onChangeRowsPerPage={handleChangeRowsPerPage}
+                />
               )}
             </Card>
           )}
@@ -393,4 +400,5 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
 }
 <%- sortedAssociations[aindex].targetModelCp _%>CompactView.propTypes = {
   item: PropTypes.object.isRequired,
+  handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row: PropTypes.func.isRequired,
 };

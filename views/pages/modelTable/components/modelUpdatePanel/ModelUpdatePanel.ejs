@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import moment from "moment";
@@ -6,6 +6,9 @@ import <%- nameCp _%>AttributesPage from './components/<%- nameLc _%>AttributesP
 import <%- nameCp _%>AssociationsPage from './components/<%- nameLc _%>AssociationsPage/<%- nameCp _%>AssociationsPage'
 import <%- nameCp _%>TabsA from './components/<%- nameCp _%>TabsA'
 import <%- nameCp _%>ConfirmationDialog from './components/<%- nameCp _%>ConfirmationDialog'
+<%for( i=0; i<sortedAssociations.length; i++ ){-%>
+import <%- sortedAssociations[i].targetModelCp _%> DetailPanel from '../../../<%- sortedAssociations[i].targetModelLc _%>Table/components/<%- sortedAssociations[i].targetModelLc _%>DetailPanel/<%- sortedAssociations[i].targetModelCp _%>DetailPanel'
+<%}-%>
 import api from '../../../../../../../requests/index'
 import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
@@ -60,6 +63,9 @@ export default function <%- nameCp _%>UpdatePanel(props) {
   const [open, setOpen] = useState(true);
   const [tabsValue, setTabsValue] = useState(0);
   const [valueOkStates, setValueOkStates] = useState(getInitialValueOkStates());
+  <%if(belongsTosArr.length > 0){-%>
+  const [foreignKeys, setForeignKeys] = useState(getInitialForeignKeys());
+  <%}-%>
 
   const [confirmationOpen, setConfirmationOpen] = useState(false);
   const [confirmationTitle, setConfirmationTitle] = useState('');
@@ -75,12 +81,24 @@ export default function <%- nameCp _%>UpdatePanel(props) {
   const <%- sortedAssociations[i].targetModelPlLc _%>IdsToRemove = useRef([]);
 <%} else {-%>
   const <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd = useRef((item.<%- sortedAssociations[i].foreignKey %> !== null) ? [item.<%- sortedAssociations[i].foreignKey _%>] : []);
-<%}-%>
-<%}-%>
+<%}}-%>
   const values = useRef(getInitialValues());
   const valuesOkRefs = useRef(getInitialValueOkStates());
 
+<%for( i=0; i<sortedAssociations.length; i++ ){-%>
+  const [<%- sortedAssociations[i].targetModelLc _%>DetailDialogOpen, set<%- sortedAssociations[i].targetModelCp _%>DetailDialogOpen] = useState(false);
+  const [<%- sortedAssociations[i].targetModelLc _%>DetailItem, set<%- sortedAssociations[i].targetModelCp _%>DetailItem] = useState(undefined);
+<%}-%>
+
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
+
+<%for( i=0; i<sortedAssociations.length; i++ ){-%>
+  useEffect(() => {
+    if (<%- sortedAssociations[i].targetModelLc _%>DetailItem !== undefined) {
+      set<%- sortedAssociations[i].targetModelCp _%>DetailDialogOpen(true);
+    }
+  }, [<%- sortedAssociations[i].targetModelLc _%>DetailItem]);
+<%}-%>
 
   function getInitialValues() {
     let initialValues = {};
@@ -91,6 +109,18 @@ export default function <%- nameCp _%>UpdatePanel(props) {
 
     return initialValues;
   }
+
+<%if(belongsTosArr.length > 0){-%>
+  function getInitialForeignKeys() {
+    let initialForeignKeys = {};
+    
+<%for( i=0; i<belongsTosArr.length; i++ ){-%>
+    initialForeignKeys.<%- belongsTosArr[i].foreignKey %> = item.<%- belongsTosArr[i].foreignKey _%>;
+<%}-%>
+
+    return initialForeignKeys;
+  }
+<%}-%>
 
   function getInitialValueOkStates() {
     /*
@@ -289,6 +319,7 @@ export default function <%- nameCp _%>UpdatePanel(props) {
         <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current = [];
         <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current.push(itemId);
         handleSetValue(itemId, 1, '<%- sortedAssociations[i].foreignKey _%>');
+        setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: itemId});
 <%} else {-%>
         <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current.push(itemId);
 <%}-%>
@@ -306,6 +337,7 @@ export default function <%- nameCp _%>UpdatePanel(props) {
 <%if(sortedAssociations[i].type === 'to_one'){-%>
       <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current = [];
       handleSetValue(null, 0, '<%- sortedAssociations[i].foreignKey _%>');
+      setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: null});
 <%} else {-%>
       for(var i=0; i<<%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current.length; ++i)
       {
@@ -355,6 +387,28 @@ export default function <%- nameCp _%>UpdatePanel(props) {
   }
 <%}-%>
 
+<%for( i=0; i<sortedAssociations.length; i++ ){-%>
+  const handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row = (event, item) => {
+    set<%- sortedAssociations[i].targetModelCp _%>DetailItem(item);
+  };
+
+  const handle<%- sortedAssociations[i].targetModelCp _%>DetailDialogClose = (event) => {
+    delayedClose<%- sortedAssociations[i].targetModelCp _%>DetailPanel(event, 500);
+  }
+
+  const delayedClose<%- sortedAssociations[i].targetModelCp _%>DetailPanel = async (event, ms) => {
+    await new Promise(resolve => {
+      window.setTimeout(function() {
+        set<%- sortedAssociations[i].targetModelCp _%>DetailDialogOpen(false);
+        set<%- sortedAssociations[i].targetModelCp _%>DetailItem(undefined);
+        resolve("ok");
+      }, ms);
+    });
+  };
+
+<%}-%>
+
+
   return (
     <Dialog fullScreen open={open} onClose={handleCancel} TransitionComponent={Transition}>
       <AppBar className={classes.appBar}>
@@ -402,6 +456,9 @@ export default function <%- nameCp _%>UpdatePanel(props) {
               hidden={tabsValue !== 0}
               item={item}
               valueOkStates={valueOkStates}
+<%if(belongsTosArr.length > 0){-%>
+              foreignKeys = {foreignKeys}
+<%}-%>
               handleSetValue={handleSetValue}
             />
 
@@ -420,6 +477,9 @@ export default function <%- nameCp _%>UpdatePanel(props) {
               handleTransferToRemove={handleTransferToRemove}
               handleUntransferFromRemove={handleUntransferFromRemove}
 <%}-%>
+<%for( i=0; i<sortedAssociations.length; i++ ){-%>
+              handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row}
+<%}-%>
             />
 
           </Grid>
@@ -435,6 +495,17 @@ export default function <%- nameCp _%>UpdatePanel(props) {
           handleAccept={handleConfirmationAccept}
           handleReject={handleConfirmationReject}
         />
+
+<%for( i=0; i<sortedAssociations.length; i++ ){-%>
+        {/* Dialog: <%- sortedAssociations[i].targetModelCp %> Detail Panel */}
+        {(<%- sortedAssociations[i].targetModelLc _%>DetailDialogOpen) && (
+          <<%- sortedAssociations[i].targetModelCp _%>DetailPanel
+            item={<%- sortedAssociations[i].targetModelLc _%>DetailItem}
+            dialog={true}
+            handleClose={handle<%- sortedAssociations[i].targetModelCp _%>DetailDialogClose}
+          />
+        )}
+<%}-%>
       </div>
 
     </Dialog>

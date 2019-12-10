@@ -18,6 +18,7 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>Transfer
     idsToAdd,
     handleTransferToAdd,
     handleUntransferFromAdd,
+    handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row,
   } = props;
   
   return (
@@ -36,6 +37,7 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>Transfer
               idsToAdd={idsToAdd}
               handleTransfer={handleTransferToAdd}
               handleUntransfer={handleUntransferFromAdd}
+              handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row={handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row}
             />
           </Grid>
 
@@ -48,4 +50,5 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>Transfer
   idsToAdd: PropTypes.array.isRequired,
   handleTransferToAdd: PropTypes.func.isRequired,
   handleUntransferFromAdd: PropTypes.func.isRequired,
+  handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row: PropTypes.func.isRequired,
 };

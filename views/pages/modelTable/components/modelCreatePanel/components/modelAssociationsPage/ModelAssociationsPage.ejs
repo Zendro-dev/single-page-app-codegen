@@ -27,6 +27,9 @@ export default function <%- nameCp _%>AssociationsPage(props) {
 <%}-%>
     handleTransferToAdd,
     handleUntransferFromAdd,
+<%for( i=0; i<sortedAssociations.length; i++ ){-%>
+    handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row,
+<%}-%>
   } = props;
   
   const [associationSelected, setAssociationSelected] = React.useState('<%- (sortedAssociations.length > 0) ? sortedAssociations[0].targetModelLc : 'no-associations' _%>');
@@ -59,6 +62,7 @@ export default function <%- nameCp _%>AssociationsPage(props) {
           {(associationSelected === '<%- sortedAssociations[i].targetModelLc _%>') && (
             <Grid item xs={12} sm={10} md={9} lg={8} xl={7}>
               <<%- sortedAssociations[i].targetModelCp _%>TransferLists
+                handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row}
                 idsToAdd={<%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd}
                 handleTransferToAdd={handleTransferToAdd}
                 handleUntransferFromAdd={handleUntransferFromAdd}
@@ -76,6 +80,7 @@ export default function <%- nameCp _%>AssociationsPage(props) {
   hidden: PropTypes.bool.isRequired,
 <%for( i=0; i<sortedAssociations.length; i++ ){-%>
   <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd: PropTypes.array.isRequired,
+  handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row: PropTypes.func.isRequired,
 <%}-%>
   handleTransferToAdd: PropTypes.func.isRequired,
   handleUntransferFromAdd: PropTypes.func.isRequired,

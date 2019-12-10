@@ -91,14 +91,14 @@ export default function <%- nameCp _%>AttributesFormView(props) {
   let a = attributesArr[i][0];
   let label = a[0].toUpperCase() + a.slice(1);
   let type = attributesArr[i][1];
-  let hide = false;
-  for(var x=0; (x<belongsTosArr.length && !hide); x++) {
+  let isForeignKey = false;
+  for(var x=0; (x<belongsTosArr.length && !isForeignKey); x++) {
     if(belongsTosArr[x].foreignKey === a) {
-      hide = true;
+      isForeignKey = true;
     }
   }
 -%>
-<% if(type === 'String' && !hide) {%>
+<% if(type === 'String') {%>
             {/* <%- label %> */}
             <CardContent key='<%- a %>' className={classes.cardContent} >
               <StringField
@@ -113,7 +113,7 @@ export default function <%- nameCp _%>AttributesFormView(props) {
               />
             </CardContent>
 <%}-%>
-<% if(type === 'Float' && !hide) {%>
+<% if(type === 'Float') {%>
             {/* <%- label %> */}
             <CardContent key='<%- a %>' className={classes.cardContent} >
               <FloatField
@@ -128,7 +128,7 @@ export default function <%- nameCp _%>AttributesFormView(props) {
               />
             </CardContent>
 <%}-%>
-<% if(type === 'Int' && !hide) {%>
+<% if(type === 'Int') {%>
             {/* <%- label %> */}
             <CardContent key='<%- a %>' className={classes.cardContent} >
               <IntField
@@ -136,6 +136,7 @@ export default function <%- nameCp _%>AttributesFormView(props) {
                 name='<%- a %>'
                 label='<%- label %>'
                 text={item.<%- a %>}
+                isForeignKey={<%- isForeignKey _%>}
                 valueOk={valueOkStates.<%- a _%>}
 <% if(i===0) {-%>
                 autoFocus={true}
@@ -143,7 +144,7 @@ export default function <%- nameCp _%>AttributesFormView(props) {
               />
             </CardContent>
 <%}-%>
-<% if(type === 'Boolean' && !hide) {%>
+<% if(type === 'Boolean') {%>
             {/* <%- label %> */}
             <CardContent key='<%- a %>' className={classes.cardContent} >
               <BoolField
@@ -158,7 +159,7 @@ export default function <%- nameCp _%>AttributesFormView(props) {
               />
             </CardContent>
 <%}-%>
-<% if(type === 'Date' && !hide) {%>
+<% if(type === 'Date') {%>
             {/* <%- label %> */}
             <CardContent key='<%- a %>' className={classes.cardContent} >
               <DateField
@@ -173,7 +174,7 @@ export default function <%- nameCp _%>AttributesFormView(props) {
               />
             </CardContent>
 <%}-%>
-<% if(type === 'Time' && !hide) {%>
+<% if(type === 'Time') {%>
             {/* <%- label %> */}
             <CardContent key='<%- a %>' className={classes.cardContent} >
               <TimeField
@@ -188,7 +189,7 @@ export default function <%- nameCp _%>AttributesFormView(props) {
               />
             </CardContent>
 <%}-%>
-<% if(type === 'DateTime' && !hide) {%>
+<% if(type === 'DateTime') {%>
             {/* <%- label %> */}
             <CardContent key='<%- a %>' className={classes.cardContent} >
               <DateTimeField

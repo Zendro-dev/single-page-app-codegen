@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
+import Typography from '@material-ui/core/Typography';
+import Grid from '@material-ui/core/Grid';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import CheckIcon from '@material-ui/icons/Check';
 
@@ -23,6 +25,7 @@ export default function IntField(props) {
     text,
     valueOk,
     autoFocus,
+    isForeignKey,
     handleReady,
   } = props;
 
@@ -90,34 +93,45 @@ export default function IntField(props) {
   }, []);
 
   return (
-      <TextField
-        id={"int-field-"+itemKey+'-'+label}
-        label={label}
-        ref={fieldRef}
-        inputRef={inputRef}
-        type="number"
-        defaultValue={defaultValue.current}
-        className={classes.textField}
-        margin="normal"
-        variant="outlined"
-        placeholder=""
-        helperText={errorText!==null ? errorText : (helperText!==null ? helperText : "")}
-        error={errorText!== null}
-        autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
-        InputProps={{
-          endAdornment:
-            <InputAdornment position="end">
-              {(valueOk!==undefined&&valueOk===1) ? <CheckIcon color="primary" fontSize="small" /> : ''}
-            </InputAdornment>,
-          readOnly: true
-        }}
-        InputLabelProps={{ 
-          shrink: true
-        }}
-        inputProps={{ 
-          spellCheck: 'false'
-        }}
-      />
+      <Grid container justify='flex-start' alignItems='center' spacing={2}>
+        <Grid item>
+          <TextField
+          id={"int-field-"+itemKey+'-'+label}
+          label={label}
+          ref={fieldRef}
+          inputRef={inputRef}
+          type="number"
+          defaultValue={defaultValue.current}
+          className={classes.textField}
+          margin="normal"
+          variant="outlined"
+          placeholder=""
+          helperText={errorText!==null ? errorText : (helperText!==null ? helperText : "")}
+          error={errorText!== null}
+          autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
+          InputProps={{
+            endAdornment:
+              <InputAdornment position="end">
+                {(valueOk!==undefined&&valueOk===1) ? <CheckIcon color="primary" fontSize="small" /> : ''}
+              </InputAdornment>,
+            readOnly: true
+          }}
+          InputLabelProps={{ 
+            shrink: true
+          }}
+          inputProps={{ 
+            spellCheck: 'false'
+          }}
+        />
+        </Grid>
+        {(isForeignKey) && (
+          <Grid item>
+            <Typography variant="caption" color='textSecondary'>
+              Foreing key
+            </Typography>
+        </Grid>
+        )}
+      </Grid>
   );
 }
 IntField.propTypes = {
@@ -130,5 +144,6 @@ IntField.propTypes = {
   ]),
   valueOk: PropTypes.number.isRequired,
   autoFocus: PropTypes.bool,
+  isForeignKey: PropTypes.bool,
   handleReady: PropTypes.func,
 };

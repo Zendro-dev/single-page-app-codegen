@@ -19,7 +19,12 @@ const useStyles = makeStyles(theme => ({
 
 export default function <%- nameCp _%>AssociationsPage(props) {
   const classes = useStyles();
-  const { item } = props;
+  const { 
+    item,
+<%for( i=0; i<sortedAssociations.length; i++ ){-%>
+    handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row,
+<%}-%> 
+  } = props;
   const [associationSelected, setAssociationSelected] = React.useState('<%- (sortedAssociations.length > 0) ? sortedAssociations[0].targetModelLc : 'no-associations' _%>');
 
   const handleAssociationClick = (event, newValue) => {
@@ -50,6 +55,7 @@ export default function <%- nameCp _%>AssociationsPage(props) {
           <Grid item xs={12} sm={10} md={9} lg={8} xl={7}>
             <<%- sortedAssociations[i].targetModelCp _%>CompactView
               item={item}
+              handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row}
             />
           </Grid>
         )}
@@ -61,4 +67,7 @@ export default function <%- nameCp _%>AssociationsPage(props) {
 }
 <%- nameCp _%>AssociationsPage.propTypes = {
   item: PropTypes.object.isRequired,
+<%for( i=0; i<sortedAssociations.length; i++ ){-%>
+  handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row: PropTypes.func.isRequired, 
+<%}-%>
 };

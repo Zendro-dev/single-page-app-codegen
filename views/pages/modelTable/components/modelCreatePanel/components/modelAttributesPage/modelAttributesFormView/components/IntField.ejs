@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
+import Typography from '@material-ui/core/Typography';
+import Grid from '@material-ui/core/Grid';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import CheckIcon from '@material-ui/icons/Check';
 
@@ -23,6 +25,7 @@ export default function IntField(props) {
     text,
     valueOk,
     autoFocus,
+    foreignKey,
     handleReady,
     handleSetValue,
   } = props;
@@ -37,7 +40,18 @@ export default function IntField(props) {
   const error = useRef(false);
 
   useEffect(() => {
-    if(text !== undefined && text !== null && typeof text === 'string' && text.trim() !== '') {
+    if(handleReady !== undefined) {
+      handleReady(itemKey, fieldRef, inputRef);
+    }
+
+  }, []);
+
+  useEffect(() => {
+    checkText(text);
+  }, [text]);
+
+  function checkText(text) {
+    if(text !== undefined && text !== null) {
       //case: string
       if(typeof text === 'string' && text.trim() !== '') {
         textValue.current = text;
@@ -47,10 +61,8 @@ export default function IntField(props) {
         intValue.current = text;
       } else {
         handleSetValue(null, 0, itemKey);
-
-        if(handleReady !== undefined) {
-          handleReady(itemKey, fieldRef, inputRef);
-        }
+        textValue.current = null;
+        intValue.current = null;
         return;
       }
       //else...
@@ -73,11 +85,11 @@ export default function IntField(props) {
             handleSetValue(null, -1, itemKey);
           } else {
             //check decimal-notation
-            if(text.includes(".")) {
+            if(textValue.current.includes(".")) {
               setHelperText(`This is an Integer field, the decimals will be rounded. Value taken: ${intValue.current}`);
             } else {
               //check e-notation
-              if(text.includes("e")) {
+              if(textValue.current.includes("e")) {
                 setHelperText(`Value taken: ${intValue.current}`);
               } else {
                 setHelperText(null);
@@ -89,118 +101,126 @@ export default function IntField(props) {
         handleSetValue(null, 0, itemKey);
       }
     }
-
-    if(handleReady !== undefined) {
-      handleReady(itemKey, fieldRef, inputRef);
-    }
-
-  }, []);
+  }
 
   return (
-      <TextField
-        id={"int-field-"+itemKey+'-'+label}
-        label={label}
-        ref={fieldRef}
-        inputRef={inputRef}
-        type="number"
-        defaultValue={defaultValue.current}
-        className={classes.textField}
-        margin="normal"
-        variant="filled"
-        placeholder="integer"
-        helperText={errorText!==null ? errorText : (helperText!==null ? helperText : "")}
-        error={errorText!== null}
-        autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
-        InputProps={{
-          endAdornment:
-            <InputAdornment position="end">
-              {(valueOk!==undefined&&valueOk===1) ? <CheckIcon color="primary" fontSize="small" /> : ''}
-            </InputAdornment>
-        }}
-        InputLabelProps={{ 
-          shrink: true
-        }}
-        inputProps={{ 
-          spellCheck: 'false'
-        }}
-        
-        onChange={(event) => {
-          textValue.current = event.target.value;
-          intValue.current = Math.round(parseFloat(event.target.value));
+    <Grid container justify='flex-start' alignItems='center' spacing={2}>
+      <Grid item>
+        <TextField
+          id={"int-field-"+itemKey+'-'+label}
+          value={(foreignKey === undefined) ? undefined : (text ? text : '')}
+          label={label}
+          ref={fieldRef}
+          inputRef={inputRef}
+          type="number"
+          defaultValue={(foreignKey !== undefined) ? undefined : defaultValue.current}
+          className={classes.textField}
+          margin="normal"
+          variant="filled"
+          placeholder="integer"
+          helperText={errorText!==null ? errorText : (helperText!==null ? helperText : "")}
+          error={errorText!== null}
+          autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
+          InputProps={{
+            endAdornment:
+              <InputAdornment position="end">
+                {(valueOk!==undefined&&valueOk===1) ? <CheckIcon color="primary" fontSize="small" /> : ''}
+              </InputAdornment>,
+              readOnly: (foreignKey !== undefined)
+          }}
+          InputLabelProps={{ 
+            shrink: true
+          }}
+          inputProps={{ 
+            spellCheck: 'false'
+          }}
+          
+          onChange={(event) => {
+            textValue.current = event.target.value;
+            intValue.current = Math.round(parseFloat(event.target.value));
 
-          if(textValue.current !== null && textValue.current !== '' && !(isNaN(textValue.current)) && !(isNaN(intValue.current))) {
-            error.current = false;
-            setErrorText(null);
-            handleSetValue(intValue.current, 0, itemKey);
-
-            //check max int32-bit value
-            if(intValue.current > 2147483647) {
-              error.current = true;
-              setErrorText(`This is an Integer field, the maximum valid positive number is 2147483647. Entered value: ${intValue.current}`);
-              setHelperText(null);
-              handleSetValue(null, -1, itemKey);
-              return;
-            }
-
-            //check min int32-bit value
-            if(intValue.current < -2147483647) {
-              error.current = true;
-              setErrorText(`This is an Integer field, the minimum valid negative number is -2147483647. Entered value: ${intValue.current}`);
-              setHelperText(null);
-              handleSetValue(null, -1, itemKey);
-              return;
-            }
-
-            //check decimal-notation
-            if(event.target.value.includes(".")) {
-              setHelperText(`This is an Integer field, the decimals will be rounded. Value taken: ${intValue.current}`);
-            } else {
-              //check e-notation
-              if(event.target.value.includes("e")) {
-                setHelperText(`Value taken: ${intValue.current}`);
-              } else {
-                setHelperText(null);
-              }
-            }
-            
-          } else {
-            error.current = false;
-            setErrorText('Invalid number');
-            setHelperText(null);
-            handleSetValue(null, -1, itemKey);
-          }
-        }}
-
-        onBlur={(event) => {
-          if(!error.current) {
-            setErrorText(null);
             if(textValue.current !== null && textValue.current !== '' && !(isNaN(textValue.current)) && !(isNaN(intValue.current))) {
-              handleSetValue(intValue.current, 1, itemKey);
-            } else {
-              handleSetValue(null, 0, itemKey);
-            }
-          }
-        }}
+              error.current = false;
+              setErrorText(null);
+              handleSetValue(intValue.current, 0, itemKey);
 
-        onKeyDown={(event) => {
-          if(event.key === 'Enter') {
+              //check max int32-bit value
+              if(intValue.current > 2147483647) {
+                error.current = true;
+                setErrorText(`This is an Integer field, the maximum valid positive number is 2147483647. Entered value: ${intValue.current}`);
+                setHelperText(null);
+                handleSetValue(null, -1, itemKey);
+                return;
+              }
+
+              //check min int32-bit value
+              if(intValue.current < -2147483647) {
+                error.current = true;
+                setErrorText(`This is an Integer field, the minimum valid negative number is -2147483647. Entered value: ${intValue.current}`);
+                setHelperText(null);
+                handleSetValue(null, -1, itemKey);
+                return;
+              }
+
+              //check decimal-notation
+              if(event.target.value.includes(".")) {
+                setHelperText(`This is an Integer field, the decimals will be rounded. Value taken: ${intValue.current}`);
+              } else {
+                //check e-notation
+                if(event.target.value.includes("e")) {
+                  setHelperText(`Value taken: ${intValue.current}`);
+                } else {
+                  setHelperText(null);
+                }
+              }
+              
+            } else {
+              error.current = false;
+              setErrorText('Invalid number');
+              setHelperText(null);
+              handleSetValue(null, -1, itemKey);
+            }
+          }}
+
+          onBlur={(event) => {
             if(!error.current) {
+              setErrorText(null);
               if(textValue.current !== null && textValue.current !== '' && !(isNaN(textValue.current)) && !(isNaN(intValue.current))) {
                 handleSetValue(intValue.current, 1, itemKey);
               } else {
                 handleSetValue(null, 0, itemKey);
               }
             }
-          } else if(/^[+\-\.e]{1}$/.test(event.key)) {
-            if(textValue.current === null || textValue.current === '' || isNaN(textValue.current) || isNaN(intValue.current)) {
-              error.current = false;
-              setErrorText('Invalid number');
-              setHelperText(null);
-              handleSetValue(null, -1, itemKey);
+          }}
+
+          onKeyDown={(event) => {
+            if(event.key === 'Enter') {
+              if(!error.current) {
+                if(textValue.current !== null && textValue.current !== '' && !(isNaN(textValue.current)) && !(isNaN(intValue.current))) {
+                  handleSetValue(intValue.current, 1, itemKey);
+                } else {
+                  handleSetValue(null, 0, itemKey);
+                }
+              }
+            } else if(/^[+\-\.e]{1}$/.test(event.key)) {
+              if(textValue.current === null || textValue.current === '' || isNaN(textValue.current) || isNaN(intValue.current)) {
+                error.current = false;
+                setErrorText('Invalid number');
+                setHelperText(null);
+                handleSetValue(null, -1, itemKey);
+              }
             }
-          }
-        }}
-      />
+          }}
+        />
+      </Grid>
+      {(foreignKey !== undefined) && (
+        <Grid item>
+          <Typography variant="caption" color='textSecondary'>
+            Foreing key
+          </Typography>
+      </Grid>
+      )}
+    </Grid>
   );
 }
 IntField.propTypes = {
@@ -213,6 +233,7 @@ IntField.propTypes = {
   ]),
   valueOk: PropTypes.number.isRequired,
   autoFocus: PropTypes.bool,
+  foreignKey: PropTypes.bool,
   handleReady: PropTypes.func.isRequired,
   handleSetValue: PropTypes.func.isRequired,
 };

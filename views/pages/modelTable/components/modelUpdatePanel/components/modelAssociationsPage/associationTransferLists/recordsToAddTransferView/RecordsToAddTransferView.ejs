@@ -27,25 +27,27 @@ const useStyles = makeStyles(theme => ({
   },
   card: {
     margin: theme.spacing(1),
-    height: '64vh',
-    maxHeight: '64vh',
+    height: 'auto',
+    maxHeight: `calc(64vh + 52px)`,
     overflow: 'auto',
     position: "relative",
   },
   listBox: {
-    height: '33vh',
+    height: 'auto',
+    minHeight: 82,
     maxHeight: '33vh',
     overflowY: 'auto',
     overflowX: 'hidden'
   },
   noDataBox: {
     width: "100%",
-    height: '33vh',
+    height: 'auto',
+    minHeight: 82,
     maxHeight: '33vh',
   },
   loadingBox: {
     width: "100%",
-    height: '33vh',
+    height: '100%',
     maxHeight: '33vh',
   },
   row: {
@@ -68,6 +70,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
     idsToAdd,
     handleTransfer,
     handleUntransfer,
+    handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row,
   } = props;
 
   /*
@@ -101,6 +104,11 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
   const lidsToAdd = useRef([]);
   const lidsAssociated = useRef(undefined);
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
+
+  const lref = useRef(null);
+  const lrefB = useRef(null);
+  const [lh, setLh] = useState(82);
+  const [lhB, setLhB] = useState(82);
 
   useEffect(() => {
     if(idsToAdd !== undefined && Array.isArray(idsToAdd) && idsToAdd.length > 0) {
@@ -198,6 +206,8 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
   }, [rowsPerPageB]);
 
   useEffect(() => {
+    updateHeights();
+
     if (!isOnApiRequest && isPendingApiRequest) {
       setIsPendingApiRequest(false);
       getData();
@@ -205,6 +215,8 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
   }, [isOnApiRequest]);
 
   useEffect(() => {
+    updateHeights();
+
     if (!isOnApiRequestB && isPendingApiRequestB) {
       setIsPendingApiRequestB(false);
       getDataB();
@@ -593,11 +605,24 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
       });
   }
   
+  function updateHeights() {
+    if(lref.current) {
+      let h =lref.current.clientHeight;
+      setLh(h);
+    }
+    if(lrefB.current) {
+      let hb =lrefB.current.clientHeight;
+      setLhB(hb);
+    }
+  }
+
   const handleSearchEnter = text => {
+    updateHeights();
     setSearch(text);
   };
 
   const handleSearchEnterB = text => {
+    updateHeights();
     setSearchB(text);
   };
 
@@ -618,7 +643,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
   };
 
   const handleRowClicked = (event, item) => {
-    console.log("clicked: ", item);
+    handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row(event, item);
   };
 
   const handleAddItem = (event, item) => {
@@ -630,6 +655,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
     lidsToAdd.current.push(item.id);
     setThereAreItemsToAdd(true);
 <%}-%>
+    updateHeights();
 
     getData();
     getDataB();
@@ -653,6 +679,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
       setThereAreItemsToAdd(false);
     }
 <%}-%>
+    updateHeights();
 
     getDataB();
     getData();
@@ -661,7 +688,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
 
   return (
     <div className={classes.root}>
-      <Grid container spacing={4}>
+      <Grid container spacing={4} alignItems='center'>
         {/*
           * Selectable list (A)
           */}
@@ -706,7 +733,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
                   in={true}
                   unmountOnExit
                 >
-                  <Box className={classes.listBox}>
+                  <Box className={classes.listBox} ref={lref}>
                     <List dense component="div" role="list" >
                       {items.map(it => {
                         let key = it.id;
@@ -788,11 +815,13 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
                   <div>
                     <Grid container>
                       <Grid item xs={12}>
-                        <Grid container className={classes.loadingBox} justify="center" alignItems="center">
-                          <Grid item>
-                            <CircularProgress color='primary' disableShrink/>
+                        <Box height={lh}>
+                          <Grid container className={classes.loadingBox} justify="center" alignItems="center">
+                            <Grid item>
+                              <CircularProgress color='primary' disableShrink />
+                            </Grid>
                           </Grid>
-                        </Grid>
+                        </Box>
                       </Grid>
                     </Grid>
                   </div>
@@ -800,25 +829,16 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
               )}
 
               {/* Pagination */}
-              {/* Pagination */}
-              <Box
-                p={0}
-                position="absolute"
-                bottom={0}
-                right={0}
-                zIndex="modal"
-              >
-                <TablePagination
-                  rowsPerPageOptions={[10, 25, 50, 100]}
-                  component="div"
-                  count={count}
-                  rowsPerPage={rowsPerPage}
-                  labelRowsPerPage='Rows'
-                  page={page}
-                  onChangePage={handleChangePage}
-                  onChangeRowsPerPage={handleChangeRowsPerPage}
-                />
-              </Box>
+              <TablePagination
+                rowsPerPageOptions={[10, 25, 50, 100]}
+                component="div"
+                count={count}
+                rowsPerPage={rowsPerPage}
+                labelRowsPerPage='Rows'
+                page={page}
+                onChangePage={handleChangePage}
+                onChangeRowsPerPage={handleChangeRowsPerPage}
+              />
             </Card>
           )}
         </Grid>
@@ -888,7 +908,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
                   in={true}
                   unmountOnExit
                 >
-                  <Box className={classes.listBox}>
+                  <Box className={classes.listBox} ref={lrefB}>
                     <List dense component="div" role="list">
                       {itemsB.map(it => {
                         let key = it.id;
@@ -966,11 +986,13 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
                   <div>
                     <Grid container>
                       <Grid item xs={12}>
-                        <Grid container className={classes.loadingBox} justify="center" alignItems="center">
-                          <Grid item>
-                            <CircularProgress color='primary' disableShrink/>
+                        <Box height={lhB}>
+                          <Grid container className={classes.loadingBox} justify="center" alignItems="center">
+                            <Grid item>
+                              <CircularProgress color='primary' disableShrink />
+                            </Grid>
                           </Grid>
-                        </Grid>
+                        </Box>
                       </Grid>
                     </Grid>
                   </div>
@@ -978,24 +1000,16 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
               )}
 
               {/* Pagination */}
-              <Box
-                p={0}
-                position="absolute"
-                bottom={0}
-                right={0}
-                zIndex="modal"
-              >
-                <TablePagination
-                  rowsPerPageOptions={[10, 25, 50, 100]}
-                  component="div"
-                  count={countB}
-                  rowsPerPage={rowsPerPageB}
-                  labelRowsPerPage='Rows'
-                  page={pageB}
-                  onChangePage={handleChangePageB}
-                  onChangeRowsPerPage={handleChangeRowsPerPageB}
-                />
-              </Box>
+              <TablePagination
+                rowsPerPageOptions={[10, 25, 50, 100]}
+                component="div"
+                count={countB}
+                rowsPerPage={rowsPerPageB}
+                labelRowsPerPage='Rows'
+                page={pageB}
+                onChangePage={handleChangePageB}
+                onChangeRowsPerPage={handleChangeRowsPerPageB}
+              />
             </Card>
           )}
         </Grid>
