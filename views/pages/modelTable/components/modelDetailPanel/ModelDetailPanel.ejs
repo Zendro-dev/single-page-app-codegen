@@ -163,6 +163,9 @@ export default function <%- nameCp _%>DetailPanel(props) {
                 {/* Associations Page */}
                 <<%- nameCp _%>AssociationsPage
                   item={item}
+<%for( i=0; i<sortedAssociations.length; i++ ){-%>
+                  handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row}
+<%}-%>
                 />
     
               </Grid>
