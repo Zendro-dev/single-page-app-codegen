@@ -3,6 +3,8 @@ import { useSelector } from 'react-redux';
 import axios from 'axios'
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
+import { useTranslation } from 'react-i18next';
+import { useSnackbar } from 'notistack';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -27,6 +29,8 @@ const useStyles = makeStyles(theme => ({
 
 export default function <%- nameCp -%>UploadFileDialog(props) {
   const classes = useStyles();
+  const { t, i18n } = useTranslation();
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const {
     handleCancel,
     handleDone,
@@ -61,23 +65,35 @@ export default function <%- nameCp -%>UploadFileDialog(props) {
       ) {
           setOpen(false);
           handleDone(event);
+          //msg
+          //"The data has been sent, please be aware of the final import report that will arrive to your email."
+          enqueueSnackbar( t('modelPanels.messages.msg1'), {
+            variant: 'default',
+            preventDuplicate: true,
+          });
           return;
 
         } else {
           
-          //error
-          console.log("error1");
-
-          //done
+          //msg
+          //"Null data: GraphQL query returns no data."
+          enqueueSnackbar( t('modelPanels.messages.msg2'), {
+            variant: 'warning',
+            preventDuplicate: true,
+          });
+          console.log("Warning: ", response);
           return;
         }
       })
       .catch(err => {
 
         //error
-        console.log("error2");
-
-        //done
+        //"An error occurred while trying to execute the GraphQL query. Please contact your administrator."
+        enqueueSnackbar( t('modelPanels.errors.e1'), {
+          variant: 'error',
+          preventDuplicate: true,
+        });
+        console.log("Error: ", err);
         return;
       })
     }
@@ -89,7 +105,10 @@ export default function <%- nameCp -%>UploadFileDialog(props) {
       onClose={handleCancel} 
     >
       <DialogTitle>
-        Uploading <%- namePlCp %>
+      { t('modelPanels.uploading') + ' ' + '<%- namePlCp %>' }
+        <Typography variant="subtitle1" color='textSecondary' noWrap>
+        { t('modelPanels.uploadHelper') }
+        </Typography>
       </DialogTitle>
 
       <DialogContent dividers>
@@ -120,7 +139,7 @@ export default function <%- nameCp -%>UploadFileDialog(props) {
 
         {(maxSizeError) && (
           <Typography className={classes.text} color="secondary" variant="overline">
-              {'File exceeds limit of ' + String(appMaxUploadSize) + ' MB'}
+              {t('modelPanels.messages.msg3') + String(appMaxUploadSize) + ' MB'}
           </Typography>
         )}
       </DialogContent>
@@ -135,7 +154,7 @@ export default function <%- nameCp -%>UploadFileDialog(props) {
             handleCancel(event);
           }}
         >
-          CANCEL
+          { t('modelPanels.cancel') }
         </Button>
         <Button 
           className={classes.button}
@@ -147,7 +166,7 @@ export default function <%- nameCp -%>UploadFileDialog(props) {
             handleSubmit(event);
           }}
         >
-          UPLOAD
+          { t('modelPanels.upload') }
         </Button>
       </DialogActions>
     </Dialog>

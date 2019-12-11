@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
+import { useTranslation } from 'react-i18next';
 import api from '../../../../../requests/index'
 import <%- nameCp -%>EnhancedTableHead from './components/<%- nameCp -%>EnhancedTableHead'
 import <%- nameCp -%>EnhancedTableToolbar from './components/<%- nameCp -%>EnhancedTableToolbar'
@@ -64,6 +65,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function <%- nameCp -%>EnhancedTable() {
   const classes = useStyles();
+  const { t, i18n } = useTranslation();
 
   const [items, setItems] = useState([]);
   const [count, setCount] = useState(0);
@@ -473,7 +475,7 @@ export default function <%- nameCp -%>EnhancedTable() {
 
                               {/* SeeInfo icon */}
                               <TableCell padding="checkbox">
-                                <Tooltip title="View all info">
+                                <Tooltip title={ t('modelPanels.viewDetails') }>
                                   <IconButton
                                     color="default"
                                     onClick={event => {
@@ -492,7 +494,7 @@ export default function <%- nameCp -%>EnhancedTable() {
                                 - Delete
                               */}
                               <TableCell padding='checkbox' align='center'>
-                                <Tooltip title="Edit">
+                                <Tooltip title={ t('modelPanels.edit') }>
                                   <IconButton
                                     color="default"
                                     onClick={(event) => {
@@ -506,7 +508,7 @@ export default function <%- nameCp -%>EnhancedTable() {
                               </TableCell>
 
                               <TableCell padding='checkbox' align='center'>
-                                <Tooltip title="Delete">
+                                <Tooltip title={ t('modelPanels.delete') }>
                                   <IconButton
                                     color="default"
                                     onClick={(event) => {
@@ -612,6 +614,8 @@ export default function <%- nameCp -%>EnhancedTable() {
               count={count}
               rowsPerPage={rowsPerPage}
               page={page}
+              labelRowsPerPage = { t('modelPanels.rowsPerPage') }
+              labelDisplayedRows = {({ from, to, count }) => `${from}-${to === -1 ? count : to} ${t('modelPanels.of')} ${count}`}
               onChangePage={handleChangePage}
               onChangeRowsPerPage={handleChangeRowsPerPage}
             />

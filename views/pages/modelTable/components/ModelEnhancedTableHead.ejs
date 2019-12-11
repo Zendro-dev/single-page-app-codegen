@@ -1,5 +1,6 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
@@ -12,6 +13,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function <%- nameCp -%>EnhancedTableHead(props) {
   const classes = useStyles();
+  const { t, i18n } = useTranslation();
   const {
     order,
     orderBy,
@@ -28,7 +30,7 @@ export default function <%- nameCp -%>EnhancedTableHead(props) {
         {/* Actions */}
         <TableCell padding="checkbox" align='center' size='small' colSpan={2}>
           <Typography color="inherit" variant="caption">
-            Actions
+            { t('modelPanels.actions') }
           </Typography>
         </TableCell>
 

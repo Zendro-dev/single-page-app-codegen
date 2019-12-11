@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
+import { useTranslation } from 'react-i18next';
 import <%- nameCp _%>AttributesPage from './components/<%- nameLc _%>AttributesPage/<%- nameCp _%>AttributesPage'
 import <%- nameCp _%>AssociationsPage from './components/<%- nameLc _%>AssociationsPage/<%- nameCp _%>AssociationsPage'
 <%for( i=0; i<sortedAssociations.length; i++ ){-%>
@@ -36,6 +37,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 
 export default function <%- nameCp _%>DetailPanel(props) {
   const classes = useStyles();
+  const { t, i18n } = useTranslation();
   const { 
     item,
     dialog,
@@ -108,7 +110,7 @@ export default function <%- nameCp _%>DetailPanel(props) {
         <Dialog fullScreen open={open} onClose={handleCancel} TransitionComponent={Transition}>
           <AppBar className={classes.appBar}>
             <Toolbar>
-              <Tooltip title={"Close"}>
+              <Tooltip title={ t('modelPanels.close') }>
                 <IconButton
                   edge="start"
                   color="inherit"
@@ -118,7 +120,7 @@ export default function <%- nameCp _%>DetailPanel(props) {
                 </IconButton>
               </Tooltip>
               <Typography variant="h6" className={classes.title}>
-                <%- nameCp %> Info
+                { t('modelPanels.detailOf') +  ": <%- nameCp %> | id: " + item.id }
               </Typography>
             </Toolbar>
           </AppBar>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
+import { useTranslation } from 'react-i18next';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import IconButton from '@material-ui/core/IconButton';
@@ -24,6 +25,7 @@ const useToolbarStyles = makeStyles(theme => ({
 
 export default function <%- nameCp -%>EnhancedTableToolbar(props) {
   const classes = useToolbarStyles();
+  const { t, i18n } = useTranslation();
   const {
     search,
     onSearchEnter,
@@ -59,18 +61,18 @@ export default function <%- nameCp -%>EnhancedTableToolbar(props) {
                       <TextField
                         id="search-field"
                         value={displayedSearch}
-                        placeholder="Search"
+                        placeholder={ t('modelPanels.search') }
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
-                              <Tooltip title="Search">
+                              <Tooltip title={ t('modelPanels.search') }>
                                 <Search color="inherit" fontSize="small" />
                               </Tooltip>
                             </InputAdornment>
                           ),
                           endAdornment: (
                             <InputAdornment position="end">
-                              <Tooltip title="Clear search">
+                              <Tooltip title={ t('modelPanels.clearSearch') }>
                                 <span>
                                   {(!search) && (
                                     <IconButton
@@ -113,7 +115,7 @@ export default function <%- nameCp -%>EnhancedTableToolbar(props) {
                         <Grid item xs={12}>
                           <Grid container justify="center">
                             <Grid item>
-                              <Tooltip title="Add new <%- nameLc -%>">
+                              <Tooltip title={t('modelPanels.addNew') + " <%- nameLc _%>"}>
                                 <IconButton
                                   color="primary"
                                   onClick={(event) => { handleAddClicked(event) }}
@@ -123,7 +125,7 @@ export default function <%- nameCp -%>EnhancedTableToolbar(props) {
                               </Tooltip>
                             </Grid>
                             <Grid item>
-                              <Tooltip title="Import from CSV">
+                              <Tooltip title={ t('modelPanels.importCSV') }>
                                 <IconButton
                                   color="primary"
                                   onClick={(event) => { handleBulkImportClicked(event) }}
@@ -135,7 +137,7 @@ export default function <%- nameCp -%>EnhancedTableToolbar(props) {
                             <Grid item>
                               <form action={exportServerUrl}>
                                 <input type="hidden" name="model" value='<%- nameLc -%>' />
-                                <Tooltip title="Export to CSV">
+                                <Tooltip title={ t('modelPanels.exportCSV') }>
                                   <IconButton color="primary" type="submit">
                                     <Export />
                                   </IconButton>

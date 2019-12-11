@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import moment from "moment";
+import { useTranslation } from 'react-i18next';
 import <%- nameCp _%>AttributesPage from './components/<%- nameLc _%>AttributesPage/<%- nameCp _%>AttributesPage'
 import <%- nameCp _%>AssociationsPage from './components/<%- nameLc _%>AssociationsPage/<%- nameCp _%>AssociationsPage'
 import <%- nameCp _%>TabsA from './components/<%- nameCp _%>TabsA'
@@ -53,6 +54,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 
 export default function <%- nameCp _%>UpdatePanel(props) {
   const classes = useStyles();
+  const { t, i18n } = useTranslation();
 
   const { 
     item,
@@ -413,7 +415,7 @@ export default function <%- nameCp _%>UpdatePanel(props) {
     <Dialog fullScreen open={open} onClose={handleCancel} TransitionComponent={Transition}>
       <AppBar className={classes.appBar}>
         <Toolbar>
-          <Tooltip title={"Cancel"}>
+          <Tooltip title={ t('modelPanels.cancel') }>
             <IconButton 
               edge="start" 
               color="inherit" 
@@ -423,9 +425,9 @@ export default function <%- nameCp _%>UpdatePanel(props) {
             </IconButton>
           </Tooltip>
           <Typography variant="h6" className={classes.title}>
-            {'Editing <%- nameCp _%>'}
+            { t('modelPanels.editing') +  ": <%- nameCp %> | id: " + item.id }
           </Typography>
-          <Tooltip title={"Save <%- nameLc _%>"}>
+          <Tooltip title={ t('modelPanels.save') + " <%- nameLc _%>" }>
             <Fab 
               color="secondary" 
               className={classes.fabButton}

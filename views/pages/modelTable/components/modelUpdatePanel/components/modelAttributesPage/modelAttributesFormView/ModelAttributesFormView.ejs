@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 import StringField from './components/StringField'
 import FloatField from './components/FloatField'
@@ -37,6 +38,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function <%- nameCp _%>AttributesFormView(props) {
   const classes = useStyles();
+  const { t, i18n } = useTranslation();
   const { item, 
           valueOkStates,
 <%if(belongsTosArr.length > 0){-%>
@@ -70,10 +72,10 @@ export default function <%- nameCp _%>AttributesFormView(props) {
               }
               title={
                 <Typography variant="h6">
-                    <%- nameCp %> attributes
+                    { t('modelPanels.model') + ': <%- nameCp %>' }
                 </Typography>
               }
-              subheader={getItemsOk()+' / <%- attributesArr.length %> completed'}
+              subheader={getItemsOk()+' / <%- attributesArr.length %> ' + t('modelPanels.completed')}
             >
             </CardHeader>
           </Card>
