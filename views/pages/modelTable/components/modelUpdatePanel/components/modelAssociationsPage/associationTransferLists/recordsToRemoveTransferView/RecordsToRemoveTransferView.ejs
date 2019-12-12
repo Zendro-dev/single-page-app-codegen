@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
+import { useTranslation } from 'react-i18next';
+import { blueGrey } from '@material-ui/core/colors';
 import PropTypes from 'prop-types';
 import api from '../../../../../../../../../../../requests/index';
 import <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemoveTransferViewToolbar from './components/<%- sortedAssociations[aindex].targetModelPlCp _%>ToRemoveTransferViewToolbar';
@@ -13,17 +15,18 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import Divider from '@material-ui/core/Divider';
+import Hidden from '@material-ui/core/Hidden';
 import Fade from '@material-ui/core/Fade';
 import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
 import Add from '@material-ui/icons/AddCircle';
 import Remove from '@material-ui/icons/RemoveCircle';
+import TransferArrows from '@material-ui/icons/SettingsEthernetOutlined';
 
 const useStyles = makeStyles(theme => ({
   root: {
     marginTop: theme.spacing(1),
     minWidth: 200,
-    maxWidth: 477*2+20,
   },
   card: {
     margin: theme.spacing(1),
@@ -50,6 +53,12 @@ const useStyles = makeStyles(theme => ({
     height: '100%',
     maxHeight: '33vh',
   },
+  arrowsBox: {
+    marginTop: theme.spacing(3),
+  },
+  arrowsV: {
+    transform: "rotate(90deg)",
+  },
   row: {
     maxHeight: 70,
   },
@@ -65,6 +74,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemoveTransferView(props) {
   const classes = useStyles();
+  const { t, i18n } = useTranslation();
   const {
     item,
     idsToRemove,
@@ -90,10 +100,10 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
     State Table B (to remove)
   */
   const [itemsB, setItemsB] = useState([]);
-  const [countB, setCountB] = useState(50);
+  const [countB, setCountB] = useState(0);
   const [searchB, setSearchB] = useState('');
   const [pageB, setPageB] = useState(0);
-  const [rowsPerPageB, setRowsPerPageB] = useState(10);
+  const [rowsPerPageB, setRowsPerPageB] = useState(50);
   const [isOnApiRequestB, setIsOnApiRequestB] = useState(true);
   const [isPendingApiRequestB, setIsPendingApiRequestB] = useState(false);
   const [isGettingFirstDataB, setIsGettingFirstDataB] = useState(true);
@@ -110,8 +120,8 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
   const [lhB, setLhB] = useState(82);
 
   useEffect(() => {
-    if(idsToRemove !== undefined && idsToRemove.length > 0) {
-      lidsToRemove.current.concat(idsToRemove);
+    if(idsToRemove !== undefined && Array.isArray(idsToRemove) && idsToRemove.length > 0) {
+      lidsToRemove.current = Array.from(idsToRemove);
       setThereAreItemsToAdd(true);
       getDataB();
     } else {
@@ -244,6 +254,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
       setIsGettingFirstData(false);
     }
 
+    //uncomment following lines to exclude records on to-remove list from this list.
     //set ops: excluded ids: toRemoveIds
     // let ops = null;
     // if(lidsToRemove.current !== undefined && lidsToRemove.current.length > 0) {
@@ -294,8 +305,9 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
               console.log("@@newCount: ", newCount);
               console.log("@@newItems: ", response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].targetModelPlLc _%>Filter);
 
-              setCount(newCount);
-              setItems(response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].targetModelPlLc _%>Filter);
+              let its = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].targetModelPlLc _%>Filter;
+              setCount(its&&Array.isArray(its) ? newCount : 0);
+              setItems(its&&Array.isArray(its) ? its : []);
               setIsOnApiRequest(false);
               return;
 
@@ -338,6 +350,12 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
           values: {id: lidsToRemove.current}
         }]
       };
+    } else {
+      setCountB(0);
+      setItemsB([]);
+      setIsOnApiRequestB(false);
+      setThereAreItemsToAdd(false);
+      return;
     }
 
     /*
@@ -376,8 +394,8 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
             .then(response => {
               if (
                 response.data &&
-                response.data.data &&
-                response.data.data.<%- sortedAssociations[aindex].targetModelPlLc _%>) {
+                response.data.data
+              ) {
 
                 /**
                  * Debug
@@ -385,8 +403,9 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
                 console.log("@@newCount: ", newCount);
                 console.log("@@newItems: ", response.data.data.<%- sortedAssociations[aindex].targetModelPlLc _%>);
 
-                setCountB(newCount);
-                setItemsB(response.data.data.<%- sortedAssociations[aindex].targetModelPlLc _%>);
+                let its = response.data.data.<%- sortedAssociations[aindex].targetModelPlLc _%>;
+                setCountB(its&&Array.isArray(its) ? newCount : 0);
+                setItemsB(its&&Array.isArray(its) ? its : []);
                 setIsOnApiRequestB(false);
                 return;
 
@@ -492,17 +511,17 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
 
   return (
     <div className={classes.root}>
-      <Grid container spacing={4} alignItems='center'>
+      <Grid container spacing={4} alignItems='flex-start' justify='center'>
         {/*
           * Selectable list (A)
           */}
-        <Grid item xs={12} sm={6} >
+        <Grid item xs={12} sm={5} >
           {(item!==undefined) && (
             <Card className={classes.card}>
 
               {/* Toolbar */}
-              <<%- sortedAssociations[aindex].targetModelPlCp _%>ToRemoveTransferViewToolbar 
-                title={'Associated <%- sortedAssociations[aindex].targetModelPlLc _%>'}
+              <<%- sortedAssociations[aindex].targetModelPlCp _%>ToRemoveTransferViewToolbar
+                title={'<%- sortedAssociations[aindex].targetModelPlCp _%>'}
                 titleIcon={1}
                 search={search}
                 onSearchEnter={handleSearchEnter}
@@ -520,7 +539,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
                       <Grid item xs={12}>
                         <Grid className={classes.noDataBox} container justify="center" alignItems="center">
                           <Grid item>
-                            <Typography variant="body1" > No data to display </Typography>
+                            <Typography variant="body1" >{ t('modelPanels.noData') }</Typography>
                           </Grid>
                         </Grid>
                       </Grid>
@@ -584,7 +603,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
                                   <Grid item xs={2}>
                                     <Grid container justify='flex-end'>
                                       <Grid item>
-                                        <Tooltip title={!disabled ? "Send to to-remove list" : "Already on to-remove list"}>
+                                        <Tooltip title={!disabled ? t('modelPanels.transferToRemove') : t('modelPanels.alreadyToRemove') }>
                                           <span>
                                             <IconButton
                                               color="primary"
@@ -638,30 +657,85 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
 
               {/* Pagination */}
               <TablePagination
-                  rowsPerPageOptions={[10, 25, 50, 100]}
-                  component="div"
-                  count={count}
-                  rowsPerPage={rowsPerPage}
-                  labelRowsPerPage='Rows'
-                  page={page}
-                  onChangePage={handleChangePage}
-                  onChangeRowsPerPage={handleChangeRowsPerPage}
+                rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
+                component="div"
+                count={count}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                labelRowsPerPage = { t('modelPanels.rows') }
+                labelDisplayedRows = {({ from, to, count }) => `${from}-${to === -1 ? count : to} ${t('modelPanels.of')} ${count}`}
+                onChangePage={handleChangePage}
+                onChangeRowsPerPage={handleChangeRowsPerPage}
               />
             </Card>
           )}
         </Grid>
 
+        {/*
+          * Arrows
+          */}
+        <Hidden xsDown>
+          <Grid item xs={1} >
+            <Grid container className={classes.arrowsBox} justify='center'>
+              <TransferArrows
+                color="primary"
+                fontSize="large"
+                component={svgProps => {
+                  return (
+                    <svg {...svgProps}>
+                      <defs>
+                        <linearGradient id="gradient2">
+                          <stop offset="30%" stopColor={(countB&&countB>0) ? "#3F51B5" : blueGrey[200]} />
+                          <stop offset="70%" stopColor={(count&&count>0) ? "#F50057" : blueGrey[200]} />
+                        </linearGradient>
+                      </defs>
+                      {React.cloneElement(svgProps.children[0], {
+                        fill: 'url(#gradient2)',
+                      })}
+                    </svg>
+                  );
+                }}
+              />
+            </Grid>
+          </Grid>
+        </Hidden>
+        <Hidden smUp>
+          <Grid item xs={1} >
+            <Grid container className={classes.arrowsBox} justify='center'>
+              <TransferArrows
+                className={classes.arrowsV}
+                color="primary"
+                fontSize="large"
+                component={svgProps => {
+                  return (
+                    <svg {...svgProps}>
+                      <defs>
+                        <linearGradient id="gradient2b">
+                          <stop offset="30%" stopColor={(countB&&countB>0) ? "#3F51B5" : blueGrey[200]} />
+                          <stop offset="70%" stopColor={(count&&count>0) ? "#F50057" : blueGrey[200]} />
+                        </linearGradient>
+                      </defs>
+                      {React.cloneElement(svgProps.children[0], {
+                        fill: 'url(#gradient2b)',
+                      })}
+                    </svg>
+                  );
+                }}
+              />
+            </Grid>
+          </Grid>
+        </Hidden>
 
         {/*
           * To add list (B) 
           */}
-        <Grid item xs={12} sm={6} >
+        <Grid item xs={12} sm={5} >
           {(item!==undefined) && (
             <Card className={classes.card}>
 
               {/* Toolbar */}
               <<%- sortedAssociations[aindex].targetModelPlCp _%>ToRemoveTransferViewToolbar 
-                title={'<%- sortedAssociations[aindex].targetModelPlCp %> to remove'}
+                title={'<%- sortedAssociations[aindex].targetModelPlCp %>'}
                 titleIcon={2}
                 search={searchB}
                 onSearchEnter={handleSearchEnterB}
@@ -679,7 +753,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
                       <Grid item xs={12}>
                         <Grid className={classes.noDataBox} container justify="center" alignItems="center">
                           <Grid item>
-                            <Typography variant="body1" > No items added </Typography>
+                            <Typography variant="body1" >{ t('modelPanels.noItemsAdded') }</Typography>
                           </Grid>
                         </Grid>
                       </Grid>
@@ -700,7 +774,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
                       <Grid item xs={12}>
                         <Grid className={classes.noDataBox} container justify="center" alignItems="center">
                           <Grid item>
-                            <Typography variant="body1" > No data to display </Typography>
+                            <Typography variant="body1" >{ t('modelPanels.noData') }</Typography>
                           </Grid>
                         </Grid>
                       </Grid>
@@ -761,7 +835,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
 
                                   {/* Button: Add */}
                                   <Grid item xs={2}>
-                                    <Tooltip title="Remove from to-remove list">
+                                    <Tooltip title={ t('modelPanels.untransferToRemove') }>
                                       <IconButton
                                         color="primary"
                                         onClick={(event) => {
@@ -809,15 +883,16 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
 
               {/* Pagination */}
               <TablePagination
-                  rowsPerPageOptions={[10, 25, 50, 100]}
+                  rowsPerPageOptions={(countB <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
                   component="div"
                   count={countB}
                   rowsPerPage={rowsPerPageB}
-                  labelRowsPerPage='Rows'
                   page={pageB}
+                  labelRowsPerPage = { t('modelPanels.rows') }
+                  labelDisplayedRows = {({ from, to, count }) => `${from}-${to === -1 ? count : to} ${t('modelPanels.of')} ${count}`}
                   onChangePage={handleChangePageB}
                   onChangeRowsPerPage={handleChangeRowsPerPageB}
-              />
+                />
             </Card>
           )}
         </Grid>

@@ -5,8 +5,11 @@ import <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddTransferView from 
 import <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemoveTransferView from './<%- sortedAssociations[aindex].targetModelPlLc _%>ToRemoveTransferView/<%- sortedAssociations[aindex].targetModelPlCp _%>ToRemoveTransferView'
 <%}-%>
 import { makeStyles } from '@material-ui/core/styles';
+import { useTranslation } from 'react-i18next';
 import Grid from '@material-ui/core/Grid';
 import Fade from '@material-ui/core/Fade';
+import Divider from '@material-ui/core/Divider';
+import Typography from '@material-ui/core/Typography';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -16,6 +19,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function <%- sortedAssociations[aindex].targetModelCp _%>TransferLists(props) {
   const classes = useStyles();
+  const { t, i18n } = useTranslation();
 
   const {
     item,
@@ -40,9 +44,18 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>Transfer
           container 
           justify='center'
           alignItems='flex-start'
-          spacing={0}
+          spacing={2}
         > 
-
+          <Grid item xs={12}>
+            <Divider />
+            <Grid container justify='flex-start'>
+              <Grid item>
+                <Typography variant="body2" color="textSecondary" gutterBottom>
+                  { t('modelPanels.add') }
+                </Typography>
+              </Grid>
+            </Grid>
+          </Grid>
           <Grid item xs={12}>
             <<%- sortedAssociations[aindex].targetModelPlCp _%>ToAddTransferView
               item={item}
@@ -53,6 +66,16 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>Transfer
             />
           </Grid>
 <%if(sortedAssociations[aindex].type === 'to_many'){-%>
+          <Grid item xs={12}>
+            <Divider />
+            <Grid container justify='flex-start'>
+              <Grid item>
+                <Typography variant="body2" color="textSecondary" gutterBottom>
+                    { t('modelPanels.remove') }
+                </Typography>
+              </Grid>
+            </Grid>
+          </Grid>
           <Grid item xs={12}>
             <<%- sortedAssociations[aindex].targetModelPlCp _%>ToRemoveTransferView
               item={item}

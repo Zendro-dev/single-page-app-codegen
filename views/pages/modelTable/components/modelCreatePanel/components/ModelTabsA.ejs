@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
+import { useTranslation } from 'react-i18next';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import Grid from '@material-ui/core/Grid';
@@ -20,6 +21,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function <%- nameCp _%>TabsA(props) {
   const classes = useStyles();
+  const { t, i18n } = useTranslation();
   const { 
     value, 
     handleChange,
@@ -49,8 +51,8 @@ export default function <%- nameCp _%>TabsA(props) {
                     handleChange(event, newValue);
                   }
                 }}>
-                <Tab value={0} label="Attributes" />
-                <Tab value={1} label="Associations" />
+                <Tab value={0} label={ t('modelPanels.attributes') } />
+                <Tab value={1} label={ t('modelPanels.associations') } />
               </Tabs>
             </Grid>
           </Grid>

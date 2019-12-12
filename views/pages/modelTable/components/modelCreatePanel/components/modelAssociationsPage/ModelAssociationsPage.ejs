@@ -50,7 +50,7 @@ export default function <%- nameCp _%>AssociationsPage(props) {
         > 
 
           {/* Menu Tabs: Associations */}
-          <Grid item xs={12} sm={10} md={9} lg={8} xl={7} className={classes.menu}>
+          <Grid item xs={12} sm={10} md={9} className={classes.menu}>
             <<%- nameCp _%>AssociationsMenuTabs
               associationSelected={associationSelected}
               handleClick={handleAssociationClick}
@@ -60,7 +60,7 @@ export default function <%- nameCp _%>AssociationsPage(props) {
 <%for( i=0; i<sortedAssociations.length; i++ ){-%>
           {/* <%- sortedAssociations[i].targetModelCp _%> Transfer List */}
           {(associationSelected === '<%- sortedAssociations[i].targetModelLc _%>') && (
-            <Grid item xs={12} sm={10} md={9} lg={8} xl={7}>
+            <Grid item xs={12} sm={10} md={9}>
               <<%- sortedAssociations[i].targetModelCp _%>TransferLists
                 handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row}
                 idsToAdd={<%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd}

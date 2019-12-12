@@ -106,9 +106,11 @@ export default function <%- nameCp -%>UploadFileDialog(props) {
     >
       <DialogTitle>
       { t('modelPanels.uploading') + ' ' + '<%- namePlCp %>' }
-        <Typography variant="subtitle1" color='textSecondary' noWrap>
-        { t('modelPanels.uploadHelper') }
-        </Typography>
+        <div>
+          <Typography variant="subtitle1" color='textSecondary' noWrap>
+          { t('modelPanels.uploadHelper') }
+          </Typography>
+        </div>  
       </DialogTitle>
 
       <DialogContent dividers>

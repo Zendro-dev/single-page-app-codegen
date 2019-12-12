@@ -11,6 +11,7 @@ import Fade from '@material-ui/core/Fade';
 const useStyles = makeStyles(theme => ({
   root: {
     margin: theme.spacing(0),
+    minHeight: 1200,
   },
   menu: {
     marginTop: theme.spacing(1),
@@ -51,11 +52,12 @@ export default function <%- nameCp _%>AssociationsPage(props) {
           container 
           justify='center'
           alignItems='flex-start'
+          alignContent='flex-start'
           spacing={0}
         > 
 
           {/* Menu Tabs: Associations */}
-          <Grid item xs={12} sm={10} md={9} lg={8} xl={7} className={classes.menu}>
+          <Grid item xs={12} sm={10} md={9} className={classes.menu}>
             <<%- nameCp _%>AssociationsMenuTabs
               associationSelected={associationSelected}
               handleClick={handleAssociationClick}
@@ -65,7 +67,7 @@ export default function <%- nameCp _%>AssociationsPage(props) {
 <%for( i=0; i<sortedAssociations.length; i++ ){-%>
           {/* <%- sortedAssociations[i].targetModelCp _%> Transfer List */}
           {(associationSelected === '<%- sortedAssociations[i].targetModelLc _%>') && (
-            <Grid item xs={12} sm={10} md={9} lg={8} xl={7}>
+            <Grid item xs={12} sm={10} md={9}>
               <<%- sortedAssociations[i].targetModelCp _%>TransferLists
                 item={item}
                 idsToAdd={<%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd}
