@@ -16,6 +16,7 @@ import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import Slide from '@material-ui/core/Slide';
 import Tooltip from '@material-ui/core/Tooltip';
+import Divider from '@material-ui/core/Divider';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -126,15 +127,39 @@ export default function <%- nameCp _%>DetailPanel(props) {
           </AppBar>
     
           <div className={classes.root}>
-            <Grid container justify='center'>
+            <Grid container justify='center' alignItems='flex-start' alignContent='flex-start' spacing={2}>
+
+              <Grid item xs={12} sm={11} md={10} lg={9} xl={8}>
+                <Divider />
+                <Grid container justify='flex-start'>
+                  <Grid item>
+                    <Typography variant="body2" color="textSecondary" gutterBottom>
+                      { t('modelPanels.attributes') }
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Grid>
+
               <Grid item xs={12}>
-                  
                 {/* Attributes Page */}
                 <<%- nameCp _%>AttributesPage
                   item={item}
                   valueOkStates={valueOkStates}
                 />
+              </Grid>
+
+              <Grid item xs={12} sm={11} md={10} lg={9} xl={8}>
+                <Divider />
+                <Grid container justify='flex-start'>
+                  <Grid item>
+                    <Typography variant="body2" color="textSecondary" gutterBottom>
+                      { t('modelPanels.associations') }
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Grid>
     
+              <Grid item xs={12}>
                 {/* Associations Page */}
                 <<%- nameCp _%>AssociationsPage
                   item={item}
@@ -142,7 +167,6 @@ export default function <%- nameCp _%>DetailPanel(props) {
                   handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row}
 <%}-%>
                 />
-    
               </Grid>
             </Grid>
           </div>

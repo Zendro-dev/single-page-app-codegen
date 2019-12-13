@@ -52,7 +52,6 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
   const delayedSetSearchActive = async (ms, status) => {
     await new Promise(resolve => {
       window.setTimeout(function() {
-        console.log("on delayedSetSearchActive: status: ", status);
         setSearchActive(status);
         resolve("ok");
       }, ms);
@@ -62,7 +61,6 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
   const delayedSetSearchActiveB = async (ms, status) => {
     await new Promise(resolve => {
       window.setTimeout(function() {
-        console.log("on delayedSetSearchActiveB: status: ", status);
         setSearchActiveB(status);
         resolve("ok");
       }, ms);
@@ -79,17 +77,6 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
             {/* Title */}
             <Grid item xs={12} >
               <Grid container justify='flex-start' alignItems='center' wrap='wrap' spacing={2}>
-                {/* {(titleIcon !== undefined && titleIcon === 1) && (
-                  <Grid item>
-                    <NotAssociatedList fontSize="small" color="disabled" />
-                  </Grid>
-                )}
-                {(titleIcon !== undefined && titleIcon === 2) && (
-                  <Grid item>
-                    <AddList fontSize="small" color="disabled" />
-                  </Grid>
-                )} */}
-                
                 <Grid item>
                   <Typography variant="body2" display="inline" color="textSecondary">
                     {title}

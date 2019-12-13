@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
+import { useTranslation } from 'react-i18next';
+import { useSnackbar } from 'notistack';
 import PropTypes from 'prop-types';
 import api from '../../../../../../../../../../requests/index';
 import <%- sortedAssociations[aindex].targetModelCp _%>CompactViewToolbar from './components/<%- sortedAssociations[aindex].targetModelCp _%>CompactViewToolbar';
@@ -60,6 +62,8 @@ const useStyles = makeStyles(theme => ({
 
 export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactView(props) {
   const classes = useStyles();
+  const { t, i18n } = useTranslation();
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const {
     item,
     handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row,
@@ -178,57 +182,55 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
               response.data &&
               response.data.data
           ) {
+            if(response.data.errors) {
+              enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
+                variant: 'error',
+                preventDuplicate: true,
+              });
+              console.log("Errors: ", response.data.errors);
+            }
+
 <%_if( sortedAssociations[aindex].type === 'to_many' ){-%>
-              if(response.data.errors) {
-                //error
-                console.log("error0")
-                return;
-              }
+            let newCount = response.data.data.readOne<%- nameCp _%>.countFiltered<%- sortedAssociations[aindex].targetModelPlCp _%>;
+            let its = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].targetModelPlLc _%>Filter;
 
-              /**
-               * Debug
-               */
-              console.log("newData: ", response.data.data);
+            setCount((newCount&&typeof newCount==='number') ? newCount : 0);
+            setItems((its&&Array.isArray(its)) ? its : []);
+            setIsOnApiRequest(false);
+            return;
+<%} else {-%> 
+            let it = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].targetModel_%>;
 
-              let c = response.data.data.readOne<%- nameCp _%>.countFiltered<%- sortedAssociations[aindex].targetModelPlCp _%>;
-              let its = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].targetModelPlLc _%>Filter;
-
-              setCount((c&&typeof c==='number') ? c : 0);
-              setItems((its&&Array.isArray(its)) ? its : []);
-              setIsOnApiRequest(false);
-              return;
-<%} else {-%>
-              if(response.data.errors) {
-                //error
-                console.log("error0")
-                return;
-              }
-
-              /**
-               * Debug
-               */
-              console.log("newData: ", response.data.data);
-
-              let it = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].targetModel_%>;
-
-              setCount((it&&typeof it==='object') ? 1 : 0);
-              setItems((it&&typeof it==='object') ? [it] : []);
-              setIsOnApiRequest(false);
-              return;
+            setCount((it&&typeof it==='object') ? 1 : 0);
+            setItems((it&&typeof it==='object') ? [it] : []);
+            setIsOnApiRequest(false);
+            return;
 <%}-%>
 
-          } else {
-
-              //error
-              console.log("error3")
-              return;
+          } else { //error: bad response on getAssociationFilter()
+            
+            enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
+              variant: 'error',
+              preventDuplicate: true,
+            });
+            console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
+            setCount(0);
+            setItems([]);
+            setIsOnApiRequest(false);
+            return;
           }
       })
-      .catch(err => {
-
-          //error
-          console.log("error4: ", err)
-          return;
+      .catch(err => { //error: on getAssociationFilter()
+        
+        enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
+          variant: 'error',
+          preventDuplicate: true,
+        });
+        console.log("Error: ", err);
+        setCount(0);
+        setItems([]);
+        setIsOnApiRequest(false);
+        return;
       });
   }
 
@@ -285,7 +287,7 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
                       <Grid item xs={12}>
                         <Grid className={classes.noDataBox} container justify="center" alignItems="center">
                           <Grid item>
-                            <Typography variant="body1" > No data to display </Typography>
+                            <Typography variant="body1" >{ t('modelPanels.noData') }</Typography>
                           </Grid>
                         </Grid>
                       </Grid>
@@ -381,12 +383,13 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
               {/* Pagination */}
               {(<%- (sortedAssociations[aindex].type==='to_many') ? true : false _%>) && (
                 <TablePagination
-                  rowsPerPageOptions={[10, 25, 50, 100]}
+                  rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
                   component="div"
                   count={count}
                   rowsPerPage={rowsPerPage}
-                  labelRowsPerPage='Rows'
                   page={page}
+                  labelRowsPerPage = { t('modelPanels.rows') }
+                  labelDisplayedRows = {({ from, to, count }) => `${from}-${to === -1 ? count : to} ${t('modelPanels.of')} ${count}`}
                   onChangePage={handleChangePage}
                   onChangeRowsPerPage={handleChangeRowsPerPage}
                 />

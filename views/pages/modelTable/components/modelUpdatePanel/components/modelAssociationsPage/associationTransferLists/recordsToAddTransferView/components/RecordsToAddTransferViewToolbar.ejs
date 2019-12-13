@@ -55,7 +55,6 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp %>ToAddTr
   const delayedSetSearchActive = async (ms, status) => {
     await new Promise(resolve => {
       window.setTimeout(function() {
-        console.log("on delayedSetSearchActive: status: ", status);
         setSearchActive(status);
         resolve("ok");
       }, ms);
@@ -65,7 +64,6 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp %>ToAddTr
   const delayedSetSearchActiveB = async (ms, status) => {
     await new Promise(resolve => {
       window.setTimeout(function() {
-        console.log("on delayedSetSearchActiveB: status: ", status);
         setSearchActiveB(status);
         resolve("ok");
       }, ms);

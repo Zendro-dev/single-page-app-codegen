@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
+import { useTranslation } from 'react-i18next';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
+import Grow from '@material-ui/core/Grow';
+import Fade from '@material-ui/core/Fade';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import InputAdornment from '@material-ui/core/InputAdornment';
@@ -31,6 +34,7 @@ const useToolbarStyles = makeStyles(theme => ({
 
 export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactViewToolbar(props) {
   const classes = useToolbarStyles();
+  const { t, i18n } = useTranslation();
   const {
       search,
       title,
@@ -39,6 +43,27 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
   } = props;
   
   const [displayedSearch, setDisplayedSearch] = useState('');
+  const [searchActive, setSearchActive] = useState(false);
+  const [searchActiveB, setSearchActiveB] = useState(false);
+  const searchInputRef = useRef(null);
+
+  const delayedSetSearchActive = async (ms, status) => {
+    await new Promise(resolve => {
+      window.setTimeout(function() {
+        setSearchActive(status);
+        resolve("ok");
+      }, ms);
+    });
+  };
+
+  const delayedSetSearchActiveB = async (ms, status) => {
+    await new Promise(resolve => {
+      window.setTimeout(function() {
+        setSearchActiveB(status);
+        resolve("ok");
+      }, ms);
+    });
+  };
 
   return (
     <div>
@@ -55,7 +80,6 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
                     <AssociationIcon color="primary" fontSize="small" />
                   </Grid>
                 )}
-                
                 <Grid item>
                   <Typography variant="h6">
                     {title}
@@ -71,32 +95,82 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
             {(<%- (sortedAssociations[aindex].type==='to_many') ? true : false _%>) && (
               <Grid item xs={12}>
                 <Grid container justify='flex-end' alignItems='center' wrap='nowrap'>
-                  <Grid item>
-                    {/* Search field */}
-                    <TextField
-                      id="search-field"
-                      value={displayedSearch}
-                      placeholder="Search"
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <Tooltip title="Search">
-                              <Search color="inherit" fontSize="small" />
-                            </Tooltip>
-                          </InputAdornment>
-                        ),
-                        endAdornment: (
-                          <InputAdornment position="end">
-                            <Tooltip title="Clear search">
-                              <span>
-                                {(!search) && (
+
+                  {/* Search Inactive */}
+                  <Fade 
+                    in={!searchActive} 
+                    timeout={500}
+                    onExit={() => {
+                      delayedSetSearchActiveB(300, true);
+                    }}
+                  >
+                    <Grid item>
+                      {/* Search Icon */}
+                      <Tooltip title={t('modelPanels.showSearchBar')}>
+                        <span>
+                          <IconButton
+                            color='inherit'
+                            onClick={(event) => {
+                              setSearchActive(true);
+                            }}
+                          >
+                            <Search color="inherit" fontSize="small" />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                    </Grid>
+                  </Fade>
+                  
+                  {/* Search Active */}
+                  <Grow 
+                    in={searchActiveB}
+                    style={{ transformOrigin: 'right 50% 0' }}
+                    mountOnEnter={true} 
+                    unmountOnExit={true}
+                    onEnter={() => {
+                      if(searchInputRef.current) {searchInputRef.current.focus();}
+                    }}
+                    onExit={() => {
+                      delayedSetSearchActive(300, false);
+                    }}
+                  >
+                    <Grid item>
+                      {/* Search field */}
+                      <TextField
+                        value={displayedSearch}
+                        placeholder={ t('modelPanels.search') }
+                        inputRef={searchInputRef}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <Tooltip title={ t('modelPanels.search') }>
+                                <IconButton
+                                  color='inherit'
+                                  onClick={() => {
+                                    onSearchEnter(displayedSearch);
+                                  }}
+                                >
+                                  <Search color='primary' fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </InputAdornment>
+                          ),
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              {(!search) && (
+                                <Tooltip title={ t('modelPanels.hideSearchBar') }>
                                   <IconButton
-                                    disabled={true}
+                                    color='inherit'
+                                    onClick={() => {
+                                      setSearchActiveB(false);
+                                    }}
                                   >
                                     <ClearInactive color="inherit" fontSize="small" />
                                   </IconButton>
-                                )}
-                                {(search) && (
+                                </Tooltip>
+                              )}
+                              {(search) && (
+                                <Tooltip title={ t('modelPanels.clearSearch') }>
                                   <IconButton
                                     onClick={() => {
                                       onSearchEnter('');
@@ -105,20 +179,21 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
                                   >
                                     <ClearActive color="secondary" fontSize="small" />
                                   </IconButton>
-                                )}
-                              </span>
-                            </Tooltip>
-                          </InputAdornment>
-                        ),
-                      }}
-                      onKeyPress={event => {
-                        if (event.key === 'Enter') {
-                          onSearchEnter(displayedSearch);
-                        }
-                      }}
-                      onChange={event => setDisplayedSearch(event.target.value)}
-                    />
-                  </Grid>
+                                </Tooltip>
+                              )}
+                            </InputAdornment>
+                          ),
+                        }}
+                        onKeyPress={event => {
+                          if (event.key === 'Enter') {
+                            onSearchEnter(displayedSearch);
+                          }
+                        }}
+                        onChange={event => setDisplayedSearch(event.target.value)}
+                      />
+                    </Grid>
+                  </Grow>  
+                  
                 </Grid>
               </Grid>
             )}

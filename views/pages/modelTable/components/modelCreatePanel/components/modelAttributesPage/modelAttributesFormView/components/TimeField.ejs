@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import moment from "moment";
 import MomentUtils from "@date-io/moment";
 import { MuiPickersUtilsProvider, KeyboardTimePicker } from '@material-ui/pickers';
 import { makeStyles } from '@material-ui/core/styles';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import CheckIcon from '@material-ui/icons/Check';
+import "moment/locale/es.js";
+import "moment/locale/de.js";
 
 const useStyles = makeStyles(theme => ({
   input: {
@@ -15,6 +18,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function TimeField(props) {
   const classes = useStyles();
+  const { t, i18n } = useTranslation();
   const {
     itemKey,
     name,
@@ -31,10 +35,10 @@ export default function TimeField(props) {
   const mdate = useRef(moment.invalid());
 
   useEffect(() => {
-    if(text !== undefined && text !== null && typeof text === 'string' && text.trim() !== '') {
-      
-      let m = moment(text, "HH:mm:ss.SSSZ");
+    moment.locale(i18n.language);
 
+    if(text !== undefined && text !== null && typeof text === 'string' && text.trim() !== '') {
+      let m = moment(text, "HH:mm:ss.SSSZ");
       if(m.isValid()) {
         mdate.current = m;
         setSelectedDate(m);
@@ -52,7 +56,7 @@ export default function TimeField(props) {
   }, []);
 
   return (
-    <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils}>
+    <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils} locale={i18n.language}>
         <KeyboardTimePicker
           className={classes.input}
           id={"time-field-"+itemKey+'-'+label}

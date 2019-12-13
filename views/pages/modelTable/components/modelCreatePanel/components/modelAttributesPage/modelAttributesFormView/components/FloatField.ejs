@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
 import InputAdornment from '@material-ui/core/InputAdornment';
@@ -16,6 +17,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function FloatField(props) {
   const classes = useStyles();
+  const { t, i18n } = useTranslation();
   const {
     itemKey,
     name,
@@ -61,20 +63,20 @@ export default function FloatField(props) {
         //check max float number
         if(floatValue.current > 1.79769313486231e+308) {
           error.current = true;
-          setErrorText(`This is a Float field, the maximum valid positive number is 1.79769313486231e+308. Entered value: ${floatValue.current}`);
+          setErrorText( t('modelPanels.floatMaxErr', 'This is a Float field, the maximum valid positive number is 1.79769313486231e+308. Entered value: ') + `${floatValue.current}` );
           setHelperText(null);
           handleSetValue(null, -1, itemKey);
         } else {
           //check min float number
           if(floatValue.current < -1.79769313486231e+308) {
             error.current = true;
-            setErrorText(`This is a Float field, the minimum valid negative number is -1.79769313486231e+308. Entered value: ${floatValue.current}`);
+            setErrorText( t('modelPanels.floatMinErr', 'This is a Float field, the minimum valid negative number is -1.79769313486231e+308. Entered value: ') + `${floatValue.current}` );
             setHelperText(null);
             handleSetValue(null, -1, itemKey);
           } else {
             //check e-notation
             if(text.includes("e")) {
-              setHelperText(`Value taken: ${floatValue.current}`);
+              setHelperText( t('modelPanels.valueTaken', 'Value taken: ')+ `${floatValue.current}` );
             } else {
               setHelperText(null);
             }
@@ -102,7 +104,7 @@ export default function FloatField(props) {
         className={classes.textField}
         margin="normal"
         variant="filled"
-        placeholder="number"
+        placeholder={ t('modelPanels.number') }
         helperText={errorText!==null ? errorText : (helperText!==null ? helperText : "")}
         error={errorText!== null}
         autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
@@ -131,7 +133,7 @@ export default function FloatField(props) {
             //check max float number
             if(floatValue.current > 1.79769313486231e+308) {
               error.current = true;
-              setErrorText(`This is a Float field, the maximum valid positive number is 1.79769313486231e+308. Entered value: ${floatValue.current}`);
+              setErrorText( t('modelPanels.floatMaxErr', 'This is a Float field, the maximum valid positive number is 1.79769313486231e+308. Entered value: ') + `${floatValue.current}` );
               setHelperText(null);
               handleSetValue(null, -1, itemKey);
               return;
@@ -140,7 +142,7 @@ export default function FloatField(props) {
             //check min float number
             if(floatValue.current < -1.79769313486231e+308) {
               error.current = true;
-              setErrorText(`This is a Float field, the minimum valid negative number is -1.79769313486231e+308. Entered value: ${floatValue.current}`);
+              setErrorText( t('modelPanels.floatMinErr', 'This is a Float field, the minimum valid negative number is -1.79769313486231e+308. Entered value: ') + `${floatValue.current}` );
               setHelperText(null);
               handleSetValue(null, -1, itemKey);
               return;
@@ -148,14 +150,14 @@ export default function FloatField(props) {
 
              //check e-notation
              if(event.target.value.includes("e")) {
-              setHelperText(`Value taken: ${floatValue.current}`);
+              setHelperText( t('modelPanels.valueTaken', 'Value taken: ')+ `${floatValue.current}` );
             } else {
               setHelperText(null);
             }
             
           } else {
             error.current = false;
-            setErrorText('Invalid number');
+            setErrorText( t('modelPanels.invalidNumber', 'Invalid number') );
             setHelperText(null);
             handleSetValue(null, -1, itemKey);
           }
@@ -184,7 +186,7 @@ export default function FloatField(props) {
           } else if(/^[+\-\.e]{1}$/.test(event.key)) {
             if(textValue.current === null || textValue.current === '' || isNaN(textValue.current) || isNaN(floatValue.current)) {
               error.current = false;
-              setErrorText('Invalid number');
+              setErrorText( t('modelPanels.invalidNumber', 'Invalid number') );
               setHelperText(null);
               handleSetValue(null, -1, itemKey);
             }

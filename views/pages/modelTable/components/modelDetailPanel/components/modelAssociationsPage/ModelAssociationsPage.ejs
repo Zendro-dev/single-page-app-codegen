@@ -11,6 +11,7 @@ import Fade from '@material-ui/core/Fade';
 const useStyles = makeStyles(theme => ({
   root: {
     margin: theme.spacing(0),
+    minHeight: `calc(57vh + 84px)`,
   },
   menu: {
     marginTop: theme.spacing(1),
@@ -38,9 +39,9 @@ export default function <%- nameCp _%>AssociationsPage(props) {
         container 
         justify='center'
         alignItems='flex-start'
-        spacing={0}
+        alignContent='flex-start'
+        spacing={2}
       > 
-
         {/* Menu Tabs: Associations */}
         <Grid item xs={12} sm={10} md={9} lg={8} xl={7} className={classes.menu}>
           <<%- nameCp _%>AssociationsMenuTabs

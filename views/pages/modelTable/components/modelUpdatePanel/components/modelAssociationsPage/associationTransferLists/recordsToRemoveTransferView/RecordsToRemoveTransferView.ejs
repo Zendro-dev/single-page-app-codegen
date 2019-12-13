@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
-import { useTranslation } from 'react-i18next';
 import { blueGrey } from '@material-ui/core/colors';
+import { useTranslation } from 'react-i18next';
+import { useSnackbar } from 'notistack';
 import PropTypes from 'prop-types';
 import api from '../../../../../../../../../../../requests/index';
 import <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemoveTransferViewToolbar from './components/<%- sortedAssociations[aindex].targetModelPlCp _%>ToRemoveTransferViewToolbar';
@@ -75,6 +76,7 @@ const useStyles = makeStyles(theme => ({
 export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemoveTransferView(props) {
   const classes = useStyles();
   const { t, i18n } = useTranslation();
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const {
     item,
     idsToRemove,
@@ -254,7 +256,9 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
       setIsGettingFirstData(false);
     }
 
-    //uncomment following lines to exclude records on to-remove list from this list.
+    /*
+     * Uncomment following lines to exclude (hide) in this list, the records that are on to-remove list.
+     */
     //set ops: excluded ids: toRemoveIds
     // let ops = null;
     // if(lidsToRemove.current !== undefined && lidsToRemove.current.length > 0) {
@@ -287,42 +291,56 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
               response.data &&
               response.data.data
           ) {
-              var newCount = response.data.data.readOne<%- nameCp _%>.countFiltered<%- sortedAssociations[aindex].targetModelPlCp _%>;
+            if(response.data.errors) {
+              enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
+                variant: 'error',
+                preventDuplicate: true,
+              });
+              console.log("Errors: ", response.data.errors);
+            }
+            let newCount = response.data.data.readOne<%- nameCp _%>.countFiltered<%- sortedAssociations[aindex].targetModelPlCp _%>;
+            let its = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].targetModelPlLc _%>Filter;
 
-              /*
-                Check: empty page
-              */
-              if( (newCount === (page * rowsPerPage)) && (page > 0) ) 
-              {
-                setPage(page-1);
-                setIsOnApiRequest(false);
-                return;
-              }
-
-              /**
-               * Debug
-               */
-              console.log("@@newCount: ", newCount);
-              console.log("@@newItems: ", response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].targetModelPlLc _%>Filter);
-
-              let its = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].targetModelPlLc _%>Filter;
-              setCount(its&&Array.isArray(its) ? newCount : 0);
-              setItems(its&&Array.isArray(its) ? its : []);
+            /*
+              Check: empty page
+            */
+            if( (newCount === (page * rowsPerPage)) && (page > 0) ) 
+            {
+              setPage(page-1);
               setIsOnApiRequest(false);
               return;
+            }
+            
+            //ok
+            setCount((newCount&&typeof newCount==='number') ? newCount : 0);
+            setItems(its&&Array.isArray(its) ? its : []);
+            setIsOnApiRequest(false);
+            return;
 
-          } else {
-
-              //error
-              console.log("error3")
-              return;
+          } else { //error: bad response on associationFilter()
+            
+            enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
+              variant: 'error',
+              preventDuplicate: true,
+            });
+            console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
+            setCount(0);
+            setItems([]);
+            setIsOnApiRequest(false);
+            return;
           }
       })
-      .catch(err => {
-
-          //error
-          console.log("error4: ", err)
-          return;
+      .catch(err => { //error: on associationFilter()
+        
+        enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
+          variant: 'error',
+          preventDuplicate: true,
+        });
+        console.log("Error: ", err);
+        setCount(0);
+        setItems([]);
+        setIsOnApiRequest(false);  
+        return;
       });
   }
 
@@ -367,7 +385,14 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
           response.data &&
           response.data.data
         ) {
-          var newCount = response.data.data.count<%- sortedAssociations[aindex].targetModelPlCp _%>;
+          if(response.data.errors) {
+            enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
+              variant: 'error',
+              preventDuplicate: true,
+            });
+            console.log("Errors: ", response.data.errors);
+          }
+          let newCount = response.data.data.count<%- sortedAssociations[aindex].targetModelPlCp _%>;
 
           /*
             Check: empty page
@@ -396,45 +421,71 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
                 response.data &&
                 response.data.data
               ) {
-
-                /**
-                 * Debug
-                 */
-                console.log("@@newCount: ", newCount);
-                console.log("@@newItems: ", response.data.data.<%- sortedAssociations[aindex].targetModelPlLc _%>);
-
+                if(response.data.errors) {
+                  enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
+                    variant: 'error',
+                    preventDuplicate: true,
+                  });
+                  console.log("Errors: ", response.data.errors);
+                }
                 let its = response.data.data.<%- sortedAssociations[aindex].targetModelPlLc _%>;
-                setCountB(its&&Array.isArray(its) ? newCount : 0);
+                
+                //ok
+                setCountB((newCount&&typeof newCount==='number') ? newCount : 0);
                 setItemsB(its&&Array.isArray(its) ? its : []);
                 setIsOnApiRequestB(false);
                 return;
 
-              } else {
-
-                //error
-                console.log("error1");
+              } else { //error: bad response on getItems()
+            
+                enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
+                  variant: 'error',
+                  preventDuplicate: true,
+                });
+                console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
+                setCountB(0);
+                setItemsB([]);
+                setIsOnApiRequestB(false);
                 return;
               }
             })
-            .catch(err => {
-
-              //error
-              console.log("error2");
+            .catch(err => { //error: on getItems()
+        
+              enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
+                variant: 'error',
+                preventDuplicate: true,
+              });
+              console.log("Error: ", err);
+              setCountB(0);
+              setItemsB([]);
+              setIsOnApiRequestB(false);
               return;
             });
 
           return;
-        } else {
-
-          //error
-          console.log("error3")
+        } else { //error: bad response on getCountItems()
+            
+          enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
+            variant: 'error',
+            preventDuplicate: true,
+          });
+          console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
+          setCountB(0);
+          setItemsB([]);
+          setIsOnApiRequestB(false);
           return;
         }
       })
-      .catch(err => {
-
-        //error
-        console.log("error4: ", err)
+      .catch(err => { //error: on getCountItems()
+        
+        enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
+          variant: 'error',
+          preventDuplicate: true,
+        });
+        console.log("Error: ", err);
+        setCountB(0);
+        setItemsB([]);
+        setIsOnApiRequestB(false);
         return;
       });
   }
@@ -900,9 +951,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
     </div>
   );
 }
-/*
-  PropTypes
-*/
+
 <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemoveTransferView.propTypes = {
     item: PropTypes.object.isRequired,
     idsToRemove: PropTypes.array.isRequired,

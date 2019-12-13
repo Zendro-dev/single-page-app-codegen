@@ -2,8 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
+import { useTranslation } from 'react-i18next';
 
 export default function <%- nameCp _%>AssociationsMenuTabs(props) {
+  const { t, i18n } = useTranslation();
   const {
     associationSelected,
     handleClick,
@@ -20,7 +22,7 @@ export default function <%- nameCp _%>AssociationsMenuTabs(props) {
         scrollButtons="auto"
       >
 <%if(sortedAssociations.length === 0){-%>
-        <Tab key='no-associations' label='No associations' value='no-associations' />
+        <Tab key='no-associations' label={ t('modelPanels.noAssociations') } value='no-associations' />
 <%}-%>
 <%for( i=0; i<sortedAssociations.length; i++ ){-%>
         <Tab key='<%- sortedAssociations[i].targetModelPlLc _%>' label='<%- sortedAssociations[i].targetModelPlCp _%>' value='<%- sortedAssociations[i].targetModelLc _%>' />

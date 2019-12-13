@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
+import { useSnackbar } from 'notistack';
 import <%- nameCp _%>AttributesPage from './components/<%- nameLc _%>AttributesPage/<%- nameCp _%>AttributesPage'
 import <%- nameCp _%>AssociationsPage from './components/<%- nameLc _%>AssociationsPage/<%- nameCp _%>AssociationsPage'
 import <%- nameCp _%>TabsA from './components/<%- nameCp _%>TabsA'
@@ -54,6 +55,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 export default function <%- nameCp _%>CreatePanel(props) {
   const classes = useStyles();
   const { t, i18n } = useTranslation();
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const { 
     handleClose,
     handleOk,
@@ -167,48 +169,49 @@ export default function <%- nameCp _%>CreatePanel(props) {
 -%>
     variables.add<%- sortedAssociations[i].targetModelPlCp %> = <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current;
 <%}}-%>
-
-    console.log("values: ", values.current);
-    console.log("valuesOk: ", valueOkStates);
-
     /*
       API Request: createItem
     */
     api.<%- nameLc _%>.createItem(graphqlServerUrl, variables)
       .then(response => {
-        //Check response
         if (
           response.data &&
           response.data.data
         ) {
-          /**
-            * Debug
-            */
-          console.log(">> mutation.add response: ", response.data.data);
-
-          handleOk();
+          if(response.data.errors) {
+            enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
+              variant: 'error',
+              preventDuplicate: true,
+            });
+            console.log("Errors: ", response.data.errors);
+          } else {
+            //ok
+            enqueueSnackbar( t('modelPanels.messages.msg6', "Record created successfully."), {
+              variant: 'success',
+              preventDuplicate: true,
+            });
+            handleOk();
+            onClose(event);
+          }
           return;
 
-        } else {
-
-          //error
-          console.log("error3")
-
-          //done
+        } else { //error: bad response on createItem()
+          enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
+            variant: 'error',
+            preventDuplicate: true,
+          });
+          console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
           return;
         }
       })
-      .catch(err => {
-
-        //error
-        console.log("error4: ", err)
-
-        //done
+      .catch(err => { //error: on createItem()
+        enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
+          variant: 'error',
+          preventDuplicate: true,
+        });
+        console.log("Error: ", err);
         return;
       });
-    
-    //close
-    onClose(event);
   }
 
   const handleTabsChange = (event, newValue) => {
@@ -223,10 +226,10 @@ export default function <%- nameCp _%>CreatePanel(props) {
 
   const handleSave = (event) => {
     if(areThereNotAcceptableFields()) {
-      setConfirmationTitle("Some fields are not valid");
-      setConfirmationText("To continue, please correct these fields.")
+      setConfirmationTitle( t('modelPanels.invalidFields', "Some fields are not valid") );
+      setConfirmationText( t('modelPanels.invalidFieldsB', "To continue, please correct these fields.") );
       setConfirmationAcceptText("");
-      setConfirmationRejectText("I UNDERSTAND");
+      setConfirmationRejectText( t('modelPanels.updateAccept', "I UNDERSTAND"));
       handleAccept.current = () => {
         setConfirmationOpen(false);
       }
@@ -238,10 +241,10 @@ export default function <%- nameCp _%>CreatePanel(props) {
     }
 
     if(areThereIncompleteFields()) {
-      setConfirmationTitle("Some fields are empty");
-      setConfirmationText("Do you want to continue anyway?")
-      setConfirmationAcceptText("YES, SAVE");
-      setConfirmationRejectText("DON'T SAVE YET");
+      setConfirmationTitle( t('modelPanels.incompleteFields', "Some fields are empty") );
+      setConfirmationText( t('modelPanels.incompleteFieldsB', "Do you want to continue anyway?") );
+      setConfirmationAcceptText( t('modelPanels.saveIncompleteAccept', "YES, SAVE") );
+      setConfirmationRejectText( t('modelPanels.saveIncompleteReject', "DON'T SAVE YET") );
       handleAccept.current = () => {
         doSave(event);
         setConfirmationOpen(false);
@@ -257,10 +260,10 @@ export default function <%- nameCp _%>CreatePanel(props) {
 
   const handleCancel = (event) => {
     if(areThereAcceptableFields()) {
-      setConfirmationTitle("The edited information has not been saved");
-      setConfirmationText("Some fields have been edited, if you continue without save, the changes will be lost, you want to continue?")
-      setConfirmationAcceptText("YES, EXIT");
-      setConfirmationRejectText("STAY");
+      setConfirmationTitle( t('modelPanels.cancelChanges', "The edited information has not been saved") );
+      setConfirmationText( t('modelPanels.cancelChangesB', "Some fields have been edited, if you continue without save, the changes will be lost, you want to continue?") );
+      setConfirmationAcceptText( t('modelPanels.cancelChangesAccept', "YES, EXIT") );
+      setConfirmationRejectText( t('modelPanels.cancelChangesReject', "STAY") );
       handleAccept.current = () => {
         setConfirmationOpen(false);
         onClose(event);
@@ -380,7 +383,7 @@ export default function <%- nameCp _%>CreatePanel(props) {
       </AppBar>
 
       <div className={classes.root}>
-        <Grid container justify='center'>
+        <Grid container justify='center' alignItems='flex-start' alignContent='flex-start'>
           <Grid item xs={12}>
             
             {/* TabsA: Menú */}
