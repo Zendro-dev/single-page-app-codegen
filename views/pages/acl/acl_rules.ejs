@@ -1,0 +1,89 @@
+module.exports = {
+  aclRules: [
+    //all models
+    {
+      roles: 'admin',
+      allows: [{
+        resources: [
+<%for( i=0; i<adminModels.length; i++ ){-%>
+          '<%- adminModels[i].nameLc _%>',
+<%}-%>
+<%for( i=0; i<models.length; i++ ){-%>
+          '<%- models[i].nameLc _%>',
+<%}-%>
+        ],
+        permissions: '*'
+      }]
+    },
+
+    //admin models
+<%for( i=0; i<adminModels.length; i++ ){-%>
+    {
+      /**
+       * Model: <%- adminModels[i].nameLc %>
+       */
+      roles: '<%- adminModels[i].nameLc _%>_create',
+      allows: [{
+        resources: '<%- adminModels[i].nameLc _%>',
+        permissions: 'create'
+      }]
+    },
+    {
+      roles: '<%- adminModels[i].nameLc _%>_read',
+      allows: [{
+        resources: '<%- adminModels[i].nameLc _%>',
+        permissions: 'read'
+      }]
+    },
+    {
+      roles: '<%- adminModels[i].nameLc _%>_update',
+      allows: [{
+        resources: '<%- adminModels[i].nameLc _%>',
+        permissions: 'update'
+      }]
+    },
+    {
+      roles: '<%- adminModels[i].nameLc _%>_delete',
+      allows: [{
+        resources: '<%- adminModels[i].nameLc _%>',
+        permissions: 'delete'
+      }]
+    },
+<%}-%>
+
+    //models
+<%for( i=0; i<models.length; i++ ){-%>
+    {
+      /**
+       * Model: <%- models[i].nameLc %>
+       */
+      roles: '<%- models[i].nameLc _%>_create',
+      allows: [{
+        resources: '<%- models[i].nameLc _%>',
+        permissions: 'create'
+      }]
+    },
+    {
+      roles: '<%- models[i].nameLc _%>_read',
+      allows: [{
+        resources: '<%- models[i].nameLc _%>',
+        permissions: 'read'
+      }]
+    },
+    {
+      roles: '<%- models[i].nameLc _%>_update',
+      allows: [{
+        resources: '<%- models[i].nameLc _%>',
+        permissions: 'update'
+      }]
+    },
+    {
+      roles: '<%- models[i].nameLc _%>_delete',
+      allows: [{
+        resources: '<%- models[i].nameLc _%>',
+        permissions: 'delete'
+      }]
+    },
+<%}-%>
+  ]
+}

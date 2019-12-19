@@ -145,7 +145,10 @@ fs.readdirSync(program.jsonFiles).forEach( async (json_file) =>{
     }
   }
 
-  console.log("ejbOpts: ", ejbOpts);
+  /**
+   * Debug
+   */
+  //console.log("ejbOpts: ", ejbOpts);
   //console.log("fileData: ", fileData);
 
   /**
@@ -491,6 +494,14 @@ modelsOpts.adminModels.sort(function (a, b) {
   // template 60: TablesSwitch
   fpath = path.resolve(directory, `src/components/mainPanel/tablePanel/`, `TablesSwitch.js`);
   promises.push( funks.renderToFile(fpath, 'routes/TablesSwitch', modelsOpts) );
+
+  /**
+   * acl_rules
+   * 
+   * */
+  // template 61: acl_rules
+  fpath = path.resolve(directory, `src/`, `acl_rules.js`);
+  promises.push( funks.renderToFile(fpath, 'acl/acl_rules', modelsOpts) );
 
 
  Promise.all(promises).then( (values) =>{
