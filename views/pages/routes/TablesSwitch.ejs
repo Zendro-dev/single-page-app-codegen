@@ -3,6 +3,7 @@ import {
   Switch,
   Route
 } from 'react-router-dom'
+import PropTypes from 'prop-types';
 
 <%for( i=0; i<models.length; i++ ){-%>
 import <%- models[i].nameCp %>Table from './modelsTables/<%- models[i].nameLc _%>Table/<%- models[i].nameCp _%>EnhancedTable'
@@ -11,20 +12,35 @@ import <%- models[i].nameCp %>Table from './modelsTables/<%- models[i].nameLc _%
 import <%- adminModels[i].nameCp %>Table from './adminTables/<%- adminModels[i].nameLc _%>Table/<%- adminModels[i].nameCp _%>EnhancedTable'
 <%}-%>
 import NotFoundSection from '../pages/NotFoundSectionPage'
+import NoPermissionSectionPage from '../pages/NoPermissionSectionPage'
 
-export default function TablesSwitch() {
+export default function TablesSwitch(props) {
+  const { permissions } = props;
+
   return (
     
     <Switch>
 
         {/* Models */}
 <%for( i=0; i<models.length; i++ ){-%>
-        <Route exact path="/main/model/<%- models[i].nameLc _%>" component={<%- models[i].nameCp _%>Table} />
+        <Route exact path="/main/model/<%- models[i].nameLc _%>" 
+          render={
+            /* acl check */
+            (permissions&&permissions.<%- models[i].nameLc _%>&&Array.isArray(permissions.<%- models[i].nameLc _%>)
+            &&(permissions.<%- models[i].nameLc _%>.includes('read') || permissions.<%- models[i].nameLc _%>.includes('*')))
+            ? ((props) => <<%- models[i].nameCp _%>Table {...props} permissions={permissions}/>) : (NoPermissionSectionPage)
+        } />
 <%}-%>
 
         {/* Admin models */}
 <%for( i=0; i<adminModels.length; i++ ){-%>
-        <Route exact path="/main/admin/<%- adminModels[i].nameLc _%>" component={<%- adminModels[i].nameCp _%>Table} />
+        <Route exact path="/main/admin/<%- adminModels[i].nameLc _%>" 
+          component={
+            /* acl check */
+            (permissions&&permissions.<%- adminModels[i].nameLc _%>&&Array.isArray(permissions.<%- adminModels[i].nameLc _%>)
+            &&(permissions.<%- adminModels[i].nameLc _%>.includes('read') || permissions.<%- adminModels[i].nameLc _%>.includes('*')))
+            ? ((props) => <<%- adminModels[i].nameCp _%>Table {...props} permissions={permissions}/>) : (NoPermissionSectionPage)
+        } />
 <%}-%>
 
         {/* Default */}
@@ -33,3 +49,7 @@ export default function TablesSwitch() {
     </Switch>
   );
 }
+
+TablesSwitch.propTypes = {
+  permissions: PropTypes.object,
+};

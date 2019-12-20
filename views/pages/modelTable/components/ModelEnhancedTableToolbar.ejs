@@ -27,6 +27,7 @@ export default function <%- nameCp -%>EnhancedTableToolbar(props) {
   const classes = useToolbarStyles();
   const { t, i18n } = useTranslation();
   const {
+    permissions,
     search,
     onSearchEnter,
     handleAddClicked,
@@ -121,26 +122,42 @@ export default function <%- nameCp -%>EnhancedTableToolbar(props) {
                       <Grid container>
                         <Grid item xs={12}>
                           <Grid container justify="center">
-                            <Grid item>
-                              <Tooltip title={t('modelPanels.addNew') + " <%- nameLc _%>"}>
-                                <IconButton
-                                  color="primary"
-                                  onClick={(event) => { handleAddClicked(event) }}
-                                >
-                                  <Add />
-                                </IconButton>
-                              </Tooltip>
-                            </Grid>
-                            <Grid item>
-                              <Tooltip title={ t('modelPanels.importCSV') }>
-                                <IconButton
-                                  color="primary"
-                                  onClick={(event) => { handleBulkImportClicked(event) }}
-                                >
-                                  <Import />
-                                </IconButton>
-                              </Tooltip>
-                            </Grid>
+                            {/* Add */}
+                            {
+                              /* acl check */
+                              (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
+                              &&(permissions.<%- nameLc -%>.includes('create') || permissions.<%- nameLc -%>.includes('*')))
+                              &&(
+                                <Grid item>
+                                  <Tooltip title={t('modelPanels.addNew') + " <%- nameLc _%>"}>
+                                    <IconButton
+                                      color="primary"
+                                      onClick={(event) => { handleAddClicked(event) }}
+                                    >
+                                      <Add />
+                                    </IconButton>
+                                  </Tooltip>
+                                </Grid>
+                              )
+                            }
+                            {/* Upload */}
+                            {
+                              /* acl check */
+                              (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
+                              &&(permissions.<%- nameLc -%>.includes('update') || permissions.<%- nameLc -%>.includes('*')))
+                              &&(
+                                <Grid item>
+                                  <Tooltip title={ t('modelPanels.importCSV') }>
+                                    <IconButton
+                                      color="primary"
+                                      onClick={(event) => { handleBulkImportClicked(event) }}
+                                    >
+                                      <Import />
+                                    </IconButton>
+                                  </Tooltip>
+                                </Grid>
+                              )
+                            }
                             <Grid item>
                               <form action={exportServerUrl}>
                                 <input type="hidden" name="model" value='<%- nameLc -%>' />

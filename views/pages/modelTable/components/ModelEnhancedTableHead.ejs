@@ -15,6 +15,7 @@ export default function <%- nameCp -%>EnhancedTableHead(props) {
   const classes = useStyles();
   const { t, i18n } = useTranslation();
   const {
+    permissions,
     order,
     orderBy,
     onRequestSort
@@ -28,11 +29,28 @@ export default function <%- nameCp -%>EnhancedTableHead(props) {
         <TableCell padding="checkbox" />
 
         {/* Actions */}
-        <TableCell padding="checkbox" align='center' size='small' colSpan={2}>
-          <Typography color="inherit" variant="caption">
-            { t('modelPanels.actions') }
-          </Typography>
-        </TableCell>
+        {
+          /* acl check */
+          (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
+          &&(permissions.<%- nameLc -%>.includes('update') || permissions.<%- nameLc -%>.includes('delete') || permissions.<%- nameLc -%>.includes('*')))
+          &&(
+            <TableCell 
+              padding="checkbox" 
+              align='center' 
+              size='small' 
+              colSpan={
+                0 +
+                ((permissions.<%- nameLc -%>.includes('update') || permissions.<%- nameLc -%>.includes('*')) ? 1 : 0) 
+                +
+                ((permissions.<%- nameLc -%>.includes('delete') || permissions.<%- nameLc -%>.includes('*')) ? 1 : 0)
+              }
+            >
+              <Typography color="inherit" variant="caption">
+                { t('modelPanels.actions') }
+              </Typography>
+            </TableCell>
+          )
+        }
 
         {/* 
           Headers 
@@ -41,8 +59,8 @@ export default function <%- nameCp -%>EnhancedTableHead(props) {
         {/* Id */}
         <TableCell
           key='id'
-          align='right'
-          padding="default"
+          align='left'
+          padding="checkbox"
           sortDirection={orderBy === 'id' ? order : false}
         >
           <TableSortLabel
