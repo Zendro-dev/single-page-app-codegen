@@ -256,8 +256,10 @@ export default function <%- nameCp _%>UpdatePanel(props) {
 
   const handleSetValue = (value, status, key) => {
     values.current[key] = value;
-    valuesOkRefs.current[key] = status;
-    setValueOkStates({...valuesOkRefs.current});
+    if(status !== valuesOkRefs.current[key]) {
+      valuesOkRefs.current[key] = status;
+      setValueOkStates({...valuesOkRefs.current});
+    }
   }
 
   const handleSave = (event) => {

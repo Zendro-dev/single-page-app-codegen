@@ -27,16 +27,12 @@ export default function StringField(props) {
     handleSetValue,
   } = props;
   
-  const [value, setValue] = useState('');
+  const defaultValue = useRef((text !== undefined && typeof text === 'string' ) ? text : '');
+  const textValue = useRef((text !== undefined && typeof text === 'string' ) ? text : null);
   const inputRef = useRef(null);
   const fieldRef = useRef(null);
 
   useEffect(() => {
-    if(text !== undefined && text !== null && typeof text === 'string' && text.trim() !== '') {
-      setValue(text);
-      handleSetValue(text, 1, itemKey);
-    }
-    
     if(handleReady !== undefined) {
       handleReady(itemKey, fieldRef, inputRef);
     }
@@ -50,7 +46,7 @@ export default function StringField(props) {
       inputRef={inputRef}
       multiline
       rowsMax="4"
-      value={value}
+      defaultValue={defaultValue.current}
       className={classes.textField}
       margin="normal"
       variant="filled"
@@ -62,28 +58,28 @@ export default function StringField(props) {
           </InputAdornment>
       }}
       onChange={(event) => {
-        setValue(event.target.value);
-        let v = event.target.value;
+        textValue.current = event.target.value;
         
-        if(v === null || v === undefined || typeof v !== 'string' || v.trim() === '') {
+        if(!textValue.current || typeof textValue.current !== 'string') {
           handleSetValue(null, 0, itemKey);
         } else {
-          handleSetValue(v, 0, itemKey);
+          //status is set to 1 only on blur or ctrl+Enter
+          handleSetValue(textValue.current, 0, itemKey);
         }
       }}
       onBlur={(event) => {
-        if(value === null || value === undefined || typeof value !== 'string' || value.trim() === '') {
+        if(!textValue.current || typeof textValue.current !== 'string') {
           handleSetValue(null, 0, itemKey);
         } else {
-          handleSetValue(value, 1, itemKey);
+          handleSetValue(textValue.current, 1, itemKey);
         }
       }}
       onKeyDown={(event) => {
-        if(event.key === 'Enter') {
-          if(value === null || value === undefined || typeof value !== 'string' || value.trim() === '') {
+        if(event.ctrlKey && event.key === 'Enter') {
+          if(!textValue.current || typeof textValue.current !== 'string') {
             handleSetValue(null, 0, itemKey);
           } else {
-            handleSetValue(value, 1, itemKey);
+            handleSetValue(textValue.current, 1, itemKey);
           }
         }
       }}

@@ -26,15 +26,11 @@ export default function StringField(props) {
     handleReady,
   } = props;
   
-  const [value, setValue] = useState('');
+  const defaultValue = useRef((text !== undefined && typeof text === 'string' ) ? text : '');
   const inputRef = useRef(null);
   const fieldRef = useRef(null);
 
   useEffect(() => {
-    if(text !== undefined && text !== null && typeof text === 'string' && text.trim() !== '') {
-      setValue(text);
-    }
-    
     if(handleReady !== undefined) {
       handleReady(itemKey, fieldRef, inputRef);
     }
@@ -48,7 +44,7 @@ export default function StringField(props) {
       inputRef={inputRef}
       multiline
       rowsMax="4"
-      value={value}
+      defaultValue={defaultValue.current}
       className={classes.textField}
       margin="normal"
       variant="outlined"
