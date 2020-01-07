@@ -1,17 +1,17 @@
 {
   "model" : "aminoacidsequence",
-  "storageType" : "Webservice",
+  "storageType" : "SQL",
   "attributes" : {
     "accession" : "String",
     "sequence" : "String"
   },
   "associations": {
-    "transcript_counts": {
+    "transcriptCounts": {
       "type" : "to_many",
-      "target" : "transcript_count",
+      "target" : "transcriptCount",
       "targetKey" : "aminoacidsequence_id",
-      "keyIn": "transcript_count",
-      "targetStorageType" : "sql",
+      "keyIn": "transcriptCount",
+      "targetStorageType" : "SQL",
       "label" : "gene",
       "sublabel" : "variable"
     }

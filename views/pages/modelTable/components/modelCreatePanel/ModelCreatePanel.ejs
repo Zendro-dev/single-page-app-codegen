@@ -17,6 +17,7 @@ import Grid from '@material-ui/core/Grid';
 import Dialog from '@material-ui/core/Dialog';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
+import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import Slide from '@material-ui/core/Slide';
@@ -45,6 +46,9 @@ const useStyles = makeStyles(theme => ({
     bottom: -26+3,
     right: 10,
     margin: '0 auto',
+  },
+  notiErrorActionText: {
+    color: '#eba0a0',
   },
 }));
 
@@ -88,6 +92,15 @@ export default function <%- nameCp _%>CreatePanel(props) {
 <%}-%>
 
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl);
+
+  const actionText = useRef(null);
+  const action = (key) => (
+    <>
+      <Button color='inherit' variant='text' size='small' className={classes.notiErrorActionText} onClick={() => { closeSnackbar(key) }}>
+        {actionText.current}
+      </Button>
+    </> 
+  );
 
   useEffect(() => {}, []);
   
@@ -181,16 +194,24 @@ export default function <%- nameCp _%>CreatePanel(props) {
           response.data.data
         ) {
           if(response.data.errors) {
+            actionText.current = t('modelPanels.gotIt', "Got it");
             enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
               variant: 'error',
-              preventDuplicate: true,
+              preventDuplicate: false,
+              persist: true,
+              action,
             });
             console.log("Errors: ", response.data.errors);
           } else {
             //ok
             enqueueSnackbar( t('modelPanels.messages.msg6', "Record created successfully."), {
               variant: 'success',
-              preventDuplicate: true,
+              preventDuplicate: false,
+              persist: false,
+              anchorOrigin: {
+                vertical: 'bottom',
+                horizontal: 'left',
+              },
             });
             handleOk();
             onClose(event);
@@ -198,18 +219,24 @@ export default function <%- nameCp _%>CreatePanel(props) {
           return;
 
         } else { //error: bad response on createItem()
+          actionText.current = t('modelPanels.gotIt', "Got it");
           enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
             variant: 'error',
-            preventDuplicate: true,
+            preventDuplicate: false,
+            persist: true,
+            action,
           });
           console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
           return;
         }
       })
       .catch(err => { //error: on createItem()
+        actionText.current = t('modelPanels.gotIt', "Got it");
         enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
           variant: 'error',
-          preventDuplicate: true,
+          preventDuplicate: false,
+          persist: true,
+          action,
         });
         console.log("Error: ", err);
         return;

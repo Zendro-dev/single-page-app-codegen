@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
+<%if(typeAttributes.hasOwnProperty('Date') || typeAttributes.hasOwnProperty('Time') || typeAttributes.hasOwnProperty('DateTime')) {-%>
 import moment from "moment";
+<%}-%>
 import PropTypes from 'prop-types';
 import api from '../../../../../requests/index'
 import <%- nameCp -%>EnhancedTableHead from './components/<%- nameCp -%>EnhancedTableHead'
@@ -19,6 +21,7 @@ import TableCell from '@material-ui/core/TableCell';
 import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
+import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
 import Grid from '@material-ui/core/Grid';
@@ -64,6 +67,9 @@ const useStyles = makeStyles(theme => ({
         color: '#f50057'
       }
     },
+    notiErrorActionText: {
+      color: '#eba0a0',
+    },
 }));
 
 export default function <%- nameCp -%>EnhancedTable(props) {
@@ -93,6 +99,15 @@ export default function <%- nameCp -%>EnhancedTable(props) {
   const [uploadFileDialogOpen, setUploadFileDialogOpen] = useState(false);
 
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
+
+  const actionText = useRef(null);
+  const action = (key) => (
+    <>
+      <Button color='inherit' variant='text' size='small' className={classes.notiErrorActionText} onClick={() => { closeSnackbar(key) }}>
+        {actionText.current}
+      </Button>
+    </> 
+  );
 
   useEffect(() => {
       getData();
@@ -194,9 +209,12 @@ export default function <%- nameCp -%>EnhancedTable(props) {
             response.data.data
           ) {
             if(response.data.errors) {
+              actionText.current = t('modelPanels.gotIt', "Got it");
               enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
                 variant: 'error',
-                preventDuplicate: true,
+                preventDuplicate: false,
+                persist: true,
+                action,
               });
               console.log("Errors: ", response.data.errors);
             }
@@ -228,9 +246,12 @@ export default function <%- nameCp -%>EnhancedTable(props) {
                   response.data.data
                 ) {
                   if(response.data.errors) {
+                    actionText.current = t('modelPanels.gotIt', "Got it");
                     enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
                       variant: 'error',
-                      preventDuplicate: true,
+                      preventDuplicate: false,
+                      persist: true,
+                      action,
                     });
                     console.log("Errors: ", response.data.errors);
                   }
@@ -243,9 +264,12 @@ export default function <%- nameCp -%>EnhancedTable(props) {
                   return;
 
                 } else { //error: bad response on getItems()
+                  actionText.current = t('modelPanels.gotIt', "Got it");
                   enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
                     variant: 'error',
-                    preventDuplicate: true,
+                    preventDuplicate: false,
+                    persist: true,
+                    action,
                   });
                   console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
                   setCount(0);
@@ -255,9 +279,12 @@ export default function <%- nameCp -%>EnhancedTable(props) {
                 }
               })
               .catch(err => { //error: on getItems()
+                actionText.current = t('modelPanels.gotIt', "Got it");
                 enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
                   variant: 'error',
-                  preventDuplicate: true,
+                  preventDuplicate: false,
+                  persist: true,
+                  action,
                 });
                 console.log("Error: ", err);
                 setCount(0);
@@ -267,9 +294,12 @@ export default function <%- nameCp -%>EnhancedTable(props) {
               });
             return;
           } else { //error: bad response on getCountItems()
+            actionText.current = t('modelPanels.gotIt', "Got it");
             enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
               variant: 'error',
-              preventDuplicate: true,
+              preventDuplicate: false,
+              persist: true,
+              action,
             });
             console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
             setCount(0);
@@ -279,9 +309,12 @@ export default function <%- nameCp -%>EnhancedTable(props) {
           }
         })
       .catch(err => { //error: on getCountItems()
+        actionText.current = t('modelPanels.gotIt', "Got it");
         enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
           variant: 'error',
-          preventDuplicate: true,
+          preventDuplicate: false,
+          persist: true,
+          action,
         });
         console.log("Error: ", err);
         setCount(0);
@@ -305,25 +338,36 @@ export default function <%- nameCp -%>EnhancedTable(props) {
           response.data.data
         ) {
           if(response.data.errors) {
+            actionText.current = t('modelPanels.gotIt', "Got it");
             enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
               variant: 'error',
-              preventDuplicate: true,
+              preventDuplicate: false,
+              persist: true,
+              action,
             });
             console.log("Errors: ", response.data.errors);
           }else {
             //ok
             enqueueSnackbar( t('modelPanels.messages.msg4', "Record deleted successfully."), {
               variant: 'success',
-              preventDuplicate: true,
+              preventDuplicate: false,
+              persist: false,
+              anchorOrigin: {
+                vertical: 'bottom',
+                horizontal: 'left',
+              },
             });
           }
           getData();
           return;
 
         } else { //error: bad response on deleteItem()
+          actionText.current = t('modelPanels.gotIt', "Got it");
           enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
             variant: 'error',
-            preventDuplicate: true,
+            preventDuplicate: false,
+            persist: true,
+            action,
           });
           console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
           getData();
@@ -331,9 +375,12 @@ export default function <%- nameCp -%>EnhancedTable(props) {
         }
       })
       .catch(err => { //error: on deleteItem()
+        actionText.current = t('modelPanels.gotIt', "Got it");
         enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
           variant: 'error',
-          preventDuplicate: true,
+          preventDuplicate: false,
+          persist: true,
+          action,
         });
         console.log("Error: ", err);
         getData();

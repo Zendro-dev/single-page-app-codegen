@@ -25,6 +25,9 @@ const useStyles = makeStyles(theme => ({
     margin: theme.spacing(1),
     maxWidth: 500
   },
+  notiErrorActionText: {
+    color: '#eba0a0',
+  },
 }));
 
 export default function <%- nameCp -%>UploadFileDialog(props) {
@@ -41,6 +44,15 @@ export default function <%- nameCp -%>UploadFileDialog(props) {
   const file = useRef(null);
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl);
   const appMaxUploadSize = useSelector(state => state.limits.appMaxUploadSize);
+
+  const actionText = useRef(null);
+  const action = (key) => (
+    <>
+      <Button color='inherit' variant='text' size='small' className={classes.notiErrorActionText} onClick={() => { closeSnackbar(key) }}>
+        {actionText.current}
+      </Button>
+    </> 
+  );
 
   const handleSubmit = (event) => {
     if(file.current !== undefined && file.current !== null) {
@@ -65,21 +77,27 @@ export default function <%- nameCp -%>UploadFileDialog(props) {
       ) {
           setOpen(false);
           handleDone(event);
-          //msg
-          //"The data has been sent, please be aware of the final import report that will arrive to your email."
-          enqueueSnackbar( t('modelPanels.messages.msg1'), {
+
+          enqueueSnackbar( t('modelPanels.messages.msg1', "The data has been sent. A report with the status of the import process will be sent to your email."), {
             variant: 'default',
-            preventDuplicate: true,
+            preventDuplicate: false,
+            persist: false,
+              anchorOrigin: {
+                vertical: 'bottom',
+                horizontal: 'left',
+              },
           });
           return;
 
         } else {
-          
-          //msg
-          //"Null data: GraphQL query returns no data."
-          enqueueSnackbar( t('modelPanels.messages.msg2'), {
+          enqueueSnackbar( t('modelPanels.messages.msg2', "Null data received: GraphQL query returns no data."), {
             variant: 'warning',
-            preventDuplicate: true,
+            preventDuplicate: false,
+            persist: false,
+              anchorOrigin: {
+                vertical: 'bottom',
+                horizontal: 'left',
+              },
           });
           console.log("Warning: ", response);
           return;
@@ -88,10 +106,12 @@ export default function <%- nameCp -%>UploadFileDialog(props) {
       .catch(err => {
 
         //error
-        //"An error occurred while trying to execute the GraphQL query. Please contact your administrator."
-        enqueueSnackbar( t('modelPanels.errors.e1'), {
+        actionText.current = t('modelPanels.gotIt', "Got it");
+        enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
           variant: 'error',
-          preventDuplicate: true,
+          preventDuplicate: false,
+          persist: true,
+          action,
         });
         console.log("Error: ", err);
         return;

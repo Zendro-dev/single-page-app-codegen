@@ -18,6 +18,7 @@ import ListItem from '@material-ui/core/ListItem';
 import Divider from '@material-ui/core/Divider';
 import Hidden from '@material-ui/core/Hidden';
 import Fade from '@material-ui/core/Fade';
+import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
 import Add from '@material-ui/icons/AddCircle';
@@ -71,6 +72,9 @@ const useStyles = makeStyles(theme => ({
     marginLeft: theme.spacing(1),
     marginRight: theme.spacing(1),
   },
+  notiErrorActionText: {
+    color: '#eba0a0',
+  },
 }));
 
 export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemoveTransferView(props) {
@@ -115,6 +119,15 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
   const [thereAreItemsToAdd, setThereAreItemsToAdd] = useState(false);
   const lidsToRemove = useRef([]);
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
+
+  const actionText = useRef(null);
+  const action = (key) => (
+    <>
+      <Button color='inherit' variant='text' size='small' className={classes.notiErrorActionText} onClick={() => { closeSnackbar(key) }}>
+        {actionText.current}
+      </Button>
+    </> 
+  );
 
   const lref = useRef(null);
   const lrefB = useRef(null);
@@ -292,9 +305,12 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
               response.data.data
           ) {
             if(response.data.errors) {
+              actionText.current = t('modelPanels.gotIt', "Got it");
               enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
                 variant: 'error',
-                preventDuplicate: true,
+                preventDuplicate: false,
+                persist: true,
+                action,
               });
               console.log("Errors: ", response.data.errors);
             }
@@ -318,10 +334,12 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
             return;
 
           } else { //error: bad response on associationFilter()
-            
+            actionText.current = t('modelPanels.gotIt', "Got it");
             enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
               variant: 'error',
-              preventDuplicate: true,
+              preventDuplicate: false,
+              persist: true,
+              action,
             });
             console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
             setCount(0);
@@ -331,10 +349,12 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
           }
       })
       .catch(err => { //error: on associationFilter()
-        
+        actionText.current = t('modelPanels.gotIt', "Got it");
         enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
           variant: 'error',
-          preventDuplicate: true,
+          preventDuplicate: false,
+          persist: true,
+          action,
         });
         console.log("Error: ", err);
         setCount(0);
@@ -386,9 +406,12 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
           response.data.data
         ) {
           if(response.data.errors) {
+            actionText.current = t('modelPanels.gotIt', "Got it");
             enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
               variant: 'error',
-              preventDuplicate: true,
+              preventDuplicate: false,
+              persist: true,
+              action,
             });
             console.log("Errors: ", response.data.errors);
           }
@@ -422,9 +445,12 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
                 response.data.data
               ) {
                 if(response.data.errors) {
+                  actionText.current = t('modelPanels.gotIt', "Got it");
                   enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
                     variant: 'error',
-                    preventDuplicate: true,
+                    preventDuplicate: false,
+                    persist: true,
+                    action,
                   });
                   console.log("Errors: ", response.data.errors);
                 }
@@ -437,10 +463,12 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
                 return;
 
               } else { //error: bad response on getItems()
-            
+                actionText.current = t('modelPanels.gotIt', "Got it");
                 enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
                   variant: 'error',
-                  preventDuplicate: true,
+                  preventDuplicate: false,
+                  persist: true,
+                  action,
                 });
                 console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
                 setCountB(0);
@@ -450,10 +478,12 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
               }
             })
             .catch(err => { //error: on getItems()
-        
+              actionText.current = t('modelPanels.gotIt', "Got it");
               enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
                 variant: 'error',
-                preventDuplicate: true,
+                preventDuplicate: false,
+                persist: true,
+                action,
               });
               console.log("Error: ", err);
               setCountB(0);
@@ -464,10 +494,12 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
 
           return;
         } else { //error: bad response on getCountItems()
-            
+          actionText.current = t('modelPanels.gotIt', "Got it");
           enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
             variant: 'error',
-            preventDuplicate: true,
+            preventDuplicate: false,
+            persist: true,
+            action,
           });
           console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
           setCountB(0);
@@ -477,10 +509,12 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
         }
       })
       .catch(err => { //error: on getCountItems()
-        
+        actionText.current = t('modelPanels.gotIt', "Got it");
         enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
           variant: 'error',
-          preventDuplicate: true,
+          preventDuplicate: false,
+          persist: true,
+          action,
         });
         console.log("Error: ", err);
         setCountB(0);

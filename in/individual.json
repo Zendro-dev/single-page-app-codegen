@@ -5,11 +5,11 @@
     "name" : "String"
   },
   "associations": {
-    "transcript_counts": {
+    "transcriptCounts": {
       "type" : "to_many",
-      "target" : "transcript_count",
+      "target" : "transcriptCount",
       "targetKey" : "individual_id",
-      "keyIn": "transcript_count",
+      "keyIn": "transcriptCount",
       "targetStorageType" : "sql",
       "label" : "gene",
       "sublabel" : "variable"

@@ -11,6 +11,7 @@ import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
 import Card from '@material-ui/core/Card';
+import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -58,6 +59,9 @@ const useStyles = makeStyles(theme => ({
     marginLeft: theme.spacing(1),
     marginRight: theme.spacing(1),
   },
+  notiErrorActionText: {
+    color: '#eba0a0',
+  },
 }));
 
 export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactView(props) {
@@ -81,6 +85,15 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
   const [areItemsReady, setAreItemsReady] = useState(false);
 
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
+
+  const actionText = useRef(null);
+  const action = (key) => (
+    <>
+      <Button color='inherit' variant='text' size='small' className={classes.notiErrorActionText} onClick={() => { closeSnackbar(key) }}>
+        {actionText.current}
+      </Button>
+    </> 
+  );
 
   const lref = useRef(null);
   const [lh, setLh] = useState(82);
@@ -183,9 +196,12 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
               response.data.data
           ) {
             if(response.data.errors) {
+              actionText.current = t('modelPanels.gotIt', "Got it");
               enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
                 variant: 'error',
-                preventDuplicate: true,
+                preventDuplicate: false,
+                persist: true,
+                action,
               });
               console.log("Errors: ", response.data.errors);
             }
@@ -208,10 +224,12 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
 <%}-%>
 
           } else { //error: bad response on getAssociationFilter()
-            
+            actionText.current = t('modelPanels.gotIt', "Got it");
             enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
               variant: 'error',
-              preventDuplicate: true,
+              preventDuplicate: false,
+              persist: true,
+              action,
             });
             console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
             setCount(0);
@@ -221,10 +239,12 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
           }
       })
       .catch(err => { //error: on getAssociationFilter()
-        
+        actionText.current = t('modelPanels.gotIt', "Got it");
         enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
           variant: 'error',
-          preventDuplicate: true,
+          preventDuplicate: false,
+          persist: true,
+          action,
         });
         console.log("Error: ", err);
         setCount(0);
