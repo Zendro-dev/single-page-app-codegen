@@ -2,10 +2,14 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
+<%if(sortedAssociations.length === 0){-%>
 import { useTranslation } from 'react-i18next';
+<%}-%>
 
 export default function <%- nameCp _%>AssociationsMenuTabs(props) {
-  const { t, i18n } = useTranslation();
+<%if(sortedAssociations.length === 0){-%>
+  const { t } = useTranslation();
+<%}-%>
   const {
     associationSelected,
     handleClick,

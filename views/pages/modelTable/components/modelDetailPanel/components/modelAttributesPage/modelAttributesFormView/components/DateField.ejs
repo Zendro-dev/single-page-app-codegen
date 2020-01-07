@@ -18,7 +18,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function DateField(props) {
   const classes = useStyles();
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const {
     itemKey,
     name,
@@ -28,7 +28,6 @@ export default function DateField(props) {
     autoFocus,
     handleReady,
   } = props;
-  
   const [selectedDate, setSelectedDate] = useState(null);
   const inputRef = useRef(null);
   const mdate = useRef(moment.invalid());
@@ -56,7 +55,7 @@ export default function DateField(props) {
     <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils} locale={i18n.language}>
         <KeyboardDatePicker
           className={classes.input}
-          id={"date-field-"+itemKey+'-'+label}
+          id={"date-field-"+itemKey+'-'+name}
           label={label}
           inputRef={inputRef}
           format="YYYY-MM-DD"

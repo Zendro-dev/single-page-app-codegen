@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
@@ -38,7 +38,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 
 export default function <%- nameCp _%>DetailPanel(props) {
   const classes = useStyles();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { 
     item,
     dialog,
@@ -46,13 +46,16 @@ export default function <%- nameCp _%>DetailPanel(props) {
   } = props;
   
   const [open, setOpen] = useState(true);
-  const [valueOkStates, setValueOkStates] = useState(getInitialValueOkStates());
+  const valueOkStates = useRef(getInitialValueOkStates());
+
 
 <%for( i=0; i<sortedAssociations.length; i++ ){-%>
   const [<%- sortedAssociations[i].targetModelLc _%>DetailDialogOpen, set<%- sortedAssociations[i].targetModelCp _%>DetailDialogOpen] = useState(false);
   const [<%- sortedAssociations[i].targetModelLc _%>DetailItem, set<%- sortedAssociations[i].targetModelCp _%>DetailItem] = useState(undefined);
 <%}-%>
 
+  useEffect(() => {}, []);
+  
 <%for( i=0; i<sortedAssociations.length; i++ ){-%>
   useEffect(() => {
     if (<%- sortedAssociations[i].targetModelLc _%>DetailItem !== undefined) {
@@ -144,7 +147,7 @@ export default function <%- nameCp _%>DetailPanel(props) {
                 {/* Attributes Page */}
                 <<%- nameCp _%>AttributesPage
                   item={item}
-                  valueOkStates={valueOkStates}
+                  valueOkStates={valueOkStates.current}
                 />
               </Grid>
 
@@ -183,7 +186,7 @@ export default function <%- nameCp _%>DetailPanel(props) {
                 {/* Attributes Page */}
                 <<%- nameCp _%>AttributesPage
                   item={item}
-                  valueOkStates={valueOkStates}
+                  valueOkStates={valueOkStates.current}
                 />
     
                 {/* Associations Page */}

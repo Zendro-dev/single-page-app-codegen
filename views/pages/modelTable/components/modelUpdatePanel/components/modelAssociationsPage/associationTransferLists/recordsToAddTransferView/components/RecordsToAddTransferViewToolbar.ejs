@@ -15,8 +15,6 @@ import Divider from '@material-ui/core/Divider';
 import ClearInactive from '@material-ui/icons/BackspaceOutlined';
 import ClearActive from '@material-ui/icons/Backspace';
 import Search from '@material-ui/icons/Search';
-import AddList from '@material-ui/icons/AddToPhotosTwoTone';
-import NotAssociatedList from '@material-ui/icons/CheckBoxOutlineBlankTwoTone';
 
 const useToolbarStyles = makeStyles(theme => ({
   root: {
@@ -38,7 +36,7 @@ const useToolbarStyles = makeStyles(theme => ({
 
 export default function <%- sortedAssociations[aindex].targetModelPlCp %>ToAddTransferViewToolbar(props) {
   const classes = useToolbarStyles();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const {
       search,
       title,
@@ -80,17 +78,6 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp %>ToAddTr
             {/* Title */}
             <Grid item xs={12} >
               <Grid container justify='flex-start' alignItems='center' wrap='wrap' spacing={2}>
-                {/* {(titleIcon !== undefined && titleIcon === 1) && (
-                  <Grid item>
-                    <NotAssociatedList fontSize="small" color="disabled" />
-                  </Grid>
-                )}
-                {(titleIcon !== undefined && titleIcon === 2) && (
-                  <Grid item>
-                    <AddList fontSize="small" color="disabled" />
-                  </Grid>
-                )} */}
-                
                 <Grid item>
                   <Typography variant="body2" display="inline" color="textSecondary">
                     {title}

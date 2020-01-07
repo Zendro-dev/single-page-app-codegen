@@ -36,7 +36,6 @@ console.log('Output base-directory: ', colors.dim(path.resolve(directory)));
 
 // Verbose
 let verbose = program.verbose !== undefined ? true : false;
-console.log("verbose: ", verbose);
 
 // Check: required directories
 let allRequiredDirsExists = true;

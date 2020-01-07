@@ -55,7 +55,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 
 export default function <%- nameCp _%>UpdatePanel(props) {
   const classes = useStyles();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
   const { 
@@ -95,6 +95,8 @@ export default function <%- nameCp _%>UpdatePanel(props) {
 <%}-%>
 
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
+
+  useEffect(() => {}, []);
 
 <%for( i=0; i<sortedAssociations.length; i++ ){-%>
   useEffect(() => {

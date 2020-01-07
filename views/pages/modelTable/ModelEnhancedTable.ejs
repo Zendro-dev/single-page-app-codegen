@@ -69,7 +69,7 @@ const useStyles = makeStyles(theme => ({
 export default function <%- nameCp -%>EnhancedTable(props) {
   const classes = useStyles();
   const { permissions } = props;
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   
   const [items, setItems] = useState([]);

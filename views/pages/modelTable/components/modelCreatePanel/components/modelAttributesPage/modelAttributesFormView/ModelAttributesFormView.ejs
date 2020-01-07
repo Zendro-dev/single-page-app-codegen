@@ -1,13 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
-import StringField from './components/StringField'
-import FloatField from './components/FloatField'
-import IntField from './components/IntField'
-import BoolField from './components/BoolField'
-import DateField from './components/DateField'
-import TimeField from './components/TimeField'
-import DateTimeField from './components/DateTimeField'
 import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
@@ -15,6 +8,31 @@ import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
 import Attributes from '@material-ui/icons/HdrWeakTwoTone';
+<%let keys = Object.keys(typeAttributes);
+  for( i=0; i<keys.length; i++ ){
+    let type = keys[i];
+-%>
+<%if(type === 'String') {%>
+import StringField from './components/StringField'
+<%}-%>
+<%if(type === 'Float') {%>
+import FloatField from './components/FloatField'
+<%}-%>
+<%if(type === 'Int') {%>
+import IntField from './components/IntField'
+<%}-%>
+<%if(type === 'Boolean') {%>
+import BoolField from './components/BoolField'
+<%}-%>
+<%if(type === 'Date') {%>
+import DateField from './components/DateField'
+<%}-%>
+<%if(type === 'Time') {%>
+import TimeField from './components/TimeField'
+<%}-%>
+<%if(type === 'DateTime') {%>
+import DateTimeField from './components/DateTimeField'
+<%}}-%>
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -38,7 +56,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function <%- nameCp _%>AttributesFormView(props) {
   const classes = useStyles();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { valueOkStates,
 <%if(belongsTosArr.length > 0){-%>
           foreignKeys,

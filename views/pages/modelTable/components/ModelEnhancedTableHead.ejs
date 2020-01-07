@@ -1,5 +1,4 @@
 import React from 'react';
-import { makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 import TableCell from '@material-ui/core/TableCell';
@@ -8,12 +7,8 @@ import TableRow from '@material-ui/core/TableRow';
 import TableSortLabel from '@material-ui/core/TableSortLabel';
 import Typography from '@material-ui/core/Typography';
 
-const useStyles = makeStyles(theme => ({
-}));
-
 export default function <%- nameCp -%>EnhancedTableHead(props) {
-  const classes = useStyles();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const {
     permissions,
     order,

@@ -59,7 +59,7 @@ export default function DateTimeField(props) {
     <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils} locale={i18n.language}>
         <KeyboardDateTimePicker
           className={classes.input}
-          id={"date-field-"+itemKey+'-'+label}
+          id={"date-field-"+itemKey+'-'+name}
           label={label}
           inputRef={inputRef}
           format="YYYY-MM-DD HH:mm:ss.SSS"
@@ -67,6 +67,7 @@ export default function DateTimeField(props) {
           margin="normal"
           inputVariant="filled"
           autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
+          invalidDateMessage={ t('modelPanels.invalidDate', 'Invalid date format') }
           InputProps={{
             startAdornment:
               <InputAdornment position="start">

@@ -485,7 +485,7 @@ function getSearchArgument(filterName, searchText, ops) {
         let onlySearch = '';
 
         //for each only object
-        for (var i = 0; i < ops.only.length; i++) {
+        for (i = 0; i < ops.only.length; i++) {
           let o = ops.only[i];
           /*
             Switch type
@@ -545,7 +545,7 @@ function getSearchArgument(filterName, searchText, ops) {
       */
       if (ops.hasOwnProperty('exclude') && Array.isArray(ops.exclude)) {
         //for each exclude object
-        for (var i = 0; i < ops.exclude.length; i++) {
+        for (i = 0; i < ops.exclude.length; i++) {
           let o = ops.exclude[i];
           /*
             Switch type
@@ -556,11 +556,11 @@ function getSearchArgument(filterName, searchText, ops) {
             let vkeys = Object.keys(v);
 
             //for each key
-            for (var k = 0; k < vkeys.length; k++) {
+            for (k = 0; k < vkeys.length; k++) {
               let va = v[vkeys[k]]; //values array
 
               //for each value
-              for (var kv = 0; kv < va.length; kv++) {
+              for (kv = 0; kv < va.length; kv++) {
                 let nvalue = parseInt(va[kv]);
                 //add if: value is an integer number
                 if (!isNaN(nvalue)) {
@@ -616,7 +616,7 @@ function getSearchArgument(filterName, searchText, ops) {
         let onlySearch = '';
 
         //for each only object
-        for (var i = 0; i < ops.only.length; i++) {
+        for (i = 0; i < ops.only.length; i++) {
           let o = ops.only[i];
           /*
             Switch type
@@ -628,11 +628,11 @@ function getSearchArgument(filterName, searchText, ops) {
             let vkeys = Object.keys(v);
 
             //for each key
-            for (var k = 0; k < vkeys.length; k++) {
+            for (k = 0; k < vkeys.length; k++) {
               let va = v[vkeys[k]]; //values array
 
               //for each value
-              for (var kv = 0; kv < va.length; kv++) {
+              for (kv = 0; kv < va.length; kv++) {
                 let nvalue = parseInt(va[kv]);
                 //add if: value is an integer number
                 if (!isNaN(nvalue)) {
@@ -678,7 +678,7 @@ function getSearchArgument(filterName, searchText, ops) {
       if (ops.hasOwnProperty('exclude') && Array.isArray(ops.exclude)) {
 
         //for each exclude object
-        for (var i = 0; i < ops.exclude.length; i++) {
+        for (i = 0; i < ops.exclude.length; i++) {
           let o = ops.exclude[i];
           /*
             Switch type
@@ -690,11 +690,11 @@ function getSearchArgument(filterName, searchText, ops) {
             let vkeys = Object.keys(v);
 
             //for each key
-            for (var k = 0; k < vkeys.length; k++) {
+            for (k = 0; k < vkeys.length; k++) {
               let va = v[vkeys[k]]; //values array
 
               //for each value
-              for (var kv = 0; kv < va.length; kv++) {
+              for (kv = 0; kv < va.length; kv++) {
                 let nvalue = parseInt(va[kv]);
                 //add if: value is an integer number
                 if (!isNaN(nvalue)) {

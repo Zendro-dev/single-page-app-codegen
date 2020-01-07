@@ -23,7 +23,7 @@ export default function <%- nameCp -%>DeleteConfirmationDialog(props) {
     handleReject,
   } = props;
   const [open, setOpen] = useState(true);
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
  
   const handleCancel = (event) => {
     setOpen(false);

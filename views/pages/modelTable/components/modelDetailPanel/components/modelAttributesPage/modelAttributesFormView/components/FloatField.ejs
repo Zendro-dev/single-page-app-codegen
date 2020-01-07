@@ -17,7 +17,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function FloatField(props) {
   const classes = useStyles();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const {
     itemKey,
     name,
@@ -88,7 +88,7 @@ export default function FloatField(props) {
 
   return (
       <TextField
-        id={"float-field-"+itemKey+'-'+label}
+        id={"float-field-"+itemKey+'-'+name}
         label={label}
         ref={fieldRef}
         inputRef={inputRef}
