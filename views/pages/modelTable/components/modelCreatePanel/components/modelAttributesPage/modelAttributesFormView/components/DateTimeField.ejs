@@ -30,30 +30,55 @@ export default function DateTimeField(props) {
     handleSetValue,
   } = props;
   
-  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(getInitialSelectedDate());
   const inputRef = useRef(null);
-  const mdate = useRef(moment.invalid());
+  const mdate = useRef(getInitialMdate());
+
+  function getInitialSelectedDate() {
+    moment.locale(i18n.language);
+    
+    if(text !== undefined && text !== null && typeof text === 'string' && text.trim() !== '') {
+      
+      let m = moment(text, "YYYY-MM-DDTHH:mm:ss.SSSZ");
+      if(m.isValid()) {
+        return m;
+        
+      } else {
+        return null;
+
+      }
+    } else {
+      return null;
+    }
+  }
+
+  function getInitialMdate() {
+    moment.locale(i18n.language);
+    
+    if(text !== undefined && text !== null && typeof text === 'string' && text.trim() !== '') {
+      
+      let m = moment(text, "YYYY-MM-DDTHH:mm:ss.SSSZ");
+      if(m.isValid()) {
+        return m;
+        
+      } else {
+        return moment.invalid();;
+
+      }
+    } else {
+      return moment.invalid();;
+
+    }
+  }
 
   useEffect(() => {
     moment.locale(i18n.language);
 
-    if(text !== undefined && text !== null && typeof text === 'string' && text.trim() !== '') {
-      let m = moment(text);
-      if(m.isValid()) {
-        mdate.current = m;
-        setSelectedDate(m);
-        handleSetValue(mdate.current.format("YYYY-MM-DDTHH:mm:ss.SSSZ"), 1, itemKey);
-      } else {
-        mdate.current = moment.invalid();
-        setSelectedDate(null);
-        handleSetValue(null, 0, itemKey);
-      }
-    }
-
     if(handleReady !== undefined) {
       handleReady(itemKey, inputRef, inputRef);
     }
-  }, []);
+
+  }, [handleReady, itemKey, i18n.language]);
 
   return (
     <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils} locale={i18n.language}>

@@ -28,41 +28,45 @@ export default function BoolField(props) {
     handleSetValue,
   } = props;
 
-  const [checked, setChecked] = useState(false);
+  const [checked, setChecked] = useState(getInitialChecked());
   const fieldRef = useRef(null);
   const inputRef = useRef(null);
 
-  useEffect(() => {
+  function getInitialChecked() {
     if(text !== undefined && text !== null) {
-      //case: string
+
       if(typeof text === 'string' &&  (text === 'true' || text === 'false')) {
         if(text === 'true') {
-          setChecked(true);
-          handleSetValue(true, 1, itemKey);
+          return true;
   
         } else if (text === 'false') {
-          setChecked(false);
-          handleSetValue(false, 1, itemKey);
+          return false;
   
         } else {
-          handleSetValue(null, 0, itemKey);
+          return false;
+
         }
-      } else if(typeof text === 'boolean') { //case: boolean
-        setChecked(text);
-        handleSetValue(text, 1, itemKey);
+      } else if(typeof text === 'boolean') {
+        return text;
+
       } else {
-        handleSetValue(null, 0, itemKey);
+        return false;
+
       }
-    } 
-    else {
-      handleSetValue(null, 0, itemKey);
+    }else {
+      return false;
+
     }
+  }
+
+
+  useEffect(() => {
 
     if(handleReady !== undefined) {
       handleReady(itemKey, fieldRef, inputRef);
     }
 
-  }, []);
+  }, [handleReady, itemKey]);
 
   return (
     <FormControl className={classes.root} ref={fieldRef} component="fieldset">

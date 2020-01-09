@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import Checkbox from '@material-ui/core/Checkbox';
@@ -27,29 +27,44 @@ export default function BoolField(props) {
     handleReady,
   } = props;
 
-  const [checked, setChecked] = useState(false);
+  const checked = useRef(getInitialChecked());
   const fieldRef = useRef(null);
   const inputRef = useRef(null);
 
-  useEffect(() => {
+  function getInitialChecked() {
     if(text !== undefined && text !== null) {
-      //case: string
+
       if(typeof text === 'string' &&  (text === 'true' || text === 'false')) {
         if(text === 'true') {
-          setChecked(true);
+          return true;
+  
         } else if (text === 'false') {
-          setChecked(false); 
+          return false;
+  
+        } else {
+          return false;
+
         }
-      } else if(typeof text === 'boolean') { //case: boolean
-        setChecked(text);
+      } else if(typeof text === 'boolean') {
+        return text;
+
+      } else {
+        return false;
+
       }
+    }else {
+      return false;
+
     }
+  }
+
+  useEffect(() => {
 
     if(handleReady !== undefined) {
       handleReady(itemKey, fieldRef, inputRef);
     }
 
-  }, []);
+  }, [handleReady, itemKey]);
 
   return (
     <FormControl className={classes.root} ref={fieldRef} component="fieldset">
@@ -60,7 +75,7 @@ export default function BoolField(props) {
               id={"bool-field-"+itemKey+'-'+name}
               className={classes.checkbox}
               inputRef={inputRef}
-              checked={checked} 
+              checked={checked.current} 
               color="primary"
               indeterminate={(valueOk===0)}
               autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}

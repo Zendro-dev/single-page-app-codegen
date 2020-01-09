@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import moment from "moment";
@@ -29,28 +29,33 @@ export default function DateTimeField(props) {
     handleReady,
   } = props;
   
-  const [selectedDate, setSelectedDate] = useState(null);
+  const selectedDate = useRef(getInitialSelectedDate());
   const inputRef = useRef(null);
-  const mdate = useRef(moment.invalid());
+  
+  function getInitialSelectedDate() {
+    moment.locale(i18n.language);
+    
+    if(text !== undefined && text !== null && typeof text === 'string' && text.trim() !== '') {
+      
+      let m = moment(text);
+      if(m.isValid()) {
+        return m;
+        
+      } else {
+        return null;
+
+      }
+    }
+  }
 
   useEffect(() => {
     moment.locale(i18n.language);
 
-    if(text !== undefined && text !== null && typeof text === 'string' && text.trim() !== '') {
-      let m = moment(text);  
-      if(m.isValid()) {
-        mdate.current = m;
-        setSelectedDate(m);
-      } else {
-        mdate.current = moment.invalid();
-        setSelectedDate(null);
-      }
-    }
-
     if(handleReady !== undefined) {
       handleReady(itemKey, inputRef, inputRef);
     }
-  }, []);
+
+  }, [handleReady, itemKey, i18n.language]);
 
   return (
     <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils} locale={i18n.language}>
@@ -60,7 +65,7 @@ export default function DateTimeField(props) {
           label={label}
           inputRef={inputRef}
           format="YYYY-MM-DD HH:mm:ss.SSS"
-          value={selectedDate}
+          value={selectedDate.current}
           margin="normal"
           variant="inline"
           inputVariant="outlined"
@@ -73,6 +78,7 @@ export default function DateTimeField(props) {
               </InputAdornment>,
               readOnly: true
           }}
+          
           onChange={()=>{/** do nothing */}}
         />
     </MuiPickersUtilsProvider>

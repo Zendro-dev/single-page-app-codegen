@@ -36,7 +36,7 @@ export default function StringField(props) {
     if(handleReady !== undefined) {
       handleReady(itemKey, fieldRef, inputRef);
     }
-  }, []);
+  }, [handleReady, itemKey]);
 
   return (
     <TextField

@@ -34,64 +34,54 @@ export default function FloatField(props) {
   const inputRef = useRef(null);
   const fieldRef = useRef(null);
   const defaultValue = useRef((text !== undefined) ? text : '');
-  const floatValue = useRef(null);
-  const textValue = useRef(null);
+  const floatValue = useRef(getInitialFloatValue());
+  const textValue = useRef(getInitialTextValue());
   const error = useRef(false);
 
-  useEffect(() => {
-    if(text !== undefined && text !== null && typeof text === 'string' && text.trim() !== '') {
-      //case: string
+  function getInitialFloatValue() {
+    if(text !== undefined && text !== null) {
+      
       if(typeof text === 'string' && text.trim() !== '') {
-        textValue.current = text;
-        floatValue.current = parseFloat(text);
-      } else if(typeof text === 'number') {//case: number
-        textValue.current = text.toString();
-        floatValue.current = text;
+        return parseFloat(text);
+      
+      } else if(typeof text === 'number') {
+        return text;
+      
       } else {
-        handleSetValue(null, 0, itemKey);
-
-        if(handleReady !== undefined) {
-          handleReady(itemKey, fieldRef, inputRef);
-        }
-        return;
+        return null;
+      
       }
-      //else...
+    } else {
+      return  null;
 
-      if(!(isNaN(textValue.current)) && !(isNaN(floatValue.current))) {
-        handleSetValue(floatValue.current, 1, itemKey);
-
-        //check max float number
-        if(floatValue.current > 1.79769313486231e+308) {
-          error.current = true;
-          setErrorText( t('modelPanels.floatMaxErr', 'This is a Float field, the maximum valid positive number is 1.79769313486231e+308. Entered value: ') + `${floatValue.current}` );
-          setHelperText(null);
-          handleSetValue(null, -1, itemKey);
-        } else {
-          //check min float number
-          if(floatValue.current < -1.79769313486231e+308) {
-            error.current = true;
-            setErrorText( t('modelPanels.floatMinErr', 'This is a Float field, the minimum valid negative number is -1.79769313486231e+308. Entered value: ') + `${floatValue.current}` );
-            setHelperText(null);
-            handleSetValue(null, -1, itemKey);
-          } else {
-            //check e-notation
-            if(text.includes("e")) {
-              setHelperText( t('modelPanels.valueTaken', 'Value taken: ')+ `${floatValue.current}` );
-            } else {
-              setHelperText(null);
-            }
-          }
-        }
-      } else {
-        handleSetValue(null, 0, itemKey);
-      }
     }
+  }
 
+  function getInitialTextValue() {
+    if(text !== undefined && text !== null) {
+      
+      if(typeof text === 'string' && text.trim() !== '') {
+        return text;
+      
+      } else if(typeof text === 'number') {
+        return text.toString();
+      
+      } else {
+        return null;
+      
+      }
+    } else {
+      return  null;
+
+    }
+  }
+
+  useEffect(() => {
     if(handleReady !== undefined) {
       handleReady(itemKey, fieldRef, inputRef);
     }
 
-  }, []);
+  }, [handleReady, itemKey]);
 
   return (
       <TextField

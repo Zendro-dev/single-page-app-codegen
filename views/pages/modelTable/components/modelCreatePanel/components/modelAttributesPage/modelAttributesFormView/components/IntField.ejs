@@ -37,73 +37,54 @@ export default function IntField(props) {
   const inputRef = useRef(null);
   const fieldRef = useRef(null);
   const defaultValue = useRef((text !== undefined) ? text : '');
-  const intValue = useRef(null);
-  const textValue = useRef(null);
+  const intValue = useRef(getInitialIntValue());
+  const textValue = useRef(getInitialTextValue());
   const error = useRef(false);
+
+  function getInitialIntValue() {
+    if(text !== undefined && text !== null) {
+      
+      if(typeof text === 'string' && text.trim() !== '') {
+        return Math.round(parseFloat(text));
+      
+      } else if(typeof text === 'number') {
+        return text;
+      
+      } else {
+        return null;
+      
+      }
+    } else {
+      return  null;
+
+    }
+  }
+
+  function getInitialTextValue() {
+    if(text !== undefined && text !== null) {
+      
+      if(typeof text === 'string' && text.trim() !== '') {
+        return text;
+      
+      } else if(typeof text === 'number') {
+        return text.toString();
+      
+      } else {
+        return null;
+      
+      }
+    } else {
+      return  null;
+
+    }
+  }
 
   useEffect(() => {
     if(handleReady !== undefined) {
       handleReady(itemKey, fieldRef, inputRef);
     }
 
-  }, []);
-
-  useEffect(() => {
-    checkText(text);
-  }, [text]);
-
-  function checkText(text) {
-    if(text !== undefined && text !== null) {
-      //case: string
-      if(typeof text === 'string' && text.trim() !== '') {
-        textValue.current = text;
-        intValue.current = Math.round(parseFloat(text));
-      } else if(typeof text === 'number') {//case: number
-        textValue.current = text.toString();
-        intValue.current = text;
-      } else {
-        handleSetValue(null, 0, itemKey);
-        textValue.current = null;
-        intValue.current = null;
-        return;
-      }
-      //else...
-
-      if(!(isNaN(textValue.current)) && !(isNaN(intValue.current))) {
-        handleSetValue(intValue.current, 1, itemKey);
-
-        //check max int32-bit value
-        if(intValue.current > 2147483647) {
-          error.current = true;
-          setErrorText( t('modelPanels.intMaxErr', 'This is an Int field, the maximum valid positive number is 2147483647. Entered value: ') + `${intValue.current}` );
-          setHelperText(null);
-          handleSetValue(null, -1, itemKey);
-        } else {
-          //check min int32-bit value
-          if(intValue.current < -2147483647) {
-            error.current = true;
-            setErrorText( t('modelPanels.intMinErr', 'This is an Int field, the minimum valid negative number is -2147483647. Entered value: ') + `${intValue.current}` );
-            setHelperText(null);
-            handleSetValue(null, -1, itemKey);
-          } else {
-            //check decimal-notation
-            if(textValue.current.includes(".")) {
-              setHelperText( t('modelPanels.intRoundedWarning', 'This is an Int field, the decimals will be rounded. Value taken: ')+ `${intValue.current}` );
-            } else {
-              //check e-notation
-              if(textValue.current.includes("e")) {
-                setHelperText( t('modelPanels.valueTaken', 'Value taken: ')+ `${intValue.current}` );
-              } else {
-                setHelperText(null);
-              }
-            }
-          }
-        }
-      } else {
-        handleSetValue(null, 0, itemKey);
-      }
-    }
-  }
+  }, [handleReady, itemKey]);
 
   return (
     <Grid container justify='flex-start' alignItems='center' spacing={2}>

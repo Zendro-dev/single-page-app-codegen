@@ -22,6 +22,7 @@ export default function <%- nameCp _%>AssociationsPage(props) {
 
   const {
     hidden,
+<%if(sortedAssociations.length > 0) {-%>
 <%for( i=0; i<sortedAssociations.length; i++ ){-%>
     <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd,
 <%}-%>
@@ -29,7 +30,7 @@ export default function <%- nameCp _%>AssociationsPage(props) {
     handleUntransferFromAdd,
 <%for( i=0; i<sortedAssociations.length; i++ ){-%>
     handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row,
-<%}-%>
+<%}}-%>
   } = props;
   
   const [associationSelected, setAssociationSelected] = React.useState('<%- (sortedAssociations.length > 0) ? sortedAssociations[0].targetModelLc : 'no-associations' _%>');
@@ -78,10 +79,12 @@ export default function <%- nameCp _%>AssociationsPage(props) {
 }
 <%- nameCp _%>AssociationsPage.propTypes = {
   hidden: PropTypes.bool.isRequired,
+<%if(sortedAssociations.length > 0) {-%>
 <%for( i=0; i<sortedAssociations.length; i++ ){-%>
   <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd: PropTypes.array.isRequired,
   handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row: PropTypes.func.isRequired,
 <%}-%>
   handleTransferToAdd: PropTypes.func.isRequired,
   handleUntransferFromAdd: PropTypes.func.isRequired,
+<%}-%>
 };

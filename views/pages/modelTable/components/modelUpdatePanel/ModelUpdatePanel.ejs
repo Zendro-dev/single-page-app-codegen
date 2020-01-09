@@ -186,8 +186,9 @@ export default function <%- nameCp _%>UpdatePanel(props) {
     if(values.current.<%- attributesArr[i][0] %> !== null && item.<%- attributesArr[i][0] %> !== null && !moment(values.current.<%- attributesArr[i][0] %>).isSame(item.<%- attributesArr[i][0] %>)) { return true; }
 <%} else if(attributesArr[i][1] === 'Time'){-%>
     if((values.current.<%- attributesArr[i][0] %> === null || item.<%- attributesArr[i][0] %> === null) && item.<%- attributesArr[i][0] %> !== values.current.<%- attributesArr[i][0] %>) { return true; }
-    if(values.current.<%- attributesArr[i][0] %> !== null && item.<%- attributesArr[i][0] %> !== null && values.current.<%- attributesArr[i][0] %> !== moment(item.<%- attributesArr[i][0] %>, "HH:mm:ss.SSSZ").format("HH:mm:ss.SSSZ")) { return true; }
-<%} else if(attributesArr[i][1] === 'Int'){-%>
+    
+    if(values.current.<%- attributesArr[i][0] %> !== null && item.<%- attributesArr[i][0] %> !== null && moment(values.current.<%- attributesArr[i][0] %>, "HH:mm:ss.SSSZ").format("HH:mm:ss.SSSZ") !== moment(item.<%- attributesArr[i][0] %>, "HH:mm:ss.SSSZ").format("HH:mm:ss.SSSZ")) { return true; }
+    <%} else if(attributesArr[i][1] === 'Int'){-%>
     if(Number(values.current.<%- attributesArr[i][0] %>) !== Number(item.<%- attributesArr[i][0] %>)) { return true;}
 <%} else {-%>
     if(values.current.<%- attributesArr[i][0] %> !== item.<%- attributesArr[i][0] %>) { return true;}

@@ -125,9 +125,9 @@ export default function <%- nameCp -%>UploadFileDialog(props) {
       onClose={handleCancel} 
     >
       <DialogTitle>
-      { t('modelPanels.uploading') + ' ' + '<%- namePlCp %>' }
+      { t('modelPanels.uploading') + ' <%- namePlCp %>' }
         <div>
-          <Typography variant="subtitle1" color='textSecondary' noWrap>
+          <Typography variant="subtitle1" color='textSecondary' noWrap={true}>
           { t('modelPanels.uploadHelper') }
           </Typography>
         </div>  
@@ -169,7 +169,6 @@ export default function <%- nameCp -%>UploadFileDialog(props) {
       <DialogActions>
         <Button 
           className={classes.button}
-          onClick={handleCancel}
           color="secondary"
           onClick={(event) => {
             setOpen(false);

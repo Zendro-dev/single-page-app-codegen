@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import { blueGrey } from '@material-ui/core/colors';
@@ -98,10 +98,14 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(50);
   const [isOnApiRequest, setIsOnApiRequest] = useState(true);
-  const [isPendingApiRequest, setIsPendingApiRequest] = useState(false);
-  const [isGettingFirstData, setIsGettingFirstData] = useState(true);
   const [isCountReady, setIsCountReady] = useState(false);
   const [areItemsReady, setAreItemsReady] = useState(false);
+  const [dataTrigger, setDataTrigger] = useState(false);
+  const isPendingApiRequestRef = useRef(false);
+  const isOnApiRequestRef = useRef(false);
+  const isGettingFirstDataRef = useRef(true);
+  const pageRef = useRef(0);
+
   /*
     State Table B (to add)
   */
@@ -111,10 +115,13 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
   const [pageB, setPageB] = useState(0);
   const [rowsPerPageB, setRowsPerPageB] = useState(50);
   const [isOnApiRequestB, setIsOnApiRequestB] = useState(true);
-  const [isPendingApiRequestB, setIsPendingApiRequestB] = useState(false);
-  const [isGettingFirstDataB, setIsGettingFirstDataB] = useState(true);
   const [isCountReadyB, setIsCountReadyB] = useState(false);
   const [areItemsReadyB, setAreItemsReadyB] = useState(false);
+  const [dataTriggerB, setDataTriggerB] = useState(false);
+  const isPendingApiRequestRefB = useRef(false);
+  const isOnApiRequestRefB = useRef(false);
+  const isGettingFirstDataRefB = useRef(true);
+  const pageRefB = useRef(0);
 
   const [thereAreItemsToAdd, setThereAreItemsToAdd] = useState(false);
   const lidsToAdd = useRef([]);
@@ -122,136 +129,18 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
 
   const actionText = useRef(null);
-  const action = (key) => (
+  const action = useRef((key) => (
     <>
       <Button color='inherit' variant='text' size='small' className={classes.notiErrorActionText} onClick={() => { closeSnackbar(key) }}>
         {actionText.current}
       </Button>
     </> 
-  );
+  ));
 
   const lref = useRef(null);
   const lrefB = useRef(null);
   const [lh, setLh] = useState(82);
   const [lhB, setLhB] = useState(82);
-
-  useEffect(() => {
-    if(idsToAdd !== undefined && Array.isArray(idsToAdd) && idsToAdd.length > 0) {
-      lidsToAdd.current = Array.from(idsToAdd);
-      setThereAreItemsToAdd(true);
-      getDataB();
-    } else {
-      setIsGettingFirstDataB(false);
-    }
-    
-    if(item !== undefined){
-      getData(); 
-    } else {
-      setIsGettingFirstData(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if(items.length > 0) { 
-      setAreItemsReady(true); 
-    } else { 
-      setAreItemsReady(false); 
-    }
-  }, [items]);
-
-  useEffect(() => {
-    if(itemsB.length > 0) { 
-      setAreItemsReadyB(true); 
-    } else { 
-      setAreItemsReadyB(false); 
-    }
-  }, [itemsB]);
-
-  useEffect(() => {
-    if(count === 0) {
-      setIsCountReady(false);
-    } else {
-      setIsCountReady(true);
-    }
-  }, [count]);
-
-  useEffect(() => {
-    if(countB === 0) {
-      setIsCountReadyB(false);
-    } else {
-      setIsCountReadyB(true);
-    }
-  }, [countB]);
-
-  useEffect(() => {
-    if(isGettingFirstData) return;
-
-    if(page === 0) {
-      if (!isOnApiRequest) { getData(); } else { setIsPendingApiRequest(true); }
-    } else {
-      setPage(0);
-    }
-  }, [search]);
-
-  useEffect(() => {
-    if(isGettingFirstDataB) return;
-
-    if(page === 0) {
-      if (!isOnApiRequestB) { getDataB(); } else { setIsPendingApiRequestB(true); }
-    } else {
-      setPageB(0);
-    }
-  }, [searchB]);
-
-  useEffect(() => {
-    if(isGettingFirstData) return;
-
-    if (!isOnApiRequest) { getData(); } else { setIsPendingApiRequest(true); }
-  }, [page]);
-
-  useEffect(() => {
-    if(isGettingFirstDataB) return;
-
-    if (!isOnApiRequestB) { getDataB(); } else { setIsPendingApiRequestB(true); }
-  }, [pageB]);
-
-  useEffect(() => {
-    if(isGettingFirstData) return;
-
-    if(page !== 0) {
-      setPage(0);
-    } else {
-      if (!isOnApiRequest) { getData(); } else { setIsPendingApiRequest(true); }
-    }
-  }, [rowsPerPage]);
-
-  useEffect(() => {
-    if(isGettingFirstDataB) return;
-
-    if(pageB !== 0) {
-      setPageB(0);
-    } else {
-      if (!isOnApiRequestB) { getDataB(); } else { setIsPendingApiRequestB(true); }
-    }
-  }, [rowsPerPageB]);
-
-  useEffect(() => {
-    updateHeights();
-
-    if (!isOnApiRequest && isPendingApiRequest) {
-      setIsPendingApiRequest(false);
-      getData();
-    }
-  }, [isOnApiRequest]);
-
-  useEffect(() => {
-    updateHeights();
-
-    if (!isOnApiRequestB && isPendingApiRequestB) {
-      setIsPendingApiRequestB(false);
-      getDataB();
-    }
-  }, [isOnApiRequestB]);
 
   /**
    * getData
@@ -261,12 +150,10 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
    * Updates state to inform new @items and @count retreived.
    * 
    */
-  function getData() {
+  const getData = useCallback(() => {
+    isOnApiRequestRef.current = true;
     setIsOnApiRequest(true);
-
-    if (isGettingFirstData) {
-      setIsGettingFirstData(false);
-    }
+    Boolean(dataTrigger); //avoid warning
 
     //if ids associated needs to be fetched.
     if(lidsAssociated.current === undefined || lidsAssociated.current.associationName !== '<%- sortedAssociations[aindex].targetModelLc _%>') {
@@ -285,7 +172,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
               variant: 'error',
               preventDuplicate: false,
               persist: true,
-              action,
+              action: action.current,
             });
             console.log("Errors: ", response.data.errors);
           }
@@ -343,7 +230,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
                   variant: 'error',
                   preventDuplicate: false,
                   persist: true,
-                  action,
+                  action: action.current,
                 });
                 console.log("Errors: ", response.data.errors);
               }
@@ -352,10 +239,11 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
               /*
                 Check: empty page
               */
-              if( (newCount === (page * rowsPerPage)) && (page > 0) ) 
+              if( (newCount === (pageRef.current * rowsPerPage)) && (pageRef.current > 0) ) 
               {
-                setPage(page-1);
+                isOnApiRequestRef.current = false;
                 setIsOnApiRequest(false);
+                setPage(pageRef.current - 1);
                 return;
               }
 
@@ -367,7 +255,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
                 search,
                 null, //orderBy
                 null, //orderDirection
-                page * rowsPerPage, //paginationOffset
+                pageRef.current * rowsPerPage, //paginationOffset
                 rowsPerPage, //paginationLimit
                 ops
               )
@@ -382,7 +270,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
                         variant: 'error',
                         preventDuplicate: false,
                         persist: true,
-                        action,
+                        action: action.current,
                       });
                       console.log("Errors: ", response.data.errors);
                     }
@@ -391,6 +279,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
                     //ok
                     setCount((newCount&&typeof newCount==='number') ? newCount : 0);
                     setItems(its&&Array.isArray(its) ? its : []);
+                    isOnApiRequestRef.current = false;
                     setIsOnApiRequest(false);
                     return;
 
@@ -400,11 +289,12 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
                       variant: 'error',
                       preventDuplicate: false,
                       persist: true,
-                      action,
+                      action: action.current,
                     });
                     console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
                     setCount(0);
                     setItems([]);
+                    isOnApiRequestRef.current = false;
                     setIsOnApiRequest(false);
                     return;
                   }
@@ -415,11 +305,12 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
                     variant: 'error',
                     preventDuplicate: false,
                     persist: true,
-                    action,
+                    action: action.current,
                   });
                   console.log("Error: ", err);
                   setCount(0);
                   setItems([]);
+                  isOnApiRequestRef.current = false;
                   setIsOnApiRequest(false);
                   return;
                 });
@@ -431,11 +322,12 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
                 variant: 'error',
                 preventDuplicate: false,
                 persist: true,
-                action,
+                action: action.current,
               });
               console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
               setCount(0);
               setItems([]);
+              isOnApiRequestRef.current = false;
               setIsOnApiRequest(false);
               return;
             }
@@ -446,11 +338,12 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
               variant: 'error',
               preventDuplicate: false,
               persist: true,
-              action,
+              action: action.current,
             });
             console.log("Error: ", err);
             setCount(0);
             setItems([]);
+            isOnApiRequestRef.current = false;
             setIsOnApiRequest(false);
             return;
           });
@@ -461,11 +354,12 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
             variant: 'error',
             preventDuplicate: false,
             persist: true,
-            action,
+            action: action.current,
           });
           console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
           setCount(0);
           setItems([]);
+          isOnApiRequestRef.current = false;
           setIsOnApiRequest(false);
           return;
         }
@@ -476,11 +370,12 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
           variant: 'error',
           preventDuplicate: false,
           persist: true,
-          action,
+          action: action.current,
         });
         console.log("Error: ", err);
         setCount(0);
         setItems([]);
+        isOnApiRequestRef.current = false;
         setIsOnApiRequest(false);
         return;
       });
@@ -533,7 +428,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
                 variant: 'error',
                 preventDuplicate: false,
                 persist: true,
-                action,
+                action: action.current,
               });
               console.log("Errors: ", response.data.errors);
             }
@@ -542,10 +437,11 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
             /*
               Check: empty page
             */
-            if( (newCount === (page * rowsPerPage)) && (page > 0) ) 
+            if( (newCount === (pageRef.current * rowsPerPage)) && (pageRef.current > 0) ) 
             {
-              setPage(page-1);
+              isOnApiRequestRef.current = false;
               setIsOnApiRequest(false);
+              setPage(pageRef.current-1);
               return;
             }
 
@@ -557,7 +453,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
               search,
               null, //orderBy
               null, //orderDirection
-              page * rowsPerPage, //paginationOffset
+              pageRef.current * rowsPerPage, //paginationOffset
               rowsPerPage, //paginationLimit
               ops
             )
@@ -572,7 +468,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
                       variant: 'error',
                       preventDuplicate: false,
                       persist: true,
-                      action,
+                      action: action.current,
                     });
                     console.log("Errors: ", response.data.errors);
                   }
@@ -581,6 +477,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
                   //ok
                   setCount((newCount&&typeof newCount==='number') ? newCount : 0);
                   setItems(its&&Array.isArray(its) ? its : []);
+                  isOnApiRequestRef.current = false;
                   setIsOnApiRequest(false);
                   return;
 
@@ -590,11 +487,12 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
                     variant: 'error',
                     preventDuplicate: false,
                     persist: true,
-                    action,
+                    action: action.current,
                   });
                   console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
                   setCount(0);
                   setItems([]);
+                  isOnApiRequestRef.current = false;
                   setIsOnApiRequest(false);
                   return;
                 }
@@ -605,11 +503,12 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
                   variant: 'error',
                   preventDuplicate: false,
                   persist: true,
-                  action,
+                  action: action.current,
                 });
                 console.log("Error: ", err);
                 setCount(0);
                 setItems([]);
+                isOnApiRequestRef.current = false;
                 setIsOnApiRequest(false);
                 return;
               });
@@ -621,11 +520,12 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
               variant: 'error',
               preventDuplicate: false,
               persist: true,
-              action,
+              action: action.current,
             });
             console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
             setCount(0);
             setItems([]);
+            isOnApiRequestRef.current = false;
             setIsOnApiRequest(false);
             return;
           }
@@ -636,17 +536,18 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
             variant: 'error',
             preventDuplicate: false,
             persist: true,
-            action,
+            action: action.current,
           });
           console.log("Error: ", err);
           setCount(0);
           setItems([]);
+          isOnApiRequestRef.current = false;
           setIsOnApiRequest(false);
           return;
         });
 
     }//end: else: do getData directly
-  }
+  }, [graphqlServerUrl, enqueueSnackbar, t, dataTrigger, item.id, search, rowsPerPage]);
 
   /**
    * getDataB
@@ -656,12 +557,10 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
    * Updates state to inform new @items and @count retreived.
    * 
    */
-  function getDataB() {
+  const getDataB = useCallback(() => {
+    isOnApiRequestRefB.current = true;
     setIsOnApiRequestB(true);
-
-    if(isGettingFirstDataB) {
-      setIsGettingFirstDataB(false);
-    }
+    Boolean(dataTriggerB); //avoid warning
 
     //set ops: only ids
     let ops = null;
@@ -675,6 +574,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
     } else {
       setCountB(0);
       setItemsB([]);
+      isOnApiRequestRefB.current = false;
       setIsOnApiRequestB(false);
       setThereAreItemsToAdd(false);
       return;
@@ -695,7 +595,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
               variant: 'error',
               preventDuplicate: false,
               persist: true,
-              action,
+              action: action.current,
             });
             console.log("Errors: ", response.data.errors);
           }
@@ -704,10 +604,11 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
           /*
             Check: empty page
           */
-          if( (newCount === (pageB * rowsPerPageB)) && (pageB > 0) ) 
+          if( (newCount === (pageRefB.current * rowsPerPageB)) && (pageRefB.current > 0) ) 
           {
-            setPageB(pageB-1);
+            isOnApiRequestRefB.current = false;
             setIsOnApiRequestB(false);
+            setPageB(pageRefB.current-1);
             return;
           }
 
@@ -719,7 +620,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
             searchB,
             null, //orderBy
             null, //orderDirection
-            pageB * rowsPerPageB, //paginationOffset
+            pageRefB.current * rowsPerPageB, //paginationOffset
             rowsPerPageB, //paginationLimit
             ops
           )
@@ -734,7 +635,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
                     variant: 'error',
                     preventDuplicate: false,
                     persist: true,
-                    action,
+                    action: action.current,
                   });
                   console.log("Errors: ", response.data.errors);
                 }
@@ -743,6 +644,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
                 //ok
                 setCountB((newCount&&typeof newCount==='number') ? newCount : 0);
                 setItemsB(its&&Array.isArray(its) ? its : []);
+                isOnApiRequestRefB.current = false;
                 setIsOnApiRequestB(false);
                 return;
 
@@ -752,11 +654,12 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
                   variant: 'error',
                   preventDuplicate: false,
                   persist: true,
-                  action,
+                  action: action.current,
                 });
                 console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
                 setCountB(0);
                 setItemsB([]);
+                isOnApiRequestRefB.current = false;
                 setIsOnApiRequestB(false);
                 return;
               }
@@ -767,11 +670,12 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
                 variant: 'error',
                 preventDuplicate: false,
                 persist: true,
-                action,
+                action: action.current,
               });
               console.log("Error: ", err);
               setCountB(0);
               setItemsB([]);
+              isOnApiRequestRefB.current = false;
               setIsOnApiRequestB(false);
               return;
             });
@@ -783,11 +687,12 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
             variant: 'error',
             preventDuplicate: false,
             persist: true,
-            action,
+            action: action.current,
           });
           console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
           setCountB(0);
           setItemsB([]);
+          isOnApiRequestRefB.current = false;
           setIsOnApiRequestB(false);
           return;
         }
@@ -798,16 +703,131 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
           variant: 'error',
           preventDuplicate: false,
           persist: true,
-          action,
+          action: action.current,
         });
         console.log("Error: ", err);
         setCountB(0);
         setItemsB([]);
+        isOnApiRequestRefB.current = false;
         setIsOnApiRequestB(false);
         return;
       });
-  }
+  }, [graphqlServerUrl, enqueueSnackbar, t, dataTriggerB, searchB, rowsPerPageB]);
   
+  useEffect(() => {
+    if(idsToAdd !== undefined && Array.isArray(idsToAdd) && idsToAdd.length > 0) {
+      lidsToAdd.current = Array.from(idsToAdd);
+      setThereAreItemsToAdd(true);
+      setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+    } else {
+      isGettingFirstDataRefB.current = false; 
+    }
+  }, [idsToAdd]);
+
+  useEffect(() => {
+    if (!isOnApiRequestRef.current) {
+      getData();
+    } 
+    else { 
+      isPendingApiRequestRef.current = true; 
+    }
+  }, [getData]);
+
+  useEffect(() => {
+    if (!isOnApiRequestRefB.current) {
+      getDataB();
+    } 
+    else { 
+      isPendingApiRequestRefB.current = true; 
+    }
+  }, [getDataB]);
+
+  useEffect(() => {
+    //return on first render
+    if(isGettingFirstDataRef.current) { 
+      isGettingFirstDataRef.current = false; 
+      return; 
+    } 
+    else {
+      //get data from the new page
+      pageRef.current = page;
+      if (!isOnApiRequestRef.current) {
+        setDataTrigger(prevDataTrigger => !prevDataTrigger); 
+      } 
+      else { 
+        isPendingApiRequestRef.current = true; 
+      }
+    }
+  }, [page]);
+
+  useEffect(() => {
+    //return on first render
+    if(isGettingFirstDataRefB.current) { 
+      isGettingFirstDataRefB.current = false; 
+      return; 
+    } 
+    else {
+      //get data from the new page
+      pageRefB.current = pageB;
+      if (!isOnApiRequestRefB.current) {
+        setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); 
+      } 
+      else { 
+        isPendingApiRequestRefB.current = true; 
+      }
+    }
+  }, [pageB]);
+
+  useEffect(() => {
+    updateHeights();
+        
+    if (!isOnApiRequest && isPendingApiRequestRef.current) {
+      isPendingApiRequestRef.current = false;
+      setDataTrigger(prevDataTrigger => !prevDataTrigger);
+    }
+  }, [isOnApiRequest]);
+
+  useEffect(() => {
+    updateHeights();
+        
+    if (!isOnApiRequestB && isPendingApiRequestRefB.current) {
+      isPendingApiRequestRefB.current = false;
+      setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+    }
+  }, [isOnApiRequestB]);
+
+  useEffect(() => {
+    if(items.length > 0) { 
+      setAreItemsReady(true); 
+    } else { 
+      setAreItemsReady(false); 
+    }
+  }, [items]);
+
+  useEffect(() => {
+    if(itemsB.length > 0) { 
+      setAreItemsReadyB(true); 
+    } else { 
+      setAreItemsReadyB(false); 
+    }
+  }, [itemsB]);
+
+  useEffect(() => {
+    if(count === 0) {
+      setIsCountReady(false);
+    } else {
+      setIsCountReady(true);
+    }
+  }, [count]);
+
+  useEffect(() => {
+    if(countB === 0) {
+      setIsCountReadyB(false);
+    } else {
+      setIsCountReadyB(true);
+    }
+  }, [countB]);
+
   function updateHeights() {
     if(lref.current) {
       let h =lref.current.clientHeight;
@@ -860,8 +880,8 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
 <%}-%>
     updateHeights();
 
-    getData();
-    getDataB();
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
     handleTransfer('<%- sortedAssociations[aindex].targetModelLc _%>', item.id);
   };
 
@@ -884,8 +904,8 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
 <%}-%>
     updateHeights();
 
-    getDataB();
-    getData();
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
     handleUntransfer('<%- sortedAssociations[aindex].targetModelLc _%>', item.id);
   };
 

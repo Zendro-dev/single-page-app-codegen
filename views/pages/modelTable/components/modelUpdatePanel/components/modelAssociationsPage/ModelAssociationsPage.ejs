@@ -22,6 +22,7 @@ export default function <%- nameCp _%>AssociationsPage(props) {
   const classes = useStyles();
   const {
     hidden,
+<%if(sortedAssociations.length > 0) {-%>
     item,
 <%for( i=0; i<sortedAssociations.length; i++ ){-%>
     <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd,
@@ -36,7 +37,7 @@ export default function <%- nameCp _%>AssociationsPage(props) {
 <%}-%>
 <%for( i=0; i<sortedAssociations.length; i++ ){-%>
     handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row,
-<%}-%>
+<%}}-%>
   } = props;
   const [associationSelected, setAssociationSelected] = React.useState('<%- (sortedAssociations.length > 0) ? sortedAssociations[0].targetModelLc : 'no-associations' _%>');
 
@@ -93,6 +94,7 @@ export default function <%- nameCp _%>AssociationsPage(props) {
 }
 <%- nameCp _%>AssociationsPage.propTypes = {
   hidden: PropTypes.bool.isRequired,
+<%if(sortedAssociations.length > 0) {-%>
   item: PropTypes.object.isRequired,
 <%for( i=0; i<sortedAssociations.length; i++ ){-%>
   <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd: PropTypes.array.isRequired,
@@ -106,5 +108,5 @@ export default function <%- nameCp _%>AssociationsPage(props) {
 <%if(hasManysArr.length > 0) {-%>
   handleTransferToRemove: PropTypes.func.isRequired,
   handleUntransferFromRemove: PropTypes.func.isRequired,
-<%}-%>
+<%}}-%>
 };
