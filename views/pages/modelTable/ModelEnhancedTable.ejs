@@ -375,12 +375,20 @@ export default function <%- nameCp -%>EnhancedTable(props) {
   }
 
   const handleSearchEnter = text => {
-    pageRef.current = 0;
-    setSearch(text);
-  }
+    if(text !== search)
+    {
+      isGettingFirstDataRef.current = true;
+      pageRef.current = 0;
+      setPage(0);
+      setSearch(text);
+    }
+  };
 
   const handleRequestSort = (event, property) => {
+    isGettingFirstDataRef.current = true;
     pageRef.current = 0;
+    setPage(0);
+
     const isDesc = (order === 'desc');
     setOrder(isDesc ? 'asc' : 'desc');
 
@@ -398,8 +406,13 @@ export default function <%- nameCp -%>EnhancedTable(props) {
   };
 
   const handleChangeRowsPerPage = event => {
-    pageRef.current = 0;
-    setRowsPerPage(parseInt(event.target.value, 10));
+    if(event.target.value !== rowsPerPage)
+    {
+      isGettingFirstDataRef.current = true;
+      pageRef.current = 0;
+      setPage(0);
+      setRowsPerPage(parseInt(event.target.value, 10));
+    }
   };
 
   const handleCreateClicked = (event) => {

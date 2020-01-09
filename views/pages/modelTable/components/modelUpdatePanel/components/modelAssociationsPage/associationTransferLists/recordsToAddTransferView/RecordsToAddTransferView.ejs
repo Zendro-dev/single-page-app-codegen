@@ -97,7 +97,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(50);
-  const [isOnApiRequest, setIsOnApiRequest] = useState(true);
+  const [isOnApiRequest, setIsOnApiRequest] = useState(false);
   const [isCountReady, setIsCountReady] = useState(false);
   const [areItemsReady, setAreItemsReady] = useState(false);
   const [dataTrigger, setDataTrigger] = useState(false);
@@ -114,7 +114,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
   const [searchB, setSearchB] = useState('');
   const [pageB, setPageB] = useState(0);
   const [rowsPerPageB, setRowsPerPageB] = useState(50);
-  const [isOnApiRequestB, setIsOnApiRequestB] = useState(true);
+  const [isOnApiRequestB, setIsOnApiRequestB] = useState(false);
   const [isCountReadyB, setIsCountReadyB] = useState(false);
   const [areItemsReadyB, setAreItemsReadyB] = useState(false);
   const [dataTriggerB, setDataTriggerB] = useState(false);
@@ -841,12 +841,26 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
 
   const handleSearchEnter = text => {
     updateHeights();
-    setSearch(text);
+
+    if(text !== search)
+    {
+      isGettingFirstDataRef.current = true;
+      pageRef.current = 0;
+      setPage(0);
+      setSearch(text);
+    }
   };
 
   const handleSearchEnterB = text => {
     updateHeights();
-    setSearchB(text);
+
+    if(text !== searchB)
+    {
+      isGettingFirstDataRefB.current = true;
+      pageRefB.current = 0;
+      setPageB(0);
+      setSearchB(text);
+    }
   };
 
   const handleChangePage = (event, newPage) => {
@@ -858,11 +872,23 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
   };
 
   const handleChangeRowsPerPage = event => {
+    if(event.target.value !== rowsPerPage)
+    {
+      isGettingFirstDataRef.current = true;
+      pageRef.current = 0;
+      setPage(0);
       setRowsPerPage(parseInt(event.target.value, 10));
+    }
   };
 
   const handleChangeRowsPerPageB = event => {
-    setRowsPerPageB(parseInt(event.target.value, 10));
+    if(event.target.value !== rowsPerPageB)
+    {
+      isGettingFirstDataRefB.current = true;
+      pageRefB.current = 0;
+      setPageB(0);
+      setRowsPerPageB(parseInt(event.target.value, 10));
+    }
   };
 
   const handleRowClicked = (event, item) => {

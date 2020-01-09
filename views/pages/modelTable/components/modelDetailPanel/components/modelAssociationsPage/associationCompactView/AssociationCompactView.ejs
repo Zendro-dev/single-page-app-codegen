@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
@@ -78,33 +78,173 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(50);
-  const [isOnApiRequest, setIsOnApiRequest] = useState(true);
-  const [isPendingApiRequest, setIsPendingApiRequest] = useState(false);
-  const [isGettingFirstData, setIsGettingFirstData] = useState(true);
+  const [isOnApiRequest, setIsOnApiRequest] = useState(false);
   const [isCountReady, setIsCountReady] = useState(false);
   const [areItemsReady, setAreItemsReady] = useState(false);
+  const [dataTrigger, setDataTrigger] = useState(false);
+  const isPendingApiRequestRef = useRef(false);
+  const isOnApiRequestRef = useRef(false);
+  const isGettingFirstDataRef = useRef(true);
+  const pageRef = useRef(0);
 
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
 
   const actionText = useRef(null);
-  const action = (key) => (
+  const action = useRef((key) => (
     <>
       <Button color='inherit' variant='text' size='small' className={classes.notiErrorActionText} onClick={() => { closeSnackbar(key) }}>
         {actionText.current}
       </Button>
     </> 
-  );
+  ));
 
   const lref = useRef(null);
   const [lh, setLh] = useState(82);
 
+  /**
+   * getData
+   * 
+   * Get @items and @count from GrahpQL Server.
+   * Uses current state properties to fill query request.
+   * Updates state to inform new @items and @count retreived.
+   * 
+   */
+  const getData = useCallback(() => {
+    isOnApiRequestRef.current = true;
+    setIsOnApiRequest(true);
+    Boolean(dataTrigger); //avoid warning
+
+    /*
+      API Request: <%- sortedAssociations[aindex].targetModelPlCp _%>Filter
+    */
+    let label = '<%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='') ? `${sortedAssociations[aindex].label}` : '' _%>';
+    let sublabel = '<%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='') ? `${sortedAssociations[aindex].sublabel}` : '' _%>';
+
+    api.<%- nameLc _%>.get<%- sortedAssociations[aindex].targetModelPlCp _%>Filter(
+      graphqlServerUrl, 
+      item.id,
+      label,
+      sublabel,
+      search,
+      pageRef.current * rowsPerPage, //paginationOffset
+      rowsPerPage, //paginationLimit
+    )
+      .then(response => {
+          if (
+              response.data &&
+              response.data.data
+          ) {
+            if(response.data.errors) {
+              actionText.current = t('modelPanels.gotIt', "Got it");
+              enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
+                variant: 'error',
+                preventDuplicate: false,
+                persist: true,
+                action: action.current,
+              });
+              console.log("Errors: ", response.data.errors);
+            }
+
+<%_if( sortedAssociations[aindex].type === 'to_many' ){-%>
+            let newCount = response.data.data.readOne<%- nameCp _%>.countFiltered<%- sortedAssociations[aindex].targetModelPlCp _%>;
+            let its = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].targetModelPlLc _%>Filter;
+
+            /*
+              Check: empty page
+            */
+            if( (newCount === (pageRef.current * rowsPerPage)) && (pageRef.current > 0) ) 
+            {
+              isOnApiRequestRef.current = false;
+              setIsOnApiRequest(false);
+              setPage(pageRef.current - 1);
+              return;
+            }
+
+            //ok
+            setCount((newCount&&typeof newCount==='number') ? newCount : 0);
+            setItems((its&&Array.isArray(its)) ? its : []);
+            isOnApiRequestRef.current = false;
+            setIsOnApiRequest(false);
+            return;
+<%} else {-%> 
+            let it = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].targetModel_%>;
+
+            //ok
+            setCount((it&&typeof it==='object') ? 1 : 0);
+            setItems((it&&typeof it==='object') ? [it] : []);
+            isOnApiRequestRef.current = false;
+            setIsOnApiRequest(false);
+            return;
+<%}-%>
+
+          } else { //error: bad response on getAssociationFilter()
+            actionText.current = t('modelPanels.gotIt', "Got it");
+            enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
+              variant: 'error',
+              preventDuplicate: false,
+              persist: true,
+              action: action.current,
+            });
+            console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
+            setCount(0);
+            setItems([]);
+            isOnApiRequestRef.current = false;
+            setIsOnApiRequest(false);
+            return;
+          }
+      })
+      .catch(err => { //error: on getAssociationFilter()
+        actionText.current = t('modelPanels.gotIt', "Got it");
+        enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
+          variant: 'error',
+          preventDuplicate: false,
+          persist: true,
+          action: action.current,
+        });
+        console.log("Error: ", err);
+        setCount(0);
+        setItems([]);
+        isOnApiRequestRef.current = false;
+        setIsOnApiRequest(false);
+        return;
+      });
+  }, [graphqlServerUrl, enqueueSnackbar, t, dataTrigger, item.id, search, rowsPerPage]);
+
   useEffect(() => {
-    if(item !== undefined){
-      getData(); 
-    } else {
-      setIsGettingFirstData(false);
+    if (!isOnApiRequestRef.current) {
+      getData();
+    } 
+    else { 
+      isPendingApiRequestRef.current = true; 
     }
-  }, []);
+  }, [getData]);
+
+  useEffect(() => {
+    //return on first render
+    if(isGettingFirstDataRef.current) { 
+      isGettingFirstDataRef.current = false; 
+      return; 
+    } 
+    else {
+      //get data from the new page
+      pageRef.current = page;
+      if (!isOnApiRequestRef.current) {
+        setDataTrigger(prevDataTrigger => !prevDataTrigger); 
+      } 
+      else { 
+        isPendingApiRequestRef.current = true; 
+      }
+    }
+  }, [page]);
+
+  useEffect(() => {
+    updateHeights();
+        
+    if (!isOnApiRequest && isPendingApiRequestRef.current) {
+      isPendingApiRequestRef.current = false;
+      setDataTrigger(prevDataTrigger => !prevDataTrigger);
+    }
+  }, [isOnApiRequest]);
 
   useEffect(() => {
     if(Array.isArray(items) && items.length > 0) { 
@@ -124,136 +264,6 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
     }
   }, [count]);
 
-  useEffect(() => {
-    if(isGettingFirstData) return;
-
-    if(page === 0) {
-      if (!isOnApiRequest) { getData(); } else { setIsPendingApiRequest(true); }
-    } else {
-      setPage(0);
-    }
-  }, [search]);
-
-  useEffect(() => {
-    if(isGettingFirstData) return;
-
-    if (!isOnApiRequest) { getData(); } else { setIsPendingApiRequest(true); }
-  }, [page]);
-
-  useEffect(() => {
-    if(isGettingFirstData) return;
-
-    if(page !== 0) {
-      setPage(0);
-    } else {
-      if (!isOnApiRequest) { getData(); } else { setIsPendingApiRequest(true); }
-    }
-  }, [rowsPerPage]);
-
-  useEffect(() => {
-    updateHeights();
-
-    if (!isOnApiRequest && isPendingApiRequest) {
-      setIsPendingApiRequest(false);
-
-      getData();
-    }
-  }, [isOnApiRequest]);
-
-  /**
-   * getData
-   * 
-   * Get @items and @count from GrahpQL Server.
-   * Uses current state properties to fill query request.
-   * Updates state to inform new @items and @count retreived.
-   * 
-   */
-  function getData() {
-    setIsOnApiRequest(true);
-
-    if (isGettingFirstData) {
-      setIsGettingFirstData(false);
-    }
-
-    /*
-      API Request: <%- sortedAssociations[aindex].targetModelPlCp _%>Filter
-    */
-    let label = '<%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='') ? `${sortedAssociations[aindex].label}` : '' _%>';
-    let sublabel = '<%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='') ? `${sortedAssociations[aindex].sublabel}` : '' _%>';
-
-    api.<%- nameLc _%>.get<%- sortedAssociations[aindex].targetModelPlCp _%>Filter(
-      graphqlServerUrl, 
-      item.id,
-      label,
-      sublabel,
-      search,
-      page * rowsPerPage, //paginationOffset
-      rowsPerPage, //paginationLimit
-    )
-      .then(response => {
-          if (
-              response.data &&
-              response.data.data
-          ) {
-            if(response.data.errors) {
-              actionText.current = t('modelPanels.gotIt', "Got it");
-              enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
-                variant: 'error',
-                preventDuplicate: false,
-                persist: true,
-                action,
-              });
-              console.log("Errors: ", response.data.errors);
-            }
-
-<%_if( sortedAssociations[aindex].type === 'to_many' ){-%>
-            let newCount = response.data.data.readOne<%- nameCp _%>.countFiltered<%- sortedAssociations[aindex].targetModelPlCp _%>;
-            let its = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].targetModelPlLc _%>Filter;
-
-            setCount((newCount&&typeof newCount==='number') ? newCount : 0);
-            setItems((its&&Array.isArray(its)) ? its : []);
-            setIsOnApiRequest(false);
-            return;
-<%} else {-%> 
-            let it = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].targetModel_%>;
-
-            setCount((it&&typeof it==='object') ? 1 : 0);
-            setItems((it&&typeof it==='object') ? [it] : []);
-            setIsOnApiRequest(false);
-            return;
-<%}-%>
-
-          } else { //error: bad response on getAssociationFilter()
-            actionText.current = t('modelPanels.gotIt', "Got it");
-            enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
-              variant: 'error',
-              preventDuplicate: false,
-              persist: true,
-              action,
-            });
-            console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
-            setCount(0);
-            setItems([]);
-            setIsOnApiRequest(false);
-            return;
-          }
-      })
-      .catch(err => { //error: on getAssociationFilter()
-        actionText.current = t('modelPanels.gotIt', "Got it");
-        enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
-          variant: 'error',
-          preventDuplicate: false,
-          persist: true,
-          action,
-        });
-        console.log("Error: ", err);
-        setCount(0);
-        setItems([]);
-        setIsOnApiRequest(false);
-        return;
-      });
-  }
-
   function updateHeights() {
     if(lref.current) {
       let h =lref.current.clientHeight;
@@ -263,7 +273,14 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
 
   const handleSearchEnter = text => {
     updateHeights();
-    setSearch(text);
+
+    if(text !== search)
+    {
+      isGettingFirstDataRef.current = true;
+      pageRef.current = 0;
+      setPage(0);
+      setSearch(text);
+    }
   }
 
   const handleChangePage = (event, newPage) => {
@@ -271,7 +288,13 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
   };
 
   const handleChangeRowsPerPage = event => {
+    if(event.target.value !== rowsPerPage)
+    {
+      isGettingFirstDataRef.current = true;
+      pageRef.current = 0;
+      setPage(0);
       setRowsPerPage(parseInt(event.target.value, 10));
+    }
   };
 
   const handleRowClicked = (event, item) => {

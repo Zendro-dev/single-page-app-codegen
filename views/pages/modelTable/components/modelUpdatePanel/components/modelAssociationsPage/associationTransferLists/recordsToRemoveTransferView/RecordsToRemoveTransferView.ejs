@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import { blueGrey } from '@material-ui/core/colors';
@@ -97,11 +97,15 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(50);
-  const [isOnApiRequest, setIsOnApiRequest] = useState(true);
-  const [isPendingApiRequest, setIsPendingApiRequest] = useState(false);
-  const [isGettingFirstData, setIsGettingFirstData] = useState(true);
+  const [isOnApiRequest, setIsOnApiRequest] = useState(false);
   const [isCountReady, setIsCountReady] = useState(false);
   const [areItemsReady, setAreItemsReady] = useState(false);
+  const [dataTrigger, setDataTrigger] = useState(false);
+  const isPendingApiRequestRef = useRef(false);
+  const isOnApiRequestRef = useRef(false);
+  const isGettingFirstDataRef = useRef(true);
+  const pageRef = useRef(0);
+
   /*
     State Table B (to remove)
   */
@@ -110,45 +114,390 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
   const [searchB, setSearchB] = useState('');
   const [pageB, setPageB] = useState(0);
   const [rowsPerPageB, setRowsPerPageB] = useState(50);
-  const [isOnApiRequestB, setIsOnApiRequestB] = useState(true);
-  const [isPendingApiRequestB, setIsPendingApiRequestB] = useState(false);
-  const [isGettingFirstDataB, setIsGettingFirstDataB] = useState(true);
+  const [isOnApiRequestB, setIsOnApiRequestB] = useState(false);
   const [isCountReadyB, setIsCountReadyB] = useState(false);
   const [areItemsReadyB, setAreItemsReadyB] = useState(false);
+  const [dataTriggerB, setDataTriggerB] = useState(false);
+  const isPendingApiRequestRefB = useRef(false);
+  const isOnApiRequestRefB = useRef(false);
+  const isGettingFirstDataRefB = useRef(true);
+  const pageRefB = useRef(0);
 
   const [thereAreItemsToAdd, setThereAreItemsToAdd] = useState(false);
   const lidsToRemove = useRef([]);
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
 
   const actionText = useRef(null);
-  const action = (key) => (
+  const action = useRef((key) => (
     <>
       <Button color='inherit' variant='text' size='small' className={classes.notiErrorActionText} onClick={() => { closeSnackbar(key) }}>
         {actionText.current}
       </Button>
     </> 
-  );
+  ));
 
   const lref = useRef(null);
   const lrefB = useRef(null);
   const [lh, setLh] = useState(82);
   const [lhB, setLhB] = useState(82);
 
+  /**
+   * getData
+   * 
+   * Get @items and @count from GrahpQL Server.
+   * Uses current state properties to fill query request.
+   * Updates state to inform new @items and @count retreived.
+   * 
+   */
+  const getData = useCallback(() => {
+    isOnApiRequestRef.current = true;
+    setIsOnApiRequest(true);
+    Boolean(dataTrigger); //avoid warning
+
+    /*
+     * Uncomment following lines to exclude (hide) in this list, the records that are on to-remove list.
+     */
+    //set ops: excluded ids: toRemoveIds
+    // let ops = null;
+    // if(lidsToRemove.current !== undefined && lidsToRemove.current.length > 0) {
+    //   ops = {
+    //     exclude: [{
+    //       type: 'Int',
+    //       values: {id: lidsToRemove.current}
+    //     }]
+    //   };
+    // }
+
+    /*
+      API Request: associationFilter
+    */
+    let label = '<%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='') ? `${sortedAssociations[aindex].label}` : '' _%>';
+    let sublabel = '<%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='') ? `${sortedAssociations[aindex].sublabel}` : '' _%>';
+
+    api.<%- nameLc _%>.get<%- sortedAssociations[aindex].targetModelPlCp _%>Filter(
+    graphqlServerUrl, 
+    item.id,
+    label,
+    sublabel,
+    search,
+    pageRef.current * rowsPerPage, //paginationOffset
+    rowsPerPage, //paginationLimit
+    // ops
+  )
+      .then(response => {
+          if (
+              response.data &&
+              response.data.data
+          ) {
+            if(response.data.errors) {
+              actionText.current = t('modelPanels.gotIt', "Got it");
+              enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
+                variant: 'error',
+                preventDuplicate: false,
+                persist: true,
+                action: action.current,
+              });
+              console.log("Errors: ", response.data.errors);
+            }
+            let newCount = response.data.data.readOne<%- nameCp _%>.countFiltered<%- sortedAssociations[aindex].targetModelPlCp _%>;
+            let its = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].targetModelPlLc _%>Filter;
+
+            /*
+              Check: empty page
+            */
+            if( (newCount === (pageRef.current * rowsPerPage)) && (pageRef.current > 0) ) 
+            {
+              isOnApiRequestRef.current = false;
+              setIsOnApiRequest(false);
+              setPage(pageRef.current - 1);
+              return;
+            }
+            
+            //ok
+            setCount((newCount&&typeof newCount==='number') ? newCount : 0);
+            setItems(its&&Array.isArray(its) ? its : []);
+            isOnApiRequestRef.current = false;
+            setIsOnApiRequest(false);
+            return;
+
+          } else { //error: bad response on associationFilter()
+            actionText.current = t('modelPanels.gotIt', "Got it");
+            enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
+              variant: 'error',
+              preventDuplicate: false,
+              persist: true,
+              action: action.current,
+            });
+            console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
+            setCount(0);
+            setItems([]);
+            isOnApiRequestRef.current = false;
+            setIsOnApiRequest(false);
+            return;
+          }
+      })
+      .catch(err => { //error: on associationFilter()
+        actionText.current = t('modelPanels.gotIt', "Got it");
+        enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
+          variant: 'error',
+          preventDuplicate: false,
+          persist: true,
+          action: action.current,
+        });
+        console.log("Error: ", err);
+        setCount(0);
+        setItems([]);
+        isOnApiRequestRef.current = false;
+        setIsOnApiRequest(false);  
+        return;
+      });
+  }, [graphqlServerUrl, enqueueSnackbar, t, dataTrigger, item.id, search, rowsPerPage]);
+
+  /**
+   * getDataB
+   * 
+   * Get @items and @count from GrahpQL Server.
+   * Uses current state properties to fill query request.
+   * Updates state to inform new @items and @count retreived.
+   * 
+   */
+  const getDataB = useCallback(() => {
+    isOnApiRequestRefB.current = true;
+    setIsOnApiRequestB(true);
+    Boolean(dataTriggerB); //avoid warning
+
+    //set ops: only ids: idsToRemove
+    let ops = null;
+    if(lidsToRemove.current !== undefined && lidsToRemove.current.length > 0) {
+      ops = {
+        only: [{
+          type: 'Int',
+          values: {id: lidsToRemove.current}
+        }]
+      };
+    } else {
+      setCountB(0);
+      setItemsB([]);
+      isOnApiRequestRefB.current = false;
+      setIsOnApiRequestB(false);
+      setThereAreItemsToAdd(false);
+      return;
+    }
+
+    /*
+      API Request: countItems
+    */
+    api.<%- sortedAssociations[aindex].targetModelLc _%>.getCountItems(graphqlServerUrl, searchB, ops)
+      .then(response => {
+        if (
+          response.data &&
+          response.data.data
+        ) {
+          if(response.data.errors) {
+            actionText.current = t('modelPanels.gotIt', "Got it");
+            enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
+              variant: 'error',
+              preventDuplicate: false,
+              persist: true,
+              action: action.current,
+            });
+            console.log("Errors: ", response.data.errors);
+          }
+          let newCount = response.data.data.count<%- sortedAssociations[aindex].targetModelPlCp _%>;
+
+          /*
+            Check: empty page
+          */
+          if( (newCount === (pageRefB.current * rowsPerPageB)) && (pageRefB.current > 0) ) 
+          {
+            isOnApiRequestRefB.current = false;
+            setIsOnApiRequestB(false);
+            setPageB(pageRefB.current-1);
+          }
+
+          /*
+            API Request: items
+          */
+          api.<%- sortedAssociations[aindex].targetModelLc _%>.getItems(
+            graphqlServerUrl,
+            searchB,
+            null, //orderBy
+            null, //orderDirection
+            pageRefB.current * rowsPerPageB, //paginationOffset
+            rowsPerPageB, //paginationLimit
+            ops
+          )
+            .then(response => {
+              if (
+                response.data &&
+                response.data.data
+              ) {
+                if(response.data.errors) {
+                  actionText.current = t('modelPanels.gotIt', "Got it");
+                  enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
+                    variant: 'error',
+                    preventDuplicate: false,
+                    persist: true,
+                    action: action.current,
+                  });
+                  console.log("Errors: ", response.data.errors);
+                }
+                let its = response.data.data.<%- sortedAssociations[aindex].targetModelPlLc _%>;
+                
+                //ok
+                setCountB((newCount&&typeof newCount==='number') ? newCount : 0);
+                setItemsB(its&&Array.isArray(its) ? its : []);
+                isOnApiRequestRefB.current = false;
+                setIsOnApiRequestB(false);
+                return;
+
+              } else { //error: bad response on getItems()
+                actionText.current = t('modelPanels.gotIt', "Got it");
+                enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
+                  variant: 'error',
+                  preventDuplicate: false,
+                  persist: true,
+                  action: action.current,
+                });
+                console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
+                setCountB(0);
+                setItemsB([]);
+                isOnApiRequestRefB.current = false;
+                setIsOnApiRequestB(false);
+                return;
+              }
+            })
+            .catch(err => { //error: on getItems()
+              actionText.current = t('modelPanels.gotIt', "Got it");
+              enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
+                variant: 'error',
+                preventDuplicate: false,
+                persist: true,
+                action: action.current,
+              });
+              console.log("Error: ", err);
+              setCountB(0);
+              setItemsB([]);
+              isOnApiRequestRefB.current = false;
+              setIsOnApiRequestB(false);
+              return;
+            });
+
+          return;
+        } else { //error: bad response on getCountItems()
+          actionText.current = t('modelPanels.gotIt', "Got it");
+          enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
+            variant: 'error',
+            preventDuplicate: false,
+            persist: true,
+            action: action.current,
+          });
+          console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
+          setCountB(0);
+          setItemsB([]);
+          isOnApiRequestRefB.current = false;
+          setIsOnApiRequestB(false);
+          return;
+        }
+      })
+      .catch(err => { //error: on getCountItems()
+        actionText.current = t('modelPanels.gotIt', "Got it");
+        enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
+          variant: 'error',
+          preventDuplicate: false,
+          persist: true,
+          action: action.current,
+        });
+        console.log("Error: ", err);
+        setCountB(0);
+        setItemsB([]);
+        isOnApiRequestRefB.current = false;
+        setIsOnApiRequestB(false);
+        return;
+      });
+  }, [graphqlServerUrl, enqueueSnackbar, t, dataTriggerB, searchB, rowsPerPageB]);
+
   useEffect(() => {
     if(idsToRemove !== undefined && Array.isArray(idsToRemove) && idsToRemove.length > 0) {
       lidsToRemove.current = Array.from(idsToRemove);
       setThereAreItemsToAdd(true);
-      getDataB();
+      setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
     } else {
-      setIsGettingFirstDataB(false);
+      isGettingFirstDataRefB.current = false; 
     }
+  }, [idsToRemove]);
 
-    if(item !== undefined){
-      getData(); 
-    } else {
-      setIsGettingFirstData(false);
+  useEffect(() => {
+    if (!isOnApiRequestRef.current) {
+      getData();
+    } 
+    else { 
+      isPendingApiRequestRef.current = true; 
     }
-  }, []);
+  }, [getData]);
+
+  useEffect(() => {
+    if (!isOnApiRequestRefB.current) {
+      getDataB();
+    } 
+    else { 
+      isPendingApiRequestRefB.current = true; 
+    }
+  }, [getDataB]);
+
+  useEffect(() => {
+    //return on first render
+    if(isGettingFirstDataRef.current) { 
+      isGettingFirstDataRef.current = false; 
+      return; 
+    } 
+    else {
+      //get data from the new page
+      pageRef.current = page;
+      if (!isOnApiRequestRef.current) {
+        setDataTrigger(prevDataTrigger => !prevDataTrigger); 
+      } 
+      else { 
+        isPendingApiRequestRef.current = true; 
+      }
+    }
+  }, [page]);
+
+  useEffect(() => {
+    //return on first render
+    if(isGettingFirstDataRefB.current) { 
+      isGettingFirstDataRefB.current = false; 
+      return; 
+    } 
+    else {
+      //get data from the new page
+      pageRefB.current = pageB;
+      if (!isOnApiRequestRefB.current) {
+        setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); 
+      } 
+      else { 
+        isPendingApiRequestRefB.current = true; 
+      }
+    }
+  }, [pageB]);
+
+  useEffect(() => {
+    updateHeights();
+        
+    if (!isOnApiRequest && isPendingApiRequestRef.current) {
+      isPendingApiRequestRef.current = false;
+      setDataTrigger(prevDataTrigger => !prevDataTrigger);
+    }
+  }, [isOnApiRequest]);
+
+  useEffect(() => {
+    updateHeights();
+        
+    if (!isOnApiRequestB && isPendingApiRequestRefB.current) {
+      isPendingApiRequestRefB.current = false;
+      setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+    }
+  }, [isOnApiRequestB]);
 
   useEffect(() => {
     if(items.length > 0) { 
@@ -184,346 +533,6 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
     }
   }, [countB]);
 
-  useEffect(() => {
-    if(isGettingFirstData) return;
-
-    if(page === 0) {
-      if (!isOnApiRequest) { getData(); } else { setIsPendingApiRequest(true); }
-    } else {
-      setPage(0);
-    }
-  }, [search]);
-
-  useEffect(() => {
-    if(isGettingFirstDataB) return;
-
-    if(page === 0) {
-      if (!isOnApiRequestB) { getDataB(); } else { setIsPendingApiRequestB(true); }
-    } else {
-      setPageB(0);
-    }
-  }, [searchB]);
-
-  useEffect(() => {
-    if(isGettingFirstData) return;
-
-    if (!isOnApiRequest) { getData(); } else { setIsPendingApiRequest(true); }
-  }, [page]);
-
-  useEffect(() => {
-    if(isGettingFirstDataB) return;
-
-    if (!isOnApiRequestB) { getDataB(); } else { setIsPendingApiRequestB(true); }
-  }, [pageB]);
-
-  useEffect(() => {
-    if(isGettingFirstData) return;
-
-    if(page !== 0) {
-      setPage(0);
-    } else {
-      if (!isOnApiRequest) { getData(); } else { setIsPendingApiRequest(true); }
-    }
-  }, [rowsPerPage]);
-
-  useEffect(() => {
-    if(isGettingFirstDataB) return;
-
-    if(pageB !== 0) {
-      setPageB(0);
-    } else {
-      if (!isOnApiRequestB) { getDataB(); } else { setIsPendingApiRequestB(true); }
-    }
-  }, [rowsPerPageB]);
-
-  useEffect(() => {
-    updateHeights();
-
-    if (!isOnApiRequest && isPendingApiRequest) {
-      setIsPendingApiRequest(false);
-      getData();
-    }
-  }, [isOnApiRequest]);
-  
-  useEffect(() => {
-    updateHeights();
-
-    if (!isOnApiRequestB && isPendingApiRequestB) {
-      setIsPendingApiRequestB(false);
-      getDataB();
-    }
-  }, [isOnApiRequestB]);
-
-  /**
-   * getData
-   * 
-   * Get @items and @count from GrahpQL Server.
-   * Uses current state properties to fill query request.
-   * Updates state to inform new @items and @count retreived.
-   * 
-   */
-  function getData() {
-    setIsOnApiRequest(true);
-
-    if (isGettingFirstData) {
-      setIsGettingFirstData(false);
-    }
-
-    /*
-     * Uncomment following lines to exclude (hide) in this list, the records that are on to-remove list.
-     */
-    //set ops: excluded ids: toRemoveIds
-    // let ops = null;
-    // if(lidsToRemove.current !== undefined && lidsToRemove.current.length > 0) {
-    //   ops = {
-    //     exclude: [{
-    //       type: 'Int',
-    //       values: {id: lidsToRemove.current}
-    //     }]
-    //   };
-    // }
-
-    /*
-      API Request: associationFilter
-    */
-    let label = '<%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='') ? `${sortedAssociations[aindex].label}` : '' _%>';
-    let sublabel = '<%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='') ? `${sortedAssociations[aindex].sublabel}` : '' _%>';
-
-    api.<%- nameLc _%>.get<%- sortedAssociations[aindex].targetModelPlCp _%>Filter(
-    graphqlServerUrl, 
-    item.id,
-    label,
-    sublabel,
-    search,
-    page * rowsPerPage, //paginationOffset
-    rowsPerPage, //paginationLimit
-    // ops
-  )
-      .then(response => {
-          if (
-              response.data &&
-              response.data.data
-          ) {
-            if(response.data.errors) {
-              actionText.current = t('modelPanels.gotIt', "Got it");
-              enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
-                variant: 'error',
-                preventDuplicate: false,
-                persist: true,
-                action,
-              });
-              console.log("Errors: ", response.data.errors);
-            }
-            let newCount = response.data.data.readOne<%- nameCp _%>.countFiltered<%- sortedAssociations[aindex].targetModelPlCp _%>;
-            let its = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].targetModelPlLc _%>Filter;
-
-            /*
-              Check: empty page
-            */
-            if( (newCount === (page * rowsPerPage)) && (page > 0) ) 
-            {
-              setPage(page-1);
-              setIsOnApiRequest(false);
-              return;
-            }
-            
-            //ok
-            setCount((newCount&&typeof newCount==='number') ? newCount : 0);
-            setItems(its&&Array.isArray(its) ? its : []);
-            setIsOnApiRequest(false);
-            return;
-
-          } else { //error: bad response on associationFilter()
-            actionText.current = t('modelPanels.gotIt', "Got it");
-            enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
-              variant: 'error',
-              preventDuplicate: false,
-              persist: true,
-              action,
-            });
-            console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
-            setCount(0);
-            setItems([]);
-            setIsOnApiRequest(false);
-            return;
-          }
-      })
-      .catch(err => { //error: on associationFilter()
-        actionText.current = t('modelPanels.gotIt', "Got it");
-        enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
-          variant: 'error',
-          preventDuplicate: false,
-          persist: true,
-          action,
-        });
-        console.log("Error: ", err);
-        setCount(0);
-        setItems([]);
-        setIsOnApiRequest(false);  
-        return;
-      });
-  }
-
-  /**
-   * getDataB
-   * 
-   * Get @items and @count from GrahpQL Server.
-   * Uses current state properties to fill query request.
-   * Updates state to inform new @items and @count retreived.
-   * 
-   */
-  function getDataB() {
-    setIsOnApiRequestB(true);
-
-    if(isGettingFirstDataB) {
-      setIsGettingFirstDataB(false);
-    }
-
-    //set ops: only ids: idsToRemove
-    let ops = null;
-    if(lidsToRemove.current !== undefined && lidsToRemove.current.length > 0) {
-      ops = {
-        only: [{
-          type: 'Int',
-          values: {id: lidsToRemove.current}
-        }]
-      };
-    } else {
-      setCountB(0);
-      setItemsB([]);
-      setIsOnApiRequestB(false);
-      setThereAreItemsToAdd(false);
-      return;
-    }
-
-    /*
-      API Request: countItems
-    */
-    api.<%- sortedAssociations[aindex].targetModelLc _%>.getCountItems(graphqlServerUrl, searchB, ops)
-      .then(response => {
-        if (
-          response.data &&
-          response.data.data
-        ) {
-          if(response.data.errors) {
-            actionText.current = t('modelPanels.gotIt', "Got it");
-            enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
-              variant: 'error',
-              preventDuplicate: false,
-              persist: true,
-              action,
-            });
-            console.log("Errors: ", response.data.errors);
-          }
-          let newCount = response.data.data.count<%- sortedAssociations[aindex].targetModelPlCp _%>;
-
-          /*
-            Check: empty page
-          */
-          if( (newCount === (pageB * rowsPerPageB)) && (pageB > 0) ) 
-          {
-            setPageB(pageB-1);
-            setIsOnApiRequestB(false);
-            return;
-          }
-
-          /*
-            API Request: items
-          */
-          api.<%- sortedAssociations[aindex].targetModelLc _%>.getItems(
-            graphqlServerUrl,
-            searchB,
-            null, //orderBy
-            null, //orderDirection
-            pageB * rowsPerPageB, //paginationOffset
-            rowsPerPageB, //paginationLimit
-            ops
-          )
-            .then(response => {
-              if (
-                response.data &&
-                response.data.data
-              ) {
-                if(response.data.errors) {
-                  actionText.current = t('modelPanels.gotIt', "Got it");
-                  enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
-                    variant: 'error',
-                    preventDuplicate: false,
-                    persist: true,
-                    action,
-                  });
-                  console.log("Errors: ", response.data.errors);
-                }
-                let its = response.data.data.<%- sortedAssociations[aindex].targetModelPlLc _%>;
-                
-                //ok
-                setCountB((newCount&&typeof newCount==='number') ? newCount : 0);
-                setItemsB(its&&Array.isArray(its) ? its : []);
-                setIsOnApiRequestB(false);
-                return;
-
-              } else { //error: bad response on getItems()
-                actionText.current = t('modelPanels.gotIt', "Got it");
-                enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
-                  variant: 'error',
-                  preventDuplicate: false,
-                  persist: true,
-                  action,
-                });
-                console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
-                setCountB(0);
-                setItemsB([]);
-                setIsOnApiRequestB(false);
-                return;
-              }
-            })
-            .catch(err => { //error: on getItems()
-              actionText.current = t('modelPanels.gotIt', "Got it");
-              enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
-                variant: 'error',
-                preventDuplicate: false,
-                persist: true,
-                action,
-              });
-              console.log("Error: ", err);
-              setCountB(0);
-              setItemsB([]);
-              setIsOnApiRequestB(false);
-              return;
-            });
-
-          return;
-        } else { //error: bad response on getCountItems()
-          actionText.current = t('modelPanels.gotIt', "Got it");
-          enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
-            variant: 'error',
-            preventDuplicate: false,
-            persist: true,
-            action,
-          });
-          console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
-          setCountB(0);
-          setItemsB([]);
-          setIsOnApiRequestB(false);
-          return;
-        }
-      })
-      .catch(err => { //error: on getCountItems()
-        actionText.current = t('modelPanels.gotIt', "Got it");
-        enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
-          variant: 'error',
-          preventDuplicate: false,
-          persist: true,
-          action,
-        });
-        console.log("Error: ", err);
-        setCountB(0);
-        setItemsB([]);
-        setIsOnApiRequestB(false);
-        return;
-      });
-  }
-
   function updateHeights() {
     if(lref.current) {
       let h =lref.current.clientHeight;
@@ -537,12 +546,26 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
   
   const handleSearchEnter = text => {
     updateHeights();
-    setSearch(text);
+
+    if(text !== search)
+    {
+      isGettingFirstDataRef.current = true;
+      pageRef.current = 0;
+      setPage(0);
+      setSearch(text);
+    }
   };
 
   const handleSearchEnterB = text => {
     updateHeights();
-    setSearchB(text);
+
+    if(text !== searchB)
+    {
+      isGettingFirstDataRefB.current = true;
+      pageRefB.current = 0;
+      setPageB(0);
+      setSearchB(text);
+    }
   };
 
   const handleChangePage = (event, newPage) => {
@@ -554,11 +577,23 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
   };
 
   const handleChangeRowsPerPage = event => {
+    if(event.target.value !== rowsPerPage)
+    {
+      isGettingFirstDataRef.current = true;
+      pageRef.current = 0;
+      setPage(0);
       setRowsPerPage(parseInt(event.target.value, 10));
+    }
   };
 
   const handleChangeRowsPerPageB = event => {
-    setRowsPerPageB(parseInt(event.target.value, 10));
+    if(event.target.value !== rowsPerPageB)
+    {
+      isGettingFirstDataRefB.current = true;
+      pageRefB.current = 0;
+      setPageB(0);
+      setRowsPerPageB(parseInt(event.target.value, 10));
+    }
   };
 
   const handleRowClicked = (event, item) => {
@@ -570,8 +605,8 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
     setThereAreItemsToAdd(true);
     updateHeights();
 
-    getData();
-    getDataB();
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
     handleTransfer('<%- sortedAssociations[aindex].targetModelLc _%>', item.id);
   };
 
@@ -589,8 +624,8 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemo
     }
     updateHeights();
 
-    getDataB();
-    getData();
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
     handleUntransfer('<%- sortedAssociations[aindex].targetModelLc _%>', item.id);
   }
 
