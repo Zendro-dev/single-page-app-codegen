@@ -1,0 +1,68 @@
+import React from 'react';
+import PropTypes from 'prop-types';
+import <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddTransferView from './<%- sortedAssociations[aindex].targetModelPlLc _%>-to-add-transfer-view/<%- sortedAssociations[aindex].targetModelPlCp _%>ToAddTransferView'
+import { makeStyles } from '@material-ui/core/styles';
+import { useTranslation } from 'react-i18next';
+import Grid from '@material-ui/core/Grid';
+import Fade from '@material-ui/core/Fade';
+import Divider from '@material-ui/core/Divider';
+import Typography from '@material-ui/core/Typography';
+
+const useStyles = makeStyles(theme => ({
+  root: {
+    margin: theme.spacing(0),
+  },
+}));
+
+export default function <%- sortedAssociations[aindex].targetModelCp _%>TransferLists(props) {
+  const classes = useStyles();
+  const { t } = useTranslation();
+
+  const {
+    idsToAdd,
+    handleTransferToAdd,
+    handleUntransferFromAdd,
+    handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row,
+  } = props;
+  
+  return (
+    <div>
+      <Fade in={true} timeout={500}>
+        <Grid
+          className={classes.root} 
+          container 
+          justify='center'
+          alignItems='flex-start'
+          alignContent='flex-start'
+          spacing={2}
+        > 
+          <Grid item xs={12}>
+            <Divider />
+            <Grid container justify='flex-start'>
+              <Grid item>
+                <Typography variant="body2" color="textSecondary" gutterBottom>
+                  { t('modelPanels.add') }
+                </Typography>
+              </Grid>
+            </Grid>
+          </Grid>
+          <Grid item xs={12}>
+            <<%- sortedAssociations[aindex].targetModelPlCp _%>ToAddTransferView
+              idsToAdd={idsToAdd}
+              handleTransfer={handleTransferToAdd}
+              handleUntransfer={handleUntransferFromAdd}
+              handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row={handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row}
+            />
+          </Grid>
+
+        </Grid>
+      </Fade>
+    </div>
+  );
+}
+<%- sortedAssociations[aindex].targetModelCp _%>TransferLists.propTypes = {
+  idsToAdd: PropTypes.array.isRequired,
+  handleTransferToAdd: PropTypes.func.isRequired,
+  handleUntransferFromAdd: PropTypes.func.isRequired,
+  handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row: PropTypes.func.isRequired,
+};

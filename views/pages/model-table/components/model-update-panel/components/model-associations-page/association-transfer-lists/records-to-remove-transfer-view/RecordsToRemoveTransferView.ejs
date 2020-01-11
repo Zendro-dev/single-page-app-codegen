@@ -1,0 +1,1037 @@
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useSelector } from 'react-redux';
+import { makeStyles } from '@material-ui/core/styles';
+import { blueGrey } from '@material-ui/core/colors';
+import { useTranslation } from 'react-i18next';
+import { useSnackbar } from 'notistack';
+import PropTypes from 'prop-types';
+import api from '../../../../../../../../../../../requests/requests.index.js';
+import <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemoveTransferViewToolbar from './components/<%- sortedAssociations[aindex].targetModelPlCp _%>ToRemoveTransferViewToolbar';
+import TablePagination from '@material-ui/core/TablePagination';
+import Typography from '@material-ui/core/Typography';
+import Grid from '@material-ui/core/Grid';
+import Box from '@material-ui/core/Box';
+import Card from '@material-ui/core/Card';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import Divider from '@material-ui/core/Divider';
+import Hidden from '@material-ui/core/Hidden';
+import Fade from '@material-ui/core/Fade';
+import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
+import Tooltip from '@material-ui/core/Tooltip';
+import Add from '@material-ui/icons/AddCircle';
+import Remove from '@material-ui/icons/RemoveCircle';
+import TransferArrows from '@material-ui/icons/SettingsEthernetOutlined';
+
+const useStyles = makeStyles(theme => ({
+  root: {
+    marginTop: theme.spacing(1),
+    minWidth: 200,
+  },
+  card: {
+    margin: theme.spacing(1),
+    height: 'auto',
+    maxHeight: `calc(64vh + 52px)`,
+    overflow: 'auto',
+    position: "relative",
+  },
+  listBox: {
+    height: 'auto',
+    minHeight: 82,
+    maxHeight: '33vh',
+    overflowY: 'auto',
+    overflowX: 'hidden'
+  },
+  noDataBox: {
+    width: "100%",
+    height: 'auto',
+    minHeight: 82,
+    maxHeight: '33vh',
+  },
+  loadingBox: {
+    width: "100%",
+    height: '100%',
+    maxHeight: '33vh',
+  },
+  arrowsBox: {
+    marginTop: theme.spacing(3),
+  },
+  arrowsV: {
+    transform: "rotate(90deg)",
+  },
+  row: {
+    maxHeight: 70,
+  },
+  id: {
+    width: 33,
+  },
+  dividerV: {
+    height: 50,
+    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
+  },
+  notiErrorActionText: {
+    color: '#eba0a0',
+  },
+}));
+
+export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToRemoveTransferView(props) {
+  const classes = useStyles();
+  const { t } = useTranslation();
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+  const {
+    item,
+    idsToRemove,
+    handleTransfer,
+    handleUntransfer,
+    handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row,
+  } = props;
+
+  /*
+    State Table A (associated)
+  */
+  const [items, setItems] = useState([]);
+  const [count, setCount] = useState(0);
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(50);
+  const [isOnApiRequest, setIsOnApiRequest] = useState(false);
+  const [isCountReady, setIsCountReady] = useState(false);
+  const [areItemsReady, setAreItemsReady] = useState(false);
+  const [dataTrigger, setDataTrigger] = useState(false);
+  const isPendingApiRequestRef = useRef(false);
+  const isOnApiRequestRef = useRef(false);
+  const isGettingFirstDataRef = useRef(true);
+  const pageRef = useRef(0);
+
+  /*
+    State Table B (to remove)
+  */
+  const [itemsB, setItemsB] = useState([]);
+  const [countB, setCountB] = useState(0);
+  const [searchB, setSearchB] = useState('');
+  const [pageB, setPageB] = useState(0);
+  const [rowsPerPageB, setRowsPerPageB] = useState(50);
+  const [isOnApiRequestB, setIsOnApiRequestB] = useState(false);
+  const [isCountReadyB, setIsCountReadyB] = useState(false);
+  const [areItemsReadyB, setAreItemsReadyB] = useState(false);
+  const [dataTriggerB, setDataTriggerB] = useState(false);
+  const isPendingApiRequestRefB = useRef(false);
+  const isOnApiRequestRefB = useRef(false);
+  const isGettingFirstDataRefB = useRef(true);
+  const pageRefB = useRef(0);
+
+  const [thereAreItemsToAdd, setThereAreItemsToAdd] = useState(false);
+  const lidsToRemove = useRef([]);
+  const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
+
+  const actionText = useRef(null);
+  const action = useRef((key) => (
+    <>
+      <Button color='inherit' variant='text' size='small' className={classes.notiErrorActionText} onClick={() => { closeSnackbar(key) }}>
+        {actionText.current}
+      </Button>
+    </> 
+  ));
+
+  const lref = useRef(null);
+  const lrefB = useRef(null);
+  const [lh, setLh] = useState(82);
+  const [lhB, setLhB] = useState(82);
+
+  /**
+   * getData
+   * 
+   * Get @items and @count from GrahpQL Server.
+   * Uses current state properties to fill query request.
+   * Updates state to inform new @items and @count retreived.
+   * 
+   */
+  const getData = useCallback(() => {
+    isOnApiRequestRef.current = true;
+    setIsOnApiRequest(true);
+    Boolean(dataTrigger); //avoid warning
+
+    /*
+     * Uncomment following lines to exclude (hide) in this list, the records that are on to-remove list.
+     */
+    //set ops: excluded ids: toRemoveIds
+    // let ops = null;
+    // if(lidsToRemove.current !== undefined && lidsToRemove.current.length > 0) {
+    //   ops = {
+    //     exclude: [{
+    //       type: 'Int',
+    //       values: {id: lidsToRemove.current}
+    //     }]
+    //   };
+    // }
+
+    /*
+      API Request: associationFilter
+    */
+    let label = '<%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='') ? `${sortedAssociations[aindex].label}` : '' _%>';
+    let sublabel = '<%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='') ? `${sortedAssociations[aindex].sublabel}` : '' _%>';
+
+    api.<%- nameLc _%>.get<%- sortedAssociations[aindex].targetModelPlCp _%>Filter(
+    graphqlServerUrl, 
+    item.id,
+    label,
+    sublabel,
+    search,
+    pageRef.current * rowsPerPage, //paginationOffset
+    rowsPerPage, //paginationLimit
+    // ops
+  )
+      .then(response => {
+          if (
+              response.data &&
+              response.data.data
+          ) {
+            if(response.data.errors) {
+              actionText.current = t('modelPanels.gotIt', "Got it");
+              enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
+                variant: 'error',
+                preventDuplicate: false,
+                persist: true,
+                action: action.current,
+              });
+              console.log("Errors: ", response.data.errors);
+            }
+            let newCount = response.data.data.readOne<%- nameCp _%>.countFiltered<%- sortedAssociations[aindex].targetModelPlCp _%>;
+            let its = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].targetModelPlLc _%>Filter;
+
+            /*
+              Check: empty page
+            */
+            if( (newCount === (pageRef.current * rowsPerPage)) && (pageRef.current > 0) ) 
+            {
+              isOnApiRequestRef.current = false;
+              setIsOnApiRequest(false);
+              setPage(pageRef.current - 1);
+              return;
+            }
+            
+            //ok
+            setCount((newCount&&typeof newCount==='number') ? newCount : 0);
+            setItems(its&&Array.isArray(its) ? its : []);
+            isOnApiRequestRef.current = false;
+            setIsOnApiRequest(false);
+            return;
+
+          } else { //error: bad response on associationFilter()
+            actionText.current = t('modelPanels.gotIt', "Got it");
+            enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
+              variant: 'error',
+              preventDuplicate: false,
+              persist: true,
+              action: action.current,
+            });
+            console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
+            setCount(0);
+            setItems([]);
+            isOnApiRequestRef.current = false;
+            setIsOnApiRequest(false);
+            return;
+          }
+      })
+      .catch(err => { //error: on associationFilter()
+        actionText.current = t('modelPanels.gotIt', "Got it");
+        enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
+          variant: 'error',
+          preventDuplicate: false,
+          persist: true,
+          action: action.current,
+        });
+        console.log("Error: ", err);
+        setCount(0);
+        setItems([]);
+        isOnApiRequestRef.current = false;
+        setIsOnApiRequest(false);  
+        return;
+      });
+  }, [graphqlServerUrl, enqueueSnackbar, t, dataTrigger, item.id, search, rowsPerPage]);
+
+  /**
+   * getDataB
+   * 
+   * Get @items and @count from GrahpQL Server.
+   * Uses current state properties to fill query request.
+   * Updates state to inform new @items and @count retreived.
+   * 
+   */
+  const getDataB = useCallback(() => {
+    isOnApiRequestRefB.current = true;
+    setIsOnApiRequestB(true);
+    Boolean(dataTriggerB); //avoid warning
+
+    //set ops: only ids: idsToRemove
+    let ops = null;
+    if(lidsToRemove.current !== undefined && lidsToRemove.current.length > 0) {
+      ops = {
+        only: [{
+          type: 'Int',
+          values: {id: lidsToRemove.current}
+        }]
+      };
+    } else {
+      setCountB(0);
+      setItemsB([]);
+      isOnApiRequestRefB.current = false;
+      setIsOnApiRequestB(false);
+      setThereAreItemsToAdd(false);
+      return;
+    }
+
+    /*
+      API Request: countItems
+    */
+    api.<%- sortedAssociations[aindex].targetModelLc _%>.getCountItems(graphqlServerUrl, searchB, ops)
+      .then(response => {
+        if (
+          response.data &&
+          response.data.data
+        ) {
+          if(response.data.errors) {
+            actionText.current = t('modelPanels.gotIt', "Got it");
+            enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
+              variant: 'error',
+              preventDuplicate: false,
+              persist: true,
+              action: action.current,
+            });
+            console.log("Errors: ", response.data.errors);
+          }
+          let newCount = response.data.data.count<%- sortedAssociations[aindex].targetModelPlCp _%>;
+
+          /*
+            Check: empty page
+          */
+          if( (newCount === (pageRefB.current * rowsPerPageB)) && (pageRefB.current > 0) ) 
+          {
+            isOnApiRequestRefB.current = false;
+            setIsOnApiRequestB(false);
+            setPageB(pageRefB.current-1);
+          }
+
+          /*
+            API Request: items
+          */
+          api.<%- sortedAssociations[aindex].targetModelLc _%>.getItems(
+            graphqlServerUrl,
+            searchB,
+            null, //orderBy
+            null, //orderDirection
+            pageRefB.current * rowsPerPageB, //paginationOffset
+            rowsPerPageB, //paginationLimit
+            ops
+          )
+            .then(response => {
+              if (
+                response.data &&
+                response.data.data
+              ) {
+                if(response.data.errors) {
+                  actionText.current = t('modelPanels.gotIt', "Got it");
+                  enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
+                    variant: 'error',
+                    preventDuplicate: false,
+                    persist: true,
+                    action: action.current,
+                  });
+                  console.log("Errors: ", response.data.errors);
+                }
+                let its = response.data.data.<%- sortedAssociations[aindex].targetModelPlLc _%>;
+                
+                //ok
+                setCountB((newCount&&typeof newCount==='number') ? newCount : 0);
+                setItemsB(its&&Array.isArray(its) ? its : []);
+                isOnApiRequestRefB.current = false;
+                setIsOnApiRequestB(false);
+                return;
+
+              } else { //error: bad response on getItems()
+                actionText.current = t('modelPanels.gotIt', "Got it");
+                enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
+                  variant: 'error',
+                  preventDuplicate: false,
+                  persist: true,
+                  action: action.current,
+                });
+                console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
+                setCountB(0);
+                setItemsB([]);
+                isOnApiRequestRefB.current = false;
+                setIsOnApiRequestB(false);
+                return;
+              }
+            })
+            .catch(err => { //error: on getItems()
+              actionText.current = t('modelPanels.gotIt', "Got it");
+              enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
+                variant: 'error',
+                preventDuplicate: false,
+                persist: true,
+                action: action.current,
+              });
+              console.log("Error: ", err);
+              setCountB(0);
+              setItemsB([]);
+              isOnApiRequestRefB.current = false;
+              setIsOnApiRequestB(false);
+              return;
+            });
+
+          return;
+        } else { //error: bad response on getCountItems()
+          actionText.current = t('modelPanels.gotIt', "Got it");
+          enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
+            variant: 'error',
+            preventDuplicate: false,
+            persist: true,
+            action: action.current,
+          });
+          console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
+          setCountB(0);
+          setItemsB([]);
+          isOnApiRequestRefB.current = false;
+          setIsOnApiRequestB(false);
+          return;
+        }
+      })
+      .catch(err => { //error: on getCountItems()
+        actionText.current = t('modelPanels.gotIt', "Got it");
+        enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
+          variant: 'error',
+          preventDuplicate: false,
+          persist: true,
+          action: action.current,
+        });
+        console.log("Error: ", err);
+        setCountB(0);
+        setItemsB([]);
+        isOnApiRequestRefB.current = false;
+        setIsOnApiRequestB(false);
+        return;
+      });
+  }, [graphqlServerUrl, enqueueSnackbar, t, dataTriggerB, searchB, rowsPerPageB]);
+
+  useEffect(() => {
+    if(idsToRemove !== undefined && Array.isArray(idsToRemove) && idsToRemove.length > 0) {
+      lidsToRemove.current = Array.from(idsToRemove);
+      setThereAreItemsToAdd(true);
+      setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+    } else {
+      isGettingFirstDataRefB.current = false; 
+    }
+  }, [idsToRemove]);
+
+  useEffect(() => {
+    if (!isOnApiRequestRef.current) {
+      getData();
+    } 
+    else { 
+      isPendingApiRequestRef.current = true; 
+    }
+  }, [getData]);
+
+  useEffect(() => {
+    if (!isOnApiRequestRefB.current) {
+      getDataB();
+    } 
+    else { 
+      isPendingApiRequestRefB.current = true; 
+    }
+  }, [getDataB]);
+
+  useEffect(() => {
+    //return if this flag is set
+    if(isGettingFirstDataRef.current) { 
+      isGettingFirstDataRef.current = false; 
+      return; 
+    } 
+    else {
+      //get data from the new page
+      pageRef.current = page;
+      if (!isOnApiRequestRef.current) {
+        setDataTrigger(prevDataTrigger => !prevDataTrigger); 
+      } 
+      else { 
+        isPendingApiRequestRef.current = true; 
+      }
+    }
+  }, [page]);
+
+  useEffect(() => {
+    //return on first render
+    if(isGettingFirstDataRefB.current) { 
+      isGettingFirstDataRefB.current = false; 
+      return; 
+    } 
+    else {
+      //get data from the new page
+      pageRefB.current = pageB;
+      if (!isOnApiRequestRefB.current) {
+        setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); 
+      } 
+      else { 
+        isPendingApiRequestRefB.current = true; 
+      }
+    }
+  }, [pageB]);
+
+  useEffect(() => {
+    updateHeights();
+        
+    if (!isOnApiRequest && isPendingApiRequestRef.current) {
+      isPendingApiRequestRef.current = false;
+      setDataTrigger(prevDataTrigger => !prevDataTrigger);
+    }
+  }, [isOnApiRequest]);
+
+  useEffect(() => {
+    updateHeights();
+        
+    if (!isOnApiRequestB && isPendingApiRequestRefB.current) {
+      isPendingApiRequestRefB.current = false;
+      setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+    }
+  }, [isOnApiRequestB]);
+
+  useEffect(() => {
+    if(items.length > 0) { 
+      setAreItemsReady(true); 
+    } else { 
+      setAreItemsReady(false); 
+    }
+  }, [items]);
+
+  useEffect(() => {
+    if(itemsB.length > 0) { 
+      setAreItemsReadyB(true); 
+    } else { 
+      setAreItemsReadyB(false); 
+    }
+  }, [itemsB]);
+
+  useEffect(() => {
+    if(count === 0) {
+      setIsCountReady(false);
+
+    } else {
+      setIsCountReady(true);
+    }
+  }, [count]);
+
+  useEffect(() => {
+    if(countB === 0) {
+      setIsCountReadyB(false);
+
+    } else {
+      setIsCountReadyB(true);
+    }
+  }, [countB]);
+
+  function updateHeights() {
+    if(lref.current) {
+      let h =lref.current.clientHeight;
+      setLh(h);
+    }
+    if(lrefB.current) {
+      let hb =lrefB.current.clientHeight;
+      setLhB(hb);
+    }
+  }
+  
+  const handleSearchEnter = text => {
+    updateHeights();
+
+    if(text !== search)
+    {
+      pageRef.current = 0;
+      if(page !== 0) {
+        isGettingFirstDataRef.current = true; //avoids to get data on [page] effect
+        setPage(0);
+      }
+      setSearch(text);
+    }
+  };
+
+  const handleSearchEnterB = text => {
+    updateHeights();
+
+    if(text !== searchB)
+    {
+      pageRefB.current = 0;
+      if(pageB !== 0) {
+        isGettingFirstDataRefB.current = true; //avoids to get data on [pageB] effect
+        setPageB(0);
+      }
+      setSearchB(text);
+    }
+  };
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangePageB = (event, newPage) => {
+    setPageB(newPage);
+  };
+
+  const handleChangeRowsPerPage = event => {
+    if(event.target.value !== rowsPerPage)
+    {
+      pageRef.current = 0;
+      if(page !== 0) {
+        isGettingFirstDataRef.current = true; //avoids to get data on [page] effect
+        setPage(0);
+      }
+      setRowsPerPage(parseInt(event.target.value, 10));
+    }
+  };
+
+  const handleChangeRowsPerPageB = event => {
+    if(event.target.value !== rowsPerPageB)
+    {
+      pageRefB.current = 0;
+      if(pageB !== 0) {
+        isGettingFirstDataRefB.current = true; //avoids to get data on [pageB] effect
+        setPageB(0);
+      }
+      setRowsPerPageB(parseInt(event.target.value, 10));
+    }
+  };
+
+  const handleRowClicked = (event, item) => {
+    handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row(event, item);
+  };
+
+  const handleAddItem = (event, item) => {
+    lidsToRemove.current.push(item.id);
+    setThereAreItemsToAdd(true);
+    updateHeights();
+
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+    handleTransfer('<%- sortedAssociations[aindex].targetModelLc _%>', item.id);
+  };
+
+  const handleRemoveItem = (event, item) => {
+    for(var i=0; i<lidsToRemove.current.length; ++i)
+    {
+      if(lidsToRemove.current[i] === item.id) {
+        lidsToRemove.current.splice(i, 1);
+        break;
+      }
+    }
+
+    if(lidsToRemove.current.length === 0) {
+      setThereAreItemsToAdd(false);
+    }
+    updateHeights();
+
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+    handleUntransfer('<%- sortedAssociations[aindex].targetModelLc _%>', item.id);
+  }
+
+  return (
+    <div className={classes.root}>
+      <Grid container spacing={4} alignItems='flex-start' justify='center'>
+        {/*
+          * Selectable list (A)
+          */}
+        <Grid item xs={12} sm={5} >
+          {(item!==undefined) && (
+            <Card className={classes.card}>
+
+              {/* Toolbar */}
+              <<%- sortedAssociations[aindex].targetModelPlCp _%>ToRemoveTransferViewToolbar
+                title={'<%- sortedAssociations[aindex].targetModelPlCp _%>'}
+                titleIcon={1}
+                search={search}
+                onSearchEnter={handleSearchEnter}
+              />
+
+              {/* Case: no data */}
+              {(!isOnApiRequest && (!areItemsReady || !isCountReady)) && (
+                /* Label */
+                <Fade
+                  in={true}
+                  unmountOnExit
+                >
+                  <div>
+                    <Grid container>
+                      <Grid item xs={12}>
+                        <Grid className={classes.noDataBox} container justify="center" alignItems="center">
+                          <Grid item>
+                            <Typography variant="body1" >{ t('modelPanels.noData') }</Typography>
+                          </Grid>
+                        </Grid>
+                      </Grid>
+                    </Grid>
+                  </div>
+                </Fade>
+              )}
+
+              {/* Case: data ready */}
+              {(!isOnApiRequest && areItemsReady && isCountReady) && (
+              
+                /* List */
+                <Fade
+                  in={true}
+                  unmountOnExit
+                >
+                  <Box className={classes.listBox} ref={lref}>
+                    <List dense component="div" role="list" >
+                      {items.map(it => {
+                        let key = it.id;
+                        let label = <%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='') ? `it.${sortedAssociations[aindex].label}` : 'undefined' _%>;
+                        let sublabel = <%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='') ? `it.${sortedAssociations[aindex].sublabel}` : 'undefined' _%>;
+                        let disabled = lidsToRemove.current.find(id => id === it.id) !== undefined;
+
+                        return (
+                          <ListItem key={key} 
+                            role="listitem" 
+                            button 
+                            className={classes.row}
+                            onClick={(event) => {
+                              handleRowClicked(event, it);
+                            }}
+                          >
+                            <Grid container justify='center' alignItems='center'>
+                              <Grid item xs={12}>
+                                <Grid container justify='center' alignItems='center' wrap='nowrap'>
+                                  
+                                  {/* Id */}
+                                  <Grid item>
+                                    <Typography className={classes.id} variant="caption" display="block" noWrap={true}>{it.id}</Typography>
+                                  </Grid>
+
+                                  {/* Divider */}
+                                  <Grid item>
+                                    <Divider className={classes.dividerV} orientation="vertical" />
+                                  </Grid>
+
+                                  <Grid item xs={8}>
+                                    {/* Label */}
+                                    {(label !== undefined && label !== null) && (
+                                      <Typography variant="body1" display="block" noWrap={true}>{label}</Typography>
+                                    )}
+                                    
+                                    {/* Sublabel */}
+                                    {(sublabel !== undefined && sublabel !== null) && (
+                                      <Typography variant="caption" display="block" color='textSecondary' noWrap={true}>{sublabel}<b></b> </Typography>
+                                    )}
+                                  </Grid>
+
+                                  {/* Button: Add */}
+                                  <Grid item xs={2}>
+                                    <Grid container justify='flex-end'>
+                                      <Grid item>
+                                        <Tooltip title={!disabled ? t('modelPanels.transferToRemove') : t('modelPanels.alreadyToRemove') }>
+                                          <span>
+                                            <IconButton
+                                              color="primary"
+                                              className={classes.iconButton}
+                                              onClick={(event) => {
+                                                event.stopPropagation();
+                                                handleAddItem(event, it);
+                                              }}
+                                              disabled={disabled}
+                                            >
+                                              <Add color={!disabled ? "secondary" : "disabled"} />
+                                            </IconButton>
+                                          </span>
+                                        </Tooltip>
+                                      </Grid>
+                                    </Grid>
+                                  </Grid>
+                                </Grid>
+                              </Grid>
+                            </Grid>
+                          </ListItem>
+                        );
+                      })}
+                      <ListItem />
+                    </List>
+                  </Box>
+                </Fade>
+              )}
+              {/* Case: loading */}
+              {(isOnApiRequest) && (
+                /* Progress */
+                <Fade
+                  in={true}
+                  unmountOnExit
+                >
+                  <div>
+                    <Grid container>
+                      <Grid item xs={12}>
+                        <Box height={lh}>
+                          <Grid container className={classes.loadingBox} justify="center" alignItems="center">
+                            <Grid item>
+                              <CircularProgress color='primary' disableShrink />
+                            </Grid>
+                          </Grid>
+                        </Box>
+                      </Grid>
+                    </Grid>
+                  </div>
+                </Fade>
+              )}
+
+              {/* Pagination */}
+              <TablePagination
+                rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
+                component="div"
+                count={count}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                labelRowsPerPage = { t('modelPanels.rows') }
+                labelDisplayedRows = {({ from, to, count }) => `${from}-${to === -1 ? count : to} ${t('modelPanels.of')} ${count}`}
+                onChangePage={handleChangePage}
+                onChangeRowsPerPage={handleChangeRowsPerPage}
+              />
+            </Card>
+          )}
+        </Grid>
+
+        {/*
+          * Arrows
+          */}
+        <Hidden xsDown>
+          <Grid item xs={1} >
+            <Grid container className={classes.arrowsBox} justify='center'>
+              <TransferArrows
+                color="primary"
+                fontSize="large"
+                component={svgProps => {
+                  return (
+                    <svg {...svgProps}>
+                      <defs>
+                        <linearGradient id="gradient2">
+                          <stop offset="30%" stopColor={(countB&&countB>0) ? "#3F51B5" : blueGrey[200]} />
+                          <stop offset="70%" stopColor={(count&&count>0) ? "#F50057" : blueGrey[200]} />
+                        </linearGradient>
+                      </defs>
+                      {React.cloneElement(svgProps.children[0], {
+                        fill: 'url(#gradient2)',
+                      })}
+                    </svg>
+                  );
+                }}
+              />
+            </Grid>
+          </Grid>
+        </Hidden>
+        <Hidden smUp>
+          <Grid item xs={1} >
+            <Grid container className={classes.arrowsBox} justify='center'>
+              <TransferArrows
+                className={classes.arrowsV}
+                color="primary"
+                fontSize="large"
+                component={svgProps => {
+                  return (
+                    <svg {...svgProps}>
+                      <defs>
+                        <linearGradient id="gradient2b">
+                          <stop offset="30%" stopColor={(countB&&countB>0) ? "#3F51B5" : blueGrey[200]} />
+                          <stop offset="70%" stopColor={(count&&count>0) ? "#F50057" : blueGrey[200]} />
+                        </linearGradient>
+                      </defs>
+                      {React.cloneElement(svgProps.children[0], {
+                        fill: 'url(#gradient2b)',
+                      })}
+                    </svg>
+                  );
+                }}
+              />
+            </Grid>
+          </Grid>
+        </Hidden>
+
+        {/*
+          * To add list (B) 
+          */}
+        <Grid item xs={12} sm={5} >
+          {(item!==undefined) && (
+            <Card className={classes.card}>
+
+              {/* Toolbar */}
+              <<%- sortedAssociations[aindex].targetModelPlCp _%>ToRemoveTransferViewToolbar 
+                title={'<%- sortedAssociations[aindex].targetModelPlCp %>'}
+                titleIcon={2}
+                search={searchB}
+                onSearchEnter={handleSearchEnterB}
+              />
+
+              {/* Case: no items added */}
+              {(!thereAreItemsToAdd) && (
+                /* Label */
+                <Fade
+                  in={true}
+                  unmountOnExit
+                >
+                  <div>
+                    <Grid container>
+                      <Grid item xs={12}>
+                        <Grid className={classes.noDataBox} container justify="center" alignItems="center">
+                          <Grid item>
+                            <Typography variant="body1" >{ t('modelPanels.noItemsAdded') }</Typography>
+                          </Grid>
+                        </Grid>
+                      </Grid>
+                    </Grid>
+                  </div>
+                </Fade>
+              )}
+
+              {/* Case: no data from search */}
+              {(thereAreItemsToAdd && !isOnApiRequestB && (!areItemsReadyB || !isCountReadyB)) && (
+                /* Label */
+                <Fade
+                  in={true}
+                  unmountOnExit
+                >
+                  <div>
+                    <Grid container>
+                      <Grid item xs={12}>
+                        <Grid className={classes.noDataBox} container justify="center" alignItems="center">
+                          <Grid item>
+                            <Typography variant="body1" >{ t('modelPanels.noData') }</Typography>
+                          </Grid>
+                        </Grid>
+                      </Grid>
+                    </Grid>
+                  </div>
+                </Fade>
+              )}
+
+              {/* Case: data ready */}
+              {(thereAreItemsToAdd && !isOnApiRequestB && areItemsReadyB && isCountReadyB) && (
+              
+                /* List */
+                <Fade
+                  in={true}
+                  unmountOnExit
+                >
+                  <Box className={classes.listBox} ref={lrefB}>
+                    <List dense component="div" role="list">
+                      {itemsB.map(it => {
+                        let key = it.id;
+                        let label = <%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='') ? `it.${sortedAssociations[aindex].label}` : 'undefined' _%>;
+                        let sublabel = <%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='') ? `it.${sortedAssociations[aindex].sublabel}` : 'undefined' _%>;
+                        
+                        return (
+                          <ListItem key={key} 
+                            role="listitem"
+                            button
+                            className={classes.row}
+                            onClick={(event) => {
+                              handleRowClicked(event, it);
+                            }}
+                          >
+                            <Grid container justify='flex-end' alignItems='center'>
+                              <Grid item xs={12}>
+                                <Grid container justify='space-evenly' alignItems='center' alignContent='stretch' wrap='nowrap'>
+                                  
+                                  {/* Id */}
+                                  <Grid item>
+                                    <Typography className={classes.id} variant="caption" display="block" noWrap={true}>{it.id}</Typography>
+                                  </Grid>
+
+                                  {/* Divider */}
+                                  <Grid item>
+                                    <Divider className={classes.dividerV} orientation="vertical" />
+                                  </Grid>
+
+                                  <Grid item xs={8}>
+                                    {/* Label */}
+                                    {(label !== undefined && label !== null) && (
+                                      <Typography variant="body1" display="block" noWrap={true}>{label}</Typography>
+                                    )}
+                                    
+                                    {/* Sublabel */}
+                                    {(sublabel !== undefined && sublabel !== null) && (
+                                      <Typography variant="caption" display="block" color='textSecondary' noWrap={true}>{sublabel}<b></b> </Typography>
+                                    )}
+                                  </Grid>
+
+                                  {/* Button: Add */}
+                                  <Grid item xs={2}>
+                                    <Tooltip title={ t('modelPanels.untransferToRemove') }>
+                                      <IconButton
+                                        color="primary"
+                                        onClick={(event) => {
+                                          event.stopPropagation();
+                                          handleRemoveItem(event, it);
+                                        }}
+                                      >
+                                        <Remove color="primary" />
+                                      </IconButton>
+                                    </Tooltip>
+                                  </Grid>
+                                </Grid>
+                              </Grid>
+                            </Grid>
+                          </ListItem>
+                        );
+                      })}
+                      <ListItem />
+                    </List>
+                  </Box>
+                </Fade>
+              )}
+              {/* Case: loading */}
+              {( thereAreItemsToAdd && isOnApiRequestB) && (
+                /* Progress */
+                <Fade
+                  in={true}
+                  unmountOnExit
+                >
+                  <div>
+                    <Grid container>
+                      <Grid item xs={12}>
+                        <Box height={lhB}>
+                          <Grid container className={classes.loadingBox} justify="center" alignItems="center">
+                            <Grid item>
+                              <CircularProgress color='primary' disableShrink />
+                            </Grid>
+                          </Grid>
+                        </Box>
+                      </Grid>
+                    </Grid>
+                  </div>
+                </Fade>
+              )}
+
+              {/* Pagination */}
+              <TablePagination
+                  rowsPerPageOptions={(countB <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
+                  component="div"
+                  count={countB}
+                  rowsPerPage={rowsPerPageB}
+                  page={pageB}
+                  labelRowsPerPage = { t('modelPanels.rows') }
+                  labelDisplayedRows = {({ from, to, count }) => `${from}-${to === -1 ? count : to} ${t('modelPanels.of')} ${count}`}
+                  onChangePage={handleChangePageB}
+                  onChangeRowsPerPage={handleChangeRowsPerPageB}
+                />
+            </Card>
+          )}
+        </Grid>
+      </Grid>
+    </div>
+  );
+}
+
+<%- sortedAssociations[aindex].targetModelPlCp _%>ToRemoveTransferView.propTypes = {
+    item: PropTypes.object.isRequired,
+    idsToRemove: PropTypes.array.isRequired,
+    handleTransfer: PropTypes.func.isRequired,
+    handleUntransfer: PropTypes.func.isRequired,
+};

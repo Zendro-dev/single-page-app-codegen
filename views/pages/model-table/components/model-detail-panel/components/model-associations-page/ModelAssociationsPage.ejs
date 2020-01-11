@@ -1,0 +1,80 @@
+import React from 'react';
+<%if(sortedAssociations.length > 0) {-%>
+import PropTypes from 'prop-types';
+<%}-%>
+<%for( i=0; i<sortedAssociations.length; i++ ){-%>
+import <%- sortedAssociations[i].targetModelCp _%>CompactView from './<%- sortedAssociations[i].targetModelLc _%>-compact-view/<%- sortedAssociations[i].targetModelCp _%>CompactView'
+<%}-%>
+import <%- nameCp _%>AssociationsMenuTabs from './<%- nameCp _%>AssociationsMenuTabs'
+import { makeStyles } from '@material-ui/core/styles';
+import Grid from '@material-ui/core/Grid';
+import Fade from '@material-ui/core/Fade';
+
+const useStyles = makeStyles(theme => ({
+  root: {
+    margin: theme.spacing(0),
+    minHeight: `calc(57vh + 84px)`,
+  },
+  menu: {
+    marginTop: theme.spacing(1),
+  }
+}));
+
+export default function <%- nameCp _%>AssociationsPage(props) {
+  const classes = useStyles();
+<%if(sortedAssociations.length > 0) {-%>
+  const {
+    item,
+<%for( i=0; i<sortedAssociations.length; i++ ){-%>
+    handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row,
+<%}-%> 
+  } = props;
+<%}-%>
+  const [associationSelected, setAssociationSelected] = React.useState('<%- (sortedAssociations.length > 0) ? sortedAssociations[0].targetModelLc : 'no-associations' _%>');
+
+  const handleAssociationClick = (event, newValue) => {
+    setAssociationSelected(newValue);
+  }
+
+  return (
+    <Fade in={true} timeout={500}>
+      <Grid
+        className={classes.root} 
+        container 
+        justify='center'
+        alignItems='flex-start'
+        alignContent='flex-start'
+        spacing={2}
+      > 
+        {/* Menu Tabs: Associations */}
+        <Grid item xs={12} sm={10} md={9} lg={8} xl={7} className={classes.menu}>
+          <<%- nameCp _%>AssociationsMenuTabs
+            associationSelected={associationSelected}
+            handleClick={handleAssociationClick}
+          />
+        </Grid>
+
+<%for( i=0; i<sortedAssociations.length; i++ ){-%>
+        {/* <%- sortedAssociations[i].targetModelCp _%> Compact View */}
+        {(associationSelected === '<%- sortedAssociations[i].targetModelLc _%>') && (
+          <Grid item xs={12} sm={10} md={9} lg={8} xl={7}>
+            <<%- sortedAssociations[i].targetModelCp _%>CompactView
+              item={item}
+              handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row}
+            />
+          </Grid>
+        )}
+<%}-%>
+
+      </Grid>
+    </Fade>
+  );
+}
+<%if(sortedAssociations.length > 0) {-%>
+<%- nameCp _%>AssociationsPage.propTypes = {
+  item: PropTypes.object.isRequired,
+<%for( i=0; i<sortedAssociations.length; i++ ){-%>
+  handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row: PropTypes.func.isRequired, 
+<%}-%>
+};
+<%}-%>

@@ -43,7 +43,6 @@ let requiredDirs=
   ['src',
     'src/components',
     'src/requests',
-    'src/routes',
   ];
 //msg
 console.log(colors.white('\n@ Checking required directories on output base-directory...'));
@@ -69,6 +68,7 @@ if(allRequiredDirsExists) {
 
 // Start rendering phase
 let modelsOpts = {models: [], adminModels: []};
+let modelAtts = {};
 
 //msg
 console.log(colors.white('\n@ Starting render GUI components for models in: \n', colors.green(path.resolve(directory))));
@@ -98,33 +98,39 @@ fs.readdirSync(program.jsonFiles).forEach( async (json_file) =>{
   let ejbOpts = funks.fillOptionsForViews(fileData);
 
   // Table path
-  var tablePath = 'src/components/mainPanel/tablePanel/modelsTables';
+  var tablePath = 'src/components/main-panel/table-panel/models-tables';
+  
+  // Collect models and attributes
   if(ejbOpts.nameLc === 'role' || ejbOpts.nameLc === 'user') {
-    tablePath = 'src/components/mainPanel/tablePanel/adminTables';
+    tablePath = 'src/components/main-panel/table-panel/admin-tables';
     modelsOpts.adminModels.push(ejbOpts);
   } else {
     modelsOpts.models.push(ejbOpts);
   }
+  modelAtts[ejbOpts.name] = ejbOpts.attributesArr;
 
   // Create required directories
   let modelTableDirs = [
-    path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}CreatePanel/components/${ejbOpts.nameLc}AssociationsPage/`),
-    path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}CreatePanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/components`),
-    path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/${ejbOpts.nameLc}AssociationsPage/`),
-    path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/components`),
-    path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}DetailPanel/components/${ejbOpts.nameLc}AssociationsPage/`),
-    path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}DetailPanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/components`),
+    path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/`),
+    path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components`),
+    path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/`),
+    path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components`),
+    path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-associations-page/`),
+    path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components`),
   ]
   //associations
   for(var i=0; i<ejbOpts.sortedAssociations.length; i++)
   {
     let assocLc = ejbOpts.sortedAssociations[i].targetModelLc;
     let assocPlLc = ejbOpts.sortedAssociations[i].targetModelPlLc;
-    modelTableDirs.push(path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}CreatePanel/components/${ejbOpts.nameLc}AssociationsPage/${assocLc}TransferLists/${assocPlLc}ToAddTransferView/components`));
-    modelTableDirs.push(path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/${ejbOpts.nameLc}AssociationsPage/${assocLc}TransferLists/${assocPlLc}ToAddTransferView/components`));
-    modelTableDirs.push(path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/${ejbOpts.nameLc}AssociationsPage/${assocLc}TransferLists/${assocPlLc}ToRemoveTransferView/components`));
-    modelTableDirs.push(path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}DetailPanel/components/${ejbOpts.nameLc}AssociationsPage/${assocLc}CompactView/components`));
+    modelTableDirs.push(path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/${assocLc}-transfer-lists/${assocPlLc}-to-add-transfer-view/components`));
+    modelTableDirs.push(path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${assocLc}-transfer-lists/${assocPlLc}-to-add-transfer-view/components`));
+    modelTableDirs.push(path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${assocLc}-transfer-lists/${assocPlLc}-to-remove-transfer-view/components`));
+    modelTableDirs.push(path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-associations-page/${assocLc}-compact-view/components`));
   }
+  //routes
+  modelTableDirs.push(path.resolve(directory, 'src/routes'));
+
   //create dirs
   for(var i=0; i<modelTableDirs.length; i++) {
     let dir = modelTableDirs[i];
@@ -156,24 +162,24 @@ fs.readdirSync(program.jsonFiles).forEach( async (json_file) =>{
    * */
 
   // template 1: ModelEnhancedTable
-  var fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/`, `${ejbOpts.nameCp}EnhancedTable.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/ModelEnhancedTable', ejbOpts) );
+  var fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/`, `${ejbOpts.nameCp}EnhancedTable.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/ModelEnhancedTable', ejbOpts) );
 
   // template 2: ModelUploadFileDialog
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/`, `${ejbOpts.nameCp}UploadFileDialog.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/ModelUploadFileDialog', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/`, `${ejbOpts.nameCp}UploadFileDialog.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/ModelUploadFileDialog', ejbOpts) );
 
   // template 3: ModelEnhancedTableToolbar
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/`, `${ejbOpts.nameCp}EnhancedTableToolbar.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/ModelEnhancedTableToolbar', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/`, `${ejbOpts.nameCp}EnhancedTableToolbar.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/ModelEnhancedTableToolbar', ejbOpts) );
 
   // template 4: ModelEnhancedTableHead
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/`, `${ejbOpts.nameCp}EnhancedTableHead.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/ModelEnhancedTableHead', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/`, `${ejbOpts.nameCp}EnhancedTableHead.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/ModelEnhancedTableHead', ejbOpts) );
 
   // template 5: ModelDeleteConfirmationDialog
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/`, `${ejbOpts.nameCp}DeleteConfirmationDialog.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/ModelDeleteConfirmationDialog', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/`, `${ejbOpts.nameCp}DeleteConfirmationDialog.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/ModelDeleteConfirmationDialog', ejbOpts) );
 
   /**
    * modelTable - modelCreatePanel 
@@ -181,16 +187,16 @@ fs.readdirSync(program.jsonFiles).forEach( async (json_file) =>{
    * */
 
   // template 6: ModelCreatePanel
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}CreatePanel/`, `${ejbOpts.nameCp}CreatePanel.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelCreatePanel/ModelCreatePanel', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/`, `${ejbOpts.nameCp}CreatePanel.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-create-panel/ModelCreatePanel', ejbOpts) );
 
   // template 7: ModelTabsA
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}CreatePanel/components/`, `${ejbOpts.nameCp}TabsA.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelCreatePanel/components/ModelTabsA', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/`, `${ejbOpts.nameCp}TabsA.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-create-panel/components/ModelTabsA', ejbOpts) );
 
   // template 8: ModelConfirmationDialog
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}CreatePanel/components/`, `${ejbOpts.nameCp}ConfirmationDialog.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelCreatePanel/components/ModelConfirmationDialog', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/`, `${ejbOpts.nameCp}ConfirmationDialog.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-create-panel/components/ModelConfirmationDialog', ejbOpts) );
 
   /**
    * modelTable - modelCreatePanel - modelAttributes 
@@ -198,40 +204,40 @@ fs.readdirSync(program.jsonFiles).forEach( async (json_file) =>{
    * */
 
   // template 9: ModelAttributesPage
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}CreatePanel/components/${ejbOpts.nameLc}AttributesPage/`, `${ejbOpts.nameCp}AttributesPage.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelCreatePanel/components/modelAttributesPage/ModelAttributesPage', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-attributes-page/`, `${ejbOpts.nameCp}AttributesPage.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-create-panel/components/model-attributes-page/ModelAttributesPage', ejbOpts) );
 
   // template 10: ModelAttributesFormView
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}CreatePanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/`, `${ejbOpts.nameCp}AttributesFormView.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelCreatePanel/components/modelAttributesPage/modelAttributesFormView/ModelAttributesFormView', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/`, `${ejbOpts.nameCp}AttributesFormView.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-create-panel/components/model-attributes-page/model-attributes-form-view/ModelAttributesFormView', ejbOpts) );
 
   // template 11: BoolField
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}CreatePanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/components/`, `BoolField.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelCreatePanel/components/modelAttributesPage/modelAttributesFormView/components/BoolField', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `BoolField.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-create-panel/components/model-attributes-page/model-attributes-form-view/components/BoolField', ejbOpts) );
 
   // template 12: DateField
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}CreatePanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/components/`, `DateField.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelCreatePanel/components/modelAttributesPage/modelAttributesFormView/components/DateField', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `DateField.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-create-panel/components/model-attributes-page/model-attributes-form-view/components/DateField', ejbOpts) );
 
   // template 13: DateTimeField
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}CreatePanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/components/`, `DateTimeField.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelCreatePanel/components/modelAttributesPage/modelAttributesFormView/components/DateTimeField', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `DateTimeField.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-create-panel/components/model-attributes-page/model-attributes-form-view/components/DateTimeField', ejbOpts) );
 
   // template 14: FloatField
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}CreatePanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/components/`, `FloatField.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelCreatePanel/components/modelAttributesPage/modelAttributesFormView/components/FloatField', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `FloatField.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-create-panel/components/model-attributes-page/model-attributes-form-view/components/FloatField', ejbOpts) );
 
   // template 15: IntField
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}CreatePanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/components/`, `IntField.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelCreatePanel/components/modelAttributesPage/modelAttributesFormView/components/IntField', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `IntField.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-create-panel/components/model-attributes-page/model-attributes-form-view/components/IntField', ejbOpts) );
 
   // template 16: StringField
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}CreatePanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/components/`, `StringField.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelCreatePanel/components/modelAttributesPage/modelAttributesFormView/components/StringField', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `StringField.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-create-panel/components/model-attributes-page/model-attributes-form-view/components/StringField', ejbOpts) );
 
   // template 17: TimeField
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}CreatePanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/components/`, `TimeField.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelCreatePanel/components/modelAttributesPage/modelAttributesFormView/components/TimeField', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `TimeField.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-create-panel/components/model-attributes-page/model-attributes-form-view/components/TimeField', ejbOpts) );
 
   /**
    * modelTable - modelCreatePanel - modelAssociations
@@ -239,28 +245,28 @@ fs.readdirSync(program.jsonFiles).forEach( async (json_file) =>{
    * */
 
   // template 18: ModelAssociationsPage
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}CreatePanel/components/${ejbOpts.nameLc}AssociationsPage/`, `${ejbOpts.nameCp}AssociationsPage.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelCreatePanel/components/modelAssociationsPage/ModelAssociationsPage', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/`, `${ejbOpts.nameCp}AssociationsPage.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-create-panel/components/model-associations-page/ModelAssociationsPage', ejbOpts) );
 
   // template 19: ModelAssociationsMenuTabs
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}CreatePanel/components/${ejbOpts.nameLc}AssociationsPage/`, `${ejbOpts.nameCp}AssociationsMenuTabs.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelCreatePanel/components/modelAssociationsPage/ModelAssociationsMenuTabs', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/`, `${ejbOpts.nameCp}AssociationsMenuTabs.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-create-panel/components/model-associations-page/ModelAssociationsMenuTabs', ejbOpts) );
 
   for(var i=0; i<ejbOpts.sortedAssociations.length; i++)
   {
     ejbOpts.aindex = i;
 
     // template 20: AssociationTransferLists
-    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}CreatePanel/components/${ejbOpts.nameLc}AssociationsPage/${ejbOpts.sortedAssociations[i].targetModelLc}TransferLists/`, `${ejbOpts.sortedAssociations[i].targetModelCp}TransferLists.js`);
-    promises.push( funks.renderToFile(fpath, 'modelTable/components/modelCreatePanel/components/modelAssociationsPage/associationTransferLists/AssociationTransferLists', ejbOpts) );
+    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].targetModelLc}-transfer-lists/`, `${ejbOpts.sortedAssociations[i].targetModelCp}TransferLists.js`);
+    promises.push( funks.renderToFile(fpath, 'model-table/components/model-create-panel/components/model-associations-page/association-transfer-lists/AssociationTransferLists', ejbOpts) );
 
     // template 21: RecordsToAddTransferView
-    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}CreatePanel/components/${ejbOpts.nameLc}AssociationsPage/${ejbOpts.sortedAssociations[i].targetModelLc}TransferLists/${ejbOpts.sortedAssociations[i].targetModelPlLc}ToAddTransferView`, `${ejbOpts.sortedAssociations[i].targetModelPlCp}ToAddTransferView.js`);
-    promises.push( funks.renderToFile(fpath, 'modelTable/components/modelCreatePanel/components/modelAssociationsPage/associationTransferLists/recordsToAddTransferView/RecordsToAddTransferView', ejbOpts) );
+    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].targetModelLc}-transfer-lists/${ejbOpts.sortedAssociations[i].targetModelPlLc}-to-add-transfer-view/`, `${ejbOpts.sortedAssociations[i].targetModelPlCp}ToAddTransferView.js`);
+    promises.push( funks.renderToFile(fpath, 'model-table/components/model-create-panel/components/model-associations-page/association-transfer-lists/records-to-add-transfer-view/RecordsToAddTransferView', ejbOpts) );
 
     // template 22: RecordsToAddTransferViewToolbar
-    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}CreatePanel/components/${ejbOpts.nameLc}AssociationsPage/${ejbOpts.sortedAssociations[i].targetModelLc}TransferLists/${ejbOpts.sortedAssociations[i].targetModelPlLc}ToAddTransferView/components`, `${ejbOpts.sortedAssociations[i].targetModelPlCp}ToAddTransferViewToolbar.js`);
-    promises.push( funks.renderToFile(fpath, 'modelTable/components/modelCreatePanel/components/modelAssociationsPage/associationTransferLists/recordsToAddTransferView/components/RecordsToAddTransferViewToolbar', ejbOpts) );
+    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].targetModelLc}-transfer-lists/${ejbOpts.sortedAssociations[i].targetModelPlLc}-to-add-transfer-view/components/`, `${ejbOpts.sortedAssociations[i].targetModelPlCp}ToAddTransferViewToolbar.js`);
+    promises.push( funks.renderToFile(fpath, 'model-table/components/model-create-panel/components/model-associations-page/association-transfer-lists/records-to-add-transfer-view/components/RecordsToAddTransferViewToolbar', ejbOpts) );
   
   }
 
@@ -270,16 +276,16 @@ fs.readdirSync(program.jsonFiles).forEach( async (json_file) =>{
    * */
 
   // template 23: ModelUpdatePanel
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/`, `${ejbOpts.nameCp}UpdatePanel.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelUpdatePanel/ModelUpdatePanel', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/`, `${ejbOpts.nameCp}UpdatePanel.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-update-panel/ModelUpdatePanel', ejbOpts) );
 
   // template 24: ModelTabsA
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/`, `${ejbOpts.nameCp}TabsA.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelUpdatePanel/components/ModelTabsA', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/`, `${ejbOpts.nameCp}TabsA.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-update-panel/components/ModelTabsA', ejbOpts) );
 
   // template 25: ModelConfirmationDialog
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/`, `${ejbOpts.nameCp}ConfirmationDialog.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelUpdatePanel/components/ModelConfirmationDialog', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/`, `${ejbOpts.nameCp}ConfirmationDialog.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-update-panel/components/ModelConfirmationDialog', ejbOpts) );
 
   /**
    * modelTable - modelUpdatePanel - modelAttributes 
@@ -287,40 +293,40 @@ fs.readdirSync(program.jsonFiles).forEach( async (json_file) =>{
    * */
 
   // template 26: ModelAttributesPage
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/${ejbOpts.nameLc}AttributesPage/`, `${ejbOpts.nameCp}AttributesPage.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelUpdatePanel/components/modelAttributesPage/ModelAttributesPage', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-attributes-page/`, `${ejbOpts.nameCp}AttributesPage.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-update-panel/components/model-attributes-page/ModelAttributesPage', ejbOpts) );
 
   // template 27: ModelAttributesFormView
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/`, `${ejbOpts.nameCp}AttributesFormView.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelUpdatePanel/components/modelAttributesPage/modelAttributesFormView/ModelAttributesFormView', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/`, `${ejbOpts.nameCp}AttributesFormView.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-update-panel/components/model-attributes-page/model-attributes-form-view/ModelAttributesFormView', ejbOpts) );
 
   // template 28: BoolField
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/components/`, `BoolField.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelUpdatePanel/components/modelAttributesPage/modelAttributesFormView/components/BoolField', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `BoolField.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-update-panel/components/model-attributes-page/model-attributes-form-view/components/BoolField', ejbOpts) );
 
   // template 29: DateField
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/components/`, `DateField.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelUpdatePanel/components/modelAttributesPage/modelAttributesFormView/components/DateField', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `DateField.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-update-panel/components/model-attributes-page/model-attributes-form-view/components/DateField', ejbOpts) );
 
   // template 30: DateTimeField
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/components/`, `DateTimeField.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelUpdatePanel/components/modelAttributesPage/modelAttributesFormView/components/DateTimeField', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `DateTimeField.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-update-panel/components/model-attributes-page/model-attributes-form-view/components/DateTimeField', ejbOpts) );
 
   // template 31: FloatField
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/components/`, `FloatField.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelUpdatePanel/components/modelAttributesPage/modelAttributesFormView/components/FloatField', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `FloatField.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-update-panel/components/model-attributes-page/model-attributes-form-view/components/FloatField', ejbOpts) );
 
   // template 32: IntField
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/components/`, `IntField.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelUpdatePanel/components/modelAttributesPage/modelAttributesFormView/components/IntField', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `IntField.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-update-panel/components/model-attributes-page/model-attributes-form-view/components/IntField', ejbOpts) );
 
   // template 33: StringField
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/components/`, `StringField.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelUpdatePanel/components/modelAttributesPage/modelAttributesFormView/components/StringField', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `StringField.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-update-panel/components/model-attributes-page/model-attributes-form-view/components/StringField', ejbOpts) );
 
   // template 34: TimeField
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/components/`, `TimeField.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelUpdatePanel/components/modelAttributesPage/modelAttributesFormView/components/TimeField', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `TimeField.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-update-panel/components/model-attributes-page/model-attributes-form-view/components/TimeField', ejbOpts) );
 
   /**
    * modelTable - modelUpdatePanel - modelAssociations
@@ -328,37 +334,37 @@ fs.readdirSync(program.jsonFiles).forEach( async (json_file) =>{
    * */
 
   // template 35: ModelAssociationsPage
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/${ejbOpts.nameLc}AssociationsPage/`, `${ejbOpts.nameCp}AssociationsPage.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelUpdatePanel/components/modelAssociationsPage/ModelAssociationsPage', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/`, `${ejbOpts.nameCp}AssociationsPage.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-update-panel/components/model-associations-page/ModelAssociationsPage', ejbOpts) );
 
   // template 36: ModelAssociationsMenuTabs
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/${ejbOpts.nameLc}AssociationsPage/`, `${ejbOpts.nameCp}AssociationsMenuTabs.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelUpdatePanel/components/modelAssociationsPage/ModelAssociationsMenuTabs', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/`, `${ejbOpts.nameCp}AssociationsMenuTabs.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-update-panel/components/model-associations-page/ModelAssociationsMenuTabs', ejbOpts) );
 
   for(var i=0; i<ejbOpts.sortedAssociations.length; i++)
   {
     ejbOpts.aindex = i;
 
     // template 37: AssociationTransferLists
-    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/${ejbOpts.nameLc}AssociationsPage/${ejbOpts.sortedAssociations[i].targetModelLc}TransferLists/`, `${ejbOpts.sortedAssociations[i].targetModelCp}TransferLists.js`);
-    promises.push( funks.renderToFile(fpath, 'modelTable/components/modelUpdatePanel/components/modelAssociationsPage/associationTransferLists/AssociationTransferLists', ejbOpts) );
+    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].targetModelLc}-transfer-lists/`, `${ejbOpts.sortedAssociations[i].targetModelCp}TransferLists.js`);
+    promises.push( funks.renderToFile(fpath, 'model-table/components/model-update-panel/components/model-associations-page/association-transfer-lists/AssociationTransferLists', ejbOpts) );
 
     // template 38: RecordsToAddTransferView
-    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/${ejbOpts.nameLc}AssociationsPage/${ejbOpts.sortedAssociations[i].targetModelLc}TransferLists/${ejbOpts.sortedAssociations[i].targetModelPlLc}ToAddTransferView`, `${ejbOpts.sortedAssociations[i].targetModelPlCp}ToAddTransferView.js`);
-    promises.push( funks.renderToFile(fpath, 'modelTable/components/modelUpdatePanel/components/modelAssociationsPage/associationTransferLists/recordsToAddTransferView/RecordsToAddTransferView', ejbOpts) );
+    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].targetModelLc}-transfer-lists/${ejbOpts.sortedAssociations[i].targetModelPlLc}-to-add-transfer-view/`, `${ejbOpts.sortedAssociations[i].targetModelPlCp}ToAddTransferView.js`);
+    promises.push( funks.renderToFile(fpath, 'model-table/components/model-update-panel/components/model-associations-page/association-transfer-lists/records-to-add-transfer-view/RecordsToAddTransferView', ejbOpts) );
 
     // template 39: RecordsToAddTransferViewToolbar
-    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/${ejbOpts.nameLc}AssociationsPage/${ejbOpts.sortedAssociations[i].targetModelLc}TransferLists/${ejbOpts.sortedAssociations[i].targetModelPlLc}ToAddTransferView/components`, `${ejbOpts.sortedAssociations[i].targetModelPlCp}ToAddTransferViewToolbar.js`);
-    promises.push( funks.renderToFile(fpath, 'modelTable/components/modelUpdatePanel/components/modelAssociationsPage/associationTransferLists/recordsToAddTransferView/components/RecordsToAddTransferViewToolbar', ejbOpts) );
+    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].targetModelLc}-transfer-lists/${ejbOpts.sortedAssociations[i].targetModelPlLc}-to-add-transfer-view/components/`, `${ejbOpts.sortedAssociations[i].targetModelPlCp}ToAddTransferViewToolbar.js`);
+    promises.push( funks.renderToFile(fpath, 'model-table/components/model-update-panel/components/model-associations-page/association-transfer-lists/records-to-add-transfer-view/components/RecordsToAddTransferViewToolbar', ejbOpts) );
 
     if(ejbOpts.sortedAssociations[i].type === 'to_many') {
       // template 40: RecordsToRemoveTransferView
-      fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/${ejbOpts.nameLc}AssociationsPage/${ejbOpts.sortedAssociations[i].targetModelLc}TransferLists/${ejbOpts.sortedAssociations[i].targetModelPlLc}ToRemoveTransferView`, `${ejbOpts.sortedAssociations[i].targetModelPlCp}ToRemoveTransferView.js`);
-      promises.push( funks.renderToFile(fpath, 'modelTable/components/modelUpdatePanel/components/modelAssociationsPage/associationTransferLists/recordsToRemoveTransferView/RecordsToRemoveTransferView', ejbOpts) );
+      fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].targetModelLc}-transfer-lists/${ejbOpts.sortedAssociations[i].targetModelPlLc}-to-remove-transfer-view/`, `${ejbOpts.sortedAssociations[i].targetModelPlCp}ToRemoveTransferView.js`);
+      promises.push( funks.renderToFile(fpath, 'model-table/components/model-update-panel/components/model-associations-page/association-transfer-lists/records-to-remove-transfer-view/RecordsToRemoveTransferView', ejbOpts) );
 
       // template 41: RecordsToRemoveTransferViewToolbar
-      fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}UpdatePanel/components/${ejbOpts.nameLc}AssociationsPage/${ejbOpts.sortedAssociations[i].targetModelLc}TransferLists/${ejbOpts.sortedAssociations[i].targetModelPlLc}ToRemoveTransferView/components`, `${ejbOpts.sortedAssociations[i].targetModelPlCp}ToRemoveTransferViewToolbar.js`);
-      promises.push( funks.renderToFile(fpath, 'modelTable/components/modelUpdatePanel/components/modelAssociationsPage/associationTransferLists/recordsToRemoveTransferView/components/RecordsToRemoveTransferViewToolbar', ejbOpts) );
+      fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].targetModelLc}-transfer-lists/${ejbOpts.sortedAssociations[i].targetModelPlLc}-to-remove-transfer-view/components/`, `${ejbOpts.sortedAssociations[i].targetModelPlCp}ToRemoveTransferViewToolbar.js`);
+      promises.push( funks.renderToFile(fpath, 'model-table/components/model-update-panel/components/model-associations-page/association-transfer-lists/records-to-remove-transfer-view/components/RecordsToRemoveTransferViewToolbar', ejbOpts) );
     }
   }
 
@@ -368,8 +374,8 @@ fs.readdirSync(program.jsonFiles).forEach( async (json_file) =>{
    * */
 
   // template 42: ModelDetailPanel
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}DetailPanel/`, `${ejbOpts.nameCp}DetailPanel.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelDetailPanel/ModelDetailPanel', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/`, `${ejbOpts.nameCp}DetailPanel.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-detail-panel/ModelDetailPanel', ejbOpts) );
 
   /**
    * modelTable - modelDetailPanel - modelAttributes 
@@ -377,40 +383,40 @@ fs.readdirSync(program.jsonFiles).forEach( async (json_file) =>{
    * */
 
   // template 43: ModelAttributesPage
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}DetailPanel/components/${ejbOpts.nameLc}AttributesPage/`, `${ejbOpts.nameCp}AttributesPage.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelDetailPanel/components/modelAttributesPage/ModelAttributesPage', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-attributes-page/`, `${ejbOpts.nameCp}AttributesPage.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-detail-panel/components/model-attributes-page/ModelAttributesPage', ejbOpts) );
 
   // template 44: ModelAttributesFormView
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}DetailPanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/`, `${ejbOpts.nameCp}AttributesFormView.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelDetailPanel/components/modelAttributesPage/modelAttributesFormView/ModelAttributesFormView', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/`, `${ejbOpts.nameCp}AttributesFormView.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-detail-panel/components/model-attributes-page/model-attributes-form-view/ModelAttributesFormView', ejbOpts) );
 
   // template 45: BoolField
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}DetailPanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/components/`, `BoolField.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelDetailPanel/components/modelAttributesPage/modelAttributesFormView/components/BoolField', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `BoolField.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-detail-panel/components/model-attributes-page/model-attributes-form-view/components/BoolField', ejbOpts) );
 
   // template 46: DateField
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}DetailPanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/components/`, `DateField.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelDetailPanel/components/modelAttributesPage/modelAttributesFormView/components/DateField', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `DateField.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-detail-panel/components/model-attributes-page/model-attributes-form-view/components/DateField', ejbOpts) );
 
   // template 47: DateTimeField
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}DetailPanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/components/`, `DateTimeField.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelDetailPanel/components/modelAttributesPage/modelAttributesFormView/components/DateTimeField', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `DateTimeField.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-detail-panel/components/model-attributes-page/model-attributes-form-view/components/DateTimeField', ejbOpts) );
 
   // template 48: FloatField
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}DetailPanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/components/`, `FloatField.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelDetailPanel/components/modelAttributesPage/modelAttributesFormView/components/FloatField', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `FloatField.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-detail-panel/components/model-attributes-page/model-attributes-form-view/components/FloatField', ejbOpts) );
 
   // template 49: IntField
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}DetailPanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/components/`, `IntField.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelDetailPanel/components/modelAttributesPage/modelAttributesFormView/components/IntField', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `IntField.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-detail-panel/components/model-attributes-page/model-attributes-form-view/components/IntField', ejbOpts) );
 
   // template 50: StringField
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}DetailPanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/components/`, `StringField.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelDetailPanel/components/modelAttributesPage/modelAttributesFormView/components/StringField', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `StringField.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-detail-panel/components/model-attributes-page/model-attributes-form-view/components/StringField', ejbOpts) );
 
   // template 51: TimeField
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}DetailPanel/components/${ejbOpts.nameLc}AttributesPage/${ejbOpts.nameLc}AttributesFormView/components/`, `TimeField.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelDetailPanel/components/modelAttributesPage/modelAttributesFormView/components/TimeField', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `TimeField.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-detail-panel/components/model-attributes-page/model-attributes-form-view/components/TimeField', ejbOpts) );
 
   /**
    * modelTable - modelDetailPanel - modelAssociations
@@ -418,34 +424,26 @@ fs.readdirSync(program.jsonFiles).forEach( async (json_file) =>{
    * */
 
   // template 52: ModelAssociationsPage
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}DetailPanel/components/${ejbOpts.nameLc}AssociationsPage/`, `${ejbOpts.nameCp}AssociationsPage.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelDetailPanel/components/modelAssociationsPage/ModelAssociationsPage', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-associations-page/`, `${ejbOpts.nameCp}AssociationsPage.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-detail-panel/components/model-associations-page/ModelAssociationsPage', ejbOpts) );
 
   // template 53: ModelAssociationsMenuTabs
-  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}DetailPanel/components/${ejbOpts.nameLc}AssociationsPage/`, `${ejbOpts.nameCp}AssociationsMenuTabs.js`);
-  promises.push( funks.renderToFile(fpath, 'modelTable/components/modelDetailPanel/components/modelAssociationsPage/ModelAssociationsMenuTabs', ejbOpts) );
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-associations-page/`, `${ejbOpts.nameCp}AssociationsMenuTabs.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/model-detail-panel/components/model-associations-page/ModelAssociationsMenuTabs', ejbOpts) );
 
   for(var i=0; i<ejbOpts.sortedAssociations.length; i++)
   {
     ejbOpts.aindex = i;
 
     // template 54: AssociationCompactView
-    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}DetailPanel/components/${ejbOpts.nameLc}AssociationsPage/${ejbOpts.sortedAssociations[i].targetModelLc}CompactView/`, `${ejbOpts.sortedAssociations[i].targetModelCp}CompactView.js`);
-    promises.push( funks.renderToFile(fpath, 'modelTable/components/modelDetailPanel/components/modelAssociationsPage/associationCompactView/AssociationCompactView', ejbOpts) );
+    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].targetModelLc}-compact-view/`, `${ejbOpts.sortedAssociations[i].targetModelCp}CompactView.js`);
+    promises.push( funks.renderToFile(fpath, 'model-table/components/model-detail-panel/components/model-associations-page/association-compact-view/AssociationCompactView', ejbOpts) );
 
     // template 55: AssociationCompactViewToolbar
-    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}Table/components/${ejbOpts.nameLc}DetailPanel/components/${ejbOpts.nameLc}AssociationsPage/${ejbOpts.sortedAssociations[i].targetModelLc}CompactView/components/`, `${ejbOpts.sortedAssociations[i].targetModelCp}CompactViewToolbar.js`);
-    promises.push( funks.renderToFile(fpath, 'modelTable/components/modelDetailPanel/components/modelAssociationsPage/associationCompactView/components/AssociationCompactViewToolbar', ejbOpts) );
+    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].targetModelLc}-compact-view/components/`, `${ejbOpts.sortedAssociations[i].targetModelCp}CompactViewToolbar.js`);
+    promises.push( funks.renderToFile(fpath, 'model-table/components/model-detail-panel/components/model-associations-page/association-compact-view/components/AssociationCompactViewToolbar', ejbOpts) );
 
   }
-
-  /**
-   * requests - model
-   * 
-   * */
-  // template 56: model
-  fpath = path.resolve(directory, `src/requests/`, `${ejbOpts.nameLc}.js`);
-  promises.push( funks.renderToFile(fpath, 'requests/model', ejbOpts) );
 
 });
 
@@ -471,48 +469,75 @@ modelsOpts.adminModels.sort(function (a, b) {
 });
 
 /**
-   * requests - index & searchAttributes
-   * 
-   * */
-  // template 57: index
-  fpath = path.resolve(directory, `src/requests/`, `index.js`);
-  promises.push( funks.renderToFile(fpath, 'requests/index', modelsOpts) );
+ * Debug
+ */
+//console.log("modelsOpts: ", modelsOpts);
+//console.log("modelAtts: ", modelAtts);
 
-  // template 58: searchAttributes
-  fpath = path.resolve(directory, `src/requests/`, `searchAttributes.js`);
-  promises.push( funks.renderToFile(fpath, 'requests/searchAttributes', modelsOpts) );
+/**
+ * requests - model
+ * 
+ * */
+// template 56: model
+for(let i=0; i<modelsOpts.models.length; i++)
+{
+  let m = modelsOpts.models[i];
+  m.modelsAtts = modelAtts;
 
-  /**
-   * routes
-   * 
-   * */
-  // template 59: routes
-  fpath = path.resolve(directory, `src/routes/`, `routes.js`);
-  promises.push( funks.renderToFile(fpath, 'routes/routes', modelsOpts) );
+  fpath = path.resolve(directory, `src/requests/`, `${m.nameLc}.js`);
+  promises.push( funks.renderToFile(fpath, 'requests/model', m) );
+}
+for(let i=0; i<modelsOpts.adminModels.length; i++)
+{
+  let m = modelsOpts.adminModels[i];
+  m.modelsAtts = modelAtts;
 
-  // template 60: TablesSwitch
-  fpath = path.resolve(directory, `src/components/mainPanel/tablePanel/`, `TablesSwitch.js`);
-  promises.push( funks.renderToFile(fpath, 'routes/TablesSwitch', modelsOpts) );
+  fpath = path.resolve(directory, `src/requests/`, `${m.nameLc}.js`);
+  promises.push( funks.renderToFile(fpath, 'requests/model', m) );
+}
 
-  /**
-   * acl_rules
-   * 
-   * */
-  // template 61: acl_rules
-  fpath = path.resolve(directory, `src/`, `acl_rules.js`);
-  promises.push( funks.renderToFile(fpath, 'acl/acl_rules', modelsOpts) );
+/**
+ * requests - index & searchAttributes
+ * 
+ * */
+// template 57: requests.index
+fpath = path.resolve(directory, `src/requests/`, `requests.index.js`);
+promises.push( funks.renderToFile(fpath, 'requests/requests.index', modelsOpts) );
+
+// template 58: requests.attributes
+fpath = path.resolve(directory, `src/requests/`, `requests.attributes.js`);
+promises.push( funks.renderToFile(fpath, 'requests/requests.attributes', modelsOpts) );
+
+/**
+ * routes
+ * 
+ * */
+// template 59: routes
+fpath = path.resolve(directory, `src/routes/`, `routes.js`);
+promises.push( funks.renderToFile(fpath, 'routes/routes', modelsOpts) );
+
+// template 60: TablesSwitch
+fpath = path.resolve(directory, `src/components/main-panel/table-panel/`, `TablesSwitch.js`);
+promises.push( funks.renderToFile(fpath, 'routes/TablesSwitch', modelsOpts) );
+
+/**
+ * acl_rules
+ * 
+ * */
+// template 61: acl_rules
+fpath = path.resolve(directory, `src/`, `acl_rules.js`);
+promises.push( funks.renderToFile(fpath, 'acl/acl_rules', modelsOpts) );
 
 
- Promise.all(promises).then( (values) =>{
-   //msg
-   if(verbose) {
-     for(var i=0; i<values.length; i++)
-     {
-      console.log("@@@ file generated: ", colors.dim(values[i]));
-     }
-   }
- })
- .catch((error)=>{console.log(error); console.log("SOMETHING WRONG")});
-
+Promise.all(promises).then( (values) =>{
+  //msg
+  if(verbose) {
+    for(var i=0; i<values.length; i++)
+    {
+    console.log("@@@ file generated: ", colors.dim(values[i]));
+    }
+  }
+})
+.catch((error)=>{console.log(error); console.log("SOMETHING WRONG")});
 
 console.log("\nDONE\n");

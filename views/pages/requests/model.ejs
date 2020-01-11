@@ -1,5 +1,5 @@
-import requestGraphql from './request'
-import getSearchAttributes from './searchAttributes'
+import requestGraphql from './request.graphql'
+import getAttributes from './requests.attributes'
 
 export default {
   /**
@@ -70,7 +70,7 @@ export default {
         query =
           `{ <%- namePlLc _%>( ${s}, ${o}, ${p} ) {
             id,
-<%_for( i=0; i<attributesArr.length; i++ ){-%>
+<%_for( let i=0; i<attributesArr.length; i++ ){-%>
             <%- attributesArr[i][0] -%>,
 <%}-%>
            }}`
@@ -80,7 +80,7 @@ export default {
         query =
           `{ <%- namePlLc _%>( ${s}, ${p} ) {
             id,
-<%_for( i=0; i<attributesArr.length; i++ ){-%>
+<%_for( let i=0; i<attributesArr.length; i++ ){-%>
             <%- attributesArr[i][0] -%>,
 <%}-%>
            }}`
@@ -93,7 +93,7 @@ export default {
         query =
           `{ <%- namePlLc _%>( ${o}, ${p} ) {
             id,
-<%_for( i=0; i<attributesArr.length; i++ ){-%>
+<%_for( let i=0; i<attributesArr.length; i++ ){-%>
             <%- attributesArr[i][0] -%>,
 <%}-%>
            }}`
@@ -103,7 +103,7 @@ export default {
         query =
           `{ <%- namePlLc _%>( ${p} ) {
             id,
-<%_for( i=0; i<attributesArr.length; i++ ){-%>
+<%_for( let i=0; i<attributesArr.length; i++ ){-%>
             <%- attributesArr[i][0] -%>,
 <%}-%>
            }}`
@@ -131,26 +131,26 @@ export default {
     var query = 
       `mutation
         add<%- nameCp %>(
-<%_for( i=0; i<attributesArr.length; i++ ){-%>
+<%_for( let i=0; i<attributesArr.length; i++ ){-%>
           $<%- attributesArr[i][0] _%>:<%- attributesArr[i][1] _%>,
 <%}-%>
-<%_for( i=0; i<sortedAssociations.length; i++ ){
+<%_for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === "to_many") {
 -%>
           $add<%- sortedAssociations[i].targetModelPlCp _%>: [ID],
 <%}}-%>
           ) { add<%- nameCp %>(
-<%_for( i=0; i<attributesArr.length; i++ ){-%>
+<%_for( let i=0; i<attributesArr.length; i++ ){-%>
             <%- attributesArr[i][0] _%>:$<%- attributesArr[i][0] _%>,
 <%}-%>
-<%_for( i=0; i<sortedAssociations.length; i++ ){
+<%_for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === "to_many") {
 -%>
             add<%- sortedAssociations[i].targetModelPlCp _%>: $add<%- sortedAssociations[i].targetModelPlCp _%>,
 <%}}-%>
           ) {
             id,
-<%_for( i=0; i<attributesArr.length; i++ ){-%>
+<%_for( let i=0; i<attributesArr.length; i++ ){-%>
             <%- attributesArr[i][0] _%>,
 <%}-%> 
           } }`;
@@ -177,10 +177,10 @@ export default {
       `mutation
         update<%- nameCp %>(
           $id:ID!
-<%_for( i=0; i<attributesArr.length; i++ ){-%>
+<%_for( let i=0; i<attributesArr.length; i++ ){-%>
           $<%- attributesArr[i][0] _%>:<%- attributesArr[i][1] _%>,
 <%}-%>
-<%_for( i=0; i<sortedAssociations.length; i++ ){
+<%_for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === "to_many") {
 -%>
           $add<%- sortedAssociations[i].targetModelPlCp _%>: [ID],
@@ -188,10 +188,10 @@ export default {
 <%}}-%>
           ) { update<%- nameCp %>(
             id:$id
-<%_for( i=0; i<attributesArr.length; i++ ){-%>
+<%_for( let i=0; i<attributesArr.length; i++ ){-%>
             <%- attributesArr[i][0] _%>:$<%- attributesArr[i][0] _%>,
 <%}-%>
-<%_for( i=0; i<sortedAssociations.length; i++ ){
+<%_for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === "to_many") {
 -%>
             add<%- sortedAssociations[i].targetModelPlCp _%>: $add<%- sortedAssociations[i].targetModelPlCp _%>,
@@ -199,7 +199,7 @@ export default {
 <%}}-%>
           ) {
             id,
-<%_for( i=0; i<attributesArr.length; i++ ){-%>
+<%_for( let i=0; i<attributesArr.length; i++ ){-%>
             <%- attributesArr[i][0] _%>,
 <%}-%> 
           } }`;
@@ -241,7 +241,7 @@ export default {
     return requestGraphql({ url, query, variables });
   },
 
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
+<%for( let i=0; i<sortedAssociations.length; i++ ){-%>
   /**
    * get<%- sortedAssociations[i].targetModelPlCp %>Filter
    * 
@@ -271,16 +271,18 @@ export default {
       `{ readOne<%- nameCp %>(id: ${itemId}) { 
         <%- sortedAssociations[i].targetModelPlLc _%>Filter( ${s}, ${p} ) { 
           id,
-          ${label}, 
-          ${sublabel},
+<%_for( let j=0; j<modelsAtts[sortedAssociations[i].targetModel].length; j++ ){-%>
+          <%- modelsAtts[sortedAssociations[i].targetModel][j][0] -%>,
+<%}-%>
         }, 
         countFiltered<%- sortedAssociations[i].targetModelPlCp %>( ${s} ) 
       } }` :      
       `{ readOne<%- nameCp %>(id: ${itemId}) { 
         <%- sortedAssociations[i].targetModelPlLc _%>Filter( ${p} ) { 
           id,
-          ${label}, 
-          ${sublabel},
+<%_for( let j=0; j<modelsAtts[sortedAssociations[i].targetModel].length; j++ ){-%>
+          <%- modelsAtts[sortedAssociations[i].targetModel][j][0] -%>,
+<%}-%>
         }, 
         countFiltered<%- sortedAssociations[i].targetModelPlCp %> 
       } }`;
@@ -289,8 +291,9 @@ export default {
       `{ readOne<%- nameCp %>(id: ${itemId}) { 
         <%- sortedAssociations[i].targetModel _%> { 
           id,
-          ${label}, 
-          ${sublabel},
+<%_for( let j=0; j<modelsAtts[sortedAssociations[i].targetModel].length; j++ ){-%>
+          <%- modelsAtts[sortedAssociations[i].targetModel][j][0] -%>,
+<%}-%>
       } } }`;
 <%}-%>
 
@@ -339,7 +342,7 @@ export default {
  */
 function getSearchArgument(filterName, searchText, ops) {
   
-  var filterAttributes = getSearchAttributes(filterName);
+  var filterAttributes = getAttributes(filterName);
   var modelAttributes = Object.keys(filterAttributes);
   var ors = '';
   var orSearch = null;

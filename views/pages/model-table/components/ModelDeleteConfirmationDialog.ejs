@@ -1,0 +1,74 @@
+import React, { useState } from 'react';
+import PropTypes from 'prop-types';
+import <%- nameCp -%>DetailPanel from './<%- nameLc -%>-detail-panel/<%- nameCp -%>DetailPanel'
+import { makeStyles } from '@material-ui/core/styles';
+import { useTranslation } from 'react-i18next';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogTitle from '@material-ui/core/DialogTitle'
+import Button from '@material-ui/core/Button';
+
+const useStyles = makeStyles(theme => ({
+  button: {
+    margin: theme.spacing(1),
+  },
+}));
+
+export default function <%- nameCp -%>DeleteConfirmationDialog(props) {
+  const classes = useStyles();
+  const {
+    item,
+    handleAccept,
+    handleReject,
+  } = props;
+  const [open, setOpen] = useState(true);
+  const { t } = useTranslation();
+ 
+  const handleCancel = (event) => {
+    setOpen(false);
+    handleReject(event);
+  }
+
+  const handleOk = (event) => {
+    setOpen(false);
+    handleAccept(event, item);
+  }
+
+  return (
+    <Dialog
+      open={open}
+      fullWidth={true}
+      maxWidth='lg'
+      onClose={handleCancel}
+    >
+      
+      <DialogTitle>
+        { t('modelPanels.deleteMsg') }
+      </DialogTitle>
+
+      <DialogContent dividers>
+        <<%- nameCp -%>DetailPanel 
+          item={item}
+          dialog={false}
+          handleClose={handleCancel}
+        />
+      </DialogContent>
+
+      <DialogActions>
+        <Button className={classes.button} onClick={handleCancel} color="primary">
+            { t('modelPanels.deleteReject') }
+        </Button>
+        <Button className={classes.button} onClick={handleOk} variant="contained" color="secondary">
+            { t('modelPanels.deleteAccept') }
+        </Button>
+      </DialogActions>
+
+    </Dialog>
+  );
+}
+<%- nameCp -%>DeleteConfirmationDialog.propTypes = {
+  item: PropTypes.object.isRequired,
+  handleAccept: PropTypes.func.isRequired,
+  handleReject: PropTypes.func.isRequired
+};

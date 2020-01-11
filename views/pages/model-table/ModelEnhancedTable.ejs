@@ -1,0 +1,808 @@
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useSelector } from 'react-redux';
+import { makeStyles } from '@material-ui/core/styles';
+import { useTranslation } from 'react-i18next';
+import { useSnackbar } from 'notistack';
+<%if(typeAttributes.hasOwnProperty('Date') || typeAttributes.hasOwnProperty('Time') || typeAttributes.hasOwnProperty('DateTime')) {-%>
+import moment from "moment";
+<%}-%>
+import PropTypes from 'prop-types';
+import api from '../../../../../requests/requests.index.js'
+import <%- nameCp -%>EnhancedTableHead from './components/<%- nameCp -%>EnhancedTableHead'
+import <%- nameCp -%>EnhancedTableToolbar from './components/<%- nameCp -%>EnhancedTableToolbar'
+import <%- nameCp -%>CreatePanel from './components/<%- nameLc -%>-create-panel/<%- nameCp -%>CreatePanel'
+import <%- nameCp -%>UpdatePanel from './components/<%- nameLc -%>-update-panel/<%- nameCp -%>UpdatePanel'
+import <%- nameCp -%>DetailPanel from './components/<%- nameLc -%>-detail-panel/<%- nameCp -%>DetailPanel'
+import <%- nameCp -%>DeleteConfirmationDialog from './components/<%- nameCp -%>DeleteConfirmationDialog'
+import <%- nameCp -%>UploadFileDialog from './components/<%- nameCp -%>UploadFileDialog'
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TablePagination from '@material-ui/core/TablePagination';
+import TableRow from '@material-ui/core/TableRow';
+import Paper from '@material-ui/core/Paper';
+import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
+import Tooltip from '@material-ui/core/Tooltip';
+import Grid from '@material-ui/core/Grid';
+import Fade from '@material-ui/core/Fade';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import Typography from '@material-ui/core/Typography';
+import Delete from '@material-ui/icons/DeleteOutline';
+import Edit from '@material-ui/icons/Edit';
+import SeeInfo from '@material-ui/icons/VisibilityTwoTone';
+
+const useStyles = makeStyles(theme => ({
+    root: {
+        marginTop: theme.spacing(7),
+    },
+    paper: {
+        overflowX: 'auto',
+    },
+    tableWrapper: {
+      height: '64vh',
+      maxHeight: '64vh',
+      overflow: 'auto',
+    },
+    loading: {
+      height: '64vh',
+      maxHeight: '64vh',
+    },
+    noData: {
+      height: '64vh',
+      maxHeight: '64vh',
+    },
+    iconSee: {
+      '&:hover': {
+        color: '#3f51b5'
+      }
+    },
+    iconEdit: {
+      '&:hover': {
+        color: '#3f51b5'
+      }
+    },
+    iconDelete: {
+      '&:hover': {
+        color: '#f50057'
+      }
+    },
+    notiErrorActionText: {
+      color: '#eba0a0',
+    },
+}));
+
+export default function <%- nameCp -%>EnhancedTable(props) {
+  const classes = useStyles();
+  const { permissions } = props;
+  const { t } = useTranslation();
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+
+  const [items, setItems] = useState([]);
+  const [count, setCount] = useState(0);
+  const [search, setSearch] = useState('');
+  const [order, setOrder] = useState('asc');
+  const [orderBy, setOrderBy] = useState('id');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(50);
+  const [isOnApiRequest, setIsOnApiRequest] = useState(false);
+  const [dataTrigger, setDataTrigger] = useState(false);
+  const isPendingApiRequestRef = useRef(false);
+  const isOnApiRequestRef = useRef(false);
+  const isGettingFirstDataRef = useRef(true);
+  const pageRef = useRef(0);
+  
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+  const [updateItem, setUpdateItem] = useState(undefined);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [detailItem, setDetailItem] = useState(undefined);
+  const [deleteConfirmationDialogOpen, setDeleteConfirmationDialogOpen] = useState(false);
+  const [deleteConfirmationItem, setDeleteConfirmationItem] = useState(undefined);
+  const [uploadFileDialogOpen, setUploadFileDialogOpen] = useState(false);
+
+  const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
+
+  const actionText = useRef(null);
+  const action = useRef((key) => (
+    <>
+      <Button color='inherit' variant='text' size='small' className={classes.notiErrorActionText} onClick={() => { closeSnackbar(key) }}>
+        {actionText.current}
+      </Button>
+    </> 
+  ));
+
+  /**
+    * getData
+    * 
+    * Get @items and @count from GrahpQL Server.
+    * Uses current state properties to fill query request.
+    * Updates state to inform new @items and @count retreived.
+    * 
+    */
+  const getData = useCallback(() => {
+    isOnApiRequestRef.current = true;
+    setIsOnApiRequest(true);
+    Boolean(dataTrigger); //avoid warning
+
+    /*
+      API Request: countItems
+    */
+    api.<%- nameLc -%>.getCountItems(graphqlServerUrl, search)
+      .then(response => {
+        if(
+          response.data &&
+          response.data.data
+        ) {
+          if(response.data.errors) {
+            actionText.current = t('modelPanels.gotIt', "Got it");
+            enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
+              variant: 'error',
+              preventDuplicate: false,
+              persist: true,
+              action: action.current,
+            });
+            console.log("Errors: ", response.data.errors);
+          }
+          var newCount = response.data.data.count<%- namePlCp -%>;
+
+          /*
+            Check: empty page
+          */
+          if((newCount === (pageRef.current * rowsPerPage)) && (pageRef.current > 0)) {
+            isOnApiRequestRef.current = false;
+            setIsOnApiRequest(false);
+            setPage(pageRef.current - 1);
+            return;
+          }
+
+          /*
+            API Request: items
+          */
+          api.<%- nameLc -%>.getItems(
+            graphqlServerUrl,
+            search,
+            orderBy,
+            order,
+            pageRef.current * rowsPerPage, //paginationOffset
+            rowsPerPage, //paginationLimit
+          )
+            .then(response => {
+              if (
+                response.data &&
+                response.data.data
+              ) {
+                if(response.data.errors) {
+                  actionText.current = t('modelPanels.gotIt', "Got it");
+                  enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
+                    variant: 'error',
+                    preventDuplicate: false,
+                    persist: true,
+                    action: action.current,
+                  });
+                  console.log("Errors: ", response.data.errors);
+                }
+                let its = response.data.data.<%- namePlLc -%>;
+                
+                //ok
+                setCount((newCount&&typeof newCount==='number') ? newCount : 0);
+                setItems(its&&Array.isArray(its) ? its : []);
+                isOnApiRequestRef.current = false;
+                setIsOnApiRequest(false);
+                return;
+
+              } else { //error: bad response on getItems()
+                actionText.current = t('modelPanels.gotIt', "Got it");
+                enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
+                  variant: 'error',
+                  preventDuplicate: false,
+                  persist: true,
+                  action: action.current,
+                });
+                console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
+                setCount(0);
+                setItems([]);
+                isOnApiRequestRef.current = false;
+                setIsOnApiRequest(false);
+                return;
+              }
+            })
+            .catch(err => { //error: on getItems()
+              actionText.current = t('modelPanels.gotIt', "Got it");
+              enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
+                variant: 'error',
+                preventDuplicate: false,
+                persist: true,
+                action: action.current,
+              });
+              console.log("Error: ", err);
+              setCount(0);
+              setItems([]);
+              isOnApiRequestRef.current = false;
+              setIsOnApiRequest(false);
+              return;
+            });
+          return;
+        } else { //error: bad response on getCountItems()
+          actionText.current = t('modelPanels.gotIt', "Got it");
+          enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
+            variant: 'error',
+            preventDuplicate: false,
+            persist: true,
+            action: action.current,
+          });
+          console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
+          setCount(0);
+          setItems([]);
+          isOnApiRequestRef.current = false;
+          setIsOnApiRequest(false);
+          return;
+        }
+      })
+    .catch(err => { //error: on getCountItems()
+      actionText.current = t('modelPanels.gotIt', "Got it");
+      enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
+        variant: 'error',
+        preventDuplicate: false,
+        persist: true,
+        action: action.current,
+      });
+      console.log("Error: ", err);
+      setCount(0);
+      setItems([]);
+      isOnApiRequestRef.current = false;
+      setIsOnApiRequest(false);
+      return;
+    });
+  }, [graphqlServerUrl, enqueueSnackbar, t, dataTrigger, search, orderBy, order, rowsPerPage]);
+
+  useEffect(() => {}, []);
+
+  useEffect(() => {
+    if (!isOnApiRequestRef.current) {
+      getData();
+    } 
+    else { 
+      isPendingApiRequestRef.current = true; 
+    }
+  }, [getData]);
+
+  useEffect(() => {
+    //return if this flag is set
+    if(isGettingFirstDataRef.current) { 
+      isGettingFirstDataRef.current = false; 
+      return; 
+    } 
+    else {
+      //get data from the new page
+      pageRef.current = page;
+      if (!isOnApiRequestRef.current) {
+        setDataTrigger(prevDataTrigger => !prevDataTrigger); 
+      } 
+      else { 
+        isPendingApiRequestRef.current = true; 
+      }
+    }
+  }, [page]);
+
+  useEffect(() => {      
+    if (!isOnApiRequest && isPendingApiRequestRef.current) {
+      isPendingApiRequestRef.current = false;
+      setDataTrigger(prevDataTrigger => !prevDataTrigger);
+    }
+  }, [isOnApiRequest]);
+
+  useEffect(() => {
+    if (updateItem !== undefined) {
+      setUpdateDialogOpen(true);
+    }
+  }, [updateItem]);
+
+  useEffect(() => {
+    if (detailItem !== undefined) {
+      setDetailDialogOpen(true);
+    }
+  }, [detailItem]);
+
+  useEffect(() => {
+    if (deleteConfirmationItem !== undefined) {
+      setDeleteConfirmationDialogOpen(true);
+    }
+  }, [deleteConfirmationItem]);
+
+  function doDelete(event, item) {
+    //variables
+    let variables = {id: item.id};
+
+    /*
+      API Request: deleteItem
+    */
+    api.<%- nameLc -%>.deleteItem(graphqlServerUrl, variables)
+      .then(response => {
+        if(
+          response.data &&
+          response.data.data
+        ) {
+          if(response.data.errors) {
+            actionText.current = t('modelPanels.gotIt', "Got it");
+            enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
+              variant: 'error',
+              preventDuplicate: false,
+              persist: true,
+              action: action.current,
+            });
+            console.log("Errors: ", response.data.errors);
+          }else {
+            //ok
+            enqueueSnackbar( t('modelPanels.messages.msg4', "Record deleted successfully."), {
+              variant: 'success',
+              preventDuplicate: false,
+              persist: false,
+              anchorOrigin: {
+                vertical: 'bottom',
+                horizontal: 'left',
+              },
+            });
+          }
+          setDataTrigger(prevDataTrigger => !prevDataTrigger);
+          return;
+
+        } else { //error: bad response on deleteItem()
+          actionText.current = t('modelPanels.gotIt', "Got it");
+          enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
+            variant: 'error',
+            preventDuplicate: false,
+            persist: true,
+            action: action.current,
+          });
+          console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
+          setDataTrigger(prevDataTrigger => !prevDataTrigger);
+          return;
+        }
+      })
+      .catch(err => { //error: on deleteItem()
+        actionText.current = t('modelPanels.gotIt', "Got it");
+        enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
+          variant: 'error',
+          preventDuplicate: false,
+          persist: true,
+          action: action.current,
+        });
+        console.log("Error: ", err);
+        setDataTrigger(prevDataTrigger => !prevDataTrigger);
+        return;
+      });
+  }
+
+  const handleSearchEnter = text => {
+    if(text !== search)
+    {
+      pageRef.current = 0;
+      if(page !== 0) {
+        isGettingFirstDataRef.current = true; //avoids to get data on [page] effect
+        setPage(0);
+      }
+      setSearch(text);
+    }
+  };
+
+  const handleRequestSort = (event, property) => {
+    pageRef.current = 0;
+    if(page !== 0) {
+      isGettingFirstDataRef.current = true; //avoids to get data on [page] effect
+      setPage(0);
+    }
+
+    const isDesc = (order === 'desc');
+    setOrder(isDesc ? 'asc' : 'desc');
+
+    if (orderBy !== property) {
+      setOrderBy(property);
+    }
+  };
+
+  const handleClickOnRow = (event, item) => {
+    setDetailItem(item);
+  };
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = event => {
+    if(event.target.value !== rowsPerPage)
+    {
+      pageRef.current = 0;
+      if(page !== 0) {
+        isGettingFirstDataRef.current = true; //avoids to get data on [page] effect
+        setPage(0);
+      }
+      setRowsPerPage(parseInt(event.target.value, 10));
+    }
+  };
+
+  const handleCreateClicked = (event) => {
+    setCreateDialogOpen(true);
+  }
+
+  const handleBulkImportClicked = (event) => {
+    setUploadFileDialogOpen(true);
+  }
+
+  const handleUpdateClicked = (event, item) => {
+    setUpdateItem(item);
+  }
+
+  const handleDeleteClicked = (event, item) => {
+    setDeleteConfirmationItem(item);
+  }
+
+  const handleCreateDialogClose = (event) => {
+    delayedCloseCreatePanel(event, 500);
+  }
+
+  const delayedCloseCreatePanel = async (event, ms) => {
+    await new Promise(resolve => {
+      //set timeout
+      window.setTimeout(function() {
+        setCreateDialogOpen(false);
+        resolve("ok");
+      }, ms);
+    });
+  };
+
+  const handleUpdateDialogClose = (event) => {
+    delayedCloseUpdatePanel(event, 500);
+  }
+
+  const delayedCloseUpdatePanel = async (event, ms) => {
+    await new Promise(resolve => {
+      //set timeout
+      window.setTimeout(function() {
+        setUpdateDialogOpen(false);
+        setUpdateItem(undefined);
+        resolve("ok");
+      }, ms);
+    });
+  };
+
+  const handleDetailDialogClose = (event) => {
+    delayedCloseDetailPanel(event, 500);
+  }
+
+  const delayedCloseDetailPanel = async (event, ms) => {
+    await new Promise(resolve => {
+      //set timeout
+      window.setTimeout(function() {
+        setDetailDialogOpen(false);
+        setDetailItem(undefined);
+        resolve("ok");
+      }, ms);
+    });
+  };
+
+  const handleDeleteConfirmationReject = (event) => {
+    delayedCloseDeleteConfirmation(event, 500);
+  }
+
+  const delayedCloseDeleteConfirmation = async (event, ms) => {
+    await new Promise(resolve => {
+      //set timeout
+      window.setTimeout(function() {
+        setDeleteConfirmationDialogOpen(false);
+        setDeleteConfirmationItem(undefined);
+        resolve("ok");
+      }, ms);
+    });
+  };
+
+  const handleBulkUploadCancel = (event) => {
+    delayedCloseBulkUploadDialog(event, 500);
+  }
+
+  const handleBulkUploadDone = (event) => {
+    delayedCloseBulkUploadDialog(event, 500);
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  }
+
+  const delayedCloseBulkUploadDialog = async (event, ms) => {
+    await new Promise(resolve => {
+      //set timeout
+      window.setTimeout(function() {
+        setUploadFileDialogOpen(false);
+        resolve("ok");
+      }, ms);
+    });
+  };
+
+  const handleDeleteConfirmationAccept = (event, item) => {
+    doDelete(event, item);
+    delayedCloseDeleteConfirmation(event, 500);
+  }
+
+  const handleCreateOk = () => {
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  }
+
+  return (
+    <div className={classes.root}>
+      {
+        /* acl check */
+        (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
+        &&(permissions.<%- nameLc -%>.includes('read') || permissions.<%- nameLc -%>.includes('*')))
+        &&(
+          <Grid container justify='center'>
+            <Grid item xs={12} md={11}>
+              <Paper className={classes.paper}>
+
+                {/* Toolbar */}
+                <<%- nameCp -%>EnhancedTableToolbar
+                  permissions={permissions}
+                  search={search}
+                  onSearchEnter={handleSearchEnter}
+                  handleAddClicked={handleCreateClicked}
+                  handleBulkImportClicked={handleBulkImportClicked}
+                />
+
+                {/* Table */}
+                <div className={classes.tableWrapper}>
+                  <Table stickyHeader size='small'>
+
+                    {/* Table Head */}
+                    {(!isOnApiRequest && count > 0) && (
+                      <<%- nameCp -%>EnhancedTableHead
+                        permissions={permissions}
+                        order={order}
+                        orderBy={orderBy}
+                        rowCount={count}
+                        onRequestSort={handleRequestSort}
+                      />
+                    )}
+
+                    {/* Table Body */}
+
+                    {/* Case: show table body */}
+                    {(!isOnApiRequest && count > 0) && (
+                      <Fade
+                        in={true}
+                        unmountOnExit
+                      >
+                        <TableBody>
+                          {
+                            items.map((item, index) => {
+                              return ([
+                                /*
+                                  Table Row
+                                */
+                                <TableRow
+                                  hover
+                                  onClick={event => handleClickOnRow(event, item)}
+                                  role="checkbox"
+                                  tabIndex={-1}
+                                  key={item.id}
+                                >
+
+                                  {/* SeeInfo icon */}
+                                  <TableCell padding="checkbox">
+                                    <Tooltip title={ t('modelPanels.viewDetails') }>
+                                      <IconButton
+                                        color="default"
+                                        onClick={event => {
+                                          event.stopPropagation();
+                                          handleClickOnRow(event, item);
+                                        }}
+                                      >
+                                        <SeeInfo fontSize="small" className={classes.iconSee}/>
+                                      </IconButton>
+                                    </Tooltip>
+                                  </TableCell>
+
+                                  {/*
+                                    Actions:
+                                    - Edit
+                                    - Delete
+                                  */}
+                                  {
+                                    /* acl check */
+                                    (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
+                                    &&(permissions.<%- nameLc -%>.includes('update') || permissions.<%- nameLc -%>.includes('*')))
+                                    &&(
+                                      <TableCell padding='checkbox' align='center'>
+                                        <Tooltip title={ t('modelPanels.edit') }>
+                                          <IconButton
+                                            color="default"
+                                            onClick={(event) => {
+                                              event.stopPropagation();
+                                              handleUpdateClicked(event, item);
+                                            }}
+                                          >
+                                            <Edit fontSize="small" className={classes.iconEdit} />
+                                          </IconButton>
+                                        </Tooltip>
+                                      </TableCell>
+                                    )
+                                  }
+                                  {
+                                    /* acl check */
+                                    (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
+                                    &&(permissions.<%- nameLc -%>.includes('delete') || permissions.<%- nameLc -%>.includes('*')))
+                                    &&(
+                                      <TableCell padding='checkbox' align='center'>
+                                        <Tooltip title={ t('modelPanels.delete') }>
+                                          <IconButton
+                                            color="default"
+                                            onClick={(event) => {
+                                              event.stopPropagation();
+                                              handleDeleteClicked(event, item);
+                                            }}
+                                          >
+                                            <Delete fontSize="small" className={classes.iconDelete} />
+                                          </IconButton>
+                                        </Tooltip>
+                                      </TableCell>
+                                    )
+                                  }
+
+                                  {/* Item fields */}
+
+                                  {/* id */}
+                                  <TableCell
+                                    key='id'
+                                    align='left'
+                                    padding="checkbox"
+                                  >
+                                    <Tooltip title={ 'id: ' + item.id }>
+                                      <Typography variant='body2' color='textSecondary' display='block' noWrap={true}>{item.id}</Typography>
+                                    </Tooltip>
+                                  </TableCell>
+
+    <%for( i=0; i<attributesArr.length; i++ ){
+      let a = attributesArr[i][0];
+      let label = a[0].toUpperCase() + a.slice(1);
+      let type = attributesArr[i][1];
+    -%>
+                                  {/* <%- label %> */}
+                                  <TableCell
+                                    key='<%- a -%>'
+                                    align='<%- (type==='Int' || type === 'Float') ? 'right' : 'left' _%>'
+                                    padding="default"
+                                  >
+    <%if(type==='Date'){-%>
+                                    {String((item.<%- a _%>!==null)?moment(item.<%- a _%>, "YYYY-MM-DD").format("YYYY-MM-DD"):'')}
+    <%}else if(type==='Time'){-%>
+                                    {String((item.<%- a _%>!==null)?moment(item.<%- a _%>, "HH:mm:ss.SSSZ").format("HH:mm:ss.SSSZ"):'')}
+    <%}else if(type==='DateTime'){-%>
+                                    {String((item.<%- a _%>!==null)?moment(item.<%- a _%>, "YYYY-MM-DDTHH:mm:ss.SSSZ").format("YYYY-MM-DDTHH:mm:ss.SSSZ"):'')}
+    <%}else{-%>
+                                    {String((item.<%- a _%>!==null)?item.<%- a _%>:'')}
+    <%}-%>
+                                  </TableCell>
+
+    <%}-%>
+                                </TableRow>,
+                              ]);
+                            })
+                          }
+                        </TableBody>
+                      </Fade>
+                    )}
+
+                    {/* Case: loading */}
+                    {(isOnApiRequest) && (
+                      <Fade
+                        in={true}
+                        unmountOnExit
+                      >
+                        <TableBody>
+                          <TableRow className={classes.loading}>
+                            <TableCell colSpan={3 + 3}>
+                              <Grid container>
+                                <Grid item xs={12}>
+                                  <Grid container justify="center">
+                                    <Grid item>
+                                      <CircularProgress color='primary' disableShrink />
+                                    </Grid>
+                                  </Grid>
+                                </Grid>
+                              </Grid>
+                            </TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Fade>
+                    )}
+
+                    {/* Case: No data */}
+                    {(!isOnApiRequest && count === 0) && (
+                      <Fade
+                        in={true}
+                        unmountOnExit
+                      >
+                        <TableBody>
+                          <TableRow className={classes.noData}>
+                            <TableCell colSpan={3 + 3}>
+                              <Grid container>
+                                <Grid item xs={12}>
+                                  <Grid container justify="center">
+                                    <Grid item>
+                                      <Typography variant="body1" >{ t('modelPanels.noData') }</Typography>
+                                    </Grid>
+                                  </Grid>
+                                </Grid>
+                              </Grid>
+                            </TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Fade>
+                    )}
+                  </Table>
+                </div>
+
+                {/*
+                  Pagination
+                */}
+                <TablePagination
+                  rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
+                  component="div"
+                  count={count}
+                  rowsPerPage={rowsPerPage}
+                  page={page}
+                  labelRowsPerPage = { t('modelPanels.rowsPerPage') }
+                  labelDisplayedRows = {({ from, to, count }) => `${from}-${to === -1 ? count : to} ${t('modelPanels.of')} ${count}`}
+                  onChangePage={handleChangePage}
+                  onChangeRowsPerPage={handleChangeRowsPerPage}
+                />
+              </Paper>
+            </Grid>
+          </Grid>
+        )
+      }
+
+      {/* Dialog: Create Panel */}
+      {(createDialogOpen) && (
+        <<%- nameCp -%>CreatePanel
+          handleClose={handleCreateDialogClose}
+          handleOk={handleCreateOk}
+        />
+      )}
+
+      {/* Dialog: Update Panel */}
+      {(updateDialogOpen) && (
+        <<%- nameCp -%>UpdatePanel
+          item={updateItem}
+          handleClose={handleUpdateDialogClose}
+          handleOk={handleCreateOk}
+        />
+      )}
+
+      {/* Dialog: Detail Panel */}
+      {(detailDialogOpen) && (
+        <<%- nameCp -%>DetailPanel
+          item={detailItem}
+          dialog={true}
+          handleClose={handleDetailDialogClose}
+        />
+      )}
+
+      {/* Dialog: Delete Confirmation */}
+      {(deleteConfirmationDialogOpen) && (
+        <<%- nameCp -%>DeleteConfirmationDialog
+          item={deleteConfirmationItem}
+          handleAccept={handleDeleteConfirmationAccept}
+          handleReject={handleDeleteConfirmationReject}
+        />
+      )}
+
+      {/* Dialog: Upload File */}
+      {(uploadFileDialogOpen) && (
+        <<%- nameCp -%>UploadFileDialog
+          handleCancel={handleBulkUploadCancel}
+          handleDone={handleBulkUploadDone}
+        />
+      )}
+    </div>
+  );
+}
+
+<%- nameCp -%>EnhancedTable.propTypes = {
+  permissions: PropTypes.object,
+};

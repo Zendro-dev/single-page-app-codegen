@@ -6,10 +6,10 @@ import {
 import PropTypes from 'prop-types';
 
 <%for( i=0; i<models.length; i++ ){-%>
-import <%- models[i].nameCp %>Table from './modelsTables/<%- models[i].nameLc _%>Table/<%- models[i].nameCp _%>EnhancedTable'
+import <%- models[i].nameCp %>Table from './models-tables/<%- models[i].nameLc _%>-table/<%- models[i].nameCp _%>EnhancedTable'
 <%}-%>
 <%for( i=0; i<adminModels.length; i++ ){-%>
-import <%- adminModels[i].nameCp %>Table from './adminTables/<%- adminModels[i].nameLc _%>Table/<%- adminModels[i].nameCp _%>EnhancedTable'
+import <%- adminModels[i].nameCp %>Table from './admin-tables/<%- adminModels[i].nameLc _%>-table/<%- adminModels[i].nameCp _%>EnhancedTable'
 <%}-%>
 import NotFoundSection from '../pages/NotFoundSectionPage'
 import NoPermissionSectionPage from '../pages/NoPermissionSectionPage'
@@ -35,7 +35,7 @@ export default function TablesSwitch(props) {
         {/* Admin models */}
 <%for( i=0; i<adminModels.length; i++ ){-%>
         <Route exact path="/main/admin/<%- adminModels[i].nameLc _%>" 
-          component={
+          render={
             /* acl check */
             (permissions&&permissions.<%- adminModels[i].nameLc _%>&&Array.isArray(permissions.<%- adminModels[i].nameLc _%>)
             &&(permissions.<%- adminModels[i].nameLc _%>.includes('read') || permissions.<%- adminModels[i].nameLc _%>.includes('*')))
