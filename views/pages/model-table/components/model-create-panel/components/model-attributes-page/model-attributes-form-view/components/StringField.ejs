@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
@@ -23,27 +23,16 @@ export default function StringField(props) {
     text,
     valueOk,
     autoFocus,
-    handleReady,
     handleSetValue,
   } = props;
   
   const defaultValue = useRef((text !== undefined && typeof text === 'string' ) ? text : '');
   const textValue = useRef((text !== undefined && typeof text === 'string' ) ? text : null);
-  const inputRef = useRef(null);
-  const fieldRef = useRef(null);
-
-  useEffect(() => {
-    if(handleReady !== undefined) {
-      handleReady(itemKey, fieldRef, inputRef);
-    }
-  }, [handleReady, itemKey]);
 
   return (
     <TextField
       id={"string-field-"+itemKey+'-'+name}
       label={label}
-      ref={fieldRef}
-      inputRef={inputRef}
       multiline
       rowsMax="4"
       defaultValue={defaultValue.current}
@@ -93,6 +82,5 @@ StringField.propTypes = {
   text: PropTypes.string,
   valueOk: PropTypes.number.isRequired,
   autoFocus: PropTypes.bool,
-  handleReady: PropTypes.func.isRequired,
   handleSetValue: PropTypes.func.isRequired,
 };

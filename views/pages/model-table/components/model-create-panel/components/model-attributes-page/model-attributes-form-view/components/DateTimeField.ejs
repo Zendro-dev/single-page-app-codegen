@@ -26,12 +26,10 @@ export default function DateTimeField(props) {
     text,
     valueOk,
     autoFocus,
-    handleReady,
     handleSetValue,
   } = props;
   
   const [selectedDate, setSelectedDate] = useState(getInitialSelectedDate());
-  const inputRef = useRef(null);
   const mdate = useRef(getInitialMdate());
 
   function getInitialSelectedDate() {
@@ -73,12 +71,7 @@ export default function DateTimeField(props) {
 
   useEffect(() => {
     moment.locale(i18n.language);
-
-    if(handleReady !== undefined) {
-      handleReady(itemKey, inputRef, inputRef);
-    }
-
-  }, [handleReady, itemKey, i18n.language]);
+  }, [i18n.language]);
 
   return (
     <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils} locale={i18n.language}>
@@ -86,7 +79,6 @@ export default function DateTimeField(props) {
           className={classes.input}
           id={"date-field-"+itemKey+'-'+name}
           label={label}
-          inputRef={inputRef}
           format="YYYY-MM-DD HH:mm:ss.SSS"
           value={selectedDate}
           margin="normal"
@@ -140,6 +132,5 @@ DateTimeField.propTypes = {
   text: PropTypes.string,
   valueOk: PropTypes.number.isRequired,
   autoFocus: PropTypes.bool,
-  handleReady: PropTypes.func.isRequired,
   handleSetValue: PropTypes.func.isRequired,
 };

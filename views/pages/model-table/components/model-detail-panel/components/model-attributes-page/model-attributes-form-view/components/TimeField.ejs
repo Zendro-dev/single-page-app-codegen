@@ -26,11 +26,9 @@ export default function TimeField(props) {
     text,
     valueOk,
     autoFocus,
-    handleReady,
   } = props;
   
   const selectedDate = useRef(getInitialSelectedDate());
-  const inputRef = useRef(null);
 
   function getInitialSelectedDate() {
     moment.locale(i18n.language);
@@ -50,12 +48,7 @@ export default function TimeField(props) {
 
   useEffect(() => {
     moment.locale(i18n.language);
-
-    if(handleReady !== undefined) {
-      handleReady(itemKey, inputRef, inputRef);
-    }
-
-  }, [handleReady, itemKey, i18n.language]);
+  }, [i18n.language]);
 
   return (
     <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils} locale={i18n.language}>
@@ -63,7 +56,6 @@ export default function TimeField(props) {
           className={classes.input}
           id={"time-field-"+itemKey+'-'+name}
           label={label}
-          inputRef={inputRef}
           format="HH:mm:ss.SSS"
           ampm={true}
           value={selectedDate.current}
@@ -92,5 +84,4 @@ TimeField.propTypes = {
   text: PropTypes.string,
   valueOk: PropTypes.number.isRequired,
   autoFocus: PropTypes.bool,
-  handleReady: PropTypes.func,
 };

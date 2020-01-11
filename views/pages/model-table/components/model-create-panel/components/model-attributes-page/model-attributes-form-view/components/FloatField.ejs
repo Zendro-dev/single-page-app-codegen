@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@material-ui/core/styles';
@@ -25,14 +25,11 @@ export default function FloatField(props) {
     text,
     valueOk,
     autoFocus,
-    handleReady,
     handleSetValue,
   } = props;
 
   const [errorText, setErrorText] = useState(null);
   const [helperText, setHelperText] = useState(null);
-  const inputRef = useRef(null);
-  const fieldRef = useRef(null);
   const defaultValue = useRef((text !== undefined) ? text : '');
   const floatValue = useRef(getInitialFloatValue());
   const textValue = useRef(getInitialTextValue());
@@ -76,19 +73,10 @@ export default function FloatField(props) {
     }
   }
 
-  useEffect(() => {
-    if(handleReady !== undefined) {
-      handleReady(itemKey, fieldRef, inputRef);
-    }
-
-  }, [handleReady, itemKey]);
-
   return (
       <TextField
         id={"float-field-"+itemKey+'-'+name}
         label={label}
-        ref={fieldRef}
-        inputRef={inputRef}
         type="number"
         defaultValue={defaultValue.current}
         className={classes.textField}
@@ -195,6 +183,5 @@ FloatField.propTypes = {
   ]),
   valueOk: PropTypes.number.isRequired,
   autoFocus: PropTypes.bool,
-  handleReady: PropTypes.func.isRequired,
   handleSetValue: PropTypes.func.isRequired,
 };

@@ -62,7 +62,6 @@ export default function <%- nameCp _%>AttributesFormView(props) {
 <%if(belongsTosArr.length > 0){-%>
           foreignKeys,
 <%}-%> 
-          handleFieldReady,
           handleSetValue,
         } = props;
 
@@ -131,7 +130,6 @@ export default function <%- nameCp _%>AttributesFormView(props) {
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
-                handleReady={handleFieldReady}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -148,7 +146,6 @@ export default function <%- nameCp _%>AttributesFormView(props) {
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
-                handleReady={handleFieldReady}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -170,7 +167,6 @@ export default function <%- nameCp _%>AttributesFormView(props) {
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
-                handleReady={handleFieldReady}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -187,7 +183,6 @@ export default function <%- nameCp _%>AttributesFormView(props) {
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
-                handleReady={handleFieldReady}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -204,7 +199,6 @@ export default function <%- nameCp _%>AttributesFormView(props) {
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
-                handleReady={handleFieldReady}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -221,7 +215,6 @@ export default function <%- nameCp _%>AttributesFormView(props) {
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
-                handleReady={handleFieldReady}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -238,7 +231,6 @@ export default function <%- nameCp _%>AttributesFormView(props) {
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
-                handleReady={handleFieldReady}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -257,7 +249,6 @@ export default function <%- nameCp _%>AttributesFormView(props) {
 <%if(belongsTosArr.length > 0){-%>
   foreignKeys: PropTypes.object.isRequired,
 <%}-%>
-  handleFieldReady: PropTypes.func.isRequired,
   handleSetValue: PropTypes.func.isRequired,
 };
 

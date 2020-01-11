@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
@@ -26,19 +26,9 @@ export default function IntField(props) {
     valueOk,
     autoFocus,
     isForeignKey,
-    handleReady,
   } = props;
 
-  const inputRef = useRef(null);
-  const fieldRef = useRef(null);
   const defaultValue = useRef((text !== undefined) ? text : '');
-
-  useEffect(() => {
-    if(handleReady !== undefined) {
-      handleReady(itemKey, fieldRef, inputRef);
-    }
-
-  }, [handleReady, itemKey]);
 
   return (
       <Grid container justify='flex-start' alignItems='center' spacing={2}>
@@ -46,8 +36,6 @@ export default function IntField(props) {
           <TextField
           id={"int-field-"+itemKey+'-'+name}
           label={label}
-          ref={fieldRef}
-          inputRef={inputRef}
           type="number"
           defaultValue={defaultValue.current}
           className={classes.textField}
@@ -91,5 +79,4 @@ IntField.propTypes = {
   valueOk: PropTypes.number.isRequired,
   autoFocus: PropTypes.bool,
   isForeignKey: PropTypes.bool,
-  handleReady: PropTypes.func,
 };
