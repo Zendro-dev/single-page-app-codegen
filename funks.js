@@ -333,7 +333,7 @@ parseAssociationsFromFile = function(associations){
 
           "relationName" : name,
           "relationNameCp": exports.capitalizeString(name),
-          "targetModel": exports.uncapitalizeString(association.target),
+          "targetModel": association.target,
           "targetModelLc": exports.uncapitalizeString(association.target),
           "targetModelPlLc": inflection.pluralize(exports.uncapitalizeString(association.target)),
           "targetModelCp": exports.capitalizeString(association.target),
@@ -351,7 +351,7 @@ parseAssociationsFromFile = function(associations){
           "type" : "to_many",
           "relationName" : name,
           "relationNameCp": exports.capitalizeString(name),
-          "targetModel": exports.uncapitalizeString(association.target),
+          "targetModel": association.target,
           "targetModelLc": exports.uncapitalizeString(association.target),
           "targetModelPlLc": inflection.pluralize(exports.uncapitalizeString(association.target)),
           "targetModelCp": exports.capitalizeString(association.target),
