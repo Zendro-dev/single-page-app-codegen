@@ -101,7 +101,7 @@ fs.readdirSync(program.jsonFiles).forEach( async (json_file) =>{
   var tablePath = 'src/components/main-panel/table-panel/models-tables';
   
   // Collect models and attributes
-  if(ejbOpts.nameLc === 'role' || ejbOpts.nameLc === 'user') {
+  if(ejbOpts.nameLc === 'role' || ejbOpts.nameLc === 'user' || ejbOpts.nameLc === 'userInfo') {
     tablePath = 'src/components/main-panel/table-panel/admin-tables';
     modelsOpts.adminModels.push(ejbOpts);
   } else {
