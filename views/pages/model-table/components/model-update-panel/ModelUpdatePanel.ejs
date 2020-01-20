@@ -10,8 +10,8 @@ import <%- nameCp _%>AttributesPage from './components/<%- nameLc _%>-attributes
 import <%- nameCp _%>AssociationsPage from './components/<%- nameLc _%>-associations-page/<%- nameCp _%>AssociationsPage'
 import <%- nameCp _%>TabsA from './components/<%- nameCp _%>TabsA'
 import <%- nameCp _%>ConfirmationDialog from './components/<%- nameCp _%>ConfirmationDialog'
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
-import <%- sortedAssociations[i].targetModelCp _%> DetailPanel from '../../../<%- sortedAssociations[i].targetModelLc _%>-table/components/<%- sortedAssociations[i].targetModelLc _%>-detail-panel/<%- sortedAssociations[i].targetModelCp _%>DetailPanel'
+<%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
+import <%- sortedAssociatedModels[i].targetModelCp _%> DetailPanel from '../../../<%- sortedAssociatedModels[i].targetModelLc _%>-table/components/<%- sortedAssociatedModels[i].targetModelLc _%>-detail-panel/<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel'
 <%}-%>
 import api from '../../../../../../../requests/requests.index.js'
 import { makeStyles } from '@material-ui/core/styles';
@@ -41,7 +41,7 @@ const useStyles = makeStyles(theme => ({
     flex: 1,
   },
   tabsA: {
-    backgroundColor: "#fafafa",
+    backgroundColor: "#ffffff",
   },
   fabButton: {
     position: 'absolute',
@@ -73,7 +73,7 @@ export default function <%- nameCp _%>UpdatePanel(props) {
   const [open, setOpen] = useState(true);
   const [tabsValue, setTabsValue] = useState(0);
   const [valueOkStates, setValueOkStates] = useState(getInitialValueOkStates());
-  <%if(belongsTosArr.length > 0){-%>
+  <%if(hasOwnForeingKeys){-%>
   const [foreignKeys, setForeignKeys] = useState(getInitialForeignKeys());
   <%}-%>
 
@@ -85,19 +85,19 @@ export default function <%- nameCp _%>UpdatePanel(props) {
 
   const handleAccept = useRef(undefined);
   const handleReject = useRef(undefined);
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
-<%if(sortedAssociations[i].type === 'to_many'){-%>
-  const <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd = useRef([]);
-  const <%- sortedAssociations[i].targetModelPlLc _%>IdsToRemove = useRef([]);
+<%for( let i=0; i<sortedAssociations.length; i++ ){-%>
+<%if(sortedAssociations[i].sqlType === 'belongsTo'){-%>
+  const <%- sortedAssociations[i].relationNameLc _%>IdsToAdd = useRef((item.<%- sortedAssociations[i].foreignKey %> !== null) ? [item.<%- sortedAssociations[i].foreignKey _%>] : []);
 <%} else {-%>
-  const <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd = useRef((item.<%- sortedAssociations[i].foreignKey %> !== null) ? [item.<%- sortedAssociations[i].foreignKey _%>] : []);
+  const <%- sortedAssociations[i].relationNameLc _%>IdsToAdd = useRef([]);
+  const <%- sortedAssociations[i].relationNameLc _%>IdsToRemove = useRef([]);
 <%}}-%>
   const values = useRef(getInitialValues());
   const valuesOkRefs = useRef(getInitialValueOkStates());
 
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
-  const [<%- sortedAssociations[i].targetModelLc _%>DetailDialogOpen, set<%- sortedAssociations[i].targetModelCp _%>DetailDialogOpen] = useState(false);
-  const [<%- sortedAssociations[i].targetModelLc _%>DetailItem, set<%- sortedAssociations[i].targetModelCp _%>DetailItem] = useState(undefined);
+<%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
+  const [<%- sortedAssociatedModels[i].targetModelLc _%>DetailDialogOpen, set<%- sortedAssociatedModels[i].targetModelCp _%>DetailDialogOpen] = useState(false);
+  const [<%- sortedAssociatedModels[i].targetModelLc _%>DetailItem, set<%- sortedAssociatedModels[i].targetModelCp _%>DetailItem] = useState(undefined);
 <%}-%>
 
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
@@ -113,30 +113,30 @@ export default function <%- nameCp _%>UpdatePanel(props) {
 
   useEffect(() => {}, []);
 
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
+<%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
   useEffect(() => {
-    if (<%- sortedAssociations[i].targetModelLc _%>DetailItem !== undefined) {
-      set<%- sortedAssociations[i].targetModelCp _%>DetailDialogOpen(true);
+    if (<%- sortedAssociatedModels[i].targetModelLc _%>DetailItem !== undefined) {
+      set<%- sortedAssociatedModels[i].targetModelCp _%>DetailDialogOpen(true);
     }
-  }, [<%- sortedAssociations[i].targetModelLc _%>DetailItem]);
+  }, [<%- sortedAssociatedModels[i].targetModelLc _%>DetailItem]);
 <%}-%>
 
   function getInitialValues() {
     let initialValues = {};
 
-<%for( i=0; i<attributesArr.length; i++ ){-%>
+<%for( let i=0; i<attributesArr.length; i++ ){-%>
     initialValues.<%- attributesArr[i][0] %> = item.<%- attributesArr[i][0] _%>;
 <%}-%>
 
     return initialValues;
   }
 
-<%if(belongsTosArr.length > 0){-%>
+<%if(hasOwnForeingKeys){-%>
   function getInitialForeignKeys() {
     let initialForeignKeys = {};
     
-<%for( i=0; i<belongsTosArr.length; i++ ){-%>
-    initialForeignKeys.<%- belongsTosArr[i].foreignKey %> = item.<%- belongsTosArr[i].foreignKey _%>;
+<%for( let i=0; i<ownForeignKeysArr.length; i++ ){-%>
+    initialForeignKeys.<%- ownForeignKeysArr[i] %> = item.<%- ownForeignKeysArr[i] _%>;
 <%}-%>
 
     return initialForeignKeys;
@@ -152,7 +152,7 @@ export default function <%- nameCp _%>UpdatePanel(props) {
     */
     let initialValueOkStates = {};
 
-<%for( i=0; i<attributesArr.length; i++ ){-%>
+<%for( let i=0; i<attributesArr.length; i++ ){-%>
     initialValueOkStates.<%- attributesArr[i][0] %> = (item.<%- attributesArr[i][0] _%>!==null ? 1 : 0);
 <%}-%>
 
@@ -161,7 +161,7 @@ export default function <%- nameCp _%>UpdatePanel(props) {
 
   function areThereNotAcceptableFields() {
     let a = Object.entries(valueOkStates);
-    for(var i=0; i<a.length; ++i) {
+    for(let i=0; i<a.length; ++i) {
       if(a[i][1] === -1) {
         return true;
       }
@@ -171,7 +171,7 @@ export default function <%- nameCp _%>UpdatePanel(props) {
 
   function areThereIncompleteFields() {
     let a = Object.entries(valueOkStates);
-    for(var i=0; i<a.length; ++i) {
+    for(let i=0; i<a.length; ++i) {
       if(a[i][1] === 0) {
         return true;
       }
@@ -180,13 +180,12 @@ export default function <%- nameCp _%>UpdatePanel(props) {
   }
 
   function areThereChangedFields() {
-<%for( i=0; i<attributesArr.length; i++ ){-%>
+<%for( let i=0; i<attributesArr.length; i++ ){-%>
 <% if(attributesArr[i][1] === 'DateTime') {-%>
     if((values.current.<%- attributesArr[i][0] %> === null || item.<%- attributesArr[i][0] %> === null) && item.<%- attributesArr[i][0] %> !== values.current.<%- attributesArr[i][0] %>) { return true; }
     if(values.current.<%- attributesArr[i][0] %> !== null && item.<%- attributesArr[i][0] %> !== null && !moment(values.current.<%- attributesArr[i][0] %>).isSame(item.<%- attributesArr[i][0] %>)) { return true; }
 <%} else if(attributesArr[i][1] === 'Time'){-%>
     if((values.current.<%- attributesArr[i][0] %> === null || item.<%- attributesArr[i][0] %> === null) && item.<%- attributesArr[i][0] %> !== values.current.<%- attributesArr[i][0] %>) { return true; }
-    
     if(values.current.<%- attributesArr[i][0] %> !== null && item.<%- attributesArr[i][0] %> !== null && moment(values.current.<%- attributesArr[i][0] %>, "HH:mm:ss.SSSZ").format("HH:mm:ss.SSSZ") !== moment(item.<%- attributesArr[i][0] %>, "HH:mm:ss.SSSZ").format("HH:mm:ss.SSSZ")) { return true; }
     <%} else if(attributesArr[i][1] === 'Int'){-%>
     if(Number(values.current.<%- attributesArr[i][0] %>) !== Number(item.<%- attributesArr[i][0] %>)) { return true;}
@@ -201,7 +200,7 @@ export default function <%- nameCp _%>UpdatePanel(props) {
     //variables
     let keys = Object.keys(values.current);
     let variables = {};
-    for(var i=0; i<keys.length; i++) {
+    for(let i=0; i<keys.length; i++) {
       if(valuesOkRefs.current[keys[i]] !== -1) {
         variables[keys[i]] = values.current[keys[i]];
       }
@@ -210,17 +209,17 @@ export default function <%- nameCp _%>UpdatePanel(props) {
     variables.id = item.id;
 
     //addItems
-<%for( i=0; i<sortedAssociations.length; i++ ){
+<%for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === "to_many") {
 -%>
-    variables.add<%- sortedAssociations[i].targetModelPlCp %> = <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current;
+    variables.add<%- sortedAssociations[i].relationNameCp %> = <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current;
 <%}}-%>
 
     //removeItems
-<%for( i=0; i<sortedAssociations.length; i++ ){
+<%for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === "to_many") {
 -%>
-    variables.remove<%- sortedAssociations[i].targetModelPlCp %> = <%- sortedAssociations[i].targetModelPlLc _%>IdsToRemove.current;
+    variables.remove<%- sortedAssociations[i].relationNameCp %> = <%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current;
 <%}}-%>
 
     /*
@@ -363,15 +362,18 @@ export default function <%- nameCp _%>UpdatePanel(props) {
 
   const handleTransferToAdd = (associationKey, itemId) => {
     switch(associationKey) {
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
-      case '<%- sortedAssociations[i].targetModel _%>':
-<%if(sortedAssociations[i].type === 'to_one'){-%>
-        <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current = [];
-        <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current.push(itemId);
+<%for( let i=0; i<sortedAssociations.length; i++ ){-%>
+      case '<%- sortedAssociations[i].relationName _%>':
+<%if((sortedAssociations[i].sqlType === 'belongsTo') && (sortedAssociations[i].foreignKey)){-%>
+        <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
+        <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.push(itemId);
         handleSetValue(itemId, 1, '<%- sortedAssociations[i].foreignKey _%>');
         setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: itemId});
+<%} else if((sortedAssociations[i].sqlType === 'hasOne')){-%>
+        <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
+        <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.push(itemId);
 <%} else {-%>
-        <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current.push(itemId);
+        <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.push(itemId);
 <%}-%>
         break;
 <%}-%>
@@ -382,35 +384,36 @@ export default function <%- nameCp _%>UpdatePanel(props) {
   }
 
   const handleUntransferFromAdd =(associationKey, itemId) => {
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
-    if(associationKey === '<%- sortedAssociations[i].targetModel _%>') {
-<%if(sortedAssociations[i].type === 'to_one'){-%>
-      <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current = [];
+<%for( let i=0; i<sortedAssociations.length; i++ ){-%>
+    if(associationKey === '<%- sortedAssociations[i].relationName _%>') {
+<%if((sortedAssociations[i].sqlType === 'belongsTo') && (sortedAssociations[i].foreignKey)){-%>
+      <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
       handleSetValue(null, 0, '<%- sortedAssociations[i].foreignKey _%>');
       setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: null});
+<%} else if((sortedAssociations[i].sqlType === 'hasOne')){-%>
+      <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
 <%} else {-%>
-      for(var i=0; i<<%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current.length; ++i)
+      for(let i=0; i<<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.length; ++i)
       {
-        if(<%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current[i] === itemId) {
-          <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current.splice(i, 1);
+        if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current[i] === itemId) {
+          <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.splice(i, 1);
           return;
         }
       }
 <%}-%>
       return;
-    }//end: case '<%- sortedAssociations[i].targetModel _%>'
+    }//end: case '<%- sortedAssociations[i].relationName _%>'
 <%}-%>
   }
 
-<%if(hasManysArr.length > 0) {-%>
-
+<%if(hasToManyAssociations) {-%>
   const handleTransferToRemove = (associationKey, itemId) => {
     switch(associationKey) {
-<%for( i=0; i<sortedAssociations.length; i++ ){
+<%for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === "to_many") {
 -%>
-      case '<%- sortedAssociations[i].targetModel _%>':
-        <%- sortedAssociations[i].targetModelPlLc _%>IdsToRemove.current.push(itemId);
+      case '<%- sortedAssociations[i].relationName _%>':
+        <%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current.push(itemId);
         break;
 <%}}-%>
 
@@ -420,37 +423,37 @@ export default function <%- nameCp _%>UpdatePanel(props) {
   }
 
   const handleUntransferFromRemove =(associationKey, itemId) => {
-<%for( i=0; i<sortedAssociations.length; i++ ){
+<%for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === "to_many") {
 -%>
-    if(associationKey === '<%- sortedAssociations[i].targetModel _%>') {
-      for(var i=0; i<<%- sortedAssociations[i].targetModelPlLc _%>IdsToRemove.current.length; ++i)
+    if(associationKey === '<%- sortedAssociations[i].relationName _%>') {
+      for(let i=0; i<<%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current.length; ++i)
       {
-        if(<%- sortedAssociations[i].targetModelPlLc _%>IdsToRemove.current[i] === itemId) {
-          <%- sortedAssociations[i].targetModelPlLc _%>IdsToRemove.current.splice(i, 1);
+        if(<%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current[i] === itemId) {
+          <%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current.splice(i, 1);
           return;
         }
       }
       return;
-    }//end: case '<%- sortedAssociations[i].targetModel _%>'
+    }//end: case '<%- sortedAssociations[i].relationName _%>'
 <%}}-%>
   }
 <%}-%>
 
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
-  const handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row = (event, item) => {
-    set<%- sortedAssociations[i].targetModelCp _%>DetailItem(item);
+<%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
+  const handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row = (event, item) => {
+    set<%- sortedAssociatedModels[i].targetModelCp _%>DetailItem(item);
   };
 
-  const handle<%- sortedAssociations[i].targetModelCp _%>DetailDialogClose = (event) => {
-    delayedClose<%- sortedAssociations[i].targetModelCp _%>DetailPanel(event, 500);
+  const handle<%- sortedAssociatedModels[i].targetModelCp _%>DetailDialogClose = (event) => {
+    delayedClose<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel(event, 500);
   }
 
-  const delayedClose<%- sortedAssociations[i].targetModelCp _%>DetailPanel = async (event, ms) => {
+  const delayedClose<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel = async (event, ms) => {
     await new Promise(resolve => {
       window.setTimeout(function() {
-        set<%- sortedAssociations[i].targetModelCp _%>DetailDialogOpen(false);
-        set<%- sortedAssociations[i].targetModelCp _%>DetailItem(undefined);
+        set<%- sortedAssociatedModels[i].targetModelCp _%>DetailDialogOpen(false);
+        set<%- sortedAssociatedModels[i].targetModelCp _%>DetailItem(undefined);
         resolve("ok");
       }, ms);
     });
@@ -506,7 +509,7 @@ export default function <%- nameCp _%>UpdatePanel(props) {
               hidden={tabsValue !== 0}
               item={item}
               valueOkStates={valueOkStates}
-<%if(belongsTosArr.length > 0){-%>
+<%if(hasOwnForeingKeys){-%>
               foreignKeys = {foreignKeys}
 <%}-%>
               handleSetValue={handleSetValue}
@@ -516,19 +519,19 @@ export default function <%- nameCp _%>UpdatePanel(props) {
             <<%- nameCp _%>AssociationsPage
               hidden={tabsValue !== 1}
               item={item}
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
-              <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd={<%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd.current}
+<%for( let i=0; i<sortedAssociations.length; i++ ){-%>
+              <%- sortedAssociations[i].relationNameLc _%>IdsToAdd={<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current}
 <%if(sortedAssociations[i].type === 'to_many'){-%>
-              <%- sortedAssociations[i].targetModelPlLc _%>IdsToRemove={<%- sortedAssociations[i].targetModelPlLc _%>IdsToRemove.current}
+              <%- sortedAssociations[i].relationNameLc _%>IdsToRemove={<%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current}
 <%}}-%>
               handleTransferToAdd={handleTransferToAdd}
               handleUntransferFromAdd={handleUntransferFromAdd}
-<%if(hasManysArr.length > 0) {-%>
+<%if(hasToManyAssociations) {-%>
               handleTransferToRemove={handleTransferToRemove}
               handleUntransferFromRemove={handleUntransferFromRemove}
 <%}-%>
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
-              handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row}
+<%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
+              handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row}
 <%}-%>
             />
 
@@ -546,13 +549,13 @@ export default function <%- nameCp _%>UpdatePanel(props) {
           handleReject={handleConfirmationReject}
         />
 
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
-        {/* Dialog: <%- sortedAssociations[i].targetModelCp %> Detail Panel */}
-        {(<%- sortedAssociations[i].targetModelLc _%>DetailDialogOpen) && (
-          <<%- sortedAssociations[i].targetModelCp _%>DetailPanel
-            item={<%- sortedAssociations[i].targetModelLc _%>DetailItem}
+<%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
+        {/* Dialog: <%- sortedAssociatedModels[i].targetModelCp %> Detail Panel */}
+        {(<%- sortedAssociatedModels[i].targetModelLc _%>DetailDialogOpen) && (
+          <<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel
+            item={<%- sortedAssociatedModels[i].targetModelLc _%>DetailItem}
             dialog={true}
-            handleClose={handle<%- sortedAssociations[i].targetModelCp _%>DetailDialogClose}
+            handleClose={handle<%- sortedAssociatedModels[i].targetModelCp _%>DetailDialogClose}
           />
         )}
 <%}-%>

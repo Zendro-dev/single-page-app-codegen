@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
 import PropTypes from 'prop-types';
 import api from '../../../../../../../../../../requests/requests.index.js';
-import <%- sortedAssociations[aindex].targetModelCp _%>CompactViewToolbar from './components/<%- sortedAssociations[aindex].targetModelCp _%>CompactViewToolbar';
+import <%- sortedAssociations[aindex].relationNameCp _%>CompactViewToolbar from './components/<%- sortedAssociations[aindex].relationNameCp _%>CompactViewToolbar';
 import TablePagination from '@material-ui/core/TablePagination';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
@@ -64,7 +64,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactView(props) {
+export default function <%- sortedAssociations[aindex].relationNameCp _%>CompactView(props) {
   const classes = useStyles();
   const { t } = useTranslation();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
@@ -115,12 +115,12 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
     Boolean(dataTrigger); //avoid warning
 
     /*
-      API Request: <%- sortedAssociations[aindex].targetModelPlCp _%>Filter
+      API Request: <%- sortedAssociations[aindex].relationNameCp _%>Filter
     */
     let label = '<%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='') ? `${sortedAssociations[aindex].label}` : '' _%>';
     let sublabel = '<%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='') ? `${sortedAssociations[aindex].sublabel}` : '' _%>';
 
-    api.<%- nameLc _%>.get<%- sortedAssociations[aindex].targetModelPlCp _%>Filter(
+    api.<%- nameLc _%>.get<%- sortedAssociations[aindex].relationNameCp _%>Filter(
       graphqlServerUrl, 
       item.id,
       label,
@@ -146,8 +146,8 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
             }
 
 <%_if( sortedAssociations[aindex].type === 'to_many' ){-%>
-            let newCount = response.data.data.readOne<%- nameCp _%>.countFiltered<%- sortedAssociations[aindex].targetModelPlCp _%>;
-            let its = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].targetModelPlLc _%>Filter;
+            let newCount = response.data.data.readOne<%- nameCp _%>.countFiltered<%- sortedAssociations[aindex].relationNameCp _%>;
+            let its = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].relationNameLc _%>Filter;
 
             /*
               Check: empty page
@@ -167,7 +167,7 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
             setIsOnApiRequest(false);
             return;
 <%} else {-%> 
-            let it = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].targetModel_%>;
+            let it = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].relationName _%>;
 
             //ok
             setCount((it&&typeof it==='object') ? 1 : 0);
@@ -316,7 +316,7 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
             <Card className={classes.card}>
 
               {/* Toolbar */}
-              <<%- sortedAssociations[aindex].targetModelCp _%>CompactViewToolbar 
+              <<%- sortedAssociations[aindex].relationNameCp _%>CompactViewToolbar 
                 title='<%- sortedAssociations[aindex].targetModelPlCp _%>'
                 search={search}
                 onSearchEnter={handleSearchEnter}
@@ -448,7 +448,7 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
     </div>
   );
 }
-<%- sortedAssociations[aindex].targetModelCp _%>CompactView.propTypes = {
+<%- sortedAssociations[aindex].relationNameCp _%>CompactView.propTypes = {
   item: PropTypes.object.isRequired,
-  handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row: PropTypes.func.isRequired,
+  handleClickOn<%- sortedAssociations[aindex].relationNameCp _%>Row: PropTypes.func,
 };

@@ -4,9 +4,12 @@ import { makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
 import <%- nameCp _%>AttributesPage from './components/<%- nameLc _%>-attributes-page/<%- nameCp _%>AttributesPage'
 import <%- nameCp _%>AssociationsPage from './components/<%- nameLc _%>-associations-page/<%- nameCp _%>AssociationsPage'
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
-import <%- sortedAssociations[i].targetModelCp _%> DetailPanel from '../../../<%- sortedAssociations[i].targetModelLc _%>-table/components/<%- sortedAssociations[i].targetModelLc _%>-detail-panel/<%- sortedAssociations[i].targetModelCp _%>DetailPanel'
-<%}-%>
+<%for( let i=0; i<sortedAssociatedModels.length; i++ ) {
+  if(sortedAssociatedModels[i].targetModel !== name) {-%>
+import <%- sortedAssociatedModels[i].targetModelCp _%> DetailPanel from '../../../<%- sortedAssociatedModels[i].targetModelLc _%>-table/components/<%- sortedAssociatedModels[i].targetModelLc _%>-detail-panel/<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel'
+<%} else {-%>
+import <%- sortedAssociatedModels[i].targetModelCp _%> DetailPanelB from '../../../<%- sortedAssociatedModels[i].targetModelLc _%>-table/components/<%- sortedAssociatedModels[i].targetModelLc _%>-detail-panel/<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel'
+<%}}-%>
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Dialog from '@material-ui/core/Dialog';
@@ -48,20 +51,19 @@ export default function <%- nameCp _%>DetailPanel(props) {
   const [open, setOpen] = useState(true);
   const valueOkStates = useRef(getInitialValueOkStates());
 
-
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
-  const [<%- sortedAssociations[i].targetModelLc _%>DetailDialogOpen, set<%- sortedAssociations[i].targetModelCp _%>DetailDialogOpen] = useState(false);
-  const [<%- sortedAssociations[i].targetModelLc _%>DetailItem, set<%- sortedAssociations[i].targetModelCp _%>DetailItem] = useState(undefined);
+<%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
+  const [<%- sortedAssociatedModels[i].targetModelLc _%>DetailDialogOpen, set<%- sortedAssociatedModels[i].targetModelCp _%>DetailDialogOpen] = useState(false);
+  const [<%- sortedAssociatedModels[i].targetModelLc _%>DetailItem, set<%- sortedAssociatedModels[i].targetModelCp _%>DetailItem] = useState(undefined);
 <%}-%>
 
   useEffect(() => {}, []);
   
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
+<%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
   useEffect(() => {
-    if (<%- sortedAssociations[i].targetModelLc _%>DetailItem !== undefined) {
-      set<%- sortedAssociations[i].targetModelCp _%>DetailDialogOpen(true);
+    if (<%- sortedAssociatedModels[i].targetModelLc _%>DetailItem !== undefined) {
+      set<%- sortedAssociatedModels[i].targetModelCp _%>DetailDialogOpen(true);
     }
-  }, [<%- sortedAssociations[i].targetModelLc _%>DetailItem]);
+  }, [<%- sortedAssociatedModels[i].targetModelLc _%>DetailItem]);
 <%}-%>
 
   function getInitialValueOkStates() {
@@ -73,7 +75,7 @@ export default function <%- nameCp _%>DetailPanel(props) {
     */
     let initialValueOkStates = {};
 
-<%for( i=0; i<attributesArr.length; i++ ){-%>
+<%for( let i=0; i<attributesArr.length; i++ ){-%>
     initialValueOkStates.<%- attributesArr[i][0] %> = (item.<%- attributesArr[i][0] _%>!==null ? 1 : 0);
 <%}-%>
 
@@ -85,20 +87,20 @@ export default function <%- nameCp _%>DetailPanel(props) {
     handleClose(event);
   }
 
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
-  const handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row = (event, item) => {
-    set<%- sortedAssociations[i].targetModelCp _%>DetailItem(item);
+<%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
+  const handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row = (event, item) => {
+    set<%- sortedAssociatedModels[i].targetModelCp _%>DetailItem(item);
   };
 
-  const handle<%- sortedAssociations[i].targetModelCp _%>DetailDialogClose = (event) => {
-    delayedClose<%- sortedAssociations[i].targetModelCp _%>DetailPanel(event, 500);
+  const handle<%- sortedAssociatedModels[i].targetModelCp _%>DetailDialogClose = (event) => {
+    delayedClose<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel(event, 500);
   }
 
-  const delayedClose<%- sortedAssociations[i].targetModelCp _%>DetailPanel = async (event, ms) => {
+  const delayedClose<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel = async (event, ms) => {
     await new Promise(resolve => {
       window.setTimeout(function() {
-        set<%- sortedAssociations[i].targetModelCp _%>DetailDialogOpen(false);
-        set<%- sortedAssociations[i].targetModelCp _%>DetailItem(undefined);
+        set<%- sortedAssociatedModels[i].targetModelCp _%>DetailDialogOpen(false);
+        set<%- sortedAssociatedModels[i].targetModelCp _%>DetailItem(undefined);
         resolve("ok");
       }, ms);
     });
@@ -166,8 +168,8 @@ export default function <%- nameCp _%>DetailPanel(props) {
                 {/* Associations Page */}
                 <<%- nameCp _%>AssociationsPage
                   item={item}
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
-                  handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row}
+<%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
+                  handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row}
 <%}-%>
                 />
               </Grid>
@@ -192,8 +194,8 @@ export default function <%- nameCp _%>DetailPanel(props) {
                 {/* Associations Page */}
                 <<%- nameCp _%>AssociationsPage
                   item={item}
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
-                  handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row}
+<%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
+                  handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row}
 <%}-%>
                 />
     
@@ -202,13 +204,17 @@ export default function <%- nameCp _%>DetailPanel(props) {
           </div>
       )}
 
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
-    {/* Dialog: <%- sortedAssociations[i].targetModelCp %> Detail Panel */}
-    {(<%- sortedAssociations[i].targetModelLc _%>DetailDialogOpen) && (
-      <<%- sortedAssociations[i].targetModelCp _%>DetailPanel
-        item={<%- sortedAssociations[i].targetModelLc _%>DetailItem}
+<%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
+    {/* Dialog: <%- sortedAssociatedModels[i].targetModelCp %> Detail Panel */}
+    {(<%- sortedAssociatedModels[i].targetModelLc _%>DetailDialogOpen) && (
+<%if(sortedAssociatedModels[i].targetModel !== name) {-%>
+      <<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel
+<%} else {-%>
+      <<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanelB
+<%}-%>
+        item={<%- sortedAssociatedModels[i].targetModelLc _%>DetailItem}
         dialog={true}
-        handleClose={handle<%- sortedAssociations[i].targetModelCp _%>DetailDialogClose}
+        handleClose={handle<%- sortedAssociatedModels[i].targetModelCp _%>DetailDialogClose}
       />
     )}
 <%}-%>

@@ -137,7 +137,7 @@ export default {
 <%_for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === "to_many") {
 -%>
-          $add<%- sortedAssociations[i].targetModelPlCp _%>: [ID],
+          $add<%- sortedAssociations[i].relationNameCp _%>: [ID],
 <%}}-%>
           ) { add<%- nameCp %>(
 <%_for( let i=0; i<attributesArr.length; i++ ){-%>
@@ -146,7 +146,7 @@ export default {
 <%_for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === "to_many") {
 -%>
-            add<%- sortedAssociations[i].targetModelPlCp _%>: $add<%- sortedAssociations[i].targetModelPlCp _%>,
+            add<%- sortedAssociations[i].relationNameCp _%>: $add<%- sortedAssociations[i].relationNameCp _%>,
 <%}}-%>
           ) {
             id,
@@ -183,8 +183,8 @@ export default {
 <%_for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === "to_many") {
 -%>
-          $add<%- sortedAssociations[i].targetModelPlCp _%>: [ID],
-          $remove<%- sortedAssociations[i].targetModelPlCp _%>: [ID],
+          $add<%- sortedAssociations[i].relationNameCp _%>: [ID],
+          $remove<%- sortedAssociations[i].relationNameCp _%>: [ID],
 <%}}-%>
           ) { update<%- nameCp %>(
             id:$id
@@ -194,8 +194,8 @@ export default {
 <%_for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === "to_many") {
 -%>
-            add<%- sortedAssociations[i].targetModelPlCp _%>: $add<%- sortedAssociations[i].targetModelPlCp _%>,
-            remove<%- sortedAssociations[i].targetModelPlCp _%>: $remove<%- sortedAssociations[i].targetModelPlCp _%>,
+            add<%- sortedAssociations[i].relationNameCp _%>: $add<%- sortedAssociations[i].relationNameCp _%>,
+            remove<%- sortedAssociations[i].relationNameCp _%>: $remove<%- sortedAssociations[i].relationNameCp _%>,
 <%}}-%>
           ) {
             id,
@@ -243,10 +243,10 @@ export default {
 
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
   /**
-   * get<%- sortedAssociations[i].targetModelPlCp %>Filter
+   * get<%- sortedAssociations[i].relationNameCp %>Filter
    * 
    * Get <%- sortedAssociations[i].targetModelPlLc %> filter records associated to the given <%- nameLc %> record
-   * from GraphQL Server.
+   * through association '<%- sortedAssociations[i].relationNameCp %>', from GraphQL Server.
    * 
    * 
    * @param {String} url GraphQL Server url
@@ -258,7 +258,7 @@ export default {
    * @param {Number} paginationLimit Max number of items to retreive.
    * @param {String} ops Object with adittional query options.
    */
-  get<%- sortedAssociations[i].targetModelPlCp %>Filter(url, itemId, label, sublabel, searchText, paginationOffset, paginationLimit, ops) {
+  get<%- sortedAssociations[i].relationNameCp %>Filter(url, itemId, label, sublabel, searchText, paginationOffset, paginationLimit, ops) {
 <%_if( sortedAssociations[i].type === 'to_many' ){-%>
 
     //search
@@ -269,27 +269,27 @@ export default {
 
     var query = (s) ?
       `{ readOne<%- nameCp %>(id: ${itemId}) { 
-        <%- sortedAssociations[i].targetModelPlLc _%>Filter( ${s}, ${p} ) { 
+        <%- sortedAssociations[i].relationNameLc _%>Filter( ${s}, ${p} ) { 
           id,
 <%_for( let j=0; j<modelsAtts[sortedAssociations[i].targetModel].length; j++ ){-%>
           <%- modelsAtts[sortedAssociations[i].targetModel][j][0] -%>,
 <%}-%>
         }, 
-        countFiltered<%- sortedAssociations[i].targetModelPlCp %>( ${s} ) 
+        countFiltered<%- sortedAssociations[i].relationNameCp %>( ${s} ) 
       } }` :      
       `{ readOne<%- nameCp %>(id: ${itemId}) { 
-        <%- sortedAssociations[i].targetModelPlLc _%>Filter( ${p} ) { 
+        <%- sortedAssociations[i].relationNameLc _%>Filter( ${p} ) { 
           id,
 <%_for( let j=0; j<modelsAtts[sortedAssociations[i].targetModel].length; j++ ){-%>
           <%- modelsAtts[sortedAssociations[i].targetModel][j][0] -%>,
 <%}-%>
         }, 
-        countFiltered<%- sortedAssociations[i].targetModelPlCp %> 
+        countFiltered<%- sortedAssociations[i].relationNameCp %> 
       } }`;
 <%} else {-%>
     var query = 
       `{ readOne<%- nameCp %>(id: ${itemId}) { 
-        <%- sortedAssociations[i].targetModel _%> { 
+        <%- sortedAssociations[i].relationName _%> { 
           id,
 <%_for( let j=0; j<modelsAtts[sortedAssociations[i].targetModel].length; j++ ){-%>
           <%- modelsAtts[sortedAssociations[i].targetModel][j][0] -%>,
@@ -308,23 +308,23 @@ export default {
   /**
    * 
    *  
-   * getAssociated<%- sortedAssociations[i].targetModelPlCp %>
+   * getAssociated<%- sortedAssociations[i].relationNameCp %>
    * 
    * Get the <%- sortedAssociations[i].targetModelLc %>-ids associated to the given <%- nameLc %> record 
-   * from GraphQL Server.
+   * through association '<%- sortedAssociations[i].relationNameCp %>', from GraphQL Server.
    * 
    * @param {String} url GraphQL Server url
    * @param {Number} itemId Model item id.
    */
-  getAssociated<%- sortedAssociations[i].targetModelPlCp %>(url, itemId) {
+  getAssociated<%- sortedAssociations[i].relationNameCp %>(url, itemId) {
 <%_if( sortedAssociations[i].type === 'to_many' ){-%>
     var query = 
       `{ readOne<%- nameCp %>( id: ${itemId} ){ 
-        <%- sortedAssociations[i].targetModelPlLc _%>Filter{ id } } }`;
+        <%- sortedAssociations[i].relationNameLc _%>Filter{ id } } }`;
 <%} else {-%>
     var query = 
     `{ readOne<%- nameCp %>( id: ${itemId} ){ 
-      <%- sortedAssociations[i].targetModel _%>{ id } } }`;
+      <%- sortedAssociations[i].relationName _%>{ id } } }`;
 <%}-%>
     /**
      * Debug
@@ -356,13 +356,13 @@ function getSearchArgument(filterName, searchText, ops) {
     var words = searchText.split(' ');
 
     //for each word
-    for (var w = 0; w < words.length; w++) {
+    for(let w = 0; w < words.length; w++) {
       /*
         Make OR fields
       */
 
       //for each attribute
-      for (var i = 0; i < modelAttributes.length; i++) {
+      for(let i = 0; i < modelAttributes.length; i++) {
         let num = 0;
         let d = '';
         let t = '';
@@ -488,7 +488,7 @@ function getSearchArgument(filterName, searchText, ops) {
         let onlySearch = '';
 
         //for each only object
-        for (i = 0; i < ops.only.length; i++) {
+        for(let i = 0; i < ops.only.length; i++) {
           let o = ops.only[i];
           /*
             Switch type
@@ -499,11 +499,11 @@ function getSearchArgument(filterName, searchText, ops) {
             let vkeys = Object.keys(v);
 
             //for each key
-            for (var k = 0; k < vkeys.length; k++) {
+            for(let k = 0; k < vkeys.length; k++) {
               let va = v[vkeys[k]]; //values array
 
               //for each value
-              for (var kv = 0; kv < va.length; kv++) {
+              for(let kv = 0; kv < va.length; kv++) {
                 let nvalue = parseInt(va[kv]);
                 //add if: value is an integer number
                 if (!isNaN(nvalue)) {
@@ -548,7 +548,7 @@ function getSearchArgument(filterName, searchText, ops) {
       */
       if (ops.hasOwnProperty('exclude') && Array.isArray(ops.exclude)) {
         //for each exclude object
-        for (i = 0; i < ops.exclude.length; i++) {
+        for(let i = 0; i < ops.exclude.length; i++) {
           let o = ops.exclude[i];
           /*
             Switch type
@@ -559,11 +559,11 @@ function getSearchArgument(filterName, searchText, ops) {
             let vkeys = Object.keys(v);
 
             //for each key
-            for (k = 0; k < vkeys.length; k++) {
+            for(let k = 0; k < vkeys.length; k++) {
               let va = v[vkeys[k]]; //values array
 
               //for each value
-              for (kv = 0; kv < va.length; kv++) {
+              for(let kv = 0; kv < va.length; kv++) {
                 let nvalue = parseInt(va[kv]);
                 //add if: value is an integer number
                 if (!isNaN(nvalue)) {
@@ -619,7 +619,7 @@ function getSearchArgument(filterName, searchText, ops) {
         let onlySearch = '';
 
         //for each only object
-        for (i = 0; i < ops.only.length; i++) {
+        for(let i = 0; i < ops.only.length; i++) {
           let o = ops.only[i];
           /*
             Switch type
@@ -631,11 +631,11 @@ function getSearchArgument(filterName, searchText, ops) {
             let vkeys = Object.keys(v);
 
             //for each key
-            for (k = 0; k < vkeys.length; k++) {
+            for(let k = 0; k < vkeys.length; k++) {
               let va = v[vkeys[k]]; //values array
 
               //for each value
-              for (kv = 0; kv < va.length; kv++) {
+              for(let kv = 0; kv < va.length; kv++) {
                 let nvalue = parseInt(va[kv]);
                 //add if: value is an integer number
                 if (!isNaN(nvalue)) {
@@ -681,7 +681,7 @@ function getSearchArgument(filterName, searchText, ops) {
       if (ops.hasOwnProperty('exclude') && Array.isArray(ops.exclude)) {
 
         //for each exclude object
-        for (i = 0; i < ops.exclude.length; i++) {
+        for(let i = 0; i < ops.exclude.length; i++) {
           let o = ops.exclude[i];
           /*
             Switch type
@@ -693,11 +693,11 @@ function getSearchArgument(filterName, searchText, ops) {
             let vkeys = Object.keys(v);
 
             //for each key
-            for (k = 0; k < vkeys.length; k++) {
+            for(let k = 0; k < vkeys.length; k++) {
               let va = v[vkeys[k]]; //values array
 
               //for each value
-              for (kv = 0; kv < va.length; kv++) {
+              for(let kv = 0; kv < va.length; kv++) {
                 let nvalue = parseInt(va[kv]);
                 //add if: value is an integer number
                 if (!isNaN(nvalue)) {

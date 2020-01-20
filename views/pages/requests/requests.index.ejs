@@ -1,15 +1,15 @@
-<%for( i=0; i<models.length; i++ ){-%>
+<%for( let i=0; i<models.length; i++ ){-%>
 import <%- models[i].nameLc _%>Queries from './<%- models[i].nameLc _%>'
 <%}-%>
-<%for( i=0; i<adminModels.length; i++ ){-%>
+<%for( let i=0; i<adminModels.length; i++ ){-%>
 import <%- adminModels[i].nameLc _%>Queries from './<%- adminModels[i].nameLc _%>'
 <%}-%>
 
 export default {
-<%for( i=0; i<models.length; i++ ){-%>
+<%for( let i=0; i<models.length; i++ ){-%>
   <%- models[i].nameLc _%>: <%- models[i].nameLc _%>Queries,
 <%}-%>
-<%for( i=0; i<adminModels.length; i++ ){-%>
+<%for( let i=0; i<adminModels.length; i++ ){-%>
   <%- adminModels[i].nameLc _%>: <%- adminModels[i].nameLc _%>Queries,
 <%}-%>
 }

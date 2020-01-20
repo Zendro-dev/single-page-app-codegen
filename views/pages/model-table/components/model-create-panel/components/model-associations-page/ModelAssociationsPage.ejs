@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
-import <%- sortedAssociations[i].targetModelCp _%>TransferLists from './<%- sortedAssociations[i].targetModelLc _%>-transfer-lists/<%- sortedAssociations[i].targetModelCp _%>TransferLists'
+<%for( let i=0; i<sortedAssociations.length; i++ ){-%>
+import <%- sortedAssociations[i].relationNameCp _%>TransferLists from './<%- sortedAssociations[i].relationNameLc _%>-transfer-lists/<%- sortedAssociations[i].relationNameCp _%>TransferLists'
 <%}-%>
 import <%- nameCp _%>AssociationsMenuTabs from './<%- nameCp _%>AssociationsMenuTabs'
 import { makeStyles } from '@material-ui/core/styles';
@@ -11,6 +11,7 @@ import Fade from '@material-ui/core/Fade';
 const useStyles = makeStyles(theme => ({
   root: {
     margin: theme.spacing(0),
+    minHeight: 1200,
   },
   menu: {
     marginTop: theme.spacing(1),
@@ -23,17 +24,17 @@ export default function <%- nameCp _%>AssociationsPage(props) {
   const {
     hidden,
 <%if(sortedAssociations.length > 0) {-%>
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
-    <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd,
+<%for( let i=0; i<sortedAssociations.length; i++ ){-%>
+    <%- sortedAssociations[i].relationNameLc _%>IdsToAdd,
 <%}-%>
     handleTransferToAdd,
     handleUntransferFromAdd,
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
-    handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row,
+<%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
+    handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row,
 <%}}-%>
   } = props;
   
-  const [associationSelected, setAssociationSelected] = React.useState('<%- (sortedAssociations.length > 0) ? sortedAssociations[0].targetModelLc : 'no-associations' _%>');
+  const [associationSelected, setAssociationSelected] = React.useState('<%- (sortedAssociations.length > 0) ? sortedAssociations[0].relationNameLc : 'no-associations' _%>');
 
   const handleAssociationClick = (event, newValue) => {
     setAssociationSelected(newValue);
@@ -47,6 +48,7 @@ export default function <%- nameCp _%>AssociationsPage(props) {
           container 
           justify='center'
           alignItems='flex-start'
+          alignContent='flex-start'
           spacing={0}
         > 
 
@@ -58,13 +60,13 @@ export default function <%- nameCp _%>AssociationsPage(props) {
             />
           </Grid>
 
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
-          {/* <%- sortedAssociations[i].targetModelCp _%> Transfer List */}
-          {(associationSelected === '<%- sortedAssociations[i].targetModelLc _%>') && (
+<%for( let i=0; i<sortedAssociations.length; i++ ){-%>
+          {/* <%- sortedAssociations[i].relationNameCp %> Transfer Lists */}
+          {(associationSelected === '<%- sortedAssociations[i].relationNameLc _%>') && (
             <Grid item xs={12} sm={10} md={9}>
-              <<%- sortedAssociations[i].targetModelCp _%>TransferLists
+              <<%- sortedAssociations[i].relationNameCp _%>TransferLists
+                idsToAdd={<%- sortedAssociations[i].relationNameLc _%>IdsToAdd}
                 handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row}
-                idsToAdd={<%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd}
                 handleTransferToAdd={handleTransferToAdd}
                 handleUntransferFromAdd={handleUntransferFromAdd}
               />
@@ -80,11 +82,12 @@ export default function <%- nameCp _%>AssociationsPage(props) {
 <%- nameCp _%>AssociationsPage.propTypes = {
   hidden: PropTypes.bool.isRequired,
 <%if(sortedAssociations.length > 0) {-%>
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
-  <%- sortedAssociations[i].targetModelPlLc _%>IdsToAdd: PropTypes.array.isRequired,
-  handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row: PropTypes.func.isRequired,
+<%for( let i=0; i<sortedAssociations.length; i++ ){-%>
+  <%- sortedAssociations[i].relationNameLc _%>IdsToAdd: PropTypes.array.isRequired,
 <%}-%>
   handleTransferToAdd: PropTypes.func.isRequired,
   handleUntransferFromAdd: PropTypes.func.isRequired,
-<%}-%>
+<%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
+  handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row: PropTypes.func.isRequired,
+<%}}-%>
 };

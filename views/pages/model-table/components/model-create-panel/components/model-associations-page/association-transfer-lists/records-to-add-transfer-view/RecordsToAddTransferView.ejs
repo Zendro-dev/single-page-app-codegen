@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
 import PropTypes from 'prop-types';
 import api from '../../../../../../../../../../../requests/requests.index.js';
-import <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddTransferViewToolbar from './components/<%- sortedAssociations[aindex].targetModelPlCp _%>ToAddTransferViewToolbar';
+import <%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferViewToolbar from './components/<%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferViewToolbar';
 import TablePagination from '@material-ui/core/TablePagination';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
@@ -77,7 +77,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddTransferView(props) {
+export default function <%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferView(props) {
   const classes = useStyles();
   const { t } = useTranslation();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
@@ -665,7 +665,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
 
     setDataTrigger(prevDataTrigger => !prevDataTrigger);
     setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-    handleTransfer('<%- sortedAssociations[aindex].targetModelLc _%>', item.id);
+    handleTransfer('<%- sortedAssociations[aindex].relationName _%>', item.id);
   };
 
   const handleRemoveItem = (event, item) => {
@@ -673,7 +673,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
     lidsToAdd.current = [];
     setThereAreItemsToAdd(false);
   <%} else {-%>
-    for(var i=0; i<lidsToAdd.current.length; ++i)
+    for(let i=0; i<lidsToAdd.current.length; ++i)
     {
       if(lidsToAdd.current[i] === item.id) {
         lidsToAdd.current.splice(i, 1);
@@ -689,7 +689,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
 
     setDataTrigger(prevDataTrigger => !prevDataTrigger);
     setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-    handleUntransfer('<%- sortedAssociations[aindex].targetModelLc _%>', item.id);
+    handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', item.id);
   };
 
   return (
@@ -702,7 +702,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
           <Card className={classes.card}>
 
             {/* Toolbar */}
-            <<%- sortedAssociations[aindex].targetModelPlCp _%>ToAddTransferViewToolbar 
+            <<%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferViewToolbar 
               title={'<%- sortedAssociations[aindex].targetModelPlCp _%>'}
               titleIcon={1}
               search={search}
@@ -911,7 +911,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
           <Card className={classes.card}>
 
             {/* Toolbar */}
-            <<%- sortedAssociations[aindex].targetModelPlCp _%>ToAddTransferViewToolbar 
+            <<%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferViewToolbar 
               title={'<%- sortedAssociations[aindex].targetModelPlCp %>'}
               titleIcon={2}
               search={searchB}
@@ -1082,7 +1082,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddT
     </div>
   );
 }
-<%- sortedAssociations[aindex].targetModelPlCp _%>ToAddTransferView.propTypes = {
+<%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferView.propTypes = {
   idsToAdd: PropTypes.array.isRequired,
   handleTransfer: PropTypes.func.isRequired,
   handleUntransfer: PropTypes.func.isRequired,

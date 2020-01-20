@@ -28,8 +28,8 @@ export default function <%- nameCp _%>AssociationsMenuTabs(props) {
 <%if(sortedAssociations.length === 0){-%>
         <Tab key='no-associations' label={ t('modelPanels.noAssociations') } value='no-associations' />
 <%}-%>
-<%for( i=0; i<sortedAssociations.length; i++ ){-%>
-        <Tab key='<%- sortedAssociations[i].targetModelPlLc _%>' label='<%- sortedAssociations[i].targetModelPlCp _%>' value='<%- sortedAssociations[i].targetModelLc _%>' />
+<%for( let i=0; i<sortedAssociations.length; i++ ){-%>
+        <Tab key='<%- sortedAssociations[i].relationName _%>' label='<%- sortedAssociations[i].relationNameCp _%>' value='<%- sortedAssociations[i].relationNameLc _%>' />
 <%}-%>
       </Tabs>
     </div>

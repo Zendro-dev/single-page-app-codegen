@@ -121,11 +121,10 @@ fs.readdirSync(program.jsonFiles).forEach( async (json_file) =>{
   //associations
   for(var i=0; i<ejbOpts.sortedAssociations.length; i++)
   {
-    let assocLc = ejbOpts.sortedAssociations[i].targetModelLc;
-    let assocPlLc = ejbOpts.sortedAssociations[i].targetModelPlLc;
-    modelTableDirs.push(path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/${assocLc}-transfer-lists/${assocPlLc}-to-add-transfer-view/components`));
-    modelTableDirs.push(path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${assocLc}-transfer-lists/${assocPlLc}-to-add-transfer-view/components`));
-    modelTableDirs.push(path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${assocLc}-transfer-lists/${assocPlLc}-to-remove-transfer-view/components`));
+    let assocLc = ejbOpts.sortedAssociations[i].relationNameLc;
+    modelTableDirs.push(path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/${assocLc}-transfer-lists/${assocLc}-to-add-transfer-view/components`));
+    modelTableDirs.push(path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${assocLc}-transfer-lists/${assocLc}-to-add-transfer-view/components`));
+    modelTableDirs.push(path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${assocLc}-transfer-lists/${assocLc}-to-remove-transfer-view/components`));
     modelTableDirs.push(path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-associations-page/${assocLc}-compact-view/components`));
   }
   //routes
@@ -155,6 +154,7 @@ fs.readdirSync(program.jsonFiles).forEach( async (json_file) =>{
    */
   //console.log("ejbOpts: ", ejbOpts);
   //console.log("fileData: ", fileData);
+
 
   /**
    * modelTable
@@ -257,15 +257,15 @@ fs.readdirSync(program.jsonFiles).forEach( async (json_file) =>{
     ejbOpts.aindex = i;
 
     // template 20: AssociationTransferLists
-    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].targetModelLc}-transfer-lists/`, `${ejbOpts.sortedAssociations[i].targetModelCp}TransferLists.js`);
+    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-transfer-lists/`, `${ejbOpts.sortedAssociations[i].relationNameCp}TransferLists.js`);
     promises.push( funks.renderToFile(fpath, 'model-table/components/model-create-panel/components/model-associations-page/association-transfer-lists/AssociationTransferLists', ejbOpts) );
 
     // template 21: RecordsToAddTransferView
-    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].targetModelLc}-transfer-lists/${ejbOpts.sortedAssociations[i].targetModelPlLc}-to-add-transfer-view/`, `${ejbOpts.sortedAssociations[i].targetModelPlCp}ToAddTransferView.js`);
+    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-transfer-lists/${ejbOpts.sortedAssociations[i].relationNameLc}-to-add-transfer-view/`, `${ejbOpts.sortedAssociations[i].relationNameCp}ToAddTransferView.js`);
     promises.push( funks.renderToFile(fpath, 'model-table/components/model-create-panel/components/model-associations-page/association-transfer-lists/records-to-add-transfer-view/RecordsToAddTransferView', ejbOpts) );
 
     // template 22: RecordsToAddTransferViewToolbar
-    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].targetModelLc}-transfer-lists/${ejbOpts.sortedAssociations[i].targetModelPlLc}-to-add-transfer-view/components/`, `${ejbOpts.sortedAssociations[i].targetModelPlCp}ToAddTransferViewToolbar.js`);
+    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-transfer-lists/${ejbOpts.sortedAssociations[i].relationNameLc}-to-add-transfer-view/components/`, `${ejbOpts.sortedAssociations[i].relationNameCp}ToAddTransferViewToolbar.js`);
     promises.push( funks.renderToFile(fpath, 'model-table/components/model-create-panel/components/model-associations-page/association-transfer-lists/records-to-add-transfer-view/components/RecordsToAddTransferViewToolbar', ejbOpts) );
   
   }
@@ -346,24 +346,24 @@ fs.readdirSync(program.jsonFiles).forEach( async (json_file) =>{
     ejbOpts.aindex = i;
 
     // template 37: AssociationTransferLists
-    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].targetModelLc}-transfer-lists/`, `${ejbOpts.sortedAssociations[i].targetModelCp}TransferLists.js`);
+    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-transfer-lists/`, `${ejbOpts.sortedAssociations[i].relationNameCp}TransferLists.js`);
     promises.push( funks.renderToFile(fpath, 'model-table/components/model-update-panel/components/model-associations-page/association-transfer-lists/AssociationTransferLists', ejbOpts) );
 
     // template 38: RecordsToAddTransferView
-    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].targetModelLc}-transfer-lists/${ejbOpts.sortedAssociations[i].targetModelPlLc}-to-add-transfer-view/`, `${ejbOpts.sortedAssociations[i].targetModelPlCp}ToAddTransferView.js`);
+    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-transfer-lists/${ejbOpts.sortedAssociations[i].relationNameLc}-to-add-transfer-view/`, `${ejbOpts.sortedAssociations[i].relationNameCp}ToAddTransferView.js`);
     promises.push( funks.renderToFile(fpath, 'model-table/components/model-update-panel/components/model-associations-page/association-transfer-lists/records-to-add-transfer-view/RecordsToAddTransferView', ejbOpts) );
 
     // template 39: RecordsToAddTransferViewToolbar
-    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].targetModelLc}-transfer-lists/${ejbOpts.sortedAssociations[i].targetModelPlLc}-to-add-transfer-view/components/`, `${ejbOpts.sortedAssociations[i].targetModelPlCp}ToAddTransferViewToolbar.js`);
+    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-transfer-lists/${ejbOpts.sortedAssociations[i].relationNameLc}-to-add-transfer-view/components/`, `${ejbOpts.sortedAssociations[i].relationNameCp}ToAddTransferViewToolbar.js`);
     promises.push( funks.renderToFile(fpath, 'model-table/components/model-update-panel/components/model-associations-page/association-transfer-lists/records-to-add-transfer-view/components/RecordsToAddTransferViewToolbar', ejbOpts) );
 
     if(ejbOpts.sortedAssociations[i].type === 'to_many') {
       // template 40: RecordsToRemoveTransferView
-      fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].targetModelLc}-transfer-lists/${ejbOpts.sortedAssociations[i].targetModelPlLc}-to-remove-transfer-view/`, `${ejbOpts.sortedAssociations[i].targetModelPlCp}ToRemoveTransferView.js`);
+      fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-transfer-lists/${ejbOpts.sortedAssociations[i].relationNameLc}-to-remove-transfer-view/`, `${ejbOpts.sortedAssociations[i].relationNameCp}ToRemoveTransferView.js`);
       promises.push( funks.renderToFile(fpath, 'model-table/components/model-update-panel/components/model-associations-page/association-transfer-lists/records-to-remove-transfer-view/RecordsToRemoveTransferView', ejbOpts) );
 
       // template 41: RecordsToRemoveTransferViewToolbar
-      fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].targetModelLc}-transfer-lists/${ejbOpts.sortedAssociations[i].targetModelPlLc}-to-remove-transfer-view/components/`, `${ejbOpts.sortedAssociations[i].targetModelPlCp}ToRemoveTransferViewToolbar.js`);
+      fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-transfer-lists/${ejbOpts.sortedAssociations[i].relationNameLc}-to-remove-transfer-view/components/`, `${ejbOpts.sortedAssociations[i].relationNameCp}ToRemoveTransferViewToolbar.js`);
       promises.push( funks.renderToFile(fpath, 'model-table/components/model-update-panel/components/model-associations-page/association-transfer-lists/records-to-remove-transfer-view/components/RecordsToRemoveTransferViewToolbar', ejbOpts) );
     }
   }
@@ -436,11 +436,11 @@ fs.readdirSync(program.jsonFiles).forEach( async (json_file) =>{
     ejbOpts.aindex = i;
 
     // template 54: AssociationCompactView
-    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].targetModelLc}-compact-view/`, `${ejbOpts.sortedAssociations[i].targetModelCp}CompactView.js`);
+    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-compact-view/`, `${ejbOpts.sortedAssociations[i].relationNameCp}CompactView.js`);
     promises.push( funks.renderToFile(fpath, 'model-table/components/model-detail-panel/components/model-associations-page/association-compact-view/AssociationCompactView', ejbOpts) );
 
     // template 55: AssociationCompactViewToolbar
-    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].targetModelLc}-compact-view/components/`, `${ejbOpts.sortedAssociations[i].targetModelCp}CompactViewToolbar.js`);
+    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-compact-view/components/`, `${ejbOpts.sortedAssociations[i].relationNameCp}CompactViewToolbar.js`);
     promises.push( funks.renderToFile(fpath, 'model-table/components/model-detail-panel/components/model-associations-page/association-compact-view/components/AssociationCompactViewToolbar', ejbOpts) );
 
   }

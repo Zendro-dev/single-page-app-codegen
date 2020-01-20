@@ -5,10 +5,10 @@ module.exports = {
       roles: 'admin',
       allows: [{
         resources: [
-<%for( i=0; i<adminModels.length; i++ ){-%>
+<%for( let i=0; i<adminModels.length; i++ ){-%>
           '<%- adminModels[i].nameLc _%>',
 <%}-%>
-<%for( i=0; i<models.length; i++ ){-%>
+<%for( let i=0; i<models.length; i++ ){-%>
           '<%- models[i].nameLc _%>',
 <%}-%>
         ],
@@ -17,7 +17,7 @@ module.exports = {
     },
 
     //models
-<%for( i=0; i<models.length; i++ ){-%>
+<%for( let i=0; i<models.length; i++ ){-%>
     {
       /**
        * Model: <%- models[i].nameLc %>

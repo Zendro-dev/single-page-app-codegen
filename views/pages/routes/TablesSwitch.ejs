@@ -5,10 +5,10 @@ import {
 } from 'react-router-dom'
 import PropTypes from 'prop-types';
 
-<%for( i=0; i<models.length; i++ ){-%>
+<%for( let i=0; i<models.length; i++ ){-%>
 import <%- models[i].nameCp %>Table from './models-tables/<%- models[i].nameLc _%>-table/<%- models[i].nameCp _%>EnhancedTable'
 <%}-%>
-<%for( i=0; i<adminModels.length; i++ ){-%>
+<%for( let i=0; i<adminModels.length; i++ ){-%>
 import <%- adminModels[i].nameCp %>Table from './admin-tables/<%- adminModels[i].nameLc _%>-table/<%- adminModels[i].nameCp _%>EnhancedTable'
 <%}-%>
 import NotFoundSection from '../pages/NotFoundSectionPage'
@@ -22,7 +22,7 @@ export default function TablesSwitch(props) {
     <Switch>
 
         {/* Models */}
-<%for( i=0; i<models.length; i++ ){-%>
+<%for( let i=0; i<models.length; i++ ){-%>
         <Route exact path="/main/model/<%- models[i].nameLc _%>" 
           render={
             /* acl check */
@@ -33,7 +33,7 @@ export default function TablesSwitch(props) {
 <%}-%>
 
         {/* Admin models */}
-<%for( i=0; i<adminModels.length; i++ ){-%>
+<%for( let i=0; i<adminModels.length; i++ ){-%>
         <Route exact path="/main/admin/<%- adminModels[i].nameLc _%>" 
           render={
             /* acl check */

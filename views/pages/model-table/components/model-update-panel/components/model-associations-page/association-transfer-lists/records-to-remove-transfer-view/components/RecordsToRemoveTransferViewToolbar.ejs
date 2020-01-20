@@ -34,7 +34,7 @@ const useToolbarStyles = makeStyles(theme => ({
   },
 }));
 
-export default function <%- sortedAssociations[aindex].targetModelPlCp %>ToRemoveTransferViewToolbar(props) {
+export default function <%- sortedAssociations[aindex].relationNameCp %>ToRemoveTransferViewToolbar(props) {
   const classes = useToolbarStyles();
   const { t } = useTranslation();
   const {
@@ -237,7 +237,7 @@ export default function <%- sortedAssociations[aindex].targetModelPlCp %>ToRemov
     </div>
   );
 };
-<%- sortedAssociations[aindex].targetModelPlCp %>ToRemoveTransferViewToolbar.propTypes = {
+<%- sortedAssociations[aindex].relationNameCp %>ToRemoveTransferViewToolbar.propTypes = {
     search: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
     titleIcon: PropTypes.number,

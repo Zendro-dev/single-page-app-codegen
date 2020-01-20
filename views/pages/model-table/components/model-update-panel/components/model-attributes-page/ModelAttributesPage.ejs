@@ -16,7 +16,7 @@ export default function <%- nameCp _%>AttributesPage(props) {
   const {
     item,
     valueOkStates,
-<%if(belongsTosArr.length > 0){-%>
+<%if(hasOwnForeingKeys){-%>
     foreignKeys,
 <%}-%>
     hidden,
@@ -37,7 +37,7 @@ export default function <%- nameCp _%>AttributesPage(props) {
             <<%- nameCp _%>AttributesFormView
               item={item}
               valueOkStates={valueOkStates}
-<%if(belongsTosArr.length > 0){-%>
+<%if(hasOwnForeingKeys){-%>
               foreignKeys={foreignKeys}
 <%}-%>
               handleSetValue={handleSetValue}
@@ -51,7 +51,7 @@ export default function <%- nameCp _%>AttributesPage(props) {
 <%- nameCp _%>AttributesPage.propTypes = {
   item: PropTypes.object.isRequired,
   valueOkStates: PropTypes.object.isRequired,
-<%if(belongsTosArr.length > 0){-%>
+<%if(hasOwnForeingKeys){-%>
   foreignKeys: PropTypes.object.isRequired,
 <%}-%>
   hidden: PropTypes.bool.isRequired,

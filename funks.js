@@ -280,7 +280,11 @@ exports.fillOptionsForViews = function(fileData){
     typeAttributes: exports.typeAttributes(attributesArrayFromFile(fileData.attributes)),
     belongsTosArr: associations.belongsTos,
     hasManysArr: associations.hasManys,
-    sortedAssociations: associations.sortedAssociations
+    sortedAssociations: associations.sortedAssociations,
+    sortedAssociatedModels : associations.sortedAssociatedModels,
+    ownForeignKeysArr: associations.ownForeignKeysArr,
+    hasOwnForeingKeys: associations.hasOwnForeingKeys,
+    hasToManyAssociations: associations.hasToManyAssociations,
   }
 
   return opts;
@@ -315,58 +319,76 @@ parseAssociationsFromFile = function(associations){
   let assoc = {
     "belongsTos" : [],
     "hasManys" : [],
-    "sortedAssociations" : []
+    "sortedAssociations" : [],
+    "sortedAssociatedModels" : [],
+    "ownForeignKeysArr" : [],
+    hasOwnForeingKeys: false,
+    hasToManyAssociations: false,
   }
 
   if(associations!==undefined){
 
     Object.entries(associations).forEach( ([name, association]) =>{
-      //let type = association.type.split("_")[1];
       let type = association.type;
+      let sqlType = getSqlType(association);
 
-      //if(type === "belongsTo"){
-      if(type === 'to_one' && association.keyIn !== association.target){
-        let bt = {
-          "type" : "to_one",
-          "foreignKey": association.targetKey,
-          "primaryKey" : "id",
+      //base association attributes
+      let baa = {
+        "type" : type,
+        "sqlType" : sqlType,
+        "primaryKey" : "id",
 
-          "relationName" : name,
-          "relationNameCp": exports.capitalizeString(name),
-          "targetModel": association.target,
-          "targetModelLc": exports.uncapitalizeString(association.target),
-          "targetModelPlLc": inflection.pluralize(exports.uncapitalizeString(association.target)),
-          "targetModelCp": exports.capitalizeString(association.target),
-          "targetModelPlCp": inflection.pluralize(exports.capitalizeString(association.target)),
-          "label" : association.label,
-          "sublabel" : association.sublabel
-        }
+        "relationName" : name,
+        "relationNameCp": exports.capitalizeString(name),
+        "relationNameLc": exports.uncapitalizeString(name),
 
-        assoc.belongsTos.push(bt);
-        assoc.sortedAssociations.push(bt);
+        "targetModel": association.target,
+        "targetModelLc": exports.uncapitalizeString(association.target),
+        "targetModelPlLc": inflection.pluralize(exports.uncapitalizeString(association.target)),
+        "targetModelCp": exports.capitalizeString(association.target),
+        "targetModelPlCp": inflection.pluralize(exports.capitalizeString(association.target)),
 
-      //}else if(type==="hasMany" || type==="belongsToMany"){
-      }else if(type==="to_many"){
-        let hm = {
-          "type" : "to_many",
-          "relationName" : name,
-          "relationNameCp": exports.capitalizeString(name),
-          "targetModel": association.target,
-          "targetModelLc": exports.uncapitalizeString(association.target),
-          "targetModelPlLc": inflection.pluralize(exports.uncapitalizeString(association.target)),
-          "targetModelCp": exports.capitalizeString(association.target),
-          "targetModelPlCp": inflection.pluralize(exports.capitalizeString(association.target)),
-          "label" : association.label,
-          "sublabel" : association.sublabel
-        }
-
-        assoc.hasManys.push(hm);
-        assoc.sortedAssociations.push(hm);
-        
-      }else{
-        //association hasOne??
-        console.log("Association type"+ association.type + "not supported.");
+        "label" : association.label,
+        "sublabel" : association.sublabel
       }
+
+      //sqlType dependent attributes
+      switch (sqlType) {
+        case "belongsTo":
+          assoc.hasOwnForeingKeys = true;
+          assoc.ownForeignKeysArr.push(association.targetKey);
+          baa.foreignKey = association.targetKey;        
+          break;
+
+        case "hasOne":
+          baa.foreignKey = association.targetKey;
+          break;
+
+        case "belongsToMany":
+          break;
+
+        case "hasMany":
+          baa.foreignKey = association.targetKey;     
+          break;
+      
+        default:
+          //unknown sqlType
+          console.log("Association sqlType "+ sqlType + " not supported.");
+          break;
+      }
+
+      if(type === 'to_one'){
+        assoc.belongsTos.push(baa);
+        assoc.sortedAssociations.push(baa);
+      }else if(type==="to_many"){
+        assoc.hasManys.push(baa);
+        assoc.sortedAssociations.push(baa);
+        assoc.hasToManyAssociations = true;
+      }else{
+        //unknown type
+        console.log("Association type "+ association.type + " not supported.");
+      }
+
     });
 
     //sort associations
@@ -379,7 +401,36 @@ parseAssociationsFromFile = function(associations){
       }
       return 0;
     });
+
+    //sorted associations names
+    let targetModels = [];
+    for(let i=0; i<assoc.sortedAssociations.length; i++) {
+      if(!targetModels.includes(assoc.sortedAssociations[i].targetModel)) {
+        targetModels.push(assoc.sortedAssociations[i].targetModel);
+        assoc.sortedAssociatedModels.push({
+          targetModel: assoc.sortedAssociations[i].targetModel,
+          targetModelLc: assoc.sortedAssociations[i].targetModelLc,
+          targetModelPlLc: assoc.sortedAssociations[i].targetModelPlLc,
+          targetModelCp: assoc.sortedAssociations[i].targetModelCp,
+          targetModelPlCp: assoc.sortedAssociations[i].targetModelPlCp,
+        });
+      }
+    }
   }
 
   return assoc;
+}
+
+getSqlType = function(association){
+  if(association.type === 'to_one' && association.keyIn !== association.target){
+    return 'belongsTo';
+  }else if(association.type === 'to_one' && association.keyIn === association.target){
+    return 'hasOne';
+  }else if(association.type === 'to_many' && association.hasOwnProperty('sourceKey')){
+    return 'belongsToMany';
+  }else if(association.type === 'to_many' && association.keyIn === association.target){
+    return 'hasMany';
+  }else {
+    return undefined;
+  }
 }

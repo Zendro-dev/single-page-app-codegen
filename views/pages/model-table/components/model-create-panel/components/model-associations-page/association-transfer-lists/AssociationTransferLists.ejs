@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import <%- sortedAssociations[aindex].targetModelPlCp _%>ToAddTransferView from './<%- sortedAssociations[aindex].targetModelPlLc _%>-to-add-transfer-view/<%- sortedAssociations[aindex].targetModelPlCp _%>ToAddTransferView'
+import <%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferView from './<%- sortedAssociations[aindex].relationNameLc _%>-to-add-transfer-view/<%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferView'
 import { makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
 import Grid from '@material-ui/core/Grid';
@@ -14,7 +14,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function <%- sortedAssociations[aindex].targetModelCp _%>TransferLists(props) {
+export default function <%- sortedAssociations[aindex].relationNameCp _%>TransferLists(props) {
   const classes = useStyles();
   const { t } = useTranslation();
 
@@ -47,7 +47,7 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>Transfer
             </Grid>
           </Grid>
           <Grid item xs={12}>
-            <<%- sortedAssociations[aindex].targetModelPlCp _%>ToAddTransferView
+            <<%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferView
               idsToAdd={idsToAdd}
               handleTransfer={handleTransferToAdd}
               handleUntransfer={handleUntransferFromAdd}
@@ -60,7 +60,7 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>Transfer
     </div>
   );
 }
-<%- sortedAssociations[aindex].targetModelCp _%>TransferLists.propTypes = {
+<%- sortedAssociations[aindex].relationNameCp _%>TransferLists.propTypes = {
   idsToAdd: PropTypes.array.isRequired,
   handleTransferToAdd: PropTypes.func.isRequired,
   handleUntransferFromAdd: PropTypes.func.isRequired,

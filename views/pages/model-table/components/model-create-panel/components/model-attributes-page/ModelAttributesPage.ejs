@@ -15,7 +15,7 @@ export default function <%- nameCp _%>AttributesPage(props) {
   const classes = useStyles();
   const {
     valueOkStates,
-<%if(belongsTosArr.length > 0){-%>
+<%if(hasOwnForeingKeys){-%>
     foreignKeys,
 <%}-%>
     hidden,
@@ -35,7 +35,7 @@ export default function <%- nameCp _%>AttributesPage(props) {
           <Grid item xs={12} sm={10} md={9} lg={8} xl={7}>
             <<%- nameCp _%>AttributesFormView
               valueOkStates={valueOkStates}
-<%if(belongsTosArr.length > 0){-%>
+<%if(hasOwnForeingKeys){-%>
               foreignKeys={foreignKeys}
 <%}-%>
               handleSetValue={handleSetValue}
@@ -48,7 +48,7 @@ export default function <%- nameCp _%>AttributesPage(props) {
 }
 <%- nameCp _%>AttributesPage.propTypes = {
   valueOkStates: PropTypes.object.isRequired,
-<%if(belongsTosArr.length > 0){-%>
+<%if(hasOwnForeingKeys){-%>
     foreignKeys: PropTypes.object.isRequired,
 <%}-%>
   hidden: PropTypes.bool.isRequired,

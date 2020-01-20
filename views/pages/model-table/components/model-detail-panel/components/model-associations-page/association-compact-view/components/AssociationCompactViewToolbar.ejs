@@ -32,7 +32,7 @@ const useToolbarStyles = makeStyles(theme => ({
   },
 }));
 
-export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactViewToolbar(props) {
+export default function <%- sortedAssociations[aindex].relationNameCp _%>CompactViewToolbar(props) {
   const classes = useToolbarStyles();
   const { t } = useTranslation();
   const {
@@ -229,7 +229,7 @@ export default function <%- sortedAssociations[aindex].targetModelCp _%>CompactV
     </div>
   );
 };
-<%- sortedAssociations[aindex].targetModelCp _%>CompactViewToolbar.propTypes = {
+<%- sortedAssociations[aindex].relationNameCp _%>CompactViewToolbar.propTypes = {
   search: PropTypes.string.isRequired,
   title: PropTypes.string.isRequired,
   titleIcon: PropTypes.bool,

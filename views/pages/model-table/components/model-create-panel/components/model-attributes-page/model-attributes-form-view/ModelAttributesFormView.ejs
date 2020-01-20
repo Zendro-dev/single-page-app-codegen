@@ -9,7 +9,7 @@ import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
 import Attributes from '@material-ui/icons/HdrWeakTwoTone';
 <%let keys = Object.keys(typeAttributes);
-  for( i=0; i<keys.length; i++ ){
+  for( let i=0; i<keys.length; i++ ){
     let type = keys[i];
 -%>
 <%if(type === 'String') {%>
@@ -58,7 +58,7 @@ export default function <%- nameCp _%>AttributesFormView(props) {
   const classes = useStyles();
   const { t } = useTranslation();
   const { valueOkStates,
-<%if(belongsTosArr.length > 0){-%>
+<%if(hasOwnForeingKeys){-%>
           foreignKeys,
 <%}-%> 
           handleSetValue,
@@ -67,7 +67,7 @@ export default function <%- nameCp _%>AttributesFormView(props) {
   function getItemsOk() {
     let countOk=0;
     let a = Object.entries(valueOkStates);
-    for(var i=0; i<a.length; ++i) {
+    for(let i=0; i<a.length; ++i) {
       if(a[i][1] === 1) {
         countOk++;
       }
@@ -100,16 +100,11 @@ export default function <%- nameCp _%>AttributesFormView(props) {
             {/* 
               Fields 
             */}
-<%for( i=0; i<attributesArr.length; i++ ){
+<%for( let i=0; i<attributesArr.length; i++ ){
   let a = attributesArr[i][0];
   let label = a[0].toUpperCase() + a.slice(1);
   let type = attributesArr[i][1];
-  let isForeignKey = false;
-  for(var x=0; (x<belongsTosArr.length && !isForeignKey); x++) {
-    if(belongsTosArr[x].foreignKey === a) {
-      isForeignKey = true;
-    }
-  }
+  let isForeignKey = (hasOwnForeingKeys&&ownForeignKeysArr.includes(a));
 -%>
 <% if(type === 'String') {%>
             {/* <%- label %> */}
@@ -230,7 +225,7 @@ export default function <%- nameCp _%>AttributesFormView(props) {
 }
 <%- nameCp _%>AttributesFormView.propTypes = {
   valueOkStates: PropTypes.object.isRequired,
-<%if(belongsTosArr.length > 0){-%>
+<%if(hasOwnForeingKeys){-%>
   foreignKeys: PropTypes.object.isRequired,
 <%}-%>
   handleSetValue: PropTypes.func.isRequired,
