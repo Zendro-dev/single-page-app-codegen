@@ -88,7 +88,7 @@ export default function IntField(props) {
           className={classes.textField}
           margin="normal"
           variant="filled"
-          placeholder={ t('modelPanels.integer') }
+          placeholder={ (foreignKey !== undefined) ? "" : t('modelPanels.integer') }
           helperText={errorText!==null ? errorText : (helperText!==null ? helperText : "")}
           error={errorText!== null}
           autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
@@ -154,6 +154,8 @@ export default function IntField(props) {
           }}
 
           onBlur={(event) => {
+            if(foreignKey !== undefined) { return; }
+
             if(!error.current) {
               setErrorText(null);
               if(textValue.current !== null && textValue.current !== '' && !(isNaN(textValue.current)) && !(isNaN(intValue.current))) {
@@ -165,6 +167,8 @@ export default function IntField(props) {
           }}
 
           onKeyDown={(event) => {
+            if(foreignKey !== undefined) { return; }
+
             if(event.key === 'Enter') {
               if(!error.current) {
                 if(textValue.current !== null && textValue.current !== '' && !(isNaN(textValue.current)) && !(isNaN(intValue.current))) {
