@@ -23,11 +23,9 @@ import Divider from '@material-ui/core/Divider';
 
 const useStyles = makeStyles(theme => ({
   root: {
-    marginTop: theme.spacing(3),
     minWidth: 450,
-  },
-  appBar: {
-    position: 'relative',
+    minHeight: 1200,
+    paddingTop: theme.spacing(1),
   },
   title: {
     marginLeft: theme.spacing(2),
@@ -114,7 +112,7 @@ export default function <%- nameCp _%>DetailPanel(props) {
       {(dialog !== undefined && dialog === true) && (
         
         <Dialog fullScreen open={open} onClose={handleCancel} TransitionComponent={Transition}>
-          <AppBar className={classes.appBar}>
+          <AppBar>
             <Toolbar>
               <Tooltip title={ t('modelPanels.close') }>
                 <IconButton
@@ -130,9 +128,10 @@ export default function <%- nameCp _%>DetailPanel(props) {
               </Typography>
             </Toolbar>
           </AppBar>
-    
+          <Toolbar />
+
           <div className={classes.root}>
-            <Grid container justify='center' alignItems='flex-start' alignContent='flex-start' spacing={2}>
+            <Grid container justify='center' alignItems='flex-start' alignContent='flex-start' spacing={1}>
 
               <Grid item xs={12} sm={11} md={10} lg={9} xl={8}>
                 <Divider />

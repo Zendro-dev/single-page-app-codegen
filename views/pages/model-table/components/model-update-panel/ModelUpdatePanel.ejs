@@ -30,11 +30,7 @@ import SaveIcon from '@material-ui/icons/Save';
 
 const useStyles = makeStyles(theme => ({
   root: {
-    marginTop: theme.spacing(3),
     minWidth: 450,
-  },
-  appBar: {
-    position: 'relative',
   },
   title: {
     marginLeft: theme.spacing(2),
@@ -464,7 +460,7 @@ export default function <%- nameCp _%>UpdatePanel(props) {
 
   return (
     <Dialog fullScreen open={open} onClose={handleCancel} TransitionComponent={Transition}>
-      <AppBar className={classes.appBar}>
+      <AppBar>
         <Toolbar>
           <Tooltip title={ t('modelPanels.cancel') }>
             <IconButton 
@@ -489,6 +485,7 @@ export default function <%- nameCp _%>UpdatePanel(props) {
           </Tooltip>
         </Toolbar>
       </AppBar>
+      <Toolbar />
 
       <div className={classes.root}>
         <Grid container justify='center' alignItems='flex-start' alignContent='flex-start'>

@@ -10,7 +10,7 @@ import Typography from '@material-ui/core/Typography';
 
 const useStyles = makeStyles(theme => ({
   root: {
-    margin: theme.spacing(0),
+    margin: theme.spacing(1),
   },
 }));
 
@@ -37,11 +37,25 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>Transfe
           spacing={2}
         > 
           <Grid item xs={12}>
-            <Divider />
             <Grid container justify='flex-start'>
               <Grid item>
-                <Typography variant="body2" color="textSecondary" gutterBottom>
-                  { t('modelPanels.add') }
+                <Typography variant="body2" display='inline'>
+                  { t('modelPanels.toAddHelperA', "Please select ") }
+                </Typography>
+<%if(sortedAssociations[aindex].type === 'to_one') {-%>
+                <Typography variant="body2" display='inline'>
+                  <b>{  t('modelPanels.theRecord', "the record ") }</b>
+                </Typography>
+<%} else {-%>
+                <Typography variant="body2" display='inline'>
+                  <b>{  t('modelPanels.theRecords', "the records ") }</b>
+                </Typography>
+<%}-%>
+                <Typography variant="body2" display='inline'>
+                  { t('modelPanels.toAddHelperB', " that you want to be associated with this ") }
+                </Typography>
+                <Typography variant="body2" display='inline'>
+                  <b>{ '<%- nameCp _%>.' }</b>
                 </Typography>
               </Grid>
             </Grid>
