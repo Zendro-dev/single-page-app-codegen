@@ -1,9 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { modelChange } from '../../../../../../../store/actions'
 import PropTypes from 'prop-types';
+import api from '../../../../../../../requests/requests.index.js'
 import { makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
+import { useSnackbar } from 'notistack';
 import <%- nameCp _%>AttributesPage from './components/<%- nameLc _%>-attributes-page/<%- nameCp _%>AttributesPage'
 import <%- nameCp _%>AssociationsPage from './components/<%- nameLc _%>-associations-page/<%- nameCp _%>AssociationsPage'
+import <%- nameCp -%>UpdatePanel from '../<%- nameLc -%>-update-panel/<%- nameCp -%>UpdatePanel'
+import <%- nameCp -%>DeleteConfirmationDialog from '../<%- nameCp -%>DeleteConfirmationDialog'
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ) {
   if(sortedAssociatedModels[i].targetModel !== name) {-%>
 import <%- sortedAssociatedModels[i].targetModelCp _%> DetailPanel from '../../../<%- sortedAssociatedModels[i].targetModelLc _%>-table/components/<%- sortedAssociatedModels[i].targetModelLc _%>-detail-panel/<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel'
@@ -15,11 +21,14 @@ import Grid from '@material-ui/core/Grid';
 import Dialog from '@material-ui/core/Dialog';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
+import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import Slide from '@material-ui/core/Slide';
 import Tooltip from '@material-ui/core/Tooltip';
 import Divider from '@material-ui/core/Divider';
+import Delete from '@material-ui/icons/DeleteOutline';
+import Edit from '@material-ui/icons/Edit';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -40,14 +49,21 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 export default function <%- nameCp _%>DetailPanel(props) {
   const classes = useStyles();
   const { t } = useTranslation();
-  const { 
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+  const {
+    permissions, 
     item,
     dialog,
-    handleClose
+    handleClose,
   } = props;
   
   const [open, setOpen] = useState(true);
   const valueOkStates = useRef(getInitialValueOkStates());
+
+  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+  const [updateItem, setUpdateItem] = useState(undefined);
+  const [deleteConfirmationDialogOpen, setDeleteConfirmationDialogOpen] = useState(false);
+  const [deleteConfirmationItem, setDeleteConfirmationItem] = useState(undefined);
 
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
   const [<%- sortedAssociatedModels[i].targetModelLc _%>DetailDialogOpen, set<%- sortedAssociatedModels[i].targetModelCp _%>DetailDialogOpen] = useState(false);
@@ -63,6 +79,92 @@ export default function <%- nameCp _%>DetailPanel(props) {
     }
   }, [<%- sortedAssociatedModels[i].targetModelLc _%>DetailItem]);
 <%}-%>
+
+const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl);
+const dispatch = useDispatch();
+
+const actionText = useRef(null);
+const action = useRef((key) => (
+  <>
+    <Button color='inherit' variant='text' size='small' className={classes.notiErrorActionText} onClick={() => { closeSnackbar(key) }}>
+      {actionText.current}
+    </Button>
+  </> 
+));
+
+  useEffect(() => {
+    if (updateItem !== undefined) {
+      setUpdateDialogOpen(true);
+    }
+  }, [updateItem]);
+
+  useEffect(() => {
+    if (deleteConfirmationItem !== undefined) {
+      setDeleteConfirmationDialogOpen(true);
+    }
+  }, [deleteConfirmationItem]);
+
+  function doDelete(event, item) {
+    //variables
+    let variables = {id: item.id};
+
+    /*
+      API Request: deleteItem
+    */
+    api.<%- nameLc -%>.deleteItem(graphqlServerUrl, variables)
+      .then(response => {
+        if(
+          response.data &&
+          response.data.data
+        ) {
+          if(response.data.errors) {
+            actionText.current = t('modelPanels.gotIt', "Got it");
+            enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
+              variant: 'error',
+              preventDuplicate: false,
+              persist: true,
+              action: action.current,
+            });
+            console.log("Errors: ", response.data.errors);
+          }else {
+            //ok
+            enqueueSnackbar( t('modelPanels.messages.msg4', "Record deleted successfully."), {
+              variant: 'success',
+              preventDuplicate: false,
+              persist: false,
+              anchorOrigin: {
+                vertical: 'bottom',
+                horizontal: 'left',
+              },
+            });
+            onSuccessDelete(event, item);
+          }
+          return;
+
+        } else { //error: bad response on deleteItem()
+          actionText.current = t('modelPanels.gotIt', "Got it");
+          enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
+            variant: 'error',
+            preventDuplicate: false,
+            persist: true,
+            action: action.current,
+          });
+          console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
+          return;
+        }
+      })
+      .catch(err => { //error: on deleteItem()
+        actionText.current = t('modelPanels.gotIt', "Got it");
+        enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
+          variant: 'error',
+          preventDuplicate: false,
+          persist: true,
+          action: action.current,
+        });
+        console.log("Error: ", err);
+        return;
+      });
+  }
 
   function getInitialValueOkStates() {
     /*
@@ -85,6 +187,81 @@ export default function <%- nameCp _%>DetailPanel(props) {
     handleClose(event);
   }
 
+  const handleUpdateClicked = (event, item) => {
+    setOpen(false);
+    delayedOpenUpdatePanel(event, item, 200);
+  }
+
+  const delayedOpenUpdatePanel = async (event, item, ms) => {
+    await new Promise(resolve => {
+      //set timeout
+      window.setTimeout(function() {
+        setUpdateItem(item);
+        resolve("ok");
+      }, ms);
+    });
+  };
+
+  const handleUpdateDialogClose = (event, item, status) => {
+    if(status) {
+      dispatch(modelChange('<%- name _%>', item.id, 'update'))
+    }
+    delayedCloseUpdatePanel(event, 500);
+  }
+
+  const delayedCloseUpdatePanel = async (event, ms) => {
+    await new Promise(resolve => {
+      //set timeout
+      window.setTimeout(function() {
+        setUpdateDialogOpen(false);
+        setUpdateItem(undefined);
+        handleClose(event);
+        resolve("ok");
+      }, ms);
+    });
+  };
+
+  const handleDeleteClicked = (event, item) => {
+    setDeleteConfirmationItem(item);
+  }
+
+  const handleDeleteConfirmationAccept = (event, item) => {
+    setOpen(false);
+    doDelete(event, item);
+  }
+
+  const onSuccessDelete = (event, item) => {
+    dispatch(modelChange('<%- name _%>', item.id, 'delete'))
+    delayedCloseDeleteConfirmationAccept(event, 500);
+  }
+
+  const delayedCloseDeleteConfirmationAccept = async (event, ms) => {
+    await new Promise(resolve => {
+      //set timeout
+      window.setTimeout(function() {
+        setDeleteConfirmationDialogOpen(false);
+        setDeleteConfirmationItem(undefined);
+        handleClose(event);
+        resolve("ok");
+      }, ms);
+    });
+  };
+
+  const handleDeleteConfirmationReject = (event) => {
+    delayedCloseDeleteConfirmationReject(event, 500);
+  }
+
+  const delayedCloseDeleteConfirmationReject = async (event, ms) => {
+    await new Promise(resolve => {
+      //set timeout
+      window.setTimeout(function() {
+        setDeleteConfirmationDialogOpen(false);
+        setDeleteConfirmationItem(undefined);
+        resolve("ok");
+      }, ms);
+    });
+  };
+
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
   const handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row = (event, item) => {
     set<%- sortedAssociatedModels[i].targetModelCp _%>DetailItem(item);
@@ -103,7 +280,6 @@ export default function <%- nameCp _%>DetailPanel(props) {
       }, ms);
     });
   };
-
 <%}-%>
 
   return (
@@ -120,12 +296,57 @@ export default function <%- nameCp _%>DetailPanel(props) {
                   color="inherit"
                   onClick={handleCancel}
                 >
-                  <CloseIcon />
+                  <CloseIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
               <Typography variant="h6" className={classes.title}>
                 { t('modelPanels.detailOf') +  ": <%- nameCp %> | id: " + item.id }
               </Typography>
+              {/*
+                Actions:
+                - Edit
+                - Delete
+              */}
+              {
+                /* acl check */
+                (permissions&&permissions.user&&Array.isArray(permissions.user)
+                &&(permissions.user.includes('update') || permissions.user.includes('*')))
+                &&(
+                  
+                    <Tooltip title={ t('modelPanels.edit') }>
+                      <IconButton
+                        color='inherit'
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleUpdateClicked(event, item);
+                        }}
+                      >
+                        <Edit fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+
+                )
+              }
+              {
+                /* acl check */
+                (permissions&&permissions.user&&Array.isArray(permissions.user)
+                &&(permissions.user.includes('delete') || permissions.user.includes('*')))
+                &&(
+                  
+                    <Tooltip title={ t('modelPanels.delete') }>
+                      <IconButton
+                        color='inherit'
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleDeleteClicked(event, item);
+                        }}
+                      >
+                        <Delete fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                    
+                )
+              }
             </Toolbar>
           </AppBar>
           <Toolbar />
@@ -180,48 +401,70 @@ export default function <%- nameCp _%>DetailPanel(props) {
       {/* No-Dialog Mode */}
       {(dialog !== undefined && dialog === false) && (
     
-          <div className={classes.root}>
-            <Grid container justify='center'>
-              <Grid item xs={12}>
-                  
-                {/* Attributes Page */}
-                <<%- nameCp _%>AttributesPage
-                  item={item}
-                  valueOkStates={valueOkStates.current}
-                />
-    
-                {/* Associations Page */}
-                <<%- nameCp _%>AssociationsPage
-                  item={item}
+        <div className={classes.root}>
+          <Grid container justify='center'>
+            <Grid item xs={12}>
+                
+              {/* Attributes Page */}
+              <<%- nameCp _%>AttributesPage
+                item={item}
+                valueOkStates={valueOkStates.current}
+              />
+  
+              {/* Associations Page */}
+              <<%- nameCp _%>AssociationsPage
+                item={item}
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
-                  handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row}
+                handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row}
 <%}-%>
-                />
-    
-              </Grid>
+              />
+  
             </Grid>
-          </div>
+          </Grid>
+        </div>
+      )}
+
+      {/* Dialog: Update Panel */}
+      {(updateDialogOpen) && (
+        <<%- nameCp -%>UpdatePanel
+          permissions={permissions}
+          item={updateItem}
+          handleClose={handleUpdateDialogClose}
+          handleOk={()=>{}}
+        />
+      )}
+
+      {/* Dialog: Delete Confirmation */}
+      {(deleteConfirmationDialogOpen) && (
+        <<%- nameCp -%>DeleteConfirmationDialog
+          permissions={permissions}
+          item={deleteConfirmationItem}
+          handleAccept={handleDeleteConfirmationAccept}
+          handleReject={handleDeleteConfirmationReject}
+        />
       )}
 
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
-    {/* Dialog: <%- sortedAssociatedModels[i].targetModelCp %> Detail Panel */}
-    {(<%- sortedAssociatedModels[i].targetModelLc _%>DetailDialogOpen) && (
+      {/* Dialog: <%- sortedAssociatedModels[i].targetModelCp %> Detail Panel */}
+      {(<%- sortedAssociatedModels[i].targetModelLc _%>DetailDialogOpen) && (
 <%if(sortedAssociatedModels[i].targetModel !== name) {-%>
-      <<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel
+        <<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel
 <%} else {-%>
-      <<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanelB
+        <<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanelB
 <%}-%>
-        item={<%- sortedAssociatedModels[i].targetModelLc _%>DetailItem}
-        dialog={true}
-        handleClose={handle<%- sortedAssociatedModels[i].targetModelCp _%>DetailDialogClose}
-      />
-    )}
+          permissions={permissions}
+          item={<%- sortedAssociatedModels[i].targetModelLc _%>DetailItem}
+          dialog={true}
+          handleClose={handle<%- sortedAssociatedModels[i].targetModelCp _%>DetailDialogClose}
+        />
+      )}
 <%}-%>
     </div>
   );
 }
 <%- nameCp _%>DetailPanel.propTypes = {
+  permissions: PropTypes.object,
   item: PropTypes.object.isRequired,
   dialog: PropTypes.bool,
-  handleClose: PropTypes.func.isRequired
+  handleClose: PropTypes.func.isRequired,
 };

@@ -760,6 +760,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
       {/* Dialog: Create Panel */}
       {(createDialogOpen) && (
         <<%- nameCp -%>CreatePanel
+          permissions={permissions}
           handleClose={handleCreateDialogClose}
           handleOk={handleCreateOk}
         />
@@ -768,6 +769,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
       {/* Dialog: Update Panel */}
       {(updateDialogOpen) && (
         <<%- nameCp -%>UpdatePanel
+          permissions={permissions}
           item={updateItem}
           handleClose={handleUpdateDialogClose}
           handleOk={handleCreateOk}
@@ -777,6 +779,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
       {/* Dialog: Detail Panel */}
       {(detailDialogOpen) && (
         <<%- nameCp -%>DetailPanel
+          permissions={permissions}
           item={detailItem}
           dialog={true}
           handleClose={handleDetailDialogClose}
@@ -786,6 +789,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
       {/* Dialog: Delete Confirmation */}
       {(deleteConfirmationDialogOpen) && (
         <<%- nameCp -%>DeleteConfirmationDialog
+          permissions={permissions}
           item={deleteConfirmationItem}
           handleAccept={handleDeleteConfirmationAccept}
           handleReject={handleDeleteConfirmationReject}

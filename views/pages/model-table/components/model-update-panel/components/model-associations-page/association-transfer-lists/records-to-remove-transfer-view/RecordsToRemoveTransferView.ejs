@@ -863,7 +863,7 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToRemov
 
               {/* Toolbar */}
               <<%- sortedAssociations[aindex].relationNameCp _%>ToRemoveTransferViewToolbar 
-                title={'<%- sortedAssociations[aindex].targetModelPlCp %>'}
+                title={'<%- (sortedAssociations[aindex].type === 'to_one') ? sortedAssociations[aindex].targetModelCp : sortedAssociations[aindex].targetModelPlCp %>'}
                 titleIcon={2}
                 search={searchB}
                 onSearchEnter={handleSearchEnterB}

@@ -1165,7 +1165,7 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToAddTr
 
               {/* Toolbar */}
               <<%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferViewToolbar 
-                title={'<%- sortedAssociations[aindex].targetModelPlCp %>'}
+                title={'<%- (sortedAssociations[aindex].type === 'to_one') ? sortedAssociations[aindex].targetModelCp : sortedAssociations[aindex].targetModelPlCp %>'}
                 titleIcon={2}
                 search={searchB}
 <%if(sortedAssociations[aindex].type === 'to_one') {-%>

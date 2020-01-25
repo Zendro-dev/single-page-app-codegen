@@ -317,7 +317,7 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>Compact
 
               {/* Toolbar */}
               <<%- sortedAssociations[aindex].relationNameCp _%>CompactViewToolbar 
-                title='<%- sortedAssociations[aindex].targetModelPlCp _%>'
+                title={'<%- (sortedAssociations[aindex].type === 'to_one') ? sortedAssociations[aindex].targetModelCp : sortedAssociations[aindex].targetModelPlCp %>'}
                 search={search}
                 onSearchEnter={handleSearchEnter}
               />

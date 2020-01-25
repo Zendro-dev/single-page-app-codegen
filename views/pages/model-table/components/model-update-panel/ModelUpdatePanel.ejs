@@ -60,7 +60,8 @@ export default function <%- nameCp _%>UpdatePanel(props) {
   const { t } = useTranslation();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
-  const { 
+  const {
+    permissions, 
     item,
     handleClose,
     handleOk,
@@ -248,7 +249,7 @@ export default function <%- nameCp _%>UpdatePanel(props) {
               },
             });
             handleOk();
-            onClose(event);
+            onClose(event, item, true);
           }
           return;
 
@@ -331,7 +332,7 @@ export default function <%- nameCp _%>UpdatePanel(props) {
         setConfirmationRejectText( t('modelPanels.cancelChangesReject', "STAY") );
         handleAccept.current = () => {
           setConfirmationOpen(false);
-          onClose(event);
+          onClose(event, item, false);
         }
         handleReject.current = () => {
           setConfirmationOpen(false);
@@ -339,13 +340,13 @@ export default function <%- nameCp _%>UpdatePanel(props) {
         setConfirmationOpen(true);
         return;
     } else {
-      onClose(event);
+      onClose(event, item, false);
     }
   }
 
-  const onClose = (event) => {
+  const onClose = (event, item, status) => {
     setOpen(false);
-    handleClose(event);
+    handleClose(event, item, status);
   }
 
   const handleConfirmationAccept = (event) => {
@@ -550,6 +551,7 @@ export default function <%- nameCp _%>UpdatePanel(props) {
         {/* Dialog: <%- sortedAssociatedModels[i].targetModelCp %> Detail Panel */}
         {(<%- sortedAssociatedModels[i].targetModelLc _%>DetailDialogOpen) && (
           <<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel
+            permissions={permissions}
             item={<%- sortedAssociatedModels[i].targetModelLc _%>DetailItem}
             dialog={true}
             handleClose={handle<%- sortedAssociatedModels[i].targetModelCp _%>DetailDialogClose}
@@ -562,6 +564,7 @@ export default function <%- nameCp _%>UpdatePanel(props) {
   );
 }
 <%- nameCp _%>UpdatePanel.propTypes = {
+  permissions: PropTypes.object,
   item: PropTypes.object.isRequired,
   handleClose: PropTypes.func.isRequired,
   handleOk: PropTypes.func.isRequired,
