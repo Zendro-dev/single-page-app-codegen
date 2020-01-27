@@ -374,6 +374,44 @@ export default function <%- nameCp -%>EnhancedTable(props) {
       });
   }
 
+  function setNewItem(oldItem, newItem) {
+    if(!newItem) {
+      //reload
+      setDataTrigger(prevDataTrigger => !prevDataTrigger);
+    } else {
+      let nitems = Array.from(items);
+      //find item
+      for(let i=0; i<nitems.length; i++) {
+        if(nitems[i].id === oldItem.id) {
+          //set new item
+          nitems[i] = newItem;
+          setItems(nitems);
+          return;
+        }
+      }
+    }
+  }
+
+  function addNewItem(newItem) {
+    if(!newItem) {
+      //reload
+      setDataTrigger(prevDataTrigger => !prevDataTrigger);
+    } else {
+      if( (count - (page*rowsPerPage)) < rowsPerPage ){
+        //add new item
+        let ncount = count+1;
+        let nitems = Array.from(items);
+        nitems.push(newItem);
+        setCount(ncount);
+        setItems(nitems);
+      } else {
+        //add count
+        let ncount = count+1;
+        setCount(ncount);
+      }
+    }
+  }
+
   const handleSearchEnter = text => {
     if(text !== search)
     {
@@ -437,8 +475,11 @@ export default function <%- nameCp -%>EnhancedTable(props) {
     setDeleteConfirmationItem(item);
   }
 
-  const handleCreateDialogClose = (event) => {
+  const handleCreateDialogClose = (event, status, newItem) => {
     delayedCloseCreatePanel(event, 500);
+    if(status) {
+      addNewItem(newItem);
+    }
   }
 
   const delayedCloseCreatePanel = async (event, ms) => {
@@ -451,8 +492,11 @@ export default function <%- nameCp -%>EnhancedTable(props) {
     });
   };
 
-  const handleUpdateDialogClose = (event) => {
+  const handleUpdateDialogClose = (event, status, oldItem, newItem) => {
     delayedCloseUpdatePanel(event, 500);
+    if(status) {
+      setNewItem(oldItem, newItem);
+    }
   }
 
   const delayedCloseUpdatePanel = async (event, ms) => {
@@ -518,10 +562,6 @@ export default function <%- nameCp -%>EnhancedTable(props) {
   const handleDeleteConfirmationAccept = (event, item) => {
     doDelete(event, item);
     delayedCloseDeleteConfirmation(event, 500);
-  }
-
-  const handleCreateOk = () => {
-    setDataTrigger(prevDataTrigger => !prevDataTrigger);
   }
 
   return (
@@ -762,7 +802,6 @@ export default function <%- nameCp -%>EnhancedTable(props) {
         <<%- nameCp -%>CreatePanel
           permissions={permissions}
           handleClose={handleCreateDialogClose}
-          handleOk={handleCreateOk}
         />
       )}
 
@@ -772,7 +811,6 @@ export default function <%- nameCp -%>EnhancedTable(props) {
           permissions={permissions}
           item={updateItem}
           handleClose={handleUpdateDialogClose}
-          handleOk={handleCreateOk}
         />
       )}
 

@@ -124,7 +124,9 @@ fs.readdirSync(program.jsonFiles).forEach( async (json_file) =>{
     let assocLc = ejbOpts.sortedAssociations[i].relationNameLc;
     modelTableDirs.push(path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/${assocLc}-transfer-lists/${assocLc}-to-add-transfer-view/components`));
     modelTableDirs.push(path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${assocLc}-transfer-lists/${assocLc}-to-add-transfer-view/components`));
-    modelTableDirs.push(path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${assocLc}-transfer-lists/${assocLc}-to-remove-transfer-view/components`));
+    if(ejbOpts.sortedAssociations[i].type === 'to_many') {
+      modelTableDirs.push(path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${assocLc}-transfer-lists/${assocLc}-to-remove-transfer-view/components`));
+    }
     modelTableDirs.push(path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-associations-page/${assocLc}-compact-view/components`));
   }
   //routes
@@ -491,6 +493,11 @@ for(let i=0; i<modelsOpts.adminModels.length; i++)
 {
   let m = modelsOpts.adminModels[i];
   m.modelsAtts = modelAtts;
+
+  /**
+   * Debug
+   */
+  console.log("MODEL_OPTS: ", m);
 
   fpath = path.resolve(directory, `src/requests/`, `${m.nameLc}.js`);
   promises.push( funks.renderToFile(fpath, 'requests/model', m) );

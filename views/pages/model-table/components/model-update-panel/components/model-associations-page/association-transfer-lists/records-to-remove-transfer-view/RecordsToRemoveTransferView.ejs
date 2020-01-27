@@ -21,7 +21,6 @@ import Fade from '@material-ui/core/Fade';
 import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
-import Add from '@material-ui/icons/AddCircle';
 import Remove from '@material-ui/icons/RemoveCircle';
 import TransferArrows from '@material-ui/icons/SettingsEthernetOutlined';
 
@@ -727,7 +726,7 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToRemov
                                     )}
                                   </Grid>
 
-                                  {/* Button: Add */}
+                                  {/* Button: Remove */}
                                   <Grid item xs={2}>
                                     <Grid container justify='flex-end'>
                                       <Grid item>
@@ -961,7 +960,7 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToRemov
                                     )}
                                   </Grid>
 
-                                  {/* Button: Add */}
+                                  {/* Button: Remove */}
                                   <Grid item xs={2}>
                                     <Tooltip title={ t('modelPanels.untransferToRemove') }>
                                       <IconButton

@@ -60,7 +60,6 @@ export default function <%- nameCp _%>CreatePanel(props) {
   const {
     permissions,
     handleClose,
-    handleOk,
   } = props;
 
   const [open, setOpen] = useState(true);
@@ -212,8 +211,7 @@ export default function <%- nameCp _%>CreatePanel(props) {
                 horizontal: 'left',
               },
             });
-            handleOk();
-            onClose(event);
+            onClose(event, true, response.data.data.add<%- nameCp %>);
           }
           return;
 
@@ -296,7 +294,7 @@ export default function <%- nameCp _%>CreatePanel(props) {
       setConfirmationRejectText( t('modelPanels.cancelChangesReject', "STAY") );
       handleAccept.current = () => {
         setConfirmationOpen(false);
-        onClose(event);
+        onClose(event, false, null);
       }
       handleReject.current = () => {
         setConfirmationOpen(false);
@@ -304,13 +302,13 @@ export default function <%- nameCp _%>CreatePanel(props) {
         setConfirmationOpen(true);
         return;
     } else {
-      onClose(event);
+      onClose(event, false, null);
     }
   }
 
-  const onClose = (event) => {
+  const onClose = (event, status, newItem) => {
     setOpen(false);
-    handleClose(event);
+    handleClose(event, status, newItem);
   }
 
   const handleConfirmationAccept = (event) => {
@@ -489,5 +487,4 @@ export default function <%- nameCp _%>CreatePanel(props) {
 <%- nameCp _%>CreatePanel.propTypes = {
   permissions: PropTypes.object,
   handleClose: PropTypes.func.isRequired,
-  handleOk: PropTypes.func.isRequired,
 };

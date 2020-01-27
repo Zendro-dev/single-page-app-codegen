@@ -202,9 +202,9 @@ const action = useRef((key) => (
     });
   };
 
-  const handleUpdateDialogClose = (event, item, status) => {
+  const handleUpdateDialogClose = (event, status, item, newItem) => {
     if(status) {
-      dispatch(modelChange('<%- name _%>', item.id, 'update'))
+      dispatch(modelChange('<%- name _%>', 'update', item, newItem))
     }
     delayedCloseUpdatePanel(event, 500);
   }
@@ -231,7 +231,7 @@ const action = useRef((key) => (
   }
 
   const onSuccessDelete = (event, item) => {
-    dispatch(modelChange('<%- name _%>', item.id, 'delete'))
+    dispatch(modelChange('<%- name _%>', 'delete', item, null))
     delayedCloseDeleteConfirmationAccept(event, 500);
   }
 
@@ -430,7 +430,6 @@ const action = useRef((key) => (
           permissions={permissions}
           item={updateItem}
           handleClose={handleUpdateDialogClose}
-          handleOk={()=>{}}
         />
       )}
 

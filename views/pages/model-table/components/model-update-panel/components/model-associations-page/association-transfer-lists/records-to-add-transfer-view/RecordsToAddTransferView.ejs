@@ -123,9 +123,13 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToAddTr
   const isGettingFirstDataRefB = useRef(true);
   const pageRefB = useRef(0);
 
-  const [thereAreItemsToAdd, setThereAreItemsToAdd] = useState(false);
-  const lidsToAdd = useRef([]);
+  const [thereAreItemsToAdd, setThereAreItemsToAdd] = useState((idsToAdd && Array.isArray(idsToAdd) && idsToAdd.length > 0));
+  const lidsToAdd = useRef((idsToAdd && Array.isArray(idsToAdd)) ? idsToAdd : []);
+  <%if(sortedAssociations[aindex].type === 'to_one'){-%>
+  const lidsAssociated = useRef((item.<%- sortedAssociations[aindex].relationName _%> && item.<%- sortedAssociations[aindex].relationName _%>.id) ? [item.<%- sortedAssociations[aindex].relationName _%>.id] : []);
+  <%} else {-%>
   const lidsAssociated = useRef(undefined);
+  <%}-%>
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
 
   const actionText = useRef(null);
@@ -713,16 +717,6 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToAddTr
         return;
       });
   }, [graphqlServerUrl, enqueueSnackbar, t, dataTriggerB, searchB, rowsPerPageB]);
-  
-  useEffect(() => {
-    if(idsToAdd !== undefined && Array.isArray(idsToAdd) && idsToAdd.length > 0) {
-      lidsToAdd.current = Array.from(idsToAdd);
-      setThereAreItemsToAdd(true);
-      setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-    } else {
-      isGettingFirstDataRefB.current = false; 
-    }
-  }, [idsToAdd]);
 
   useEffect(() => {
     if (!isOnApiRequestRef.current) {
