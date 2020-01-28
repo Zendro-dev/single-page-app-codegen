@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import moment from "moment";
@@ -27,8 +27,6 @@ export default function TimeField(props) {
     valueOk,
     autoFocus,
   } = props;
-  
-  const selectedDate = useRef(getInitialSelectedDate());
 
   function getInitialSelectedDate() {
     moment.locale(i18n.language);
@@ -59,7 +57,7 @@ export default function TimeField(props) {
           label={label}
           format="HH:mm:ss.SSS"
           ampm={true}
-          value={selectedDate.current}
+          value={getInitialSelectedDate()}
           views={['hours', 'minutes', 'seconds']}
           margin="normal"
           variant="inline"

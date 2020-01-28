@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import moment from "moment";
@@ -27,7 +27,6 @@ export default function DateField(props) {
     valueOk,
     autoFocus,
   } = props;
-  const selectedDate = useRef(getInitialSelectedDate());
 
   function getInitialSelectedDate() {
     moment.locale(i18n.language);
@@ -57,7 +56,7 @@ export default function DateField(props) {
           id={"date-field-"+itemKey+'-'+name}
           label={label}
           format="YYYY-MM-DD"
-          value={selectedDate.current}
+          value={getInitialSelectedDate()}
           margin="normal"
           variant="inline"
           inputVariant="outlined"

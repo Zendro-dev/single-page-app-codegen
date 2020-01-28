@@ -125,11 +125,11 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToAddTr
 
   const [thereAreItemsToAdd, setThereAreItemsToAdd] = useState((idsToAdd && Array.isArray(idsToAdd) && idsToAdd.length > 0));
   const lidsToAdd = useRef((idsToAdd && Array.isArray(idsToAdd)) ? idsToAdd : []);
-  <%if(sortedAssociations[aindex].type === 'to_one'){-%>
+<%if(sortedAssociations[aindex].type === 'to_one'){-%>
   const lidsAssociated = useRef((item.<%- sortedAssociations[aindex].relationName _%> && item.<%- sortedAssociations[aindex].relationName _%>.id) ? [item.<%- sortedAssociations[aindex].relationName _%>.id] : []);
-  <%} else {-%>
+<%} else {-%>
   const lidsAssociated = useRef(undefined);
-  <%}-%>
+<%}-%>
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
 
   const actionText = useRef(null);

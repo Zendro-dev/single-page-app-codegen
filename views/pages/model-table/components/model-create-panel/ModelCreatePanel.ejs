@@ -77,11 +77,14 @@ export default function <%- nameCp _%>CreatePanel(props) {
 
   const handleAccept = useRef(undefined);
   const handleReject = useRef(undefined);
-<%for( let i=0; i<sortedAssociations.length; i++ ){-%>
-  const <%- sortedAssociations[i].relationNameLc _%>IdsToAdd = useRef([]);
-<%}-%>
+
   const values = useRef(getInitialValues());
   const valuesOkRefs = useRef(getInitialValueOkStates());
+
+<%for( let i=0; i<sortedAssociations.length; i++ ){-%>
+  const [<%- sortedAssociations[i].relationNameLc _%>IdsToAddState, set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState] = useState([]);
+  const <%- sortedAssociations[i].relationNameLc _%>IdsToAdd = useRef([]);
+<%}-%>
 
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
   const [<%- sortedAssociatedModels[i].targetModelLc _%>DetailDialogOpen, set<%- sortedAssociatedModels[i].targetModelCp _%>DetailDialogOpen] = useState(false);
@@ -166,22 +169,48 @@ export default function <%- nameCp _%>CreatePanel(props) {
     return false;
   }
 
+<%for( let i=0; i<sortedAssociations.length; i++ ){
+  if(sortedAssociations[i].type === "to_one") {
+-%>
+  function setAdd<%- sortedAssociations[i].relationNameCp %>(variables) {
+    if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.length>0) {
+      //case: has new id to add
+      variables.add<%- sortedAssociations[i].relationNameCp %> = <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current[0];
+    } else {
+      variables.add<%- sortedAssociations[i].relationNameCp %> = undefined;
+    }
+  }
+<%}}-%>
+
   function doSave(event) {
+    /*
+      Variables setup
+    */
     //variables
     let keys = Object.keys(values.current);
     let variables = {};
+
+    //attributes
     for(let i=0; i<keys.length; i++) {
       if(valuesOkRefs.current[keys[i]] !== -1) {
         variables[keys[i]] = values.current[keys[i]];
       }
     }
 
-    //addItems
+    //add: to_one's
+<%for( let i=0; i<sortedAssociations.length; i++ ){
+  if(sortedAssociations[i].type === "to_one") {
+-%>
+    setAdd<%- sortedAssociations[i].relationNameCp %>(variables);
+<%}}-%>
+    
+    //add: to_many's
 <%for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === "to_many") {
 -%>
     variables.add<%- sortedAssociations[i].relationNameCp %> = <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current;
 <%}}-%>
+
     /*
       API Request: createItem
     */
@@ -326,13 +355,16 @@ export default function <%- nameCp _%>CreatePanel(props) {
 <%if((sortedAssociations[i].sqlType === 'belongsTo') && (sortedAssociations[i].foreignKey)){-%>
         <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
         <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.push(itemId);
+        set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current);
         handleSetValue(itemId, 1, '<%- sortedAssociations[i].foreignKey _%>');
         setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: itemId});
 <%} else if((sortedAssociations[i].sqlType === 'hasOne')){-%>
         <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
         <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.push(itemId);
+        set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current);
 <%} else {-%>
         <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.push(itemId);
+        set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current);
 <%}-%>
         break;
 <%}-%>
@@ -347,15 +379,18 @@ export default function <%- nameCp _%>CreatePanel(props) {
     if(associationKey === '<%- sortedAssociations[i].relationName _%>') {
 <%if((sortedAssociations[i].sqlType === 'belongsTo') && (sortedAssociations[i].foreignKey)){-%>
       <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
+      set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState([]);
       handleSetValue(null, 0, '<%- sortedAssociations[i].foreignKey _%>');
       setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: null});
 <%} else if((sortedAssociations[i].sqlType === 'hasOne')){-%>
       <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
+      set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState([]);
 <%} else {-%>
       for(let i=0; i<<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.length; ++i)
       {
         if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current[i] === itemId) {
           <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.splice(i, 1);
+          set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current);
           return;
         }
       }
@@ -445,7 +480,7 @@ export default function <%- nameCp _%>CreatePanel(props) {
             <<%- nameCp _%>AssociationsPage
               hidden={tabsValue !== 1}
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
-              <%- sortedAssociations[i].relationNameLc _%>IdsToAdd={<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current}
+              <%- sortedAssociations[i].relationNameLc _%>IdsToAdd={<%- sortedAssociations[i].relationNameLc _%>IdsToAddState}
 <%}-%>
               handleTransferToAdd={handleTransferToAdd}
               handleUntransferFromAdd={handleUntransferFromAdd}

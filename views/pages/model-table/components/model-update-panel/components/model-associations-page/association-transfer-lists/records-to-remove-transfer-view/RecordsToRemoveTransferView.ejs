@@ -122,8 +122,9 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToRemov
   const isGettingFirstDataRefB = useRef(true);
   const pageRefB = useRef(0);
 
-  const [thereAreItemsToAdd, setThereAreItemsToAdd] = useState(false);
-  const lidsToRemove = useRef([]);
+  const [thereAreItemsToAdd, setThereAreItemsToAdd] = useState((idsToRemove && Array.isArray(idsToRemove) && idsToRemove.length > 0));
+  const lidsToRemove = useRef((idsToRemove && Array.isArray(idsToRemove)) ? idsToRemove : []);
+
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
 
   const actionText = useRef(null);

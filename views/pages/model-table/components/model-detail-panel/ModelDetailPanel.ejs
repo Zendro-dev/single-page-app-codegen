@@ -58,7 +58,8 @@ export default function <%- nameCp _%>DetailPanel(props) {
   } = props;
   
   const [open, setOpen] = useState(true);
-  const valueOkStates = useRef(getInitialValueOkStates());
+  const [itemState, setItemState] = useState(item);
+  const [valueOkStates, setValueOkStates] = useState(getInitialValueOkStates(item));
 
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [updateItem, setUpdateItem] = useState(undefined);
@@ -70,39 +71,60 @@ export default function <%- nameCp _%>DetailPanel(props) {
   const [<%- sortedAssociatedModels[i].targetModelLc _%>DetailItem, set<%- sortedAssociatedModels[i].targetModelCp _%>DetailItem] = useState(undefined);
 <%}-%>
 
+  const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl);
+  const changedModels = useSelector(state => state.changes.models);
+  const dispatch = useDispatch();
+
+  const actionText = useRef(null);
+  const action = useRef((key) => (
+    <>
+      <Button color='inherit' variant='text' size='small' className={classes.notiErrorActionText} onClick={() => { closeSnackbar(key) }}>
+        {actionText.current}
+      </Button>
+    </> 
+  ));
+
   useEffect(() => {}, []);
   
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
   useEffect(() => {
-    if (<%- sortedAssociatedModels[i].targetModelLc _%>DetailItem !== undefined) {
+    if(<%- sortedAssociatedModels[i].targetModelLc _%>DetailItem !== undefined) {
       set<%- sortedAssociatedModels[i].targetModelCp _%>DetailDialogOpen(true);
     }
   }, [<%- sortedAssociatedModels[i].targetModelLc _%>DetailItem]);
+
 <%}-%>
 
-const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl);
-const dispatch = useDispatch();
-
-const actionText = useRef(null);
-const action = useRef((key) => (
-  <>
-    <Button color='inherit' variant='text' size='small' className={classes.notiErrorActionText} onClick={() => { closeSnackbar(key) }}>
-      {actionText.current}
-    </Button>
-  </> 
-));
-
   useEffect(() => {
-    if (updateItem !== undefined) {
+    if(updateItem !== undefined) {
       setUpdateDialogOpen(true);
     }
   }, [updateItem]);
 
   useEffect(() => {
-    if (deleteConfirmationItem !== undefined) {
+    if(deleteConfirmationItem !== undefined) {
       setDeleteConfirmationDialogOpen(true);
     }
   }, [deleteConfirmationItem]);
+
+  useEffect(() => {
+    //check if this.item changed
+    if(changedModels&&
+        changedModels.<%- name _%>&&
+        changedModels.<%- name _%>[String(item.id)]) {
+          //update item
+          if(changedModels.<%- name _%>[String(item.id)].op === "update"&&
+              changedModels.<%- name _%>[String(item.id)].newItem) {
+                setItemState(changedModels.<%- name _%>[String(item.id)].newItem);
+          }
+    }
+  }, [changedModels, item.id]);
+
+  useEffect(() => {
+    if(itemState) {
+      setValueOkStates(getInitialValueOkStates(itemState));
+    }
+  }, [itemState]);
 
   function doDelete(event, item) {
     //variables
@@ -166,7 +188,7 @@ const action = useRef((key) => (
       });
   }
 
-  function getInitialValueOkStates() {
+  function getInitialValueOkStates(item) {
     /*
       status codes:
         1: acceptable
@@ -202,9 +224,9 @@ const action = useRef((key) => (
     });
   };
 
-  const handleUpdateDialogClose = (event, status, item, newItem) => {
+  const handleUpdateDialogClose = (event, status, item, newItem, changedAssociations) => {
     if(status) {
-      dispatch(modelChange('<%- name _%>', 'update', item, newItem))
+      dispatch(modelChange('<%- name _%>', 'update', item, newItem, changedAssociations))
     }
     delayedCloseUpdatePanel(event, 500);
   }
@@ -300,7 +322,7 @@ const action = useRef((key) => (
                 </IconButton>
               </Tooltip>
               <Typography variant="h6" className={classes.title}>
-                { t('modelPanels.detailOf') +  ": <%- nameCp %> | id: " + item.id }
+                { t('modelPanels.detailOf') +  ": <%- nameCp %> | id: " + itemState.id }
               </Typography>
               {/*
                 Actions:
@@ -318,7 +340,7 @@ const action = useRef((key) => (
                         color='inherit'
                         onClick={(event) => {
                           event.stopPropagation();
-                          handleUpdateClicked(event, item);
+                          handleUpdateClicked(event, itemState);
                         }}
                       >
                         <Edit fontSize="small" />
@@ -338,7 +360,7 @@ const action = useRef((key) => (
                         color='inherit'
                         onClick={(event) => {
                           event.stopPropagation();
-                          handleDeleteClicked(event, item);
+                          handleDeleteClicked(event, itemState);
                         }}
                       >
                         <Delete fontSize="small" />
@@ -368,8 +390,8 @@ const action = useRef((key) => (
               <Grid item xs={12}>
                 {/* Attributes Page */}
                 <<%- nameCp _%>AttributesPage
-                  item={item}
-                  valueOkStates={valueOkStates.current}
+                  item={itemState}
+                  valueOkStates={valueOkStates}
                 />
               </Grid>
 
@@ -387,7 +409,7 @@ const action = useRef((key) => (
               <Grid item xs={12}>
                 {/* Associations Page */}
                 <<%- nameCp _%>AssociationsPage
-                  item={item}
+                  item={itemState}
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
                   handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row}
 <%}-%>
@@ -407,13 +429,13 @@ const action = useRef((key) => (
                 
               {/* Attributes Page */}
               <<%- nameCp _%>AttributesPage
-                item={item}
-                valueOkStates={valueOkStates.current}
+                item={itemState}
+                valueOkStates={valueOkStates}
               />
   
               {/* Associations Page */}
               <<%- nameCp _%>AssociationsPage
-                item={item}
+                item={itemState}
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
                 handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row}
 <%}-%>

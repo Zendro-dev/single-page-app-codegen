@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import Checkbox from '@material-ui/core/Checkbox';
@@ -26,7 +26,7 @@ export default function BoolField(props) {
     autoFocus,
   } = props;
 
-  const checked = useRef(getInitialChecked());
+  //const [checked, setChecked] = useState(getInitialChecked());
 
   function getInitialChecked() {
     if(text !== undefined && text !== null) {
@@ -63,7 +63,7 @@ export default function BoolField(props) {
             <Checkbox
               id={"bool-field-"+itemKey+'-'+name}
               className={classes.checkbox}
-              checked={checked.current} 
+              checked={getInitialChecked()} 
               color="primary"
               indeterminate={(valueOk===0)}
               autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
