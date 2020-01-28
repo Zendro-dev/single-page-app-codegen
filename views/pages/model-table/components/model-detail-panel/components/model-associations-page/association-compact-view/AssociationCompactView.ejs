@@ -88,7 +88,7 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>Compact
   const pageRef = useRef(0);
 
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
-  const changedModels = useSelector(state => state.changes.models);
+  const lastModelChanged = useSelector(state => state.changes.lastModelChanged);
 
   const actionText = useRef(null);
   const action = useRef((key) => (
@@ -222,10 +222,10 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>Compact
 
   useEffect(() => {
     //check if this.association changed (items added or removed)
-    if(changedModels&&changedModels.<%- name _%>&&
-        changedModels.<%- name _%>[String(item.id)]&&
-        changedModels.<%- name _%>[String(item.id)].changedAssociations&&
-        changedModels.<%- name _%>[String(item.id)].changedAssociations.<%- sortedAssociations[aindex].relationName _%>) {
+    if(lastModelChanged&&lastModelChanged.<%- name _%>&&
+        lastModelChanged.<%- name _%>[String(item.id)]&&
+        lastModelChanged.<%- name _%>[String(item.id)].changedAssociations&&
+        lastModelChanged.<%- name _%>[String(item.id)].changedAssociations.<%- sortedAssociations[aindex].relationName _%>) {
       
           //reload
           if (!isOnApiRequestRef.current) {
@@ -235,23 +235,23 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>Compact
             isPendingApiRequestRef.current = true; 
           }
     } else  //check if some item of this.association changed (edited)
-      if(changedModels&&
-          changedModels.<%- sortedAssociations[aindex].targetModel _%>) {
+      if(lastModelChanged&&
+          lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>) {
             //lookup item
             let nitems = Array.from(items);
             //find item
             for(let i=0; i<nitems.length; i++) {
               
               //item found
-              if(changedModels.<%- sortedAssociations[aindex].targetModel _%>[String(nitems[i].id)]) {
+              if(lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>[String(nitems[i].id)]) {
                 //update item
-                if(changedModels.<%- sortedAssociations[aindex].targetModel _%>[String(nitems[i].id)].op === "update"&&
-                    changedModels.<%- sortedAssociations[aindex].targetModel _%>[String(nitems[i].id)].newItem) {
+                if(lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>[String(nitems[i].id)].op === "update"&&
+                    lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>[String(nitems[i].id)].newItem) {
                       //set new item
-                      nitems[i] = changedModels.<%- sortedAssociations[aindex].targetModel _%>[String(nitems[i].id)].newItem;
+                      nitems[i] = lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>[String(nitems[i].id)].newItem;
                       setItems(nitems);
                       return;
-                } else { // deleted item
+                } else { // deleted item || !newItem
                   //reload
                   if (!isOnApiRequestRef.current) {
                     setDataTrigger(prevDataTrigger => !prevDataTrigger); 
@@ -264,7 +264,7 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>Compact
             }
             //...item not found
       }//done
-  }, [changedModels, item.id]);
+  }, [lastModelChanged, item.id]);
 
   useEffect(() => {
     //return if this flag is set
