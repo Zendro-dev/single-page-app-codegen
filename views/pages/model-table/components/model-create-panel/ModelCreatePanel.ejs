@@ -454,8 +454,7 @@ export default function <%- nameCp _%>CreatePanel(props) {
 
       <div className={classes.root}>
         <Grid container justify='center' alignItems='flex-start' alignContent='flex-start'>
-          <Grid item xs={12}>
-            
+          <Grid item xs={12}>  
             {/* TabsA: Menú */}
             <div className={classes.tabsA}>
               <<%- nameCp _%>TabsA
@@ -465,7 +464,9 @@ export default function <%- nameCp _%>CreatePanel(props) {
                 handleSave={handleSave}
               />
             </div>
-              
+          </Grid>
+
+          <Grid item xs={12}>
             {/* Attributes Page [0] */}
             <<%- nameCp _%>AttributesPage
               hidden={tabsValue !== 0}
@@ -475,7 +476,9 @@ export default function <%- nameCp _%>CreatePanel(props) {
 <%}-%>
               handleSetValue={handleSetValue}
             />
+          </Grid>
 
+          <Grid item xs={12}>
             {/* Associations Page [1] */}
             <<%- nameCp _%>AssociationsPage
               hidden={tabsValue !== 1}
@@ -488,7 +491,6 @@ export default function <%- nameCp _%>CreatePanel(props) {
               handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row}
 <%}-%>
             />
-
           </Grid>
         </Grid>
 

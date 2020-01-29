@@ -17,24 +17,41 @@ import api from '../../../../../../../requests/requests.index.js'
 import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
+import Box from '@material-ui/core/Box';
 import Dialog from '@material-ui/core/Dialog';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
+import Card from '@material-ui/core/Card';
+import CardHeader from '@material-ui/core/CardHeader';
+import CardActions from '@material-ui/core/CardActions';
 import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import Slide from '@material-ui/core/Slide';
+import Collapse from '@material-ui/core/Collapse';
 import Fab from '@material-ui/core/Fab';
 import Tooltip from '@material-ui/core/Tooltip';
 import SaveIcon from '@material-ui/icons/Save';
+import DeletedWarning from '@material-ui/icons/DeleteForeverOutlined';
+import UpdateWarning from '@material-ui/icons/ErrorOutline';
+import { amber, red } from '@material-ui/core/colors';
+
+const appBarHeight = 64;
 
 const useStyles = makeStyles(theme => ({
   root: {
     minWidth: 450,
   },
+  appBar: {
+    height: appBarHeight,
+  },
   title: {
     marginLeft: theme.spacing(2),
     flex: 1,
+  },
+  warningCard: {
+    width: '100%',
+    minHeight: 130,
   },
   tabsA: {
     backgroundColor: "#ffffff",
@@ -73,6 +90,9 @@ export default function <%- nameCp _%>UpdatePanel(props) {
   const [foreignKeys, setForeignKeys] = useState(getInitialForeignKeys());
   <%}-%>
 
+  const [updated, setUpdated] = useState(false);
+  const [deleted, setDeleted] = useState(false);
+
   const [confirmationOpen, setConfirmationOpen] = useState(false);
   const [confirmationTitle, setConfirmationTitle] = useState('');
   const [confirmationText, setConfirmationText] = useState('');
@@ -103,6 +123,7 @@ export default function <%- nameCp _%>UpdatePanel(props) {
 <%}-%>
 
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
+  const lastModelChanged = useSelector(state => state.changes.lastModelChanged);
 
   const actionText = useRef(null);
   const action = (key) => (
@@ -114,6 +135,32 @@ export default function <%- nameCp _%>UpdatePanel(props) {
   );
 
   useEffect(() => {}, []);
+
+  useEffect(() => {
+    //check if this.item changed
+    if(lastModelChanged&&
+      lastModelChanged.<%- name _%>&&
+      lastModelChanged.<%- name _%>[String(item.id)]) {
+          //updated item
+          if(lastModelChanged.<%- name _%>[String(item.id)].op === "update"&&
+              lastModelChanged.<%- name _%>[String(item.id)].newItem) {
+                //show alert
+                setUpdated(true);
+          } else {
+            //deleted item
+            if(lastModelChanged.<%- name _%>[String(item.id)].op === "delete") {
+                //show alert
+                setDeleted(true);
+            }
+          }
+    }
+  }, [lastModelChanged, item.id]);
+
+  useEffect(() => {
+    if(deleted&&updated) {
+      setUpdated(false);
+    }
+  }, [deleted, updated]);
 
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
   useEffect(() => {
@@ -537,33 +584,92 @@ export default function <%- nameCp _%>UpdatePanel(props) {
           <Typography variant="h6" className={classes.title}>
             { t('modelPanels.editing') +  ": <%- nameCp %> | id: " + item.id }
           </Typography>
-          <Tooltip title={ t('modelPanels.save') + " <%- nameLc _%>" }>
-            <Fab 
-              color="secondary" 
-              className={classes.fabButton}
-              onClick={handleSave}
-            >
-              <SaveIcon />
-            </Fab>
-          </Tooltip>
+          
+          {(!deleted)&&(
+            <Tooltip title={ t('modelPanels.save') + " <%- nameLc _%>" }>
+              <Fab 
+                color="secondary" 
+                className={classes.fabButton}
+                onClick={handleSave}
+              >
+                <SaveIcon />
+              </Fab>
+            </Tooltip>
+          )}
+
         </Toolbar>
       </AppBar>
-      <Toolbar />
+      <Toolbar/>
 
       <div className={classes.root}>
         <Grid container justify='center' alignItems='flex-start' alignContent='flex-start'>
+
           <Grid item xs={12}>
+            {/* Delete warning */}
+            <Box
+              width="100%"
+              p={0}
+              position="fixed"
+              top={appBarHeight}
+              left={0}
+              zIndex="speedDial"
+            >
+              <Collapse in={deleted}>
+                <Card className={classes.warningCard} square={true}>
+                  <CardHeader
+                    avatar={
+                      <DeletedWarning style={{ color: red[700] }} />
+                    }
+                    title="This item no longer exists. It was deleted elsewhere."
+                    subheader="Deleted"
+                  />
+                </Card>
+              </Collapse>
+            </Box>
+          </Grid>
+  
+          <Grid item xs={12}>
+            {/* Update warning */}
+            <Box
+              width="100%"
+              p={0}
+              position="fixed"
+              top={appBarHeight}
+              left={0}
+              zIndex="speedDial"
+            >
+              <Collapse in={updated}>
+                <Card className={classes.warningCard} square={true}>
+                  <CardHeader
+                    avatar={
+                      <UpdateWarning style={{ color: amber[700] }} />
+                    }
+                    title="This item was modified elsewhere."
+                    subheader="Updated"
+                  />
+                </Card>
+              </Collapse>
+            </Box>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Collapse in={updated||deleted}>
+              <Card className={classes.warningCard} square={true} elevation={0}>
+              </Card>
+            </Collapse>
+          </Grid>
             
-            {/* TabsA: Menú */}
-            <div className={classes.tabsA}>
+          {/* TabsA: Menú */}
+          <Grid item xs={12}>
             <<%- nameCp _%>TabsA
               value={tabsValue}
               handleChange={handleTabsChange}
               handleCancel={handleCancel}
               handleSave={handleSave}
             />
-            </div>
-              
+          </Grid>
+          
+          <Grid item xs={12}>
             {/* Attributes Page [0] */}
             <<%- nameCp _%>AttributesPage
               hidden={tabsValue !== 0}
@@ -574,10 +680,12 @@ export default function <%- nameCp _%>UpdatePanel(props) {
 <%}-%>
               handleSetValue={handleSetValue}
             />
+          </Grid>
 
+          <Grid item xs={12}>
             {/* Associations Page [1] */}
             <<%- nameCp _%>AssociationsPage
-              hidden={tabsValue !== 1}
+              hidden={tabsValue !== 1 || deleted}
               item={item}
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
               <%- sortedAssociations[i].relationNameLc _%>IdsToAdd={<%- sortedAssociations[i].relationNameLc _%>IdsToAddState}
@@ -594,7 +702,6 @@ export default function <%- nameCp _%>UpdatePanel(props) {
               handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row}
 <%}-%>
             />
-
           </Grid>
         </Grid>
 

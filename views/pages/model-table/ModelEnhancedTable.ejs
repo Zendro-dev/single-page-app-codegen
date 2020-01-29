@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { changesCompleted, clearChanges } from '../../../../../store/actions'
 import { makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
@@ -102,6 +103,8 @@ export default function <%- nameCp -%>EnhancedTable(props) {
   const [uploadFileDialogOpen, setUploadFileDialogOpen] = useState(false);
 
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
+  const changes = useSelector(state => state.changes);
+  const dispatch = useDispatch();
 
   const actionText = useRef(null);
   const action = useRef((key) => (
@@ -268,6 +271,24 @@ export default function <%- nameCp -%>EnhancedTable(props) {
   }, [getData]);
 
   useEffect(() => {
+    if(changes&&changes.changesCompleted) {
+      //if there were changes
+      if(changes.models&&
+          (Object.keys(changes.models).length>0)) {
+            //reload
+            if (!isOnApiRequestRef.current) {
+              setDataTrigger(prevDataTrigger => !prevDataTrigger); 
+            } 
+            else { 
+              isPendingApiRequestRef.current = true; 
+            }
+      }
+      //clear changes state
+      dispatch(clearChanges());
+    }
+  }, [changes]);
+
+  useEffect(() => {
     //return if this flag is set
     if(isGettingFirstDataRef.current) { 
       isGettingFirstDataRef.current = false; 
@@ -377,7 +398,12 @@ export default function <%- nameCp -%>EnhancedTable(props) {
   function setNewItem(oldItem, newItem) {
     if(!newItem) {
       //reload
-      setDataTrigger(prevDataTrigger => !prevDataTrigger);
+      if (!isOnApiRequestRef.current) {
+        setDataTrigger(prevDataTrigger => !prevDataTrigger); 
+      } 
+      else { 
+        isPendingApiRequestRef.current = true; 
+      }
     } else {
       let nitems = Array.from(items);
       //find item
@@ -395,7 +421,12 @@ export default function <%- nameCp -%>EnhancedTable(props) {
   function addNewItem(newItem) {
     if(!newItem) {
       //reload
-      setDataTrigger(prevDataTrigger => !prevDataTrigger);
+      if (!isOnApiRequestRef.current) {
+        setDataTrigger(prevDataTrigger => !prevDataTrigger); 
+      } 
+      else { 
+        isPendingApiRequestRef.current = true; 
+      }
     } else {
       if( (count - (page*rowsPerPage)) < rowsPerPage ){
         //add new item
@@ -476,6 +507,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
   }
 
   const handleCreateDialogClose = (event, status, newItem) => {
+    dispatch(changesCompleted());
     delayedCloseCreatePanel(event, 500);
     if(status) {
       addNewItem(newItem);
@@ -493,6 +525,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
   };
 
   const handleUpdateDialogClose = (event, status, oldItem, newItem) => {
+    dispatch(changesCompleted());
     delayedCloseUpdatePanel(event, 500);
     if(status) {
       setNewItem(oldItem, newItem);
@@ -511,6 +544,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
   };
 
   const handleDetailDialogClose = (event) => {
+    dispatch(changesCompleted());
     delayedCloseDetailPanel(event, 500);
   }
 
@@ -526,6 +560,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
   };
 
   const handleDeleteConfirmationReject = (event) => {
+    dispatch(changesCompleted());
     delayedCloseDeleteConfirmation(event, 500);
   }
 
@@ -546,7 +581,14 @@ export default function <%- nameCp -%>EnhancedTable(props) {
 
   const handleBulkUploadDone = (event) => {
     delayedCloseBulkUploadDialog(event, 500);
-    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+
+    //reload
+    if (!isOnApiRequestRef.current) {
+      setDataTrigger(prevDataTrigger => !prevDataTrigger); 
+    } 
+    else { 
+      isPendingApiRequestRef.current = true; 
+    }
   }
 
   const delayedCloseBulkUploadDialog = async (event, ms) => {
@@ -560,6 +602,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
   };
 
   const handleDeleteConfirmationAccept = (event, item) => {
+    dispatch(changesCompleted());
     doDelete(event, item);
     delayedCloseDeleteConfirmation(event, 500);
   }

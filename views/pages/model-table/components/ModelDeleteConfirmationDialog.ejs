@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import <%- nameCp -%>DetailPanel from './<%- nameLc -%>-detail-panel/<%- nameCp -%>DetailPanel'
 import { makeStyles } from '@material-ui/core/styles';
@@ -8,10 +9,23 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle'
 import Button from '@material-ui/core/Button';
+import Grid from '@material-ui/core/Grid';
+import Box from '@material-ui/core/Box';
+import Card from '@material-ui/core/Card';
+import CardHeader from '@material-ui/core/CardHeader';
+import CardActions from '@material-ui/core/CardActions';
+import Collapse from '@material-ui/core/Collapse';
+import DeletedWarning from '@material-ui/icons/DeleteForeverOutlined';
+import UpdateOk from '@material-ui/icons/CheckCircleOutlined';
+import { red, green } from '@material-ui/core/colors';
 
 const useStyles = makeStyles(theme => ({
   button: {
     margin: theme.spacing(1),
+  },
+  warningCard: {
+    width: '100%',
+    minHeight: 130,
   },
 }));
 
@@ -25,6 +39,37 @@ export default function <%- nameCp -%>DeleteConfirmationDialog(props) {
   } = props;
   const [open, setOpen] = useState(true);
   const { t } = useTranslation();
+
+  const [updated, setUpdated] = useState(false);
+  const [deleted, setDeleted] = useState(false);
+
+  const lastModelChanged = useSelector(state => state.changes.lastModelChanged);
+
+  useEffect(() => {
+    //check if this.item changed
+    if(lastModelChanged&&
+      lastModelChanged.<%- name _%>&&
+      lastModelChanged.<%- name _%>[String(item.id)]) {
+          //updated item
+          if(lastModelChanged.<%- name _%>[String(item.id)].op === "update"&&
+              lastModelChanged.<%- name _%>[String(item.id)].newItem) {
+                //show alert
+                setUpdated(true);
+          } else {
+            //deleted item
+            if(lastModelChanged.<%- name _%>[String(item.id)].op === "delete") {
+                //show alert
+                setDeleted(true);
+            }
+          }
+    }
+  }, [lastModelChanged, item.id]);
+
+  useEffect(() => {
+    if(deleted&&updated) {
+      setUpdated(false);
+    }
+  }, [deleted, updated]);
  
   const handleCancel = (event) => {
     setOpen(false);
@@ -48,6 +93,61 @@ export default function <%- nameCp -%>DeleteConfirmationDialog(props) {
         { t('modelPanels.deleteMsg') }
       </DialogTitle>
 
+      <Grid container justify='center' alignItems='flex-start' alignContent='flex-start' spacing={0}>
+        <Grid item xs={12}>
+          {/* Delete warning */}
+          <Box
+            width="100%"
+            p={0}
+            position="relative"
+            top={8}
+            left={0}
+            zIndex="speedDial"
+          >
+            <Collapse in={deleted}>
+              <Card className={classes.warningCard} square={true}>
+                <CardHeader
+                  avatar={
+                    <DeletedWarning style={{ color: red[700] }} />
+                  }
+                  title="This item no longer exists. It was deleted elsewhere."
+                  subheader="Deleted"
+                />
+              </Card>
+            </Collapse>
+          </Box>
+        </Grid>
+      </Grid>
+
+      <Grid item xs={12}>
+        {/* Update warning */}
+        <Box
+          width="100%"
+          p={0}
+          position="relative"
+          top={8}
+          left={0}
+          zIndex="speedDial"
+        >
+          <Collapse in={updated}>
+            <Card className={classes.warningCard} square={true}>
+              <CardHeader
+                avatar={
+                  <UpdateOk style={{ color: green[700] }} />
+                }
+                title="This item was updated."
+                subheader="Updated"
+              />
+              <CardActions>
+                <Button size="small" color="primary" onClick={()=>{setUpdated(false)}}>
+                  Got it
+                </Button>
+              </CardActions>
+            </Card>
+          </Collapse>
+        </Box>
+      </Grid>
+
       <DialogContent dividers>
         <<%- nameCp -%>DetailPanel 
           permissions={permissions}
@@ -57,14 +157,24 @@ export default function <%- nameCp -%>DeleteConfirmationDialog(props) {
         />
       </DialogContent>
 
-      <DialogActions>
-        <Button className={classes.button} onClick={handleCancel} color="primary">
-            { t('modelPanels.deleteReject') }
-        </Button>
-        <Button className={classes.button} onClick={handleOk} variant="contained" color="secondary">
-            { t('modelPanels.deleteAccept') }
-        </Button>
-      </DialogActions>
+      {(!deleted) && (
+        <DialogActions>
+          <Button className={classes.button} onClick={handleCancel} color="primary">
+              { t('modelPanels.deleteReject') }
+          </Button>
+          <Button className={classes.button} onClick={handleOk} variant="contained" color="secondary">
+              { t('modelPanels.deleteAccept') }
+          </Button>
+        </DialogActions>
+      )}
+
+      {(deleted) && (
+        <DialogActions>
+          <Button className={classes.button} onClick={handleCancel} color="primary">
+              { t('modelPanels.close', "Close") }
+          </Button>
+        </DialogActions>
+      )}
 
     </Dialog>
   );

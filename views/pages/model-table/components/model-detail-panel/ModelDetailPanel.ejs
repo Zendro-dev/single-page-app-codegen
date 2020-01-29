@@ -18,17 +18,27 @@ import <%- sortedAssociatedModels[i].targetModelCp _%> DetailPanelB from '../../
 <%}}-%>
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
+import Box from '@material-ui/core/Box';
 import Dialog from '@material-ui/core/Dialog';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
+import Card from '@material-ui/core/Card';
+import CardHeader from '@material-ui/core/CardHeader';
+import CardActions from '@material-ui/core/CardActions';
 import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import Slide from '@material-ui/core/Slide';
+import Collapse from '@material-ui/core/Collapse';
 import Tooltip from '@material-ui/core/Tooltip';
 import Divider from '@material-ui/core/Divider';
 import Delete from '@material-ui/icons/DeleteOutline';
 import Edit from '@material-ui/icons/Edit';
+import DeletedWarning from '@material-ui/icons/DeleteForeverOutlined';
+import UpdateOk from '@material-ui/icons/CheckCircleOutlined';
+import { red, green } from '@material-ui/core/colors';
+
+const appBarHeight = 72;
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -36,10 +46,20 @@ const useStyles = makeStyles(theme => ({
     minHeight: 1200,
     paddingTop: theme.spacing(1),
   },
+  appBar: {
+    height: appBarHeight,
+  },
   title: {
     marginLeft: theme.spacing(2),
     flex: 1,
   },
+  warningCard: {
+    width: '100%',
+    minHeight: 130,
+  },
+  divider: {
+    marginTop: theme.spacing(2),
+  }
 }));
 
 const Transition = React.forwardRef(function Transition(props, ref) {
@@ -61,6 +81,9 @@ export default function <%- nameCp _%>DetailPanel(props) {
   const [itemState, setItemState] = useState(item);
   const [valueOkStates, setValueOkStates] = useState(getInitialValueOkStates(item));
 
+  const [updated, setUpdated] = useState(false);
+  const [deleted, setDeleted] = useState(false);
+
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [updateItem, setUpdateItem] = useState(undefined);
   const [deleteConfirmationDialogOpen, setDeleteConfirmationDialogOpen] = useState(false);
@@ -72,7 +95,7 @@ export default function <%- nameCp _%>DetailPanel(props) {
 <%}-%>
 
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl);
-  const changedModels = useSelector(state => state.changes.models);
+  const lastModelChanged = useSelector(state => state.changes.lastModelChanged);
   const dispatch = useDispatch();
 
   const actionText = useRef(null);
@@ -85,6 +108,33 @@ export default function <%- nameCp _%>DetailPanel(props) {
   ));
 
   useEffect(() => {}, []);
+
+  useEffect(() => {
+    //check if this.item changed
+    if(lastModelChanged&&
+      lastModelChanged.<%- name _%>&&
+      lastModelChanged.<%- name _%>[String(itemState.id)]) {
+          //updated item
+          if(lastModelChanged.<%- name _%>[String(itemState.id)].op === "update"&&
+              lastModelChanged.<%- name _%>[String(itemState.id)].newItem) {
+                setItemState(lastModelChanged.<%- name _%>[String(itemState.id)].newItem);
+                //show alert
+                setUpdated(true);
+          } else {
+            //deleted item
+            if(lastModelChanged.<%- name _%>[String(itemState.id)].op === "delete") {
+                //show alert
+                setDeleted(true);
+            }
+          }
+    }
+  }, [lastModelChanged, itemState.id]);
+
+  useEffect(() => {
+    if(deleted&&updated) {
+      setUpdated(false);
+    }
+  }, [deleted, updated]);
   
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
   useEffect(() => {
@@ -106,19 +156,6 @@ export default function <%- nameCp _%>DetailPanel(props) {
       setDeleteConfirmationDialogOpen(true);
     }
   }, [deleteConfirmationItem]);
-
-  useEffect(() => {
-    //check if this.item changed
-    if(changedModels&&
-        changedModels.<%- name _%>&&
-        changedModels.<%- name _%>[String(item.id)]) {
-          //update item
-          if(changedModels.<%- name _%>[String(item.id)].op === "update"&&
-              changedModels.<%- name _%>[String(item.id)].newItem) {
-                setItemState(changedModels.<%- name _%>[String(item.id)].newItem);
-          }
-    }
-  }, [changedModels, item.id]);
 
   useEffect(() => {
     if(itemState) {
@@ -211,7 +248,7 @@ export default function <%- nameCp _%>DetailPanel(props) {
 
   const handleUpdateClicked = (event, item) => {
     setOpen(false);
-    delayedOpenUpdatePanel(event, item, 200);
+    delayedOpenUpdatePanel(event, item, 50);
   }
 
   const delayedOpenUpdatePanel = async (event, item, ms) => {
@@ -310,7 +347,7 @@ export default function <%- nameCp _%>DetailPanel(props) {
       {(dialog !== undefined && dialog === true) && (
         
         <Dialog fullScreen open={open} onClose={handleCancel} TransitionComponent={Transition}>
-          <AppBar>
+          <AppBar className={classes.appBar}>
             <Toolbar>
               <Tooltip title={ t('modelPanels.close') }>
                 <IconButton
@@ -333,7 +370,7 @@ export default function <%- nameCp _%>DetailPanel(props) {
                 /* acl check */
                 (permissions&&permissions.user&&Array.isArray(permissions.user)
                 &&(permissions.user.includes('update') || permissions.user.includes('*')))
-                &&(
+                &&(!deleted)&&(
                   
                     <Tooltip title={ t('modelPanels.edit') }>
                       <IconButton
@@ -353,7 +390,7 @@ export default function <%- nameCp _%>DetailPanel(props) {
                 /* acl check */
                 (permissions&&permissions.user&&Array.isArray(permissions.user)
                 &&(permissions.user.includes('delete') || permissions.user.includes('*')))
-                &&(
+                &&(!deleted)&&(
                   
                     <Tooltip title={ t('modelPanels.delete') }>
                       <IconButton
@@ -371,13 +408,73 @@ export default function <%- nameCp _%>DetailPanel(props) {
               }
             </Toolbar>
           </AppBar>
-          <Toolbar />
+          <Toolbar className={classes.appBar}/>
 
           <div className={classes.root}>
-            <Grid container justify='center' alignItems='flex-start' alignContent='flex-start' spacing={1}>
+            <Grid container justify='center' alignItems='flex-start' alignContent='flex-start' spacing={0}>
+
+              <Grid item xs={12}>
+                {/* Delete warning */}
+                <Box
+                  width="100%"
+                  p={0}
+                  position="fixed"
+                  top={appBarHeight}
+                  left={0}
+                  zIndex="speedDial"
+                >
+                  <Collapse in={deleted}>
+                    <Card className={classes.warningCard} square={true}>
+                      <CardHeader
+                        avatar={
+                          <DeletedWarning style={{ color: red[700] }} />
+                        }
+                        title="This item no longer exists. It was deleted elsewhere."
+                        subheader="Deleted"
+                      />
+                    </Card>
+                  </Collapse>
+                </Box>
+              </Grid>
+  
+              <Grid item xs={12}>
+                {/* Update warning */}
+                <Box
+                  width="100%"
+                  p={0}
+                  position="fixed"
+                  top={appBarHeight}
+                  left={0}
+                  zIndex="speedDial"
+                >
+                  <Collapse in={updated}>
+                    <Card className={classes.warningCard} square={true}>
+                      <CardHeader
+                        avatar={
+                          <UpdateOk style={{ color: green[700] }} />
+                        }
+                        title="This item was updated."
+                        subheader="Updated"
+                      />
+                      <CardActions>
+                        <Button size="small" color="primary" onClick={()=>{setUpdated(false)}}>
+                          Got it
+                        </Button>
+                      </CardActions>
+                    </Card>
+                  </Collapse>
+                </Box>
+              </Grid>
+
+              <Grid item xs={12}>
+                <Collapse in={updated||deleted}>
+                  <Card className={classes.warningCard} square={true} elevation={0}>
+                  </Card>
+                </Collapse>
+              </Grid>
 
               <Grid item xs={12} sm={11} md={10} lg={9} xl={8}>
-                <Divider />
+                <Divider className={classes.divider} />
                 <Grid container justify='flex-start'>
                   <Grid item>
                     <Typography variant="body2" color="textSecondary" gutterBottom>
@@ -410,6 +507,7 @@ export default function <%- nameCp _%>DetailPanel(props) {
                 {/* Associations Page */}
                 <<%- nameCp _%>AssociationsPage
                   item={itemState}
+                  deleted={deleted}
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
                   handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row}
 <%}-%>
@@ -424,24 +522,27 @@ export default function <%- nameCp _%>DetailPanel(props) {
       {(dialog !== undefined && dialog === false) && (
     
         <div className={classes.root}>
-          <Grid container justify='center'>
+          <Grid container justify='center' alignItems='flex-start' alignContent='flex-start' spacing={0}>
+
             <Grid item xs={12}>
-                
               {/* Attributes Page */}
               <<%- nameCp _%>AttributesPage
                 item={itemState}
                 valueOkStates={valueOkStates}
               />
+            </Grid>
   
+            <Grid item xs={12}>
               {/* Associations Page */}
               <<%- nameCp _%>AssociationsPage
                 item={itemState}
+                deleted={deleted}
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
                 handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row}
 <%}-%>
               />
-  
             </Grid>
+
           </Grid>
         </div>
       )}

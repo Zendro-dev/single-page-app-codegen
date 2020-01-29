@@ -11,12 +11,6 @@ const useStyles = makeStyles(theme => ({
   root: {
     flexGrow: 1,
   },
-  actions: {
-    height:'100%',
-  },
-  buttonR: {
-    marginRight: theme.spacing(1),
-  }
 }));
 
 export default function <%- nameCp _%>TabsA(props) {
@@ -29,44 +23,19 @@ export default function <%- nameCp _%>TabsA(props) {
 
   return (
     <div className={classes.root}>
-      <Grid container justify='center'>
-        <Grid item xs={12}>
+      <Tabs 
+        value={value} 
+        onChange={(event, newValue)=> {
+          if (handleChange !== undefined) {
+            handleChange(event, newValue);
+          }
+        }}>
+        <Tab value={0} label={ t('modelPanels.attributes') } />
+        <Tab value={1} label={ t('modelPanels.associations') } />
+      </Tabs>
 
-          {/* Menú */}
-          <Grid container justify='center'>
-
-            <Grid container justify='center'>
-              <Grid item xs={12}>
-                {/* Divider */}
-                <Divider orientation="horizontal" />
-              </Grid>
-            </Grid>
-            
-            {/* Tabs */}
-            <Grid item xs={12}>
-              <Tabs
-                value={value}
-                onChange={(event, newValue) => {
-                  if (handleChange !== undefined) {
-                    handleChange(event, newValue);
-                  }
-                }}>
-                <Tab value={0} label={ t('modelPanels.attributes') } />
-                <Tab value={1} label={ t('modelPanels.associations') } />
-              </Tabs>
-            </Grid>
-          </Grid>
-
-          <Grid container justify='center'>
-            <Grid item xs={12}>
-              {/* Divider */}
-              <Divider orientation="horizontal" />
-            </Grid>
-          </Grid>
-
-        </Grid>
-      </Grid>
-
+      {/* Divider */}
+      <Divider orientation="horizontal" />
     </div>
   );
 }
