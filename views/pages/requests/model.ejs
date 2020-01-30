@@ -2,6 +2,18 @@ import requestGraphql from './request.graphql'
 import getAttributes from './requests.attributes'
 
 export default {
+  
+  tableTemplate(url) {
+    let query = `query {csvTableTemplate<%- nameCp _%>}`
+
+    /**
+     * Debug
+     */
+    console.log("tableTemplate.query: gql:\n", query);
+
+    return requestGraphql({ url, query });
+  },
+
   /**
    * getCountItems
    * 

@@ -395,6 +395,73 @@ export default function <%- nameCp -%>EnhancedTable(props) {
       });
   }
 
+  function getCsvTemplate() {
+    /*
+      API Request: deleteItem
+    */
+    api.<%- nameLc -%>.tableTemplate(graphqlServerUrl)
+    .then(response => {
+      if(
+        response.data &&
+        response.data.data &&
+        response.data.data.csvTableTemplate<%- nameCp -%>
+      ) {
+        if(response.data.errors) {
+          actionText.current = t('modelPanels.gotIt', "Got it");
+          enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
+            variant: 'error',
+            preventDuplicate: false,
+            persist: true,
+            action: action.current,
+          });
+          console.log("Errors: ", response.data.errors);
+        }else {
+          //ok
+          enqueueSnackbar( t('modelPanels.messages.msg7', "Template downloaded successfully."), {
+            variant: 'success',
+            preventDuplicate: false,
+            persist: false,
+            anchorOrigin: {
+              vertical: 'bottom',
+              horizontal: 'left',
+            },
+          });
+          //download
+          let file = response.data.data.csvTableTemplate<%- nameCp -%>.join("\n");
+          const url = window.URL.createObjectURL(new Blob([file]));
+          const link = document.createElement("a");
+          link.href = url;
+          link.setAttribute("download", "<%- nameLc -%>-template.csv");
+          document.body.appendChild(link);
+          link.click();
+        }
+        return;
+
+      } else { //error: bad response on tableTemplate()
+        actionText.current = t('modelPanels.gotIt', "Got it");
+        enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
+          variant: 'error',
+          preventDuplicate: false,
+          persist: true,
+          action: action.current,
+        });
+        console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
+        return;
+      }
+    })
+    .catch(err => { //error: on tableTemplate()
+      actionText.current = t('modelPanels.gotIt', "Got it");
+      enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
+        variant: 'error',
+        preventDuplicate: false,
+        persist: true,
+        action: action.current,
+      });
+      console.log("Error: ", err);
+      return;
+    });
+  }
+
   function setNewItem(oldItem, newItem) {
     if(!newItem) {
       //reload
@@ -496,6 +563,10 @@ export default function <%- nameCp -%>EnhancedTable(props) {
 
   const handleBulkImportClicked = (event) => {
     setUploadFileDialogOpen(true);
+  }
+
+  const handleCsvTemplateClicked = (event) => {
+    getCsvTemplate();
   }
 
   const handleUpdateClicked = (event, item) => {
@@ -625,6 +696,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
                   onSearchEnter={handleSearchEnter}
                   handleAddClicked={handleCreateClicked}
                   handleBulkImportClicked={handleBulkImportClicked}
+                  handleCsvTemplateClicked={handleCsvTemplateClicked}
                 />
 
                 {/* Table */}

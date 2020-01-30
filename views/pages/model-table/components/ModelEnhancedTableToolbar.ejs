@@ -16,10 +16,38 @@ import Export from '@material-ui/icons/SaveAlt';
 import ClearInactive from '@material-ui/icons/BackspaceOutlined';
 import ClearActive from '@material-ui/icons/Backspace';
 import Search from '@material-ui/icons/Search';
+import Menu from '@material-ui/core/Menu';
+import Button from '@material-ui/core/Button';
+import ButtonBase from '@material-ui/core/ButtonBase';
+import { grey } from '@material-ui/core/colors';
 
 const useToolbarStyles = makeStyles(theme => ({
   root: {
     paddingLeft: theme.spacing(2),
+  },
+  downloadsMenuItem: {
+    margin: theme.spacing(0),
+  },
+  downloadsMenu: {
+    marginTop: '48px',
+  },
+  formButton: {
+    width: '100%',
+    margin: theme.spacing(0),
+  },
+  textButton: {
+    width: '100%',
+    paddingTop: theme.spacing(1),
+    paddingBottom: theme.spacing(1),
+    paddingRight: theme.spacing(2),
+    paddingLeft: theme.spacing(2),
+    justifyContent: 'flex-start',
+    '&:hover': {
+      backgroundColor: grey[200]
+    }
+  },
+  actionButton: {
+    margin: theme.spacing(2),
   },
 }));
 
@@ -32,9 +60,21 @@ export default function <%- nameCp -%>EnhancedTableToolbar(props) {
     onSearchEnter,
     handleAddClicked,
     handleBulkImportClicked,
+    handleCsvTemplateClicked,
   } = props;
+
   const [displayedSearch, setDisplayedSearch] = useState('');
+  const [downloadsAnchorEl, setDownloadsAnchorEl] = React.useState(null);
+  
   const exportServerUrl = useSelector(state => state.urls.exportServerUrl)
+
+  const handleDownloadsIconClick = event => {
+    setDownloadsAnchorEl(event.currentTarget);
+  };
+
+  const handleDownloadsMenuClose = () => {
+    setDownloadsAnchorEl(null);
+  };
 
   return (
     <Toolbar className={classes.root}>
@@ -158,16 +198,88 @@ export default function <%- nameCp -%>EnhancedTableToolbar(props) {
                                 </Grid>
                               )
                             }
-                            <Grid item>
-                              <form action={exportServerUrl}>
-                                <input type="hidden" name="model" value='<%- nameLc -%>' />
-                                <Tooltip title={ t('modelPanels.exportCSV') }>
-                                  <IconButton color="primary" type="submit">
-                                    <Export />
-                                  </IconButton>
-                                </Tooltip>
-                              </form>
-                            </Grid>
+                            {/* Download.menu */}
+                            {
+                              /* acl check */
+                              (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
+                              &&(permissions.<%- nameLc -%>.includes('read') || permissions.<%- nameLc -%>.includes('*')))
+                              &&(
+                                <div>
+                                  {/* Downloads.icon */}
+                                  <Grid item>
+                                    <Tooltip title={ t('modelPanels.downloadsOptions', 'Download options') }>
+                                      <IconButton
+                                        color="primary"
+                                        onClick={handleDownloadsIconClick}
+                                      >
+                                        <Export />
+                                      </IconButton>
+                                    </Tooltip>
+                                  </Grid>
+                                  {/* Downloads.menu */}
+                                  <Menu
+                                    className={classes.downloadsMenu}
+                                    anchorEl={downloadsAnchorEl}
+                                    keepMounted
+                                    open={Boolean(downloadsAnchorEl)}
+                                    onClose={handleDownloadsMenuClose}
+                                  >
+                                    {/* Downloads.op1 - Export data to CSV file */}
+                                    <Grid item xs={12}>
+                                      <Grid container justify='flex-start'>
+                                        <form className={classes.formButton} action={exportServerUrl}>
+                                        <input type="hidden" name="model" value='<%- nameLc -%>' />
+                                          <ButtonBase
+                                            className={classes.textButton} 
+                                            color="default"
+                                            type="submit"
+                                            onClick={handleDownloadsMenuClose}
+                                          >
+                                            <span>
+                                              <Typography component="span" variant="subtitle1" display='block' noWrap={true}>
+                                                {t('modelPanels.downloadsOp1', 'Export data to CSV file')}
+                                              </Typography>
+                                            </span>
+                                          </ButtonBase>
+                                        </form>
+                                      </Grid>
+                                    </Grid>
+
+                                    {/* Downloads.op2 - Download table template to CSV file */}
+                                    <Grid item xs={12}>
+                                      <Grid container justify='flex-start'>
+                                        <ButtonBase
+                                          className={classes.textButton} 
+                                          color="default"
+                                          onClick={()=>{
+                                            handleCsvTemplateClicked();
+                                            handleDownloadsMenuClose();
+                                          }}
+                                        >
+                                          <span>
+                                            <Typography component="span" variant="subtitle1" display='block' noWrap={true}>
+                                              {t('modelPanels.downloadsOp2', 'Download table template to CSV file')}
+                                            </Typography>
+                                          </span>
+                                        </ButtonBase>
+                                      </Grid>
+                                    </Grid>
+
+                                    {/* Close.button */}
+                                    <Grid item xs={12}>
+                                      <Grid container justify='flex-end'>
+                                        <Button 
+                                          className={classes.actionButton} 
+                                          color="primary"
+                                          onClick={handleDownloadsMenuClose}
+                                        >
+                                          {t('modelPanels.close', 'Close')}
+                                        </Button>
+                                      </Grid>
+                                    </Grid>
+                                  </Menu>
+                                </div>
+                            )}
                           </Grid>
                         </Grid>
                       </Grid>
@@ -187,4 +299,5 @@ export default function <%- nameCp -%>EnhancedTableToolbar(props) {
   onSearchEnter: PropTypes.func.isRequired,
   handleAddClicked: PropTypes.func.isRequired,
   handleBulkImportClicked: PropTypes.func.isRequired,
+  handleCsvTemplateClicked: PropTypes.func.isRequired,
 };
