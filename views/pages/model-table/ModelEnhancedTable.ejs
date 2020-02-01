@@ -102,6 +102,8 @@ export default function <%- nameCp -%>EnhancedTable(props) {
   const [deleteConfirmationItem, setDeleteConfirmationItem] = useState(undefined);
   const [uploadFileDialogOpen, setUploadFileDialogOpen] = useState(false);
 
+  const cancelablePromises = useRef([]);
+
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
   const changes = useSelector(state => state.changes);
   const dispatch = useDispatch();
@@ -131,12 +133,19 @@ export default function <%- nameCp -%>EnhancedTable(props) {
     /*
       API Request: countItems
     */
-    api.<%- nameLc -%>.getCountItems(graphqlServerUrl, search)
+    let cancelableApiReq = api.<%- nameLc -%>.getCountItems(graphqlServerUrl, search);
+    let cancelableApiReqIndex = cancelablePromises.current.push(cancelableApiReq);
+    cancelableApiReq
+      .promise
       .then(response => {
+        //delete from cancelables
+        if(cancelableApiReqIndex>0) {cancelablePromises.current.splice(cancelableApiReqIndex-1, 1)}
+        //check response
         if(
           response.data &&
           response.data.data
         ) {
+          //notify graphql errors
           if(response.data.errors) {
             actionText.current = t('modelPanels.gotIt', "Got it");
             enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
@@ -147,6 +156,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
             });
             console.log("Errors: ", response.data.errors);
           }
+          //save response data
           var newCount = response.data.data.count<%- namePlCp -%>;
 
           /*
@@ -162,19 +172,26 @@ export default function <%- nameCp -%>EnhancedTable(props) {
           /*
             API Request: items
           */
-          api.<%- nameLc -%>.getItems(
+          let cancelableApiReqB = api.<%- nameLc -%>.getItems(
             graphqlServerUrl,
             search,
             orderBy,
             order,
             pageRef.current * rowsPerPage, //paginationOffset
             rowsPerPage, //paginationLimit
-          )
+          );
+          let cancelableApiReqIndexB = cancelablePromises.current.push(cancelableApiReqB);
+          cancelableApiReqB
+            .promise
             .then(response => {
+              //delete from cancelables
+              if(cancelableApiReqIndexB>0) {cancelablePromises.current.splice(cancelableApiReqIndexB-1, 1)}
+              //check response
               if (
                 response.data &&
                 response.data.data
               ) {
+                //notify graphql errors
                 if(response.data.errors) {
                   actionText.current = t('modelPanels.gotIt', "Got it");
                   enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
@@ -185,6 +202,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
                   });
                   console.log("Errors: ", response.data.errors);
                 }
+                //save response data
                 let its = response.data.data.<%- namePlLc -%>;
                 
                 //ok
@@ -210,20 +228,24 @@ export default function <%- nameCp -%>EnhancedTable(props) {
                 return;
               }
             })
-            .catch(err => { //error: on getItems()
-              actionText.current = t('modelPanels.gotIt', "Got it");
-              enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
-                variant: 'error',
-                preventDuplicate: false,
-                persist: true,
-                action: action.current,
-              });
-              console.log("Error: ", err);
-              setCount(0);
-              setItems([]);
-              isOnApiRequestRef.current = false;
-              setIsOnApiRequest(false);
-              return;
+            .catch(({isCanceled, ...err}) => { //error: on getItems()
+              if(isCanceled) {
+                return;
+              } else {
+                actionText.current = t('modelPanels.gotIt', "Got it");
+                enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
+                  variant: 'error',
+                  preventDuplicate: false,
+                  persist: true,
+                  action: action.current,
+                });
+                console.log("Error: ", err);
+                setCount(0);
+                setItems([]);
+                isOnApiRequestRef.current = false;
+                setIsOnApiRequest(false);
+                return;
+              }
             });
           return;
         } else { //error: bad response on getCountItems()
@@ -242,24 +264,36 @@ export default function <%- nameCp -%>EnhancedTable(props) {
           return;
         }
       })
-    .catch(err => { //error: on getCountItems()
-      actionText.current = t('modelPanels.gotIt', "Got it");
-      enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
-        variant: 'error',
-        preventDuplicate: false,
-        persist: true,
-        action: action.current,
-      });
-      console.log("Error: ", err);
-      setCount(0);
-      setItems([]);
-      isOnApiRequestRef.current = false;
-      setIsOnApiRequest(false);
-      return;
+      .catch(({isCanceled, ...err}) => { //error: on getCountItems()
+        if(isCanceled) {
+          return;
+        }
+        else {
+          actionText.current = t('modelPanels.gotIt', "Got it");
+          enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
+            variant: 'error',
+            preventDuplicate: false,
+            persist: true,
+            action: action.current,
+          });
+          console.log("Error: ", err);
+          setCount(0);
+          setItems([]);
+          isOnApiRequestRef.current = false;
+          setIsOnApiRequest(false);
+          return;
+        }
     });
   }, [graphqlServerUrl, enqueueSnackbar, t, dataTrigger, search, orderBy, order, rowsPerPage]);
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+
+    //cleanup on unmounted.
+    return function cleanup() {
+      cancelablePromises.current.forEach(p => p.cancel());
+      cancelablePromises.current = [];
+    };
+  }, []);
 
   useEffect(() => {
     if (!isOnApiRequestRef.current) {
@@ -338,12 +372,19 @@ export default function <%- nameCp -%>EnhancedTable(props) {
     /*
       API Request: deleteItem
     */
-    api.<%- nameLc -%>.deleteItem(graphqlServerUrl, variables)
+    let cancelableApiReq = api.<%- nameLc -%>.deleteItem(graphqlServerUrl, variables);
+    let cancelableApiReqIndex = cancelablePromises.current.push(cancelableApiReq);
+    cancelableApiReq
+      .promise
       .then(response => {
+        //delete from cancelables
+        if(cancelableApiReqIndex>0) {cancelablePromises.current.splice(cancelableApiReqIndex-1, 1)}
+        //check response
         if(
           response.data &&
           response.data.data
         ) {
+          //notify graphql errors
           if(response.data.errors) {
             actionText.current = t('modelPanels.gotIt', "Got it");
             enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
@@ -381,17 +422,21 @@ export default function <%- nameCp -%>EnhancedTable(props) {
           return;
         }
       })
-      .catch(err => { //error: on deleteItem()
-        actionText.current = t('modelPanels.gotIt', "Got it");
-        enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
-          variant: 'error',
-          preventDuplicate: false,
-          persist: true,
-          action: action.current,
-        });
-        console.log("Error: ", err);
-        setDataTrigger(prevDataTrigger => !prevDataTrigger);
-        return;
+      .catch(({isCanceled, ...err}) => { //error: on deleteItem()
+        if(isCanceled) {
+          return;
+        } else {
+          actionText.current = t('modelPanels.gotIt', "Got it");
+          enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
+            variant: 'error',
+            preventDuplicate: false,
+            persist: true,
+            action: action.current,
+          });
+          console.log("Error: ", err);
+          setDataTrigger(prevDataTrigger => !prevDataTrigger);
+          return;
+        }
       });
   }
 
@@ -399,67 +444,78 @@ export default function <%- nameCp -%>EnhancedTable(props) {
     /*
       API Request: deleteItem
     */
-    api.<%- nameLc -%>.tableTemplate(graphqlServerUrl)
-    .then(response => {
-      if(
-        response.data &&
-        response.data.data &&
-        response.data.data.csvTableTemplate<%- nameCp -%>
-      ) {
-        if(response.data.errors) {
+    let cancelableApiReq = api.<%- nameLc -%>.tableTemplate(graphqlServerUrl);
+    let cancelableApiReqIndex = cancelablePromises.current.push(cancelableApiReq);
+    cancelableApiReq
+      .promise
+      .then(response => {
+        //delete from cancelables
+        if(cancelableApiReqIndex>0) {cancelablePromises.current.splice(cancelableApiReqIndex-1, 1)}
+        //check response
+        if(
+          response.data &&
+          response.data.data &&
+          response.data.data.csvTableTemplate<%- nameCp -%>
+        ) {
+          //notify graphql errors
+          if(response.data.errors) {
+            actionText.current = t('modelPanels.gotIt', "Got it");
+            enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
+              variant: 'error',
+              preventDuplicate: false,
+              persist: true,
+              action: action.current,
+            });
+            console.log("Errors: ", response.data.errors);
+          }else {
+            //ok
+            enqueueSnackbar( t('modelPanels.messages.msg7', "Template downloaded successfully."), {
+              variant: 'success',
+              preventDuplicate: false,
+              persist: false,
+              anchorOrigin: {
+                vertical: 'bottom',
+                horizontal: 'left',
+              },
+            });
+            //download
+            let file = response.data.data.csvTableTemplate<%- nameCp -%>.join("\n");
+            const url = window.URL.createObjectURL(new Blob([file]));
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", "<%- nameLc -%>-template.csv");
+            document.body.appendChild(link);
+            link.click();
+          }
+          return;
+
+        } else { //error: bad response on tableTemplate()
           actionText.current = t('modelPanels.gotIt', "Got it");
-          enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
+          enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
             variant: 'error',
             preventDuplicate: false,
             persist: true,
             action: action.current,
           });
-          console.log("Errors: ", response.data.errors);
-        }else {
-          //ok
-          enqueueSnackbar( t('modelPanels.messages.msg7', "Template downloaded successfully."), {
-            variant: 'success',
-            preventDuplicate: false,
-            persist: false,
-            anchorOrigin: {
-              vertical: 'bottom',
-              horizontal: 'left',
-            },
-          });
-          //download
-          let file = response.data.data.csvTableTemplate<%- nameCp -%>.join("\n");
-          const url = window.URL.createObjectURL(new Blob([file]));
-          const link = document.createElement("a");
-          link.href = url;
-          link.setAttribute("download", "<%- nameLc -%>-template.csv");
-          document.body.appendChild(link);
-          link.click();
+          console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
+          return;
         }
-        return;
-
-      } else { //error: bad response on tableTemplate()
-        actionText.current = t('modelPanels.gotIt', "Got it");
-        enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
-          variant: 'error',
-          preventDuplicate: false,
-          persist: true,
-          action: action.current,
-        });
-        console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
-        return;
-      }
-    })
-    .catch(err => { //error: on tableTemplate()
-      actionText.current = t('modelPanels.gotIt', "Got it");
-      enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
-        variant: 'error',
-        preventDuplicate: false,
-        persist: true,
-        action: action.current,
+      })
+      .catch(({isCanceled, ...err}) => { //error: on tableTemplate()
+        if(isCanceled) {
+          return;
+        } else {
+          actionText.current = t('modelPanels.gotIt', "Got it");
+          enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
+            variant: 'error',
+            preventDuplicate: false,
+            persist: true,
+            action: action.current,
+          });
+          console.log("Error: ", err);
+          return;
+        }
       });
-      console.log("Error: ", err);
-      return;
-    });
   }
 
   function setNewItem(oldItem, newItem) {
