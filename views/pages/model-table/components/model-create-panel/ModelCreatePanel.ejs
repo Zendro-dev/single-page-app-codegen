@@ -91,6 +91,8 @@ export default function <%- nameCp _%>CreatePanel(props) {
   const [<%- sortedAssociatedModels[i].targetModelLc _%>DetailItem, set<%- sortedAssociatedModels[i].targetModelCp _%>DetailItem] = useState(undefined);
 <%}-%>
 
+  const cancelablePromises = useRef([]);
+
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl);
 
   const actionText = useRef(null);
@@ -102,7 +104,14 @@ export default function <%- nameCp _%>CreatePanel(props) {
     </> 
   );
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+
+    //cleanup on unmounted.
+    return function cleanup() {
+      cancelablePromises.current.forEach(p => { if(p !== null){ p.cancel(); } });
+      cancelablePromises.current = [];
+    };
+  }, []);
   
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
   useEffect(() => {
@@ -214,12 +223,19 @@ export default function <%- nameCp _%>CreatePanel(props) {
     /*
       API Request: createItem
     */
-    api.<%- nameLc _%>.createItem(graphqlServerUrl, variables)
+    let cancelableApiReq = api.<%- nameLc _%>.createItem(graphqlServerUrl, variables);
+    let cancelableApiReqIndex = cancelablePromises.current.push(cancelableApiReq);
+    cancelableApiReq
+      .promise
       .then(response => {
+        //delete from cancelables
+        if(cancelableApiReqIndex>0) {cancelablePromises.current.splice(cancelableApiReqIndex-1, 1, null)}
+        //check response
         if (
           response.data &&
           response.data.data
         ) {
+          //notify graphql errors
           if(response.data.errors) {
             actionText.current = t('modelPanels.gotIt', "Got it");
             enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
@@ -230,6 +246,7 @@ export default function <%- nameCp _%>CreatePanel(props) {
             });
             console.log("Errors: ", response.data.errors);
           } else {
+
             //ok
             enqueueSnackbar( t('modelPanels.messages.msg6', "Record created successfully."), {
               variant: 'success',
@@ -256,16 +273,20 @@ export default function <%- nameCp _%>CreatePanel(props) {
           return;
         }
       })
-      .catch(err => { //error: on createItem()
-        actionText.current = t('modelPanels.gotIt', "Got it");
-        enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
-          variant: 'error',
-          preventDuplicate: false,
-          persist: true,
-          action,
-        });
-        console.log("Error: ", err);
-        return;
+      .catch(({isCanceled, ...err}) => { //error: on createItem()
+        if(isCanceled) {
+          return;
+        } else {
+          actionText.current = t('modelPanels.gotIt', "Got it");
+          enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
+            variant: 'error',
+            preventDuplicate: false,
+            persist: true,
+            action,
+          });
+          console.log("Error: ", err);
+          return;
+        }
       });
   }
 

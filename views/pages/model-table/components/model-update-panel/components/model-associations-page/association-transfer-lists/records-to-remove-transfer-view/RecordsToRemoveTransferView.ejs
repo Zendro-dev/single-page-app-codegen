@@ -125,6 +125,8 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToRemov
   const [thereAreItemsToAdd, setThereAreItemsToAdd] = useState((idsToRemove && Array.isArray(idsToRemove) && idsToRemove.length > 0));
   const lidsToRemove = useRef((idsToRemove && Array.isArray(idsToRemove)) ? idsToRemove : []);
 
+  const cancelablePromises = useRef([]);
+
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
   const lastModelChanged = useSelector(state => state.changes.lastModelChanged);
 
@@ -174,83 +176,94 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToRemov
     */
     let label = '<%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='') ? `${sortedAssociations[aindex].label}` : '' _%>';
     let sublabel = '<%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='') ? `${sortedAssociations[aindex].sublabel}` : '' _%>';
-
-    api.<%- nameLc _%>.get<%- sortedAssociations[aindex].relationNameCp _%>Filter(
-    graphqlServerUrl, 
-    item.id,
-    label,
-    sublabel,
-    search,
-    pageRef.current * rowsPerPage, //paginationOffset
-    rowsPerPage, //paginationLimit
-    // ops
-  )
+    let cancelableApiReq = api.<%- nameLc _%>.get<%- sortedAssociations[aindex].relationNameCp _%>Filter(
+      graphqlServerUrl, 
+      item.id,
+      label,
+      sublabel,
+      search,
+      pageRef.current * rowsPerPage, //paginationOffset
+      rowsPerPage, //paginationLimit
+      // ops
+    );
+    let cancelableApiReqIndex = cancelablePromises.current.push(cancelableApiReq);
+    cancelableApiReq
+      .promise
       .then(response => {
-          if (
-              response.data &&
-              response.data.data
-          ) {
-            if(response.data.errors) {
-              actionText.current = t('modelPanels.gotIt', "Got it");
-              enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
-                variant: 'error',
-                preventDuplicate: false,
-                persist: true,
-                action: action.current,
-              });
-              console.log("Errors: ", response.data.errors);
-            }
-            let newCount = response.data.data.readOne<%- nameCp _%>.countFiltered<%- sortedAssociations[aindex].relationNameCp _%>;
-            let its = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].relationNameLc _%>Filter;
-
-            /*
-              Check: empty page
-            */
-            if( (newCount === (pageRef.current * rowsPerPage)) && (pageRef.current > 0) ) 
-            {
-              isOnApiRequestRef.current = false;
-              setIsOnApiRequest(false);
-              setPage(pageRef.current - 1);
-              return;
-            }
-            
-            //ok
-            setCount((newCount&&typeof newCount==='number') ? newCount : 0);
-            setItems(its&&Array.isArray(its) ? its : []);
-            isOnApiRequestRef.current = false;
-            setIsOnApiRequest(false);
-            return;
-
-          } else { //error: bad response on associationFilter()
+        //delete from cancelables
+        if(cancelableApiReqIndex>0) {cancelablePromises.current.splice(cancelableApiReqIndex-1, 1, null)}
+        //check response
+        if (
+            response.data &&
+            response.data.data
+        ) {
+          //notify graphql errors
+          if(response.data.errors) {
             actionText.current = t('modelPanels.gotIt', "Got it");
-            enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
+            enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
               variant: 'error',
               preventDuplicate: false,
               persist: true,
               action: action.current,
             });
-            console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
-            setCount(0);
-            setItems([]);
+            console.log("Errors: ", response.data.errors);
+          }
+          //save response data
+          let newCount = response.data.data.readOne<%- nameCp _%>.countFiltered<%- sortedAssociations[aindex].relationNameCp _%>;
+          let its = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].relationNameLc _%>Filter;
+
+          /*
+            Check: empty page
+          */
+          if( (newCount === (pageRef.current * rowsPerPage)) && (pageRef.current > 0) ) 
+          {
             isOnApiRequestRef.current = false;
             setIsOnApiRequest(false);
+            setPage(pageRef.current - 1);
             return;
           }
+          
+          //ok
+          setCount((newCount&&typeof newCount==='number') ? newCount : 0);
+          setItems(its&&Array.isArray(its) ? its : []);
+          isOnApiRequestRef.current = false;
+          setIsOnApiRequest(false);
+          return;
+
+        } else { //error: bad response on associationFilter()
+          actionText.current = t('modelPanels.gotIt', "Got it");
+          enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
+            variant: 'error',
+            preventDuplicate: false,
+            persist: true,
+            action: action.current,
+          });
+          console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
+          setCount(0);
+          setItems([]);
+          isOnApiRequestRef.current = false;
+          setIsOnApiRequest(false);
+          return;
+        }
       })
-      .catch(err => { //error: on associationFilter()
-        actionText.current = t('modelPanels.gotIt', "Got it");
-        enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
-          variant: 'error',
-          preventDuplicate: false,
-          persist: true,
-          action: action.current,
-        });
-        console.log("Error: ", err);
-        setCount(0);
-        setItems([]);
-        isOnApiRequestRef.current = false;
-        setIsOnApiRequest(false);  
-        return;
+      .catch(({isCanceled, ...err}) => { //error: on associationFilter()
+        if(isCanceled) {
+          return;
+        } else {
+          actionText.current = t('modelPanels.gotIt', "Got it");
+          enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
+            variant: 'error',
+            preventDuplicate: false,
+            persist: true,
+            action: action.current,
+          });
+          console.log("Error: ", err);
+          setCount(0);
+          setItems([]);
+          isOnApiRequestRef.current = false;
+          setIsOnApiRequest(false);
+          return;
+        }
       });
   }, [graphqlServerUrl, enqueueSnackbar, t, dataTrigger, item.id, search, rowsPerPage]);
 
@@ -288,12 +301,19 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToRemov
     /*
       API Request: countItems
     */
-    api.<%- sortedAssociations[aindex].targetModelLc _%>.getCountItems(graphqlServerUrl, searchB, ops)
+    let cancelableApiReq = api.<%- sortedAssociations[aindex].targetModelLc _%>.getCountItems(graphqlServerUrl, searchB, ops);
+    let cancelableApiReqIndex = cancelablePromises.current.push(cancelableApiReq);
+    cancelableApiReq
+      .promise
       .then(response => {
+        //delete from cancelables
+        if(cancelableApiReqIndex>0) {cancelablePromises.current.splice(cancelableApiReqIndex-1, 1, null)}
+        //check response
         if (
           response.data &&
           response.data.data
         ) {
+          //notify graphql errors
           if(response.data.errors) {
             actionText.current = t('modelPanels.gotIt', "Got it");
             enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
@@ -304,6 +324,7 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToRemov
             });
             console.log("Errors: ", response.data.errors);
           }
+          //save response data
           let newCount = response.data.data.count<%- sortedAssociations[aindex].targetModelPlCp _%>;
 
           /*
@@ -319,7 +340,7 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToRemov
           /*
             API Request: items
           */
-          api.<%- sortedAssociations[aindex].targetModelLc _%>.getItems(
+          let cancelableApiReqB = api.<%- sortedAssociations[aindex].targetModelLc _%>.getItems(
             graphqlServerUrl,
             searchB,
             null, //orderBy
@@ -327,12 +348,19 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToRemov
             pageRefB.current * rowsPerPageB, //paginationOffset
             rowsPerPageB, //paginationLimit
             ops
-          )
+          );
+          let cancelableApiReqIndexB = cancelablePromises.current.push(cancelableApiReqB);
+          cancelableApiReqB
+            .promise
             .then(response => {
+              //delete from cancelables
+              if(cancelableApiReqIndexB>0) {cancelablePromises.current.splice(cancelableApiReqIndexB-1, 1, null)}
+              //check response
               if (
                 response.data &&
                 response.data.data
               ) {
+                //notify graphql errors
                 if(response.data.errors) {
                   actionText.current = t('modelPanels.gotIt', "Got it");
                   enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
@@ -343,6 +371,7 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToRemov
                   });
                   console.log("Errors: ", response.data.errors);
                 }
+                //save response data
                 let its = response.data.data.<%- sortedAssociations[aindex].targetModelPlLc _%>;
                 
                 //ok
@@ -368,22 +397,25 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToRemov
                 return;
               }
             })
-            .catch(err => { //error: on getItems()
-              actionText.current = t('modelPanels.gotIt', "Got it");
-              enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
-                variant: 'error',
-                preventDuplicate: false,
-                persist: true,
-                action: action.current,
-              });
-              console.log("Error: ", err);
-              setCountB(0);
-              setItemsB([]);
-              isOnApiRequestRefB.current = false;
-              setIsOnApiRequestB(false);
-              return;
+            .catch(({isCanceled, ...err}) => { //error: on getItems()
+              if(isCanceled) {
+                return;
+              } else {
+                actionText.current = t('modelPanels.gotIt', "Got it");
+                enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
+                  variant: 'error',
+                  preventDuplicate: false,
+                  persist: true,
+                  action: action.current,
+                });
+                console.log("Error: ", err);
+                setCountB(0);
+                setItemsB([]);
+                isOnApiRequestRefB.current = false;
+                setIsOnApiRequestB(false);
+                return;
+              }
             });
-
           return;
         } else { //error: bad response on getCountItems()
           actionText.current = t('modelPanels.gotIt', "Got it");
@@ -401,22 +433,35 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToRemov
           return;
         }
       })
-      .catch(err => { //error: on getCountItems()
-        actionText.current = t('modelPanels.gotIt', "Got it");
-        enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
-          variant: 'error',
-          preventDuplicate: false,
-          persist: true,
-          action: action.current,
-        });
-        console.log("Error: ", err);
-        setCountB(0);
-        setItemsB([]);
-        isOnApiRequestRefB.current = false;
-        setIsOnApiRequestB(false);
-        return;
+      .catch(({isCanceled, ...err}) => { //error: on getCountItems()
+        if(isCanceled) {
+          return;
+        } else {
+          actionText.current = t('modelPanels.gotIt', "Got it");
+          enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
+            variant: 'error',
+            preventDuplicate: false,
+            persist: true,
+            action: action.current,
+          });
+          console.log("Error: ", err);
+          setCountB(0);
+          setItemsB([]);
+          isOnApiRequestRefB.current = false;
+          setIsOnApiRequestB(false);
+          return;
+        }
       });
   }, [graphqlServerUrl, enqueueSnackbar, t, dataTriggerB, searchB, rowsPerPageB]);
+
+  useEffect(() => {
+
+    //cleanup on unmounted.
+    return function cleanup() {
+      cancelablePromises.current.forEach(p => { if(p !== null){ p.cancel(); } });
+      cancelablePromises.current = [];
+    };
+  }, []);
 
   useEffect(() => {
     if(idsToRemove !== undefined && Array.isArray(idsToRemove) && idsToRemove.length > 0) {

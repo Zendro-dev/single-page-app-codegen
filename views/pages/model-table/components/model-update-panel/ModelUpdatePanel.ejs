@@ -122,6 +122,8 @@ export default function <%- nameCp _%>UpdatePanel(props) {
   const [<%- sortedAssociatedModels[i].targetModelLc _%>DetailItem, set<%- sortedAssociatedModels[i].targetModelCp _%>DetailItem] = useState(undefined);
 <%}-%>
 
+  const cancelablePromises = useRef([]);
+
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
   const lastModelChanged = useSelector(state => state.changes.lastModelChanged);
 
@@ -134,7 +136,14 @@ export default function <%- nameCp _%>UpdatePanel(props) {
     </> 
   );
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+
+    //cleanup on unmounted.
+    return function cleanup() {
+      cancelablePromises.current.forEach(p => { if(p !== null){ p.cancel(); } });
+      cancelablePromises.current = [];
+    };
+  }, []);
 
   useEffect(() => {
     //check if this.item changed
@@ -324,12 +333,19 @@ export default function <%- nameCp _%>UpdatePanel(props) {
     /*
       API Request: updateItem
     */
-    api.<%- nameLc _%>.updateItem(graphqlServerUrl, variables)
+    let cancelableApiReq = api.<%- nameLc _%>.updateItem(graphqlServerUrl, variables);
+    let cancelableApiReqIndex = cancelablePromises.current.push(cancelableApiReq);
+    cancelableApiReq
+      .promise
       .then(response => {
+        //delete from cancelables
+        if(cancelableApiReqIndex>0) {cancelablePromises.current.splice(cancelableApiReqIndex-1, 1, null)}
+        //check response
         if (
           response.data &&
           response.data.data
         ) {
+          //notify graphql errors
           if(response.data.errors) {
             actionText.current = t('modelPanels.gotIt', "Got it");
             enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
@@ -340,6 +356,7 @@ export default function <%- nameCp _%>UpdatePanel(props) {
             });
             console.log("Errors: ", response.data.errors);
           } else {
+
             //ok
             enqueueSnackbar( t('modelPanels.messages.msg5', "Record updated successfully."), {
               variant: 'success',
@@ -366,16 +383,20 @@ export default function <%- nameCp _%>UpdatePanel(props) {
           return;
         }
       })
-      .catch(err => { //error: on updateItem()
-        actionText.current = t('modelPanels.gotIt', "Got it");
-        enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
-          variant: 'error',
-          preventDuplicate: false,
-          persist: true,
-          action,
-        });
-        console.log("Error: ", err);
-        return;
+      .catch(({isCanceled, ...err}) => { //error: on updateItem()
+        if(isCanceled) {
+          return;
+        } else {
+          actionText.current = t('modelPanels.gotIt', "Got it");
+          enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
+            variant: 'error',
+            preventDuplicate: false,
+            persist: true,
+            action,
+          });
+          console.log("Error: ", err);
+          return;
+        }
       });
   }
 

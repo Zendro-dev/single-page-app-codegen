@@ -139,7 +139,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
       .promise
       .then(response => {
         //delete from cancelables
-        if(cancelableApiReqIndex>0) {cancelablePromises.current.splice(cancelableApiReqIndex-1, 1)}
+        if(cancelableApiReqIndex>0) {cancelablePromises.current.splice(cancelableApiReqIndex-1, 1, null)}
         //check response
         if(
           response.data &&
@@ -185,7 +185,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
             .promise
             .then(response => {
               //delete from cancelables
-              if(cancelableApiReqIndexB>0) {cancelablePromises.current.splice(cancelableApiReqIndexB-1, 1)}
+              if(cancelableApiReqIndexB>0) {cancelablePromises.current.splice(cancelableApiReqIndexB-1, 1, null)}
               //check response
               if (
                 response.data &&
@@ -290,7 +290,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
 
     //cleanup on unmounted.
     return function cleanup() {
-      cancelablePromises.current.forEach(p => p.cancel());
+      cancelablePromises.current.forEach(p => { if(p !== null){ p.cancel(); } });
       cancelablePromises.current = [];
     };
   }, []);
@@ -378,7 +378,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
       .promise
       .then(response => {
         //delete from cancelables
-        if(cancelableApiReqIndex>0) {cancelablePromises.current.splice(cancelableApiReqIndex-1, 1)}
+        if(cancelableApiReqIndex>0) {cancelablePromises.current.splice(cancelableApiReqIndex-1, 1, null)}
         //check response
         if(
           response.data &&
@@ -450,7 +450,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
       .promise
       .then(response => {
         //delete from cancelables
-        if(cancelableApiReqIndex>0) {cancelablePromises.current.splice(cancelableApiReqIndex-1, 1)}
+        if(cancelableApiReqIndex>0) {cancelablePromises.current.splice(cancelableApiReqIndex-1, 1, null)}
         //check response
         if(
           response.data &&

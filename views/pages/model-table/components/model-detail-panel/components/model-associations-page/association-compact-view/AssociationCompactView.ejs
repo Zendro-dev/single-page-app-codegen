@@ -87,6 +87,8 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>Compact
   const isGettingFirstDataRef = useRef(true);
   const pageRef = useRef(0);
 
+  const cancelablePromises = useRef([]);
+
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
   const lastModelChanged = useSelector(state => state.changes.lastModelChanged);
 
@@ -120,8 +122,7 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>Compact
     */
     let label = '<%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='') ? `${sortedAssociations[aindex].label}` : '' _%>';
     let sublabel = '<%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='') ? `${sortedAssociations[aindex].sublabel}` : '' _%>';
-
-    api.<%- nameLc _%>.get<%- sortedAssociations[aindex].relationNameCp _%>Filter(
+    let cancelableApiReq = api.<%- nameLc _%>.get<%- sortedAssociations[aindex].relationNameCp _%>Filter(
       graphqlServerUrl, 
       item.id,
       label,
@@ -129,88 +130,108 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>Compact
       search,
       pageRef.current * rowsPerPage, //paginationOffset
       rowsPerPage, //paginationLimit
-    )
+    );
+    let cancelableApiReqIndex = cancelablePromises.current.push(cancelableApiReq);
+    cancelableApiReq
+      .promise
       .then(response => {
-          if (
-              response.data &&
-              response.data.data
-          ) {
-            if(response.data.errors) {
-              actionText.current = t('modelPanels.gotIt', "Got it");
-              enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
-                variant: 'error',
-                preventDuplicate: false,
-                persist: true,
-                action: action.current,
-              });
-              console.log("Errors: ", response.data.errors);
-            }
-
-<%_if( sortedAssociations[aindex].type === 'to_many' ){-%>
-            let newCount = response.data.data.readOne<%- nameCp _%>.countFiltered<%- sortedAssociations[aindex].relationNameCp _%>;
-            let its = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].relationNameLc _%>Filter;
-
-            /*
-              Check: empty page
-            */
-            if( (newCount === (pageRef.current * rowsPerPage)) && (pageRef.current > 0) ) 
-            {
-              isOnApiRequestRef.current = false;
-              setIsOnApiRequest(false);
-              setPage(pageRef.current - 1);
-              return;
-            }
-
-            //ok
-            setCount((newCount&&typeof newCount==='number') ? newCount : 0);
-            setItems((its&&Array.isArray(its)) ? its : []);
-            isOnApiRequestRef.current = false;
-            setIsOnApiRequest(false);
-            return;
-<%} else {-%> 
-            let it = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].relationName _%>;
-
-            //ok
-            setCount((it&&typeof it==='object') ? 1 : 0);
-            setItems((it&&typeof it==='object') ? [it] : []);
-            isOnApiRequestRef.current = false;
-            setIsOnApiRequest(false);
-            return;
-<%}-%>
-
-          } else { //error: bad response on getAssociationFilter()
+        //delete from cancelables
+        if(cancelableApiReqIndex>0) {cancelablePromises.current.splice(cancelableApiReqIndex-1, 1, null)}
+        //check response
+        if (
+            response.data &&
+            response.data.data
+        ) {
+          //notify graphql errors
+          if(response.data.errors) {
             actionText.current = t('modelPanels.gotIt', "Got it");
-            enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
+            enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
               variant: 'error',
               preventDuplicate: false,
               persist: true,
               action: action.current,
             });
-            console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
-            setCount(0);
-            setItems([]);
+            console.log("Errors: ", response.data.errors);
+          }
+          //save response data
+<%_if( sortedAssociations[aindex].type === 'to_many' ){-%>
+          let newCount = response.data.data.readOne<%- nameCp _%>.countFiltered<%- sortedAssociations[aindex].relationNameCp _%>;
+          let its = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].relationNameLc _%>Filter;
+
+          /*
+            Check: empty page
+          */
+          if( (newCount === (pageRef.current * rowsPerPage)) && (pageRef.current > 0) ) 
+          {
             isOnApiRequestRef.current = false;
             setIsOnApiRequest(false);
+            setPage(pageRef.current - 1);
             return;
           }
+
+          //ok
+          setCount((newCount&&typeof newCount==='number') ? newCount : 0);
+          setItems((its&&Array.isArray(its)) ? its : []);
+          isOnApiRequestRef.current = false;
+          setIsOnApiRequest(false);
+          return;
+<%} else {-%> 
+          let it = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].relationName _%>;
+
+          //ok
+          setCount((it&&typeof it==='object') ? 1 : 0);
+          setItems((it&&typeof it==='object') ? [it] : []);
+          isOnApiRequestRef.current = false;
+          setIsOnApiRequest(false);
+          return;
+<%}-%>
+
+        } else { //error: bad response on getAssociationFilter()
+          actionText.current = t('modelPanels.gotIt', "Got it");
+          enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
+            variant: 'error',
+            preventDuplicate: false,
+            persist: true,
+            action: action.current,
+          });
+          console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
+          setCount(0);
+          setItems([]);
+          isOnApiRequestRef.current = false;
+          setIsOnApiRequest(false);
+          return;
+        }
       })
-      .catch(err => { //error: on getAssociationFilter()
-        actionText.current = t('modelPanels.gotIt', "Got it");
-        enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
-          variant: 'error',
-          preventDuplicate: false,
-          persist: true,
-          action: action.current,
-        });
-        console.log("Error: ", err);
-        setCount(0);
-        setItems([]);
-        isOnApiRequestRef.current = false;
-        setIsOnApiRequest(false);
-        return;
+      .catch(({isCanceled, ...err}) => { //error: on getAssociationFilter()
+        if(isCanceled) {
+          return;
+        } else {
+          actionText.current = t('modelPanels.gotIt', "Got it");
+          enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
+            variant: 'error',
+            preventDuplicate: false,
+            persist: true,
+            action: action.current,
+          });
+          console.log("Error: ", err);
+          setCount(0);
+          setItems([]);
+          isOnApiRequestRef.current = false;
+          setIsOnApiRequest(false);
+          return;
+        }
       });
   }, [graphqlServerUrl, enqueueSnackbar, t, dataTrigger, item.id, search, rowsPerPage]);
 
+  useEffect(() => {
+
+    //cleanup on unmounted.
+    return function cleanup() {
+      cancelablePromises.current.forEach(p => { if(p !== null){ p.cancel(); } });
+      cancelablePromises.current = [];
+    };
+  }, []);
+  
   useEffect(() => {
     if (!isOnApiRequestRef.current) {
       getData();
