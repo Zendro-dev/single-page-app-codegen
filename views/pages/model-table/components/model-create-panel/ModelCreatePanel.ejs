@@ -11,6 +11,7 @@ import <%- nameCp _%>ConfirmationDialog from './components/<%- nameCp _%>Confirm
 import <%- sortedAssociatedModels[i].targetModelCp _%> DetailPanel from '../../../<%- sortedAssociatedModels[i].targetModelLc _%>-table/components/<%- sortedAssociatedModels[i].targetModelLc _%>-detail-panel/<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel'
 <%}-%>
 import api from '../../../../../../../requests/requests.index.js'
+import { makeCancelable } from '../../../../../../../utils'
 import { makeStyles } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Typography from '@material-ui/core/Typography';
@@ -25,6 +26,8 @@ import Slide from '@material-ui/core/Slide';
 import Fab from '@material-ui/core/Fab';
 import Tooltip from '@material-ui/core/Tooltip';
 import SaveIcon from '@material-ui/icons/Save';
+
+const debounceTimeout = 500;
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -91,7 +94,13 @@ export default function <%- nameCp _%>CreatePanel(props) {
   const [<%- sortedAssociatedModels[i].targetModelLc _%>DetailItem, set<%- sortedAssociatedModels[i].targetModelCp _%>DetailItem] = useState(undefined);
 <%}-%>
 
+  //debouncing & event contention
   const cancelablePromises = useRef([]);
+  const isSaving = useRef(false);
+  const isCanceling = useRef(false);
+  const isDebouncingTabsChange = useRef(false);
+  const currentTabValue = useRef(tabsValue);
+  const lastTabValue = useRef(tabsValue);
 
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl);
 
@@ -112,6 +121,14 @@ export default function <%- nameCp _%>CreatePanel(props) {
       cancelablePromises.current = [];
     };
   }, []);
+
+  useEffect(() => {
+    //sync
+    currentTabValue.current = tabsValue;
+    if(lastTabValue.current !== tabsValue){
+      setTabsValue(lastTabValue.current);
+    }
+  }, [tabsValue]);
   
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
   useEffect(() => {
@@ -291,7 +308,37 @@ export default function <%- nameCp _%>CreatePanel(props) {
   }
 
   const handleTabsChange = (event, newValue) => {
-    setTabsValue(newValue);
+    //save last value
+    lastTabValue.current = newValue;
+
+    if(!isDebouncingTabsChange.current){
+      //save last value
+      lastTabValue.current = newValue;
+      currentTabValue.current = newValue;
+      setTabsValue(newValue);
+      //debounce
+      isDebouncingTabsChange.current = true;
+      let cancelableTimer = startTimerToDebounceTabsChange();
+      let cancelableIndex = cancelablePromises.current.push(cancelableTimer);
+      cancelableTimer
+        .promise
+        .then(() => {
+          //delete from cancelables
+          if(cancelableIndex>0) {cancelablePromises.current.splice(cancelableIndex-1, 1, null)}
+          //clear flag
+          isDebouncingTabsChange.current = false;
+          //check
+          if(lastTabValue.current !== currentTabValue.current){
+            setTabsValue(lastTabValue.current);
+            currentTabValue.current = lastTabValue.current;
+          }
+        })
+        .catch(() => {
+          return;
+        })
+    } else{
+
+    }
   };
 
   const handleSetValue = (value, status, key) => {
@@ -309,9 +356,11 @@ export default function <%- nameCp _%>CreatePanel(props) {
       setConfirmationAcceptText("");
       setConfirmationRejectText( t('modelPanels.updateAccept', "I UNDERSTAND"));
       handleAccept.current = () => {
+        isSaving.current = false;
         setConfirmationOpen(false);
       }
       handleReject.current = () => {
+        isSaving.current = false;
         setConfirmationOpen(false);
       }
       setConfirmationOpen(true);
@@ -328,6 +377,7 @@ export default function <%- nameCp _%>CreatePanel(props) {
         setConfirmationOpen(false);
       }
       handleReject.current = () => {
+        isSaving.current = false;
         setConfirmationOpen(false);
       }
       setConfirmationOpen(true);
@@ -347,6 +397,7 @@ export default function <%- nameCp _%>CreatePanel(props) {
         onClose(event, false, null);
       }
       handleReject.current = () => {
+        isCanceling.current = false;
         setConfirmationOpen(false);
       }
         setConfirmationOpen(true);
@@ -439,8 +490,15 @@ export default function <%- nameCp _%>CreatePanel(props) {
       }, ms);
     });
   };
-
 <%}-%>
+
+  const startTimerToDebounceTabsChange = () => {
+    return makeCancelable( new Promise(resolve => {
+      window.setTimeout(function() { 
+        resolve(); 
+      }, debounceTimeout*5);
+    }));
+  };
 
   return (
     
@@ -453,6 +511,12 @@ export default function <%- nameCp _%>CreatePanel(props) {
               edge="start" 
               color="inherit" 
               onClick={handleCancel}
+              onClick={(event) => {
+                if(!isCanceling.current){
+                  isCanceling.current = true;
+                  handleCancel(event);
+                }
+              }}
             >
               <CloseIcon />
             </IconButton>
@@ -464,7 +528,12 @@ export default function <%- nameCp _%>CreatePanel(props) {
             <Fab 
               color="secondary" 
               className={classes.fabButton}
-              onClick={handleSave}
+              onClick={(event) => {
+                if(!isSaving.current){
+                  isSaving.current = true;
+                  handleSave(event);
+                }
+              }}
             >
               <SaveIcon />
             </Fab>
@@ -481,8 +550,6 @@ export default function <%- nameCp _%>CreatePanel(props) {
               <<%- nameCp _%>TabsA
                 value={tabsValue}
                 handleChange={handleTabsChange}
-                handleCancel={handleCancel}
-                handleSave={handleSave}
               />
             </div>
           </Grid>

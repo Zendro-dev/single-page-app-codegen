@@ -497,7 +497,7 @@ for(let i=0; i<modelsOpts.adminModels.length; i++)
   /**
    * Debug
    */
-  console.log("MODEL_OPTS: ", m);
+  //console.log("MODEL_OPTS: ", m);
 
   fpath = path.resolve(directory, `src/requests/`, `${m.nameLc}.js`);
   promises.push( funks.renderToFile(fpath, 'requests/model', m) );
@@ -534,6 +534,14 @@ promises.push( funks.renderToFile(fpath, 'routes/TablesSwitch', modelsOpts) );
 // template 61: acl_rules
 fpath = path.resolve(directory, `src/`, `acl_rules.js`);
 promises.push( funks.renderToFile(fpath, 'acl/acl_rules', modelsOpts) );
+
+/**
+ * utils
+ * 
+ * */
+// template 62: utils
+fpath = path.resolve(directory, `src/`, `utils.js`);
+promises.push( funks.renderToFile(fpath, 'utils/utils') );
 
 
 Promise.all(promises).then( (values) =>{
