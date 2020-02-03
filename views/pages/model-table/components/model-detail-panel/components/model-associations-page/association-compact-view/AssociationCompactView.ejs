@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
 import PropTypes from 'prop-types';
 import api from '../../../../../../../../../../requests/requests.index.js';
+import { makeCancelable } from '../../../../../../../../../../utils'
 import <%- sortedAssociations[aindex].relationNameCp _%>CompactViewToolbar from './components/<%- sortedAssociations[aindex].relationNameCp _%>CompactViewToolbar';
 import TablePagination from '@material-ui/core/TablePagination';
 import Typography from '@material-ui/core/Typography';
@@ -122,7 +123,7 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>Compact
     */
     let label = '<%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='') ? `${sortedAssociations[aindex].label}` : '' _%>';
     let sublabel = '<%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='') ? `${sortedAssociations[aindex].sublabel}` : '' _%>';
-    let cancelableApiReq = api.<%- nameLc _%>.get<%- sortedAssociations[aindex].relationNameCp _%>Filter(
+    let cancelableApiReq = makeCancelable(api.<%- nameLc _%>.get<%- sortedAssociations[aindex].relationNameCp _%>Filter(
       graphqlServerUrl, 
       item.id,
       label,
@@ -130,7 +131,7 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>Compact
       search,
       pageRef.current * rowsPerPage, //paginationOffset
       rowsPerPage, //paginationLimit
-    );
+    ));
     let cancelableApiReqIndex = cancelablePromises.current.push(cancelableApiReq);
     cancelableApiReq
       .promise

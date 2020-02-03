@@ -9,6 +9,7 @@ import moment from "moment";
 <%}-%>
 import PropTypes from 'prop-types';
 import api from '../../../../../requests/requests.index.js'
+import { makeCancelable } from '../../../../../utils'
 import <%- nameCp -%>EnhancedTableHead from './components/<%- nameCp -%>EnhancedTableHead'
 import <%- nameCp -%>EnhancedTableToolbar from './components/<%- nameCp -%>EnhancedTableToolbar'
 import <%- nameCp -%>CreatePanel from './components/<%- nameLc -%>-create-panel/<%- nameCp -%>CreatePanel'
@@ -133,7 +134,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
     /*
       API Request: countItems
     */
-    let cancelableApiReq = api.<%- nameLc -%>.getCountItems(graphqlServerUrl, search);
+    let cancelableApiReq = makeCancelable(api.<%- nameLc -%>.getCountItems(graphqlServerUrl, search));
     let cancelableApiReqIndex = cancelablePromises.current.push(cancelableApiReq);
     cancelableApiReq
       .promise
@@ -172,14 +173,14 @@ export default function <%- nameCp -%>EnhancedTable(props) {
           /*
             API Request: items
           */
-          let cancelableApiReqB = api.<%- nameLc -%>.getItems(
+          let cancelableApiReqB = makeCancelable(api.<%- nameLc -%>.getItems(
             graphqlServerUrl,
             search,
             orderBy,
             order,
             pageRef.current * rowsPerPage, //paginationOffset
             rowsPerPage, //paginationLimit
-          );
+          ));
           let cancelableApiReqIndexB = cancelablePromises.current.push(cancelableApiReqB);
           cancelableApiReqB
             .promise
@@ -372,7 +373,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
     /*
       API Request: deleteItem
     */
-    let cancelableApiReq = api.<%- nameLc -%>.deleteItem(graphqlServerUrl, variables);
+    let cancelableApiReq = makeCancelable(api.<%- nameLc -%>.deleteItem(graphqlServerUrl, variables));
     let cancelableApiReqIndex = cancelablePromises.current.push(cancelableApiReq);
     cancelableApiReq
       .promise
@@ -444,7 +445,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
     /*
       API Request: deleteItem
     */
-    let cancelableApiReq = api.<%- nameLc -%>.tableTemplate(graphqlServerUrl);
+    let cancelableApiReq = makeCancelable(api.<%- nameLc -%>.tableTemplate(graphqlServerUrl));
     let cancelableApiReqIndex = cancelablePromises.current.push(cancelableApiReq);
     cancelableApiReq
       .promise

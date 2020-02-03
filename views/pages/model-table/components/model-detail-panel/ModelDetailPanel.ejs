@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { modelChange } from '../../../../../../../store/actions'
 import PropTypes from 'prop-types';
 import api from '../../../../../../../requests/requests.index.js'
+import { makeCancelable } from '../../../../../../../utils'
 import { makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
@@ -179,7 +180,7 @@ export default function <%- nameCp _%>DetailPanel(props) {
     /*
       API Request: deleteItem
     */
-    let cancelableApiReq = api.<%- nameLc -%>.deleteItem(graphqlServerUrl, variables);
+    let cancelableApiReq = makeCancelable(api.<%- nameLc -%>.deleteItem(graphqlServerUrl, variables));
     let cancelableApiReqIndex = cancelablePromises.current.push(cancelableApiReq);
     cancelableApiReq
       .promise

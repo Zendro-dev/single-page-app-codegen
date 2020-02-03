@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
 import PropTypes from 'prop-types';
 import api from '../../../../../../../../../../../requests/requests.index.js';
+import { makeCancelable } from '../../../../../../../../../../../utils'
 import <%- sortedAssociations[aindex].relationNameCp _%>ToRemoveTransferViewToolbar from './components/<%- sortedAssociations[aindex].relationNameCp _%>ToRemoveTransferViewToolbar';
 import TablePagination from '@material-ui/core/TablePagination';
 import Typography from '@material-ui/core/Typography';
@@ -176,7 +177,7 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToRemov
     */
     let label = '<%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='') ? `${sortedAssociations[aindex].label}` : '' _%>';
     let sublabel = '<%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='') ? `${sortedAssociations[aindex].sublabel}` : '' _%>';
-    let cancelableApiReq = api.<%- nameLc _%>.get<%- sortedAssociations[aindex].relationNameCp _%>Filter(
+    let cancelableApiReq = makeCancelable(api.<%- nameLc _%>.get<%- sortedAssociations[aindex].relationNameCp _%>Filter(
       graphqlServerUrl, 
       item.id,
       label,
@@ -185,7 +186,7 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToRemov
       pageRef.current * rowsPerPage, //paginationOffset
       rowsPerPage, //paginationLimit
       // ops
-    );
+    ));
     let cancelableApiReqIndex = cancelablePromises.current.push(cancelableApiReq);
     cancelableApiReq
       .promise
@@ -301,7 +302,7 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToRemov
     /*
       API Request: countItems
     */
-    let cancelableApiReq = api.<%- sortedAssociations[aindex].targetModelLc _%>.getCountItems(graphqlServerUrl, searchB, ops);
+    let cancelableApiReq = makeCancelable(api.<%- sortedAssociations[aindex].targetModelLc _%>.getCountItems(graphqlServerUrl, searchB, ops));
     let cancelableApiReqIndex = cancelablePromises.current.push(cancelableApiReq);
     cancelableApiReq
       .promise
@@ -340,7 +341,7 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToRemov
           /*
             API Request: items
           */
-          let cancelableApiReqB = api.<%- sortedAssociations[aindex].targetModelLc _%>.getItems(
+          let cancelableApiReqB = makeCancelable(api.<%- sortedAssociations[aindex].targetModelLc _%>.getItems(
             graphqlServerUrl,
             searchB,
             null, //orderBy
@@ -348,7 +349,7 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToRemov
             pageRefB.current * rowsPerPageB, //paginationOffset
             rowsPerPageB, //paginationLimit
             ops
-          );
+          ));
           let cancelableApiReqIndexB = cancelablePromises.current.push(cancelableApiReqB);
           cancelableApiReqB
             .promise

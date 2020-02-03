@@ -240,7 +240,7 @@ export default function <%- nameCp _%>CreatePanel(props) {
     /*
       API Request: createItem
     */
-    let cancelableApiReq = api.<%- nameLc _%>.createItem(graphqlServerUrl, variables);
+    let cancelableApiReq = makeCancelable(api.<%- nameLc _%>.createItem(graphqlServerUrl, variables));
     let cancelableApiReqIndex = cancelablePromises.current.push(cancelableApiReq);
     cancelableApiReq
       .promise
