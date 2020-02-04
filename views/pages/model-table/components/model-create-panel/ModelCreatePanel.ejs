@@ -324,7 +324,7 @@ export default function <%- nameCp _%>CreatePanel(props) {
         .promise
         .then(() => {
           //delete from cancelables
-          cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableTimer), 1)}
+          cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableTimer), 1);
           //clear flag
           isDebouncingTabsChange.current = false;
           //check

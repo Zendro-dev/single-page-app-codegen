@@ -27,8 +27,10 @@ import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
 import Grid from '@material-ui/core/Grid';
+import Box from '@material-ui/core/Box';
 import Fade from '@material-ui/core/Fade';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import LinearProgress from '@material-ui/core/LinearProgress';
 import Typography from '@material-ui/core/Typography';
 import Delete from '@material-ui/icons/DeleteOutline';
 import Edit from '@material-ui/icons/Edit';
@@ -39,12 +41,13 @@ const useStyles = makeStyles(theme => ({
         marginTop: theme.spacing(7),
     },
     paper: {
-        overflowX: 'auto',
+        overflowX: 'hidden',
     },
     tableWrapper: {
       height: '64vh',
       maxHeight: '64vh',
       overflow: 'auto',
+      position: 'relative',
     },
     loading: {
       height: '64vh',
@@ -71,6 +74,15 @@ const useStyles = makeStyles(theme => ({
     },
     notiErrorActionText: {
       color: '#eba0a0',
+    },
+    tableBackdrop: {
+      WebkitTapHighlightColor: 'transparent',
+      minWidth: '100%',
+      minHeight: '100%'
+    },
+    tableBackdropContent: {
+      width: '100%',
+      height: '100%'
     },
 }));
 
@@ -118,6 +130,15 @@ export default function <%- nameCp -%>EnhancedTable(props) {
     </> 
   ));
 
+  //table w&h
+  const tref = useRef(null);
+  const [tw, setTw] = useState('100%');
+  const [th, setTh] = useState('100%');
+
+  //table wrapper scroll left position
+  const twref = useRef(null);
+  const [tscl, setTscl] = useState(0);
+
   /**
     * getData
     * 
@@ -127,6 +148,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
     * 
     */
   const getData = useCallback(() => {
+    updateSizes();
     isOnApiRequestRef.current = true;
     setIsOnApiRequest(true);
     Boolean(dataTrigger); //avoid warning
@@ -567,6 +589,26 @@ export default function <%- nameCp -%>EnhancedTable(props) {
     }
   }
 
+  function updateSizes() {
+    //update tw & th & tscl
+    if(tref.current) {
+      let w = tref.current.clientWidth;
+      let h = tref.current.clientHeight;
+      setTw(w);
+      setTh(h);
+    } else {
+      setTw('100%');
+      setTh('100%');
+    }
+
+    if(twref.current) {
+      let l = twref.current.scrollLeft;
+      setTscl(l);
+    } else {
+      setTscl(0);
+    }
+  }
+
   const handleSearchEnter = text => {
     if(text !== search)
     {
@@ -757,195 +799,203 @@ export default function <%- nameCp -%>EnhancedTable(props) {
                 />
 
                 {/* Table */}
-                <div className={classes.tableWrapper}>
-                  <Table stickyHeader size='small'>
+                <div className={classes.tableWrapper} ref={twref}>
+
+                  {/* Table backdrop */}
+                  <Fade in={(isOnApiRequest)}>
+                    <Box
+                      className={classes.tableBackdrop}
+                      bgcolor='rgba(255, 255, 255, 0.4)'
+                      width={tw}
+                      height={th}
+                      p={0}
+                      position="absolute"
+                      top={0}
+                      left={0}
+                      zIndex="tooltip"
+                    />
+                  </Fade>
+
+                  {/* Progress indicator */}
+                  <Fade
+                    in={(isOnApiRequest)}
+                  >
+                    <Box
+                      className={classes.tableBackdrop}
+                      bgcolor='rgba(255, 255, 255, 0.0)'
+                      width='100%'
+                      height='100%'
+                      p={0}
+                      position="absolute"
+                      top={0}
+                      left={tscl}
+                      zIndex="tooltip"
+                    >
+                      <Grid container className={classes.tableBackdropContent} justify='center' alignContent='center' alignItems='center'>
+                        <Grid item>
+                          <CircularProgress color="primary" disableShrink={true} />
+                        </Grid>
+                      </Grid>
+                    </Box>
+                  </Fade>
+
+                  {/* No-data message */}
+                  <Fade
+                    in={(!isOnApiRequest && count === 0)}
+                  >
+                    <Box
+                      className={classes.tableBackdrop}
+                      bgcolor='rgba(255, 255, 255, 0.0)'
+                      width='100%'
+                      height='100%'
+                      p={0}
+                      position="absolute"
+                      top={0}
+                      left={tscl}
+                      zIndex="tooltip"
+                    >
+                      <Grid container className={classes.tableBackdropContent} justify='center' alignContent='center' alignItems='center'>
+                        <Grid item>
+                          <Typography variant="body1" >{ t('modelPanels.noData') }</Typography>
+                        </Grid>
+                      </Grid>
+                    </Box>
+                  </Fade>
+
+                  {/* Table */}
+                  <Table stickyHeader size='small' ref={tref}>
 
                     {/* Table Head */}
-                    {(!isOnApiRequest && count > 0) && (
-                      <<%- nameCp -%>EnhancedTableHead
-                        permissions={permissions}
-                        order={order}
-                        orderBy={orderBy}
-                        rowCount={count}
-                        onRequestSort={handleRequestSort}
-                      />
-                    )}
+                    <<%- nameCp -%>EnhancedTableHead
+                      permissions={permissions}
+                      order={order}
+                      orderBy={orderBy}
+                      rowCount={count}
+                      onRequestSort={handleRequestSort}
+                    />
 
                     {/* Table Body */}
+                    <Fade
+                      in={(!isOnApiRequest && count > 0)}
+                    >
+                      <TableBody>
+                        {
+                          items.map((item, index) => {
+                            return ([
+                              /*
+                                Table Row
+                              */
+                              <TableRow
+                                hover
+                                onClick={event => handleClickOnRow(event, item)}
+                                role="checkbox"
+                                tabIndex={-1}
+                                key={item.id}
+                              >
 
-                    {/* Case: show table body */}
-                    {(!isOnApiRequest && count > 0) && (
-                      <Fade
-                        in={true}
-                        unmountOnExit
-                      >
-                        <TableBody>
-                          {
-                            items.map((item, index) => {
-                              return ([
-                                /*
-                                  Table Row
-                                */
-                                <TableRow
-                                  hover
-                                  onClick={event => handleClickOnRow(event, item)}
-                                  role="checkbox"
-                                  tabIndex={-1}
-                                  key={item.id}
+                                {/* SeeInfo icon */}
+                                <TableCell padding="checkbox">
+                                  <Tooltip title={ t('modelPanels.viewDetails') }>
+                                    <IconButton
+                                      color="default"
+                                      onClick={event => {
+                                        event.stopPropagation();
+                                        handleClickOnRow(event, item);
+                                      }}
+                                    >
+                                      <SeeInfo fontSize="small" className={classes.iconSee}/>
+                                    </IconButton>
+                                  </Tooltip>
+                                </TableCell>
+
+                                {/*
+                                  Actions:
+                                  - Edit
+                                  - Delete
+                                */}
+                                {
+                                  /* acl check */
+                                  (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
+                                  &&(permissions.<%- nameLc -%>.includes('update') || permissions.<%- nameLc -%>.includes('*')))
+                                  &&(
+                                    <TableCell padding='checkbox' align='center'>
+                                      <Tooltip title={ t('modelPanels.edit') }>
+                                        <IconButton
+                                          color="default"
+                                          onClick={(event) => {
+                                            event.stopPropagation();
+                                            handleUpdateClicked(event, item);
+                                          }}
+                                        >
+                                          <Edit fontSize="small" className={classes.iconEdit} />
+                                        </IconButton>
+                                      </Tooltip>
+                                    </TableCell>
+                                  )
+                                }
+                                {
+                                  /* acl check */
+                                  (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
+                                  &&(permissions.<%- nameLc -%>.includes('delete') || permissions.<%- nameLc -%>.includes('*')))
+                                  &&(
+                                    <TableCell padding='checkbox' align='center'>
+                                      <Tooltip title={ t('modelPanels.delete') }>
+                                        <IconButton
+                                          color="default"
+                                          onClick={(event) => {
+                                            event.stopPropagation();
+                                            handleDeleteClicked(event, item);
+                                          }}
+                                        >
+                                          <Delete fontSize="small" className={classes.iconDelete} />
+                                        </IconButton>
+                                      </Tooltip>
+                                    </TableCell>
+                                  )
+                                }
+
+                                {/* Item fields */}
+
+                                {/* id */}
+                                <TableCell
+                                  key='id'
+                                  align='left'
+                                  padding="checkbox"
                                 >
+                                  <Tooltip title={ 'id: ' + item.id }>
+                                    <Typography variant='body2' color='textSecondary' display='block' noWrap={true}>{item.id}</Typography>
+                                  </Tooltip>
+                                </TableCell>
 
-                                  {/* SeeInfo icon */}
-                                  <TableCell padding="checkbox">
-                                    <Tooltip title={ t('modelPanels.viewDetails') }>
-                                      <IconButton
-                                        color="default"
-                                        onClick={event => {
-                                          event.stopPropagation();
-                                          handleClickOnRow(event, item);
-                                        }}
-                                      >
-                                        <SeeInfo fontSize="small" className={classes.iconSee}/>
-                                      </IconButton>
-                                    </Tooltip>
-                                  </TableCell>
+  <%for( let i=0; i<attributesArr.length; i++ ){
+    let a = attributesArr[i][0];
+    let label = a[0].toUpperCase() + a.slice(1);
+    let type = attributesArr[i][1];
+  -%>
+                                {/* <%- label %> */}
+                                <TableCell
+                                  key='<%- a -%>'
+                                  align='<%- (type==='Int' || type === 'Float') ? 'right' : 'left' _%>'
+                                  padding="default"
+                                >
+  <%if(type==='Date'){-%>
+                                  {String((item.<%- a _%>!==null)?moment(item.<%- a _%>, "YYYY-MM-DD").format("YYYY-MM-DD"):'')}
+  <%}else if(type==='Time'){-%>
+                                  {String((item.<%- a _%>!==null)?moment(item.<%- a _%>, "HH:mm:ss.SSSZ").format("HH:mm:ss.SSSZ"):'')}
+  <%}else if(type==='DateTime'){-%>
+                                  {String((item.<%- a _%>!==null)?moment(item.<%- a _%>, "YYYY-MM-DDTHH:mm:ss.SSSZ").format("YYYY-MM-DDTHH:mm:ss.SSSZ"):'')}
+  <%}else{-%>
+                                  {String((item.<%- a _%>!==null)?item.<%- a _%>:'')}
+  <%}-%>
+                                </TableCell>
 
-                                  {/*
-                                    Actions:
-                                    - Edit
-                                    - Delete
-                                  */}
-                                  {
-                                    /* acl check */
-                                    (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
-                                    &&(permissions.<%- nameLc -%>.includes('update') || permissions.<%- nameLc -%>.includes('*')))
-                                    &&(
-                                      <TableCell padding='checkbox' align='center'>
-                                        <Tooltip title={ t('modelPanels.edit') }>
-                                          <IconButton
-                                            color="default"
-                                            onClick={(event) => {
-                                              event.stopPropagation();
-                                              handleUpdateClicked(event, item);
-                                            }}
-                                          >
-                                            <Edit fontSize="small" className={classes.iconEdit} />
-                                          </IconButton>
-                                        </Tooltip>
-                                      </TableCell>
-                                    )
-                                  }
-                                  {
-                                    /* acl check */
-                                    (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
-                                    &&(permissions.<%- nameLc -%>.includes('delete') || permissions.<%- nameLc -%>.includes('*')))
-                                    &&(
-                                      <TableCell padding='checkbox' align='center'>
-                                        <Tooltip title={ t('modelPanels.delete') }>
-                                          <IconButton
-                                            color="default"
-                                            onClick={(event) => {
-                                              event.stopPropagation();
-                                              handleDeleteClicked(event, item);
-                                            }}
-                                          >
-                                            <Delete fontSize="small" className={classes.iconDelete} />
-                                          </IconButton>
-                                        </Tooltip>
-                                      </TableCell>
-                                    )
-                                  }
-
-                                  {/* Item fields */}
-
-                                  {/* id */}
-                                  <TableCell
-                                    key='id'
-                                    align='left'
-                                    padding="checkbox"
-                                  >
-                                    <Tooltip title={ 'id: ' + item.id }>
-                                      <Typography variant='body2' color='textSecondary' display='block' noWrap={true}>{item.id}</Typography>
-                                    </Tooltip>
-                                  </TableCell>
-
-    <%for( let i=0; i<attributesArr.length; i++ ){
-      let a = attributesArr[i][0];
-      let label = a[0].toUpperCase() + a.slice(1);
-      let type = attributesArr[i][1];
-    -%>
-                                  {/* <%- label %> */}
-                                  <TableCell
-                                    key='<%- a -%>'
-                                    align='<%- (type==='Int' || type === 'Float') ? 'right' : 'left' _%>'
-                                    padding="default"
-                                  >
-    <%if(type==='Date'){-%>
-                                    {String((item.<%- a _%>!==null)?moment(item.<%- a _%>, "YYYY-MM-DD").format("YYYY-MM-DD"):'')}
-    <%}else if(type==='Time'){-%>
-                                    {String((item.<%- a _%>!==null)?moment(item.<%- a _%>, "HH:mm:ss.SSSZ").format("HH:mm:ss.SSSZ"):'')}
-    <%}else if(type==='DateTime'){-%>
-                                    {String((item.<%- a _%>!==null)?moment(item.<%- a _%>, "YYYY-MM-DDTHH:mm:ss.SSSZ").format("YYYY-MM-DDTHH:mm:ss.SSSZ"):'')}
-    <%}else{-%>
-                                    {String((item.<%- a _%>!==null)?item.<%- a _%>:'')}
-    <%}-%>
-                                  </TableCell>
-
-    <%}-%>
-                                </TableRow>,
-                              ]);
-                            })
-                          }
-                        </TableBody>
-                      </Fade>
-                    )}
-
-                    {/* Case: loading */}
-                    {(isOnApiRequest) && (
-                      <Fade
-                        in={true}
-                        unmountOnExit
-                      >
-                        <TableBody>
-                          <TableRow className={classes.loading}>
-                            <TableCell colSpan={3 + 3}>
-                              <Grid container>
-                                <Grid item xs={12}>
-                                  <Grid container justify="center">
-                                    <Grid item>
-                                      <CircularProgress color='primary' disableShrink />
-                                    </Grid>
-                                  </Grid>
-                                </Grid>
-                              </Grid>
-                            </TableCell>
-                          </TableRow>
-                        </TableBody>
-                      </Fade>
-                    )}
-
-                    {/* Case: No data */}
-                    {(!isOnApiRequest && count === 0) && (
-                      <Fade
-                        in={true}
-                        unmountOnExit
-                      >
-                        <TableBody>
-                          <TableRow className={classes.noData}>
-                            <TableCell colSpan={3 + 3}>
-                              <Grid container>
-                                <Grid item xs={12}>
-                                  <Grid container justify="center">
-                                    <Grid item>
-                                      <Typography variant="body1" >{ t('modelPanels.noData') }</Typography>
-                                    </Grid>
-                                  </Grid>
-                                </Grid>
-                              </Grid>
-                            </TableCell>
-                          </TableRow>
-                        </TableBody>
-                      </Fade>
-                    )}
+  <%}-%>
+                              </TableRow>,
+                            ]);
+                          })
+                        }
+                      </TableBody>
+                    </Fade>
                   </Table>
                 </div>
 
