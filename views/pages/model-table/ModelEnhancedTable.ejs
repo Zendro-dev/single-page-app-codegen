@@ -798,7 +798,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
                   handleCsvTemplateClicked={handleCsvTemplateClicked}
                 />
 
-                {/* Table */}
+                {/* Table components*/}
                 <div className={classes.tableWrapper} ref={twref}>
 
                   {/* Table backdrop */}
@@ -812,7 +812,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
                       position="absolute"
                       top={0}
                       left={0}
-                      zIndex="tooltip"
+                      zIndex="modal"
                     />
                   </Fade>
 
@@ -829,7 +829,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
                       position="absolute"
                       top={0}
                       left={tscl}
-                      zIndex="tooltip"
+                      zIndex="modal"
                     >
                       <Grid container className={classes.tableBackdropContent} justify='center' alignContent='center' alignItems='center'>
                         <Grid item>
@@ -852,7 +852,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
                       position="absolute"
                       top={0}
                       left={tscl}
-                      zIndex="tooltip"
+                      zIndex="modal"
                     >
                       <Grid container className={classes.tableBackdropContent} justify='center' alignContent='center' alignItems='center'>
                         <Grid item>

@@ -308,8 +308,7 @@ export default function <%- nameCp _%>CreatePanel(props) {
   }
 
   const handleTabsChange = (event, newValue) => {
-    //save last value
-    lastTabValue.current = newValue;
+    
 
     if(!isDebouncingTabsChange.current){
       //save last value
@@ -337,7 +336,8 @@ export default function <%- nameCp _%>CreatePanel(props) {
           return;
         })
     } else{
-
+      //save last value
+      lastTabValue.current = newValue;
     }
   };
 
