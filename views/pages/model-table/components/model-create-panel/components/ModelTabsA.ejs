@@ -4,7 +4,6 @@ import { makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import Grid from '@material-ui/core/Grid';
 import Divider from '@material-ui/core/Divider';
 
 const useStyles = makeStyles(theme => ({
@@ -13,7 +12,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function <%- nameCp _%>TabsA(props) {
+export default function <%- nameOnPascal _%>TabsA(props) {
   const classes = useStyles();
   const { t } = useTranslation();
   const { 
@@ -39,7 +38,7 @@ export default function <%- nameCp _%>TabsA(props) {
     </div>
   );
 }
-<%- nameCp _%>TabsA.propTypes = {
+<%- nameOnPascal _%>TabsA.propTypes = {
   value: PropTypes.number.isRequired,
   handleChange: PropTypes.func.isRequired,
 };

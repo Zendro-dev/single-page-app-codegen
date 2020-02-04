@@ -54,7 +54,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function <%- nameCp _%>AttributesFormView(props) {
+export default function <%- nameOnPascal _%>AttributesFormView(props) {
   const classes = useStyles();
   const { t } = useTranslation();
   const { valueOkStates,
@@ -223,7 +223,7 @@ export default function <%- nameCp _%>AttributesFormView(props) {
     </div>
   );
 }
-<%- nameCp _%>AttributesFormView.propTypes = {
+<%- nameOnPascal _%>AttributesFormView.propTypes = {
   valueOkStates: PropTypes.object.isRequired,
 <%if(hasOwnForeingKeys){-%>
   foreignKeys: PropTypes.object.isRequired,

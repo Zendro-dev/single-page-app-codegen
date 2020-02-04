@@ -30,7 +30,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function <%- nameCp -%>UploadFileDialog(props) {
+export default function <%- nameOnPascal -%>UploadFileDialog(props) {
   const classes = useStyles();
   const { t } = useTranslation();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
@@ -193,7 +193,7 @@ export default function <%- nameCp -%>UploadFileDialog(props) {
     </Dialog>
   );
 }
-<%- nameCp -%>UploadFileDialog.propTypes = {
+<%- nameOnPascal -%>UploadFileDialog.propTypes = {
   handleCancel: PropTypes.func.isRequired,
   handleDone: PropTypes.func.isRequired,
 };

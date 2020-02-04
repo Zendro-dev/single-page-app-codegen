@@ -117,6 +117,21 @@ exports.capitalizeString = function(word){
   }
 }
 
+/**
+ * snakeToPascalCase - converts string from snake case to pascal case.
+ *
+ * @param  {type} word String input to convert.
+ * @return {type}      String on pascal case.
+ */
+exports.toPascalCase = function(word){
+  return exports.capitalizeString(word.replace(
+    /([-_][a-z])/ig,
+    (match) => match.toUpperCase()
+                    .replace('-', '')
+                    .replace('_', '')
+  ));
+}
+
 
 // Copies file found under sourcePath to targetPath if and only if target does
 // not exist:
@@ -276,6 +291,7 @@ exports.fillOptionsForViews = function(fileData){
     namePlLc: inflection.pluralize(exports.uncapitalizeString(fileData.model)),
     namePlCp: inflection.pluralize(exports.capitalizeString(fileData.model)),
     nameCp: exports.capitalizeString(fileData.model),
+    nameOnPascal: exports.toPascalCase(fileData.model),
     attributesArr: attributesArrayFromFile(fileData.attributes),
     typeAttributes: exports.typeAttributes(attributesArrayFromFile(fileData.attributes)),
     belongsTosArr: associations.belongsTos,
@@ -341,12 +357,14 @@ parseAssociationsFromFile = function(associations){
         "relationName" : name,
         "relationNameCp": exports.capitalizeString(name),
         "relationNameLc": exports.uncapitalizeString(name),
+        "relationNameOnPascal": exports.toPascalCase(name),
 
         "targetModel": association.target,
         "targetModelLc": exports.uncapitalizeString(association.target),
         "targetModelPlLc": inflection.pluralize(exports.uncapitalizeString(association.target)),
         "targetModelCp": exports.capitalizeString(association.target),
         "targetModelPlCp": inflection.pluralize(exports.capitalizeString(association.target)),
+        "targetModelOnPascal": exports.toPascalCase(association.target),
 
         "label" : association.label,
         "sublabel" : association.sublabel
@@ -413,6 +431,7 @@ parseAssociationsFromFile = function(associations){
           targetModelPlLc: assoc.sortedAssociations[i].targetModelPlLc,
           targetModelCp: assoc.sortedAssociations[i].targetModelCp,
           targetModelPlCp: assoc.sortedAssociations[i].targetModelPlCp,
+          targetModelOnPascal: assoc.sortedAssociations[i].targetModelOnPascal,
         });
       }
     }

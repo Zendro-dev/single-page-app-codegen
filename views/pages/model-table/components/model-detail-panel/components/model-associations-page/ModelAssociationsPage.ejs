@@ -3,9 +3,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 <%}-%>
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
-import <%- sortedAssociations[i].relationNameCp _%>CompactView from './<%- sortedAssociations[i].relationNameLc _%>-compact-view/<%- sortedAssociations[i].relationNameCp _%>CompactView'
+import <%- sortedAssociations[i].relationNameOnPascal _%>CompactView from './<%- sortedAssociations[i].relationNameLc _%>-compact-view/<%- sortedAssociations[i].relationNameCp _%>CompactView'
 <%}-%>
-import <%- nameCp _%>AssociationsMenuTabs from './<%- nameCp _%>AssociationsMenuTabs'
+import <%- nameOnPascal _%>AssociationsMenuTabs from './<%- nameCp _%>AssociationsMenuTabs'
 import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Fade from '@material-ui/core/Fade';
@@ -20,7 +20,7 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-export default function <%- nameCp _%>AssociationsPage(props) {
+export default function <%- nameOnPascal _%>AssociationsPage(props) {
   const classes = useStyles();
   const {
 <%if(sortedAssociations.length > 0) {-%>
@@ -50,7 +50,7 @@ export default function <%- nameCp _%>AssociationsPage(props) {
       > 
         {/* Menu Tabs: Associations */}
         <Grid item xs={12} sm={10} md={9} lg={8} xl={7} className={classes.menu}>
-          <<%- nameCp _%>AssociationsMenuTabs
+          <<%- nameOnPascal _%>AssociationsMenuTabs
             associationSelected={associationSelected}
             handleClick={handleAssociationClick}
           />
@@ -60,7 +60,7 @@ export default function <%- nameCp _%>AssociationsPage(props) {
         {/* <%- sortedAssociations[i].relationNameCp %> Compact View */}
         {(associationSelected === '<%- sortedAssociations[i].relationNameLc _%>') && (
           <Grid item xs={12} sm={10} md={9} lg={8} xl={7}>
-            <<%- sortedAssociations[i].relationNameCp _%>CompactView
+            <<%- sortedAssociations[i].relationNameOnPascal _%>CompactView
               item={item}
               handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row}
             />
@@ -73,7 +73,7 @@ export default function <%- nameCp _%>AssociationsPage(props) {
   );
 }
 <%if(sortedAssociations.length > 0) {-%>
-<%- nameCp _%>AssociationsPage.propTypes = {
+<%- nameOnPascal _%>AssociationsPage.propTypes = {
   item: PropTypes.object.isRequired,
   deleted: PropTypes.bool,
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>

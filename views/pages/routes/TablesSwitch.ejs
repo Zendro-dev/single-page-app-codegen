@@ -6,10 +6,10 @@ import {
 import PropTypes from 'prop-types';
 
 <%for( let i=0; i<models.length; i++ ){-%>
-import <%- models[i].nameCp %>Table from './models-tables/<%- models[i].nameLc _%>-table/<%- models[i].nameCp _%>EnhancedTable'
+import <%- models[i].nameOnPascal %>Table from './models-tables/<%- models[i].nameLc _%>-table/<%- models[i].nameCp _%>EnhancedTable'
 <%}-%>
 <%for( let i=0; i<adminModels.length; i++ ){-%>
-import <%- adminModels[i].nameCp %>Table from './admin-tables/<%- adminModels[i].nameLc _%>-table/<%- adminModels[i].nameCp _%>EnhancedTable'
+import <%- adminModels[i].nameOnPascal %>Table from './admin-tables/<%- adminModels[i].nameLc _%>-table/<%- adminModels[i].nameCp _%>EnhancedTable'
 <%}-%>
 import NotFoundSection from '../pages/NotFoundSectionPage'
 import NoPermissionSectionPage from '../pages/NoPermissionSectionPage'
@@ -28,7 +28,7 @@ export default function TablesSwitch(props) {
             /* acl check */
             (permissions&&permissions.<%- models[i].nameLc _%>&&Array.isArray(permissions.<%- models[i].nameLc _%>)
             &&(permissions.<%- models[i].nameLc _%>.includes('read') || permissions.<%- models[i].nameLc _%>.includes('*')))
-            ? ((props) => <<%- models[i].nameCp _%>Table {...props} permissions={permissions}/>) : (NoPermissionSectionPage)
+            ? ((props) => <<%- models[i].nameOnPascal _%>Table {...props} permissions={permissions}/>) : (NoPermissionSectionPage)
         } />
 <%}-%>
 
@@ -39,7 +39,7 @@ export default function TablesSwitch(props) {
             /* acl check */
             (permissions&&permissions.<%- adminModels[i].nameLc _%>&&Array.isArray(permissions.<%- adminModels[i].nameLc _%>)
             &&(permissions.<%- adminModels[i].nameLc _%>.includes('read') || permissions.<%- adminModels[i].nameLc _%>.includes('*')))
-            ? ((props) => <<%- adminModels[i].nameCp _%>Table {...props} permissions={permissions}/>) : (NoPermissionSectionPage)
+            ? ((props) => <<%- adminModels[i].nameOnPascal _%>Table {...props} permissions={permissions}/>) : (NoPermissionSectionPage)
         } />
 <%}-%>
 

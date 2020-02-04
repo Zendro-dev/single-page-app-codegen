@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import <%- nameCp _%>AttributesFormView from './<%- nameLc _%>-attributes-form-view/<%- nameCp _%>AttributesFormView'
+import <%- nameOnPascal _%>AttributesFormView from './<%- nameLc _%>-attributes-form-view/<%- nameCp _%>AttributesFormView'
 import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Fade from '@material-ui/core/Fade';
@@ -11,7 +11,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function <%- nameCp _%>AttributesPage(props) {
+export default function <%- nameOnPascal _%>AttributesPage(props) {
   const classes = useStyles();
   const {
     valueOkStates,
@@ -33,7 +33,7 @@ export default function <%- nameCp _%>AttributesPage(props) {
         > 
           {/* Attributes Form View */}
           <Grid item xs={12} sm={10} md={9} lg={8} xl={7}>
-            <<%- nameCp _%>AttributesFormView
+            <<%- nameOnPascal _%>AttributesFormView
               valueOkStates={valueOkStates}
 <%if(hasOwnForeingKeys){-%>
               foreignKeys={foreignKeys}
@@ -46,7 +46,7 @@ export default function <%- nameCp _%>AttributesPage(props) {
     </div>
   );
 }
-<%- nameCp _%>AttributesPage.propTypes = {
+<%- nameOnPascal _%>AttributesPage.propTypes = {
   valueOkStates: PropTypes.object.isRequired,
 <%if(hasOwnForeingKeys){-%>
     foreignKeys: PropTypes.object.isRequired,

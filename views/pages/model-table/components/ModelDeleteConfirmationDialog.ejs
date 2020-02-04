@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
-import <%- nameCp -%>DetailPanel from './<%- nameLc -%>-detail-panel/<%- nameCp -%>DetailPanel'
+import <%- nameOnPascal -%>DetailPanel from './<%- nameLc -%>-detail-panel/<%- nameCp -%>DetailPanel'
 import { makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
 import Dialog from '@material-ui/core/Dialog';
@@ -29,7 +29,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function <%- nameCp -%>DeleteConfirmationDialog(props) {
+export default function <%- nameOnPascal -%>DeleteConfirmationDialog(props) {
   const classes = useStyles();
   const {
     permissions,
@@ -149,7 +149,7 @@ export default function <%- nameCp -%>DeleteConfirmationDialog(props) {
       </Grid>
 
       <DialogContent dividers>
-        <<%- nameCp -%>DetailPanel 
+        <<%- nameOnPascal -%>DetailPanel 
           permissions={permissions}
           item={item}
           dialog={false}
@@ -179,7 +179,7 @@ export default function <%- nameCp -%>DeleteConfirmationDialog(props) {
     </Dialog>
   );
 }
-<%- nameCp -%>DeleteConfirmationDialog.propTypes = {
+<%- nameOnPascal -%>DeleteConfirmationDialog.propTypes = {
   permissions: PropTypes.object,
   item: PropTypes.object.isRequired,
   handleAccept: PropTypes.func.isRequired,

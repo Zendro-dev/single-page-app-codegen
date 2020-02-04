@@ -6,7 +6,7 @@ import Tab from '@material-ui/core/Tab';
 import { useTranslation } from 'react-i18next';
 <%}-%>
 
-export default function <%- nameCp _%>AssociationsMenuTabs(props) {
+export default function <%- nameOnPascal _%>AssociationsMenuTabs(props) {
 <%if(sortedAssociations.length === 0){-%>
   const { t } = useTranslation();
 <%}-%>
@@ -35,7 +35,7 @@ export default function <%- nameCp _%>AssociationsMenuTabs(props) {
     </div>
   );
 }
-<%- nameCp _%>AssociationsMenuTabs.propTypes = {
+<%- nameOnPascal _%>AssociationsMenuTabs.propTypes = {
   associationSelected: PropTypes.string.isRequired,
   handleClick: PropTypes.func.isRequired,
 };

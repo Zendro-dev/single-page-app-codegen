@@ -51,7 +51,7 @@ const useToolbarStyles = makeStyles(theme => ({
   },
 }));
 
-export default function <%- nameCp -%>EnhancedTableToolbar(props) {
+export default function <%- nameOnPascal -%>EnhancedTableToolbar(props) {
   const classes = useToolbarStyles();
   const { t } = useTranslation();
   const {
@@ -294,7 +294,7 @@ export default function <%- nameCp -%>EnhancedTableToolbar(props) {
     </Toolbar>
   );
 };
-<%- nameCp -%>EnhancedTableToolbar.propTypes = {
+<%- nameOnPascal -%>EnhancedTableToolbar.propTypes = {
   search: PropTypes.string.isRequired,
   onSearchEnter: PropTypes.func.isRequired,
   handleAddClicked: PropTypes.func.isRequired,

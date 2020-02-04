@@ -7,7 +7,7 @@ import { useSnackbar } from 'notistack';
 import PropTypes from 'prop-types';
 import api from '../../../../../../../../../../../requests/requests.index.js';
 import { makeCancelable } from '../../../../../../../../../../../utils'
-import <%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferViewToolbar from './components/<%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferViewToolbar';
+import <%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferViewToolbar from './components/<%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferViewToolbar';
 import TablePagination from '@material-ui/core/TablePagination';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
@@ -78,7 +78,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function <%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferView(props) {
+export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferView(props) {
   const classes = useStyles();
   const { t } = useTranslation();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
@@ -587,14 +587,28 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToAddTr
                     setItemsB(nitemsB);
               } else { // deleted item || !newItem
                 //remove from lidsToAdd
-                handleRemoveItem(null, nitemsB[i]);
+<%if(sortedAssociations[aindex].type === 'to_one'){-%>
+                lidsToAdd.current = [];
+                setThereAreItemsToAdd(false);
+<%} else {-%>
+                lidsToAdd.current.splice(lidsToAdd.current.indexOf(nitemsB[i].id), 1);
+              
+                if(lidsToAdd.current.length === 0) {
+                  setThereAreItemsToAdd(false);
+                }
+<%}-%>
+
+                updateHeights();
+                setDataTrigger(prevDataTrigger => !prevDataTrigger);
+                setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+                handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', nitemsB[i].id);
               }
               foundB = true;
             }
           }
           //...for done
     }
-  }, [lastModelChanged]);
+  }, [lastModelChanged, items, itemsB, handleUntransfer]);
   
   useEffect(() => {
     //return if this flag is set
@@ -779,13 +793,7 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToAddTr
     lidsToAdd.current = [];
     setThereAreItemsToAdd(false);
   <%} else {-%>
-    for(let i=0; i<lidsToAdd.current.length; ++i)
-    {
-      if(lidsToAdd.current[i] === item.id) {
-        lidsToAdd.current.splice(i, 1);
-        break;
-      }
-    }
+    lidsToAdd.current.splice(lidsToAdd.current.indexOf(item.id), 1);
 
     if(lidsToAdd.current.length === 0) {
       setThereAreItemsToAdd(false);
@@ -808,7 +816,7 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToAddTr
           <Card className={classes.card}>
 
             {/* Toolbar */}
-            <<%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferViewToolbar 
+            <<%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferViewToolbar 
               title={'<%- sortedAssociations[aindex].targetModelPlCp _%>'}
               titleIcon={1}
               search={search}
@@ -1017,7 +1025,7 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToAddTr
           <Card className={classes.card}>
 
             {/* Toolbar */}
-            <<%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferViewToolbar 
+            <<%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferViewToolbar 
               title={'<%- (sortedAssociations[aindex].type === 'to_one') ? sortedAssociations[aindex].targetModelCp : sortedAssociations[aindex].targetModelPlCp %>'}
               titleIcon={2}
               search={searchB}
@@ -1188,7 +1196,7 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToAddTr
     </div>
   );
 }
-<%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferView.propTypes = {
+<%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferView.propTypes = {
   idsToAdd: PropTypes.array.isRequired,
   handleTransfer: PropTypes.func.isRequired,
   handleUntransfer: PropTypes.func.isRequired,

@@ -31,7 +31,7 @@ const useToolbarStyles = makeStyles(theme => ({
     },
 }));
 
-export default function <%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferViewToolbar(props) {
+export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferViewToolbar(props) {
   const classes = useToolbarStyles();
   const { t } = useTranslation();
   const {
@@ -234,7 +234,7 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToAddTr
     </div>
   );
 };
-<%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferViewToolbar.propTypes = {
+<%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferViewToolbar.propTypes = {
   search: PropTypes.string.isRequired,
   title: PropTypes.string.isRequired,
   titleIcon: PropTypes.number,

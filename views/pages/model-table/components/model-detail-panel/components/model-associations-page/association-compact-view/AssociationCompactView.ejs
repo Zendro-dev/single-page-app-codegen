@@ -6,7 +6,7 @@ import { useSnackbar } from 'notistack';
 import PropTypes from 'prop-types';
 import api from '../../../../../../../../../../requests/requests.index.js';
 import { makeCancelable } from '../../../../../../../../../../utils'
-import <%- sortedAssociations[aindex].relationNameCp _%>CompactViewToolbar from './components/<%- sortedAssociations[aindex].relationNameCp _%>CompactViewToolbar';
+import <%- sortedAssociations[aindex].relationNameOnPascal _%>CompactViewToolbar from './components/<%- sortedAssociations[aindex].relationNameCp _%>CompactViewToolbar';
 import TablePagination from '@material-ui/core/TablePagination';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
@@ -65,7 +65,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function <%- sortedAssociations[aindex].relationNameCp _%>CompactView(props) {
+export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>CompactView(props) {
   const classes = useStyles();
   const { t } = useTranslation();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
@@ -285,7 +285,7 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>Compact
             }
             //...item not found
       }//done
-  }, [lastModelChanged, item.id]);
+  }, [lastModelChanged, items, item.id]);
 
   useEffect(() => {
     //return if this flag is set
@@ -384,7 +384,7 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>Compact
             <Card className={classes.card}>
 
               {/* Toolbar */}
-              <<%- sortedAssociations[aindex].relationNameCp _%>CompactViewToolbar 
+              <<%- sortedAssociations[aindex].relationNameOnPascal _%>CompactViewToolbar 
                 title={'<%- (sortedAssociations[aindex].type === 'to_one') ? sortedAssociations[aindex].targetModelCp : sortedAssociations[aindex].targetModelPlCp %>'}
                 search={search}
                 onSearchEnter={handleSearchEnter}
@@ -516,7 +516,7 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>Compact
     </div>
   );
 }
-<%- sortedAssociations[aindex].relationNameCp _%>CompactView.propTypes = {
+<%- sortedAssociations[aindex].relationNameOnPascal _%>CompactView.propTypes = {
   item: PropTypes.object.isRequired,
   handleClickOn<%- sortedAssociations[aindex].relationNameCp _%>Row: PropTypes.func,
 };

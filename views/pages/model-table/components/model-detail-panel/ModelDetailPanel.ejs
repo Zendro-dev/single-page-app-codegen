@@ -7,15 +7,15 @@ import { makeCancelable } from '../../../../../../../utils'
 import { makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
-import <%- nameCp _%>AttributesPage from './components/<%- nameLc _%>-attributes-page/<%- nameCp _%>AttributesPage'
-import <%- nameCp _%>AssociationsPage from './components/<%- nameLc _%>-associations-page/<%- nameCp _%>AssociationsPage'
-import <%- nameCp -%>UpdatePanel from '../<%- nameLc -%>-update-panel/<%- nameCp -%>UpdatePanel'
-import <%- nameCp -%>DeleteConfirmationDialog from '../<%- nameCp -%>DeleteConfirmationDialog'
+import <%- nameOnPascal _%>AttributesPage from './components/<%- nameLc _%>-attributes-page/<%- nameCp _%>AttributesPage'
+import <%- nameOnPascal _%>AssociationsPage from './components/<%- nameLc _%>-associations-page/<%- nameCp _%>AssociationsPage'
+import <%- nameOnPascal -%>UpdatePanel from '../<%- nameLc -%>-update-panel/<%- nameCp -%>UpdatePanel'
+import <%- nameOnPascal -%>DeleteConfirmationDialog from '../<%- nameCp -%>DeleteConfirmationDialog'
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ) {
   if(sortedAssociatedModels[i].targetModel !== name) {-%>
-import <%- sortedAssociatedModels[i].targetModelCp _%> DetailPanel from '../../../<%- sortedAssociatedModels[i].targetModelLc _%>-table/components/<%- sortedAssociatedModels[i].targetModelLc _%>-detail-panel/<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel'
+import <%- sortedAssociatedModels[i].targetModelOnPascal _%> DetailPanel from '../../../<%- sortedAssociatedModels[i].targetModelLc _%>-table/components/<%- sortedAssociatedModels[i].targetModelLc _%>-detail-panel/<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel'
 <%} else {-%>
-import <%- sortedAssociatedModels[i].targetModelCp _%> DetailPanelB from '../../../<%- sortedAssociatedModels[i].targetModelLc _%>-table/components/<%- sortedAssociatedModels[i].targetModelLc _%>-detail-panel/<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel'
+import <%- sortedAssociatedModels[i].targetModelOnPascal _%> DetailPanelB from '../../../<%- sortedAssociatedModels[i].targetModelLc _%>-table/components/<%- sortedAssociatedModels[i].targetModelLc _%>-detail-panel/<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel'
 <%}}-%>
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
@@ -67,7 +67,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function <%- nameCp _%>DetailPanel(props) {
+export default function <%- nameOnPascal _%>DetailPanel(props) {
   const classes = useStyles();
   const { t } = useTranslation();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
@@ -508,7 +508,7 @@ export default function <%- nameCp _%>DetailPanel(props) {
 
               <Grid item xs={12}>
                 {/* Attributes Page */}
-                <<%- nameCp _%>AttributesPage
+                <<%- nameOnPascal _%>AttributesPage
                   item={itemState}
                   valueOkStates={valueOkStates}
                 />
@@ -527,7 +527,7 @@ export default function <%- nameCp _%>DetailPanel(props) {
     
               <Grid item xs={12}>
                 {/* Associations Page */}
-                <<%- nameCp _%>AssociationsPage
+                <<%- nameOnPascal _%>AssociationsPage
                   item={itemState}
                   deleted={deleted}
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
@@ -548,7 +548,7 @@ export default function <%- nameCp _%>DetailPanel(props) {
 
             <Grid item xs={12}>
               {/* Attributes Page */}
-              <<%- nameCp _%>AttributesPage
+              <<%- nameOnPascal _%>AttributesPage
                 item={itemState}
                 valueOkStates={valueOkStates}
               />
@@ -556,7 +556,7 @@ export default function <%- nameCp _%>DetailPanel(props) {
   
             <Grid item xs={12}>
               {/* Associations Page */}
-              <<%- nameCp _%>AssociationsPage
+              <<%- nameOnPascal _%>AssociationsPage
                 item={itemState}
                 deleted={deleted}
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
@@ -571,7 +571,7 @@ export default function <%- nameCp _%>DetailPanel(props) {
 
       {/* Dialog: Update Panel */}
       {(updateDialogOpen) && (
-        <<%- nameCp -%>UpdatePanel
+        <<%- nameOnPascal -%>UpdatePanel
           permissions={permissions}
           item={updateItem}
           handleClose={handleUpdateDialogClose}
@@ -580,7 +580,7 @@ export default function <%- nameCp _%>DetailPanel(props) {
 
       {/* Dialog: Delete Confirmation */}
       {(deleteConfirmationDialogOpen) && (
-        <<%- nameCp -%>DeleteConfirmationDialog
+        <<%- nameOnPascal -%>DeleteConfirmationDialog
           permissions={permissions}
           item={deleteConfirmationItem}
           handleAccept={handleDeleteConfirmationAccept}
@@ -592,9 +592,9 @@ export default function <%- nameCp _%>DetailPanel(props) {
       {/* Dialog: <%- sortedAssociatedModels[i].targetModelCp %> Detail Panel */}
       {(<%- sortedAssociatedModels[i].targetModelLc _%>DetailDialogOpen) && (
 <%if(sortedAssociatedModels[i].targetModel !== name) {-%>
-        <<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel
+        <<%- sortedAssociatedModels[i].targetModelOnPascal _%>DetailPanel
 <%} else {-%>
-        <<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanelB
+        <<%- sortedAssociatedModels[i].targetModelOnPascal _%>DetailPanelB
 <%}-%>
           permissions={permissions}
           item={<%- sortedAssociatedModels[i].targetModelLc _%>DetailItem}
@@ -606,7 +606,7 @@ export default function <%- nameCp _%>DetailPanel(props) {
     </div>
   );
 }
-<%- nameCp _%>DetailPanel.propTypes = {
+<%- nameOnPascal _%>DetailPanel.propTypes = {
   permissions: PropTypes.object,
   item: PropTypes.object.isRequired,
   dialog: PropTypes.bool,

@@ -10,13 +10,13 @@ import moment from "moment";
 import PropTypes from 'prop-types';
 import api from '../../../../../requests/requests.index.js'
 import { makeCancelable } from '../../../../../utils'
-import <%- nameCp -%>EnhancedTableHead from './components/<%- nameCp -%>EnhancedTableHead'
-import <%- nameCp -%>EnhancedTableToolbar from './components/<%- nameCp -%>EnhancedTableToolbar'
-import <%- nameCp -%>CreatePanel from './components/<%- nameLc -%>-create-panel/<%- nameCp -%>CreatePanel'
-import <%- nameCp -%>UpdatePanel from './components/<%- nameLc -%>-update-panel/<%- nameCp -%>UpdatePanel'
-import <%- nameCp -%>DetailPanel from './components/<%- nameLc -%>-detail-panel/<%- nameCp -%>DetailPanel'
-import <%- nameCp -%>DeleteConfirmationDialog from './components/<%- nameCp -%>DeleteConfirmationDialog'
-import <%- nameCp -%>UploadFileDialog from './components/<%- nameCp -%>UploadFileDialog'
+import <%- nameOnPascal -%>EnhancedTableHead from './components/<%- nameCp -%>EnhancedTableHead'
+import <%- nameOnPascal -%>EnhancedTableToolbar from './components/<%- nameCp -%>EnhancedTableToolbar'
+import <%- nameOnPascal -%>CreatePanel from './components/<%- nameLc -%>-create-panel/<%- nameCp -%>CreatePanel'
+import <%- nameOnPascal -%>UpdatePanel from './components/<%- nameLc -%>-update-panel/<%- nameCp -%>UpdatePanel'
+import <%- nameOnPascal -%>DetailPanel from './components/<%- nameLc -%>-detail-panel/<%- nameCp -%>DetailPanel'
+import <%- nameOnPascal -%>DeleteConfirmationDialog from './components/<%- nameCp -%>DeleteConfirmationDialog'
+import <%- nameOnPascal -%>UploadFileDialog from './components/<%- nameCp -%>UploadFileDialog'
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -30,7 +30,6 @@ import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
 import Fade from '@material-ui/core/Fade';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import LinearProgress from '@material-ui/core/LinearProgress';
 import Typography from '@material-ui/core/Typography';
 import Delete from '@material-ui/icons/DeleteOutline';
 import Edit from '@material-ui/icons/Edit';
@@ -41,7 +40,7 @@ const useStyles = makeStyles(theme => ({
         marginTop: theme.spacing(7),
     },
     paper: {
-        overflowX: 'hidden',
+        overflowX: 'auto',
     },
     tableWrapper: {
       height: '64vh',
@@ -86,7 +85,7 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-export default function <%- nameCp -%>EnhancedTable(props) {
+export default function <%- nameOnPascal -%>EnhancedTable(props) {
   const classes = useStyles();
   const { permissions } = props;
   const { t } = useTranslation();
@@ -343,7 +342,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
       //clear changes state
       dispatch(clearChanges());
     }
-  }, [changes]);
+  }, [changes, dispatch]);
 
   useEffect(() => {
     //return if this flag is set
@@ -789,7 +788,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
               <Paper className={classes.paper}>
 
                 {/* Toolbar */}
-                <<%- nameCp -%>EnhancedTableToolbar
+                <<%- nameOnPascal -%>EnhancedTableToolbar
                   permissions={permissions}
                   search={search}
                   onSearchEnter={handleSearchEnter}
@@ -866,7 +865,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
                   <Table stickyHeader size='small' ref={tref}>
 
                     {/* Table Head */}
-                    <<%- nameCp -%>EnhancedTableHead
+                    <<%- nameOnPascal -%>EnhancedTableHead
                       permissions={permissions}
                       order={order}
                       orderBy={orderBy}
@@ -1021,7 +1020,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
 
       {/* Dialog: Create Panel */}
       {(createDialogOpen) && (
-        <<%- nameCp -%>CreatePanel
+        <<%- nameOnPascal -%>CreatePanel
           permissions={permissions}
           handleClose={handleCreateDialogClose}
         />
@@ -1029,7 +1028,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
 
       {/* Dialog: Update Panel */}
       {(updateDialogOpen) && (
-        <<%- nameCp -%>UpdatePanel
+        <<%- nameOnPascal -%>UpdatePanel
           permissions={permissions}
           item={updateItem}
           handleClose={handleUpdateDialogClose}
@@ -1038,7 +1037,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
 
       {/* Dialog: Detail Panel */}
       {(detailDialogOpen) && (
-        <<%- nameCp -%>DetailPanel
+        <<%- nameOnPascal -%>DetailPanel
           permissions={permissions}
           item={detailItem}
           dialog={true}
@@ -1048,7 +1047,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
 
       {/* Dialog: Delete Confirmation */}
       {(deleteConfirmationDialogOpen) && (
-        <<%- nameCp -%>DeleteConfirmationDialog
+        <<%- nameOnPascal -%>DeleteConfirmationDialog
           permissions={permissions}
           item={deleteConfirmationItem}
           handleAccept={handleDeleteConfirmationAccept}
@@ -1058,7 +1057,7 @@ export default function <%- nameCp -%>EnhancedTable(props) {
 
       {/* Dialog: Upload File */}
       {(uploadFileDialogOpen) && (
-        <<%- nameCp -%>UploadFileDialog
+        <<%- nameOnPascal -%>UploadFileDialog
           handleCancel={handleBulkUploadCancel}
           handleDone={handleBulkUploadDone}
         />
@@ -1067,6 +1066,6 @@ export default function <%- nameCp -%>EnhancedTable(props) {
   );
 }
 
-<%- nameCp -%>EnhancedTable.propTypes = {
+<%- nameOnPascal -%>EnhancedTable.propTypes = {
   permissions: PropTypes.object,
 };

@@ -3,12 +3,12 @@ import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
-import <%- nameCp _%>AttributesPage from './components/<%- nameLc _%>-attributes-page/<%- nameCp _%>AttributesPage'
-import <%- nameCp _%>AssociationsPage from './components/<%- nameLc _%>-associations-page/<%- nameCp _%>AssociationsPage'
-import <%- nameCp _%>TabsA from './components/<%- nameCp _%>TabsA'
-import <%- nameCp _%>ConfirmationDialog from './components/<%- nameCp _%>ConfirmationDialog'
+import <%- nameOnPascal _%>AttributesPage from './components/<%- nameLc _%>-attributes-page/<%- nameCp _%>AttributesPage'
+import <%- nameOnPascal _%>AssociationsPage from './components/<%- nameLc _%>-associations-page/<%- nameCp _%>AssociationsPage'
+import <%- nameOnPascal _%>TabsA from './components/<%- nameCp _%>TabsA'
+import <%- nameOnPascal _%>ConfirmationDialog from './components/<%- nameCp _%>ConfirmationDialog'
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
-import <%- sortedAssociatedModels[i].targetModelCp _%> DetailPanel from '../../../<%- sortedAssociatedModels[i].targetModelLc _%>-table/components/<%- sortedAssociatedModels[i].targetModelLc _%>-detail-panel/<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel'
+import <%- sortedAssociatedModels[i].targetModelOnPascal _%> DetailPanel from '../../../<%- sortedAssociatedModels[i].targetModelLc _%>-table/components/<%- sortedAssociatedModels[i].targetModelLc _%>-detail-panel/<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel'
 <%}-%>
 import api from '../../../../../../../requests/requests.index.js'
 import { makeCancelable } from '../../../../../../../utils'
@@ -56,12 +56,14 @@ const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function <%- nameCp _%>CreatePanel(props) {
+export default function <%- nameOnPascal _%>CreatePanel(props) {
   const classes = useStyles();
   const { t } = useTranslation();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const {
+<%if(sortedAssociatedModels.length>0){-%>
     permissions,
+<%}-%>
     handleClose,
   } = props;
 
@@ -496,7 +498,7 @@ export default function <%- nameCp _%>CreatePanel(props) {
     return makeCancelable( new Promise(resolve => {
       window.setTimeout(function() { 
         resolve(); 
-      }, debounceTimeout*5);
+      }, debounceTimeout);
     }));
   };
 
@@ -509,8 +511,7 @@ export default function <%- nameCp _%>CreatePanel(props) {
           <Tooltip title={ t('modelPanels.cancel') }>
             <IconButton 
               edge="start" 
-              color="inherit" 
-              onClick={handleCancel}
+              color="inherit"
               onClick={(event) => {
                 if(!isCanceling.current){
                   isCanceling.current = true;
@@ -547,7 +548,7 @@ export default function <%- nameCp _%>CreatePanel(props) {
           <Grid item xs={12}>  
             {/* TabsA: Menú */}
             <div className={classes.tabsA}>
-              <<%- nameCp _%>TabsA
+              <<%- nameOnPascal _%>TabsA
                 value={tabsValue}
                 handleChange={handleTabsChange}
               />
@@ -556,7 +557,7 @@ export default function <%- nameCp _%>CreatePanel(props) {
 
           <Grid item xs={12}>
             {/* Attributes Page [0] */}
-            <<%- nameCp _%>AttributesPage
+            <<%- nameOnPascal _%>AttributesPage
               hidden={tabsValue !== 0}
               valueOkStates={valueOkStates}
 <%if(hasOwnForeingKeys){-%>
@@ -568,7 +569,7 @@ export default function <%- nameCp _%>CreatePanel(props) {
 
           <Grid item xs={12}>
             {/* Associations Page [1] */}
-            <<%- nameCp _%>AssociationsPage
+            <<%- nameOnPascal _%>AssociationsPage
               hidden={tabsValue !== 1}
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
               <%- sortedAssociations[i].relationNameLc _%>IdsToAdd={<%- sortedAssociations[i].relationNameLc _%>IdsToAddState}
@@ -583,7 +584,7 @@ export default function <%- nameCp _%>CreatePanel(props) {
         </Grid>
 
         {/* Confirmation Dialog */}
-        <<%- nameCp _%>ConfirmationDialog
+        <<%- nameOnPascal _%>ConfirmationDialog
           open={confirmationOpen}
           title={confirmationTitle}
           text={confirmationText}
@@ -596,7 +597,7 @@ export default function <%- nameCp _%>CreatePanel(props) {
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
         {/* Dialog: <%- sortedAssociatedModels[i].targetModelCp %> Detail Panel */}
         {(<%- sortedAssociatedModels[i].targetModelLc _%>DetailDialogOpen) && (
-          <<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel
+          <<%- sortedAssociatedModels[i].targetModelOnPascal _%>DetailPanel
             permissions={permissions}
             item={<%- sortedAssociatedModels[i].targetModelLc _%>DetailItem}
             dialog={true}
@@ -609,7 +610,7 @@ export default function <%- nameCp _%>CreatePanel(props) {
     </Dialog>
   );
 }
-<%- nameCp _%>CreatePanel.propTypes = {
+<%- nameOnPascal _%>CreatePanel.propTypes = {
   permissions: PropTypes.object,
   handleClose: PropTypes.func.isRequired,
 };
