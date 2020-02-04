@@ -114,7 +114,7 @@ export default function <%- nameCp _%>DetailPanel(props) {
 
     //cleanup on unmounted.
     return function cleanup() {
-      cancelablePromises.current.forEach(p => { if(p !== null){ p.cancel(); } });
+      cancelablePromises.current.forEach(p => p.cancel());
       cancelablePromises.current = [];
     };
   }, []);
@@ -181,12 +181,12 @@ export default function <%- nameCp _%>DetailPanel(props) {
       API Request: deleteItem
     */
     let cancelableApiReq = makeCancelable(api.<%- nameLc -%>.deleteItem(graphqlServerUrl, variables));
-    let cancelableApiReqIndex = cancelablePromises.current.push(cancelableApiReq);
+    cancelablePromises.current.push(cancelableApiReq);
     cancelableApiReq
       .promise
       .then(response => {
         //delete from cancelables
-        if(cancelableApiReqIndex>0) {cancelablePromises.current.splice(cancelableApiReqIndex-1, 1, null)}
+        cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
         //check response
         if(
           response.data &&

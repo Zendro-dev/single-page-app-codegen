@@ -117,7 +117,7 @@ export default function <%- nameCp _%>CreatePanel(props) {
 
     //cleanup on unmounted.
     return function cleanup() {
-      cancelablePromises.current.forEach(p => { if(p !== null){ p.cancel(); } });
+      cancelablePromises.current.forEach(p => p.cancel());
       cancelablePromises.current = [];
     };
   }, []);
@@ -241,12 +241,12 @@ export default function <%- nameCp _%>CreatePanel(props) {
       API Request: createItem
     */
     let cancelableApiReq = makeCancelable(api.<%- nameLc _%>.createItem(graphqlServerUrl, variables));
-    let cancelableApiReqIndex = cancelablePromises.current.push(cancelableApiReq);
+    cancelablePromises.current.push(cancelableApiReq);
     cancelableApiReq
       .promise
       .then(response => {
         //delete from cancelables
-        if(cancelableApiReqIndex>0) {cancelablePromises.current.splice(cancelableApiReqIndex-1, 1, null)}
+        cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
         //check response
         if (
           response.data &&
@@ -319,12 +319,12 @@ export default function <%- nameCp _%>CreatePanel(props) {
       //debounce
       isDebouncingTabsChange.current = true;
       let cancelableTimer = startTimerToDebounceTabsChange();
-      let cancelableIndex = cancelablePromises.current.push(cancelableTimer);
+      cancelablePromises.current.push(cancelableTimer);
       cancelableTimer
         .promise
         .then(() => {
           //delete from cancelables
-          if(cancelableIndex>0) {cancelablePromises.current.splice(cancelableIndex-1, 1, null)}
+          cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableTimer), 1)}
           //clear flag
           isDebouncingTabsChange.current = false;
           //check

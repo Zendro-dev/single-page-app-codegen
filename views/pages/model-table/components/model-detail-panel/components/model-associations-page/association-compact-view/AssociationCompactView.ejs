@@ -132,13 +132,12 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>Compact
       pageRef.current * rowsPerPage, //paginationOffset
       rowsPerPage, //paginationLimit
     ));
-    let cancelableApiReqIndex = cancelablePromises.current.push(cancelableApiReq);
+    cancelablePromises.current.push(cancelableApiReq);
     cancelableApiReq
       .promise
       .then(response => {
         //delete from cancelables
-        if(cancelableApiReqIndex>0) {cancelablePromises.current.splice(cancelableApiReqIndex-1, 1, null)}
-        //check response
+        cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
         if (
             response.data &&
             response.data.data
@@ -228,7 +227,7 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>Compact
 
     //cleanup on unmounted.
     return function cleanup() {
-      cancelablePromises.current.forEach(p => { if(p !== null){ p.cancel(); } });
+      cancelablePromises.current.forEach(p => p.cancel());
       cancelablePromises.current = [];
     };
   }, []);

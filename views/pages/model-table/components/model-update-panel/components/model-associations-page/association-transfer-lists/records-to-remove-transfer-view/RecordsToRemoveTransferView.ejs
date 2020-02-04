@@ -187,12 +187,12 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToRemov
       rowsPerPage, //paginationLimit
       // ops
     ));
-    let cancelableApiReqIndex = cancelablePromises.current.push(cancelableApiReq);
+    cancelablePromises.current.push(cancelableApiReq);
     cancelableApiReq
       .promise
       .then(response => {
         //delete from cancelables
-        if(cancelableApiReqIndex>0) {cancelablePromises.current.splice(cancelableApiReqIndex-1, 1, null)}
+        cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
         //check response
         if (
             response.data &&
@@ -303,12 +303,12 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToRemov
       API Request: countItems
     */
     let cancelableApiReq = makeCancelable(api.<%- sortedAssociations[aindex].targetModelLc _%>.getCountItems(graphqlServerUrl, searchB, ops));
-    let cancelableApiReqIndex = cancelablePromises.current.push(cancelableApiReq);
+    cancelablePromises.current.push(cancelableApiReq);
     cancelableApiReq
       .promise
       .then(response => {
         //delete from cancelables
-        if(cancelableApiReqIndex>0) {cancelablePromises.current.splice(cancelableApiReqIndex-1, 1, null)}
+        cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
         //check response
         if (
           response.data &&
@@ -350,12 +350,12 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToRemov
             rowsPerPageB, //paginationLimit
             ops
           ));
-          let cancelableApiReqIndexB = cancelablePromises.current.push(cancelableApiReqB);
+          cancelablePromises.current.push(cancelableApiReqB);
           cancelableApiReqB
             .promise
             .then(response => {
               //delete from cancelables
-              if(cancelableApiReqIndexB>0) {cancelablePromises.current.splice(cancelableApiReqIndexB-1, 1, null)}
+              cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReqB), 1);
               //check response
               if (
                 response.data &&
@@ -459,7 +459,7 @@ export default function <%- sortedAssociations[aindex].relationNameCp _%>ToRemov
 
     //cleanup on unmounted.
     return function cleanup() {
-      cancelablePromises.current.forEach(p => { if(p !== null){ p.cancel(); } });
+      cancelablePromises.current.forEach(p => p.cancel());
       cancelablePromises.current = [];
     };
   }, []);
