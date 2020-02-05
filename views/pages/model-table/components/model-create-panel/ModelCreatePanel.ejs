@@ -310,10 +310,8 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
   }
 
   const handleTabsChange = (event, newValue) => {
-    
-
     if(!isDebouncingTabsChange.current){
-      //save last value
+      //save & set last value
       lastTabValue.current = newValue;
       currentTabValue.current = newValue;
       setTabsValue(newValue);

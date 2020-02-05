@@ -36,14 +36,12 @@ import DeletedWarning from '@material-ui/icons/DeleteForeverOutlined';
 import UpdateWarning from '@material-ui/icons/ErrorOutline';
 import { amber, red } from '@material-ui/core/colors';
 
+const debounceTimeout = 500;
 const appBarHeight = 64;
 
 const useStyles = makeStyles(theme => ({
   root: {
     minWidth: 450,
-  },
-  appBar: {
-    height: appBarHeight,
   },
   title: {
     marginLeft: theme.spacing(2),
@@ -124,7 +122,13 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
   const [<%- sortedAssociatedModels[i].targetModelLc _%>DetailItem, set<%- sortedAssociatedModels[i].targetModelCp _%>DetailItem] = useState(undefined);
 <%}-%>
 
+  //debouncing & event contention
   const cancelablePromises = useRef([]);
+  const isSaving = useRef(false);
+  const isCanceling = useRef(false);
+  const isDebouncingTabsChange = useRef(false);
+  const currentTabValue = useRef(tabsValue);
+  const lastTabValue = useRef(tabsValue);
 
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
   const lastModelChanged = useSelector(state => state.changes.lastModelChanged);
@@ -403,7 +407,35 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
   }
 
   const handleTabsChange = (event, newValue) => {
-    setTabsValue(newValue);
+    if(!isDebouncingTabsChange.current){
+      //save & set last value
+      lastTabValue.current = newValue;
+      currentTabValue.current = newValue;
+      setTabsValue(newValue);
+      //debounce
+      isDebouncingTabsChange.current = true;
+      let cancelableTimer = startTimerToDebounceTabsChange();
+      cancelablePromises.current.push(cancelableTimer);
+      cancelableTimer
+        .promise
+        .then(() => {
+          //delete from cancelables
+          cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableTimer), 1);
+          //clear flag
+          isDebouncingTabsChange.current = false;
+          //check
+          if(lastTabValue.current !== currentTabValue.current){
+            setTabsValue(lastTabValue.current);
+            currentTabValue.current = lastTabValue.current;
+          }
+        })
+        .catch(() => {
+          return;
+        })
+    } else{
+      //save last value
+      lastTabValue.current = newValue;
+    }
   };
 
   const handleSetValue = (value, status, key) => {
@@ -421,9 +453,11 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
       setConfirmationAcceptText("");
       setConfirmationRejectText( t('modelPanels.updateAccept', "I UNDERSTAND"));
       handleAccept.current = () => {
+        isSaving.current = false;
         setConfirmationOpen(false);
       }
       handleReject.current = () => {
+        isSaving.current = false;
         setConfirmationOpen(false);
       }
       setConfirmationOpen(true);
@@ -440,6 +474,7 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
         setConfirmationOpen(false);
       }
       handleReject.current = () => {
+        isSaving.current = false;
         setConfirmationOpen(false);
       }
       setConfirmationOpen(true);
@@ -459,6 +494,7 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
           onClose(event, false, null);
         }
         handleReject.current = () => {
+          isCanceling.current = false;
           setConfirmationOpen(false);
         }
         setConfirmationOpen(true);
@@ -590,6 +626,13 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
 
 <%}-%>
 
+  const startTimerToDebounceTabsChange = () => {
+    return makeCancelable( new Promise(resolve => {
+      window.setTimeout(function() { 
+        resolve(); 
+      }, debounceTimeout);
+    }));
+  };
 
   return (
     <Dialog fullScreen open={open} onClose={handleCancel} TransitionComponent={Transition}>
@@ -599,7 +642,12 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
             <IconButton 
               edge="start" 
               color="inherit" 
-              onClick={handleCancel}
+              onClick={(event) => {
+                if(!isCanceling.current){
+                  isCanceling.current = true;
+                  handleCancel(event);
+                }
+              }}
             >
               <CloseIcon />
             </IconButton>
@@ -613,7 +661,12 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
               <Fab 
                 color="secondary" 
                 className={classes.fabButton}
-                onClick={handleSave}
+                onClick={(event) => {
+                  if(!isSaving.current){
+                    isSaving.current = true;
+                    handleSave(event);
+                  }
+                }}
               >
                 <SaveIcon />
               </Fab>
