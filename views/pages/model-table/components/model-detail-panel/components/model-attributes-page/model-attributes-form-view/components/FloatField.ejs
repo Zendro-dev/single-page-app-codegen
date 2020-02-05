@@ -25,12 +25,31 @@ export default function FloatField(props) {
     autoFocus,
   } = props;
 
+  function getInitialValue() {
+    if(text !== undefined && text !== null) {
+      
+      if(typeof text === 'string' && text.trim() !== '') {
+        return text;
+      
+      } else if(typeof text === 'number') {
+        return text.toString();
+      
+      } else {
+        return '';
+      
+      }
+    } else {
+      return  '';
+
+    }
+  }
+
   return (
       <TextField
         id={"float-field-"+itemKey+'-'+name}
         label={label}
         type="number"
-        value={(text) ? text : ''}
+        value={getInitialValue()}
         className={classes.textField}
         margin="normal"
         variant="outlined"

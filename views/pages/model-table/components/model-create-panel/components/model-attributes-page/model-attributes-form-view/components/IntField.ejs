@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@material-ui/core/styles';
@@ -31,12 +31,39 @@ export default function IntField(props) {
     handleSetValue,
   } = props;
 
+  const [value, setValue] = useState(getInitialValue());
   const [errorText, setErrorText] = useState(null);
   const [helperText, setHelperText] = useState(null);
-  const defaultValue = useRef((text !== undefined) ? text : '');
+  const [refresh, setRefresh] = useState(false);
   const intValue = useRef(getInitialIntValue());
   const textValue = useRef(getInitialTextValue());
+  const rvalueOk = useRef(valueOk);
   const error = useRef(false);
+
+  useEffect(() => {
+    if(refresh) {
+      setRefresh(false);
+    }
+  }, [refresh]);
+
+  function getInitialValue() {
+    if(text !== undefined && text !== null) {
+      
+      if(typeof text === 'string' && text.trim() !== '') {
+        return Math.round(parseFloat(text));
+      
+      } else if(typeof text === 'number') {
+        return text;
+      
+      } else {
+        return '';
+      
+      }
+    } else {
+      return  '';
+
+    }
+  }
 
   function getInitialIntValue() {
     if(text !== undefined && text !== null) {
@@ -79,114 +106,159 @@ export default function IntField(props) {
   return (
     <Grid container justify='flex-start' alignItems='center' spacing={2}>
       <Grid item>
-        <TextField
-          id={"int-field-"+itemKey+'-'+name}
-          value={(foreignKey === undefined) ? undefined : (text ? text : '')}
-          label={label}
-          type="number"
-          defaultValue={(foreignKey !== undefined) ? undefined : defaultValue.current}
-          className={classes.textField}
-          margin="normal"
-          variant="filled"
-          placeholder={ (foreignKey !== undefined) ? "" : t('modelPanels.integer') }
-          helperText={errorText!==null ? errorText : (helperText!==null ? helperText : "")}
-          error={errorText!== null}
-          autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
-          InputProps={{
-            endAdornment:
-              <InputAdornment position="end">
-                {(valueOk!==undefined&&valueOk===1) ? <CheckIcon color="primary" fontSize="small" /> : ''}
-              </InputAdornment>,
-              readOnly: (foreignKey !== undefined)
-          }}
-          InputLabelProps={{ 
-            shrink: true
-          }}
-          inputProps={{ 
-            spellCheck: 'false'
-          }}
-          
-          onChange={(event) => {
-            textValue.current = event.target.value;
-            intValue.current = Math.round(parseFloat(event.target.value));
+        {(!refresh) && (
+          <TextField
+            id={"int-field-"+itemKey+'-'+name}
+            value={value}
+            label={label}
+            type="number"
+            className={classes.textField}
+            margin="normal"
+            variant="filled"
+            placeholder={ (foreignKey !== undefined) ? "" : t('modelPanels.integer') }
+            helperText={errorText!==null ? errorText : (helperText!==null ? helperText : "")}
+            error={errorText!== null}
+            autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
+            InputProps={{
+              endAdornment:
+                <InputAdornment position="end">
+                  {(valueOk!==undefined&&valueOk===1) ? <CheckIcon color="primary" fontSize="small" /> : ''}
+                </InputAdornment>,
+                readOnly: (foreignKey !== undefined)
+            }}
+            InputLabelProps={{ 
+              shrink: true
+            }}
+            inputProps={{ 
+              spellCheck: 'false'
+            }}
+            
+            onChange={(event) => {
+              setValue(event.target.value);
+              textValue.current = event.target.value;
+              intValue.current = Math.round(parseFloat(event.target.value));
 
-            if(textValue.current !== null && textValue.current !== '' && !(isNaN(textValue.current)) && !(isNaN(intValue.current))) {
-              error.current = false;
-              setErrorText(null);
-              handleSetValue(intValue.current, 0, itemKey);
+              if(textValue.current !== null && textValue.current !== '' && !(isNaN(textValue.current)) && !(isNaN(intValue.current))) {
+                error.current = false;
+                setErrorText(null);
+                handleSetValue(intValue.current, 0, itemKey);
+                rvalueOk.current = 0;
 
-              //check max int32-bit value
-              if(intValue.current > 2147483647) {
-                error.current = true;
-                setErrorText( t('modelPanels.intMaxErr', 'This is an Int field, the maximum valid positive number is 2147483647. Entered value: ') + `${intValue.current}` );
-                setHelperText(null);
-                handleSetValue(null, -1, itemKey);
-                return;
-              }
-
-              //check min int32-bit value
-              if(intValue.current < -2147483647) {
-                error.current = true;
-                setErrorText( t('modelPanels.intMinErr', 'This is an Int field, the minimum valid negative number is -2147483647. Entered value: ') + `${intValue.current}` );
-                setHelperText(null);
-                handleSetValue(null, -1, itemKey);
-                return;
-              }
-
-              //check decimal-notation
-              if(event.target.value.includes(".")) {
-                setHelperText( t('modelPanels.intRoundedWarning', 'This is an Int field, the decimals will be rounded. Value taken: ')+ `${intValue.current}` );
-              } else {
-                //check e-notation
-                if(event.target.value.includes("e")) {
-                  setHelperText( t('modelPanels.valueTaken', 'Value taken: ')+ `${intValue.current}` );
-                } else {
+                //check max int32-bit value
+                if(intValue.current > 2147483647) {
+                  error.current = true;
+                  setErrorText( t('modelPanels.intMaxErr', 'This is an Int field, the maximum valid positive number is 2147483647. Entered value: ') + `${intValue.current}` );
                   setHelperText(null);
+                  handleSetValue(null, -1, itemKey);
+                  rvalueOk.current = -1;
+                  return;
                 }
+
+                //check min int32-bit value
+                if(intValue.current < -2147483647) {
+                  error.current = true;
+                  setErrorText( t('modelPanels.intMinErr', 'This is an Int field, the minimum valid negative number is -2147483647. Entered value: ') + `${intValue.current}` );
+                  setHelperText(null);
+                  handleSetValue(null, -1, itemKey);
+                  rvalueOk.current = -1;
+                  return;
+                }
+
+                //check decimal-notation
+                if(event.target.value.includes(".")) {
+                  setHelperText( t('modelPanels.intRoundedWarning', 'This is an Int field, the decimals will be rounded. Value taken: ')+ `${intValue.current}` );
+                } else {
+                  //check e-notation
+                  if(event.target.value.includes("e")) {
+                    setHelperText( t('modelPanels.valueTaken', 'Value taken: ')+ `${intValue.current}` );
+                  } else {
+                    setHelperText(null);
+                  }
+                }
+                
+              } else {
+                error.current = true;
+                setHelperText(null);
+                if(textValue.current === null || textValue.current === '') {
+                  setErrorText( t('modelPanels.undefinedNumber', 'Undefined number, no value will be sent for modification') );
+                  handleSetValue(null, 0, itemKey);
+                  rvalueOk.current = 0;
+                } else {
+                  setErrorText( t('modelPanels.invalidNumber', 'Invalid number') );
+                  handleSetValue(null, -1, itemKey);
+                  rvalueOk.current = -1;
+                }
+              }
+            }}
+
+            onBlur={(event) => {
+              if(foreignKey !== undefined) { return; }
+
+              if(!error.current) {
+                setErrorText(null);
+                if(textValue.current !== null && textValue.current !== '' && !(isNaN(textValue.current)) && !(isNaN(intValue.current))) {
+                  //set completed ok
+                  handleSetValue(intValue.current, 1, itemKey);
+                  rvalueOk.current = 1;
+                } else {
+                  //refresh
+                  setErrorText(null);
+                  setHelperText(null);
+                  setValue('');
+                  setRefresh(true);
+                }
+              } else {
+                if(rvalueOk.current === 0) {
+                   //refresh
+                   error.current = false;
+                   setErrorText(null);
+                   setHelperText(null);
+                   setValue('');
+                   setRefresh(true);
+                }
+              }
+            }}
+
+            onKeyDown={(event) => {
+              if(foreignKey !== undefined) { 
+                event.preventDefault();
+                return; 
+              }
+
+              if(event.key === 'Enter') {
+                if(!error.current) {
+                  if(textValue.current !== null && textValue.current !== '' && !(isNaN(textValue.current)) && !(isNaN(intValue.current))) {
+                    handleSetValue(intValue.current, 1, itemKey);
+                    rvalueOk.current = 1;
+                  } else {
+                    error.current = true;
+                    setHelperText(null);
+                    if(textValue.current === null || textValue.current === '') {
+                      setErrorText( t('modelPanels.undefinedNumber', 'Undefined number, no value will be sent for modification') );
+                      handleSetValue(null, 0, itemKey);
+                      rvalueOk.current = 0;
+                    } else {
+                      setErrorText( t('modelPanels.invalidNumber', 'Invalid number') );
+                      handleSetValue(null, -1, itemKey);
+                      rvalueOk.current = -1;
+                    }
+                  }
+                }
+                return;
               }
               
-            } else {
-              error.current = false;
-              setErrorText( t('modelPanels.invalidNumber', 'Invalid number') );
-              setHelperText(null);
-              handleSetValue(null, -1, itemKey);
-            }
-          }}
-
-          onBlur={(event) => {
-            if(foreignKey !== undefined) { return; }
-
-            if(!error.current) {
-              setErrorText(null);
-              if(textValue.current !== null && textValue.current !== '' && !(isNaN(textValue.current)) && !(isNaN(intValue.current))) {
-                handleSetValue(intValue.current, 1, itemKey);
-              } else {
-                handleSetValue(null, 0, itemKey);
+              if(/^[+\-.e]{1}$/.test(event.key)) {
+                return;
               }
-            }
-          }}
-
-          onKeyDown={(event) => {
-            if(foreignKey !== undefined) { return; }
-
-            if(event.key === 'Enter') {
-              if(!error.current) {
-                if(textValue.current !== null && textValue.current !== '' && !(isNaN(textValue.current)) && !(isNaN(intValue.current))) {
-                  handleSetValue(intValue.current, 1, itemKey);
-                } else {
-                  handleSetValue(null, 0, itemKey);
-                }
+              
+              if(/^\D{1}$/.test(event.key)) {
+                event.preventDefault();
+                return;
               }
-            } else if(/^[+\-.e]{1}$/.test(event.key)) {
-              if(textValue.current === null || textValue.current === '' || isNaN(textValue.current) || isNaN(intValue.current)) {
-                error.current = false;
-                setErrorText( t('modelPanels.invalidNumber', 'Invalid number') );
-                setHelperText(null);
-                handleSetValue(null, -1, itemKey);
-              }
-            }
-          }}
-        />
+
+            }}
+          />
+        )}
       </Grid>
       {(foreignKey !== undefined) && (
         <Grid item>

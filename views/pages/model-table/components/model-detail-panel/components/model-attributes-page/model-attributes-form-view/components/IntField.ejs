@@ -28,6 +28,25 @@ export default function IntField(props) {
     isForeignKey,
   } = props;
 
+  function getInitialValue() {
+    if(text !== undefined && text !== null) {
+      
+      if(typeof text === 'string' && text.trim() !== '') {
+        return Math.round(parseFloat(text));
+      
+      } else if(typeof text === 'number') {
+        return text;
+      
+      } else {
+        return '';
+      
+      }
+    } else {
+      return  '';
+
+    }
+  }
+
   return (
       <Grid container justify='flex-start' alignItems='center' spacing={2}>
         <Grid item>
@@ -35,7 +54,7 @@ export default function IntField(props) {
           id={"int-field-"+itemKey+'-'+name}
           label={label}
           type="number"
-          value={(text) ? text : ''}
+          value={getInitialValue()}
           className={classes.textField}
           margin="normal"
           variant="outlined"
