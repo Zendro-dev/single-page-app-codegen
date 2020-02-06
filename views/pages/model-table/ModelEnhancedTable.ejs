@@ -608,6 +608,13 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     }
   }
 
+  /**
+   * Handlers
+   */
+
+  /*
+   * Search handlers
+   */
   const handleSearchEnter = text => {
     if(text !== search)
     {
@@ -620,6 +627,9 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     }
   };
 
+  /*
+   * Sort handlers
+   */
   const handleRequestSort = (event, property) => {
     pageRef.current = 0;
     if(page !== 0) {
@@ -635,10 +645,9 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     }
   };
 
-  const handleClickOnRow = (event, item) => {
-    setDetailItem(item);
-  };
-
+  /*
+   * Pagination handlers
+   */
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -655,24 +664,34 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     }
   };
 
+  /**
+   * Detail-Panel handlers
+   */
+  const handleClickOnRow = (event, item) => {
+    setDetailItem(item);
+  };
+
+  const handleDetailDialogClose = (event) => {
+    dispatch(changesCompleted());
+    delayedCloseDetailPanel(event, 500);
+  }
+
+  const delayedCloseDetailPanel = async (event, ms) => {
+    await new Promise(resolve => {
+      //set timeout
+      window.setTimeout(function() {
+        setDetailDialogOpen(false);
+        setDetailItem(undefined);
+        resolve("ok");
+      }, ms);
+    });
+  };
+
+  /**
+   * Create-Panel handlers
+   */
   const handleCreateClicked = (event) => {
     setCreateDialogOpen(true);
-  }
-
-  const handleBulkImportClicked = (event) => {
-    setUploadFileDialogOpen(true);
-  }
-
-  const handleCsvTemplateClicked = (event) => {
-    getCsvTemplate();
-  }
-
-  const handleUpdateClicked = (event, item) => {
-    setUpdateItem(item);
-  }
-
-  const handleDeleteClicked = (event, item) => {
-    setDeleteConfirmationItem(item);
   }
 
   const handleCreateDialogClose = (event, status, newItem) => {
@@ -693,6 +712,13 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     });
   };
 
+  /**
+   * Update-Panel handlers
+   */
+  const handleUpdateClicked = (event, item) => {
+    setUpdateItem(item);
+  }
+
   const handleUpdateDialogClose = (event, status, oldItem, newItem) => {
     dispatch(changesCompleted());
     delayedCloseUpdatePanel(event, 500);
@@ -712,21 +738,18 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     });
   };
 
-  const handleDetailDialogClose = (event) => {
-    dispatch(changesCompleted());
-    delayedCloseDetailPanel(event, 500);
+  /**
+   * Delete-Panel handlers
+   */
+  const handleDeleteClicked = (event, item) => {
+    setDeleteConfirmationItem(item);
   }
 
-  const delayedCloseDetailPanel = async (event, ms) => {
-    await new Promise(resolve => {
-      //set timeout
-      window.setTimeout(function() {
-        setDetailDialogOpen(false);
-        setDetailItem(undefined);
-        resolve("ok");
-      }, ms);
-    });
-  };
+  const handleDeleteConfirmationAccept = (event, item) => {
+    dispatch(changesCompleted());
+    doDelete(event, item);
+    delayedCloseDeleteConfirmation(event, 500);
+  }
 
   const handleDeleteConfirmationReject = (event) => {
     dispatch(changesCompleted());
@@ -743,6 +766,13 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
       }, ms);
     });
   };
+
+  /**
+   * Bulk Upload-Dialog handlers
+   */
+  const handleBulkImportClicked = (event) => {
+    setUploadFileDialogOpen(true);
+  }
 
   const handleBulkUploadCancel = (event) => {
     delayedCloseBulkUploadDialog(event, 500);
@@ -770,10 +800,11 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     });
   };
 
-  const handleDeleteConfirmationAccept = (event, item) => {
-    dispatch(changesCompleted());
-    doDelete(event, item);
-    delayedCloseDeleteConfirmation(event, 500);
+  /*
+   * Download CSV Template handlers
+   */
+  const handleCsvTemplateClicked = (event) => {
+    getCsvTemplate();
   }
 
   return (

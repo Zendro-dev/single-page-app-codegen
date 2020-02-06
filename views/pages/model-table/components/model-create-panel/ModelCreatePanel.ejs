@@ -123,14 +123,6 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
       cancelablePromises.current = [];
     };
   }, []);
-
-  useEffect(() => {
-    //sync
-    currentTabValue.current = tabsValue;
-    if(lastTabValue.current !== tabsValue){
-      setTabsValue(lastTabValue.current);
-    }
-  }, [tabsValue]);
   
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
   useEffect(() => {
@@ -425,18 +417,24 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
       case '<%- sortedAssociations[i].relationName _%>':
 <%if((sortedAssociations[i].sqlType === 'belongsTo') && (sortedAssociations[i].foreignKey)){-%>
-        <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
-        <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.push(itemId);
-        set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current);
-        handleSetValue(itemId, 1, '<%- sortedAssociations[i].foreignKey _%>');
-        setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: itemId});
+        if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.indexOf(itemId) === -1) {
+          <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
+          <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.push(itemId);
+          set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current);
+          handleSetValue(itemId, 1, '<%- sortedAssociations[i].foreignKey _%>');
+          setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: itemId});
+        }
 <%} else if((sortedAssociations[i].sqlType === 'hasOne')){-%>
-        <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
-        <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.push(itemId);
-        set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current);
+        if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.indexOf(itemId) === -1) {
+          <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
+          <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.push(itemId);
+          set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current);
+        }
 <%} else {-%>
-        <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.push(itemId);
-        set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current);
+        if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.indexOf(itemId) === -1) {
+          <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.push(itemId);
+          set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current);
+        }
 <%}-%>
         break;
 <%}-%>
@@ -450,21 +448,19 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
     if(associationKey === '<%- sortedAssociations[i].relationName _%>') {
 <%if((sortedAssociations[i].sqlType === 'belongsTo') && (sortedAssociations[i].foreignKey)){-%>
-      <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
-      set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState([]);
-      handleSetValue(null, 0, '<%- sortedAssociations[i].foreignKey _%>');
-      setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: null});
+      if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.length > 0) {
+        <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
+        set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState([]);
+        handleSetValue(null, 0, '<%- sortedAssociations[i].foreignKey _%>');
+        setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: null});
+      }
 <%} else if((sortedAssociations[i].sqlType === 'hasOne')){-%>
       <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
       set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState([]);
 <%} else {-%>
-      for(let i=0; i<<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.length; ++i)
-      {
-        if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current[i] === itemId) {
-          <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.splice(i, 1);
-          set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current);
-          return;
-        }
+      let iof = <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.indexOf(itemId);
+      if(iof !== -1) {
+        <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.splice(iof, 1);
       }
 <%}-%>
       return;

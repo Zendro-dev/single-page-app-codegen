@@ -87,11 +87,13 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
   const isOnApiRequestRef = useRef(false);
   const isGettingFirstDataRef = useRef(true);
   const pageRef = useRef(0);
+  const lastFetchTime = useRef(null);
 
   const cancelablePromises = useRef([]);
 
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
   const lastModelChanged = useSelector(state => state.changes.lastModelChanged);
+  const lastChangeTimestamp = useSelector(state => state.changes.lastChangeTimestamp);
 
   const actionText = useRef(null);
   const action = useRef((key) => (
@@ -242,20 +244,25 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
   }, [getData]);
 
   useEffect(() => {
-    //check if this.association changed (items added or removed)
-    if(lastModelChanged&&lastModelChanged.<%- name _%>&&
-        lastModelChanged.<%- name _%>[String(item.id)]&&
-        lastModelChanged.<%- name _%>[String(item.id)].changedAssociations&&
-        lastModelChanged.<%- name _%>[String(item.id)].changedAssociations.<%- sortedAssociations[aindex].relationName _%>) {
-      
-          //reload
-          if (!isOnApiRequestRef.current) {
-            setDataTrigger(prevDataTrigger => !prevDataTrigger); 
-          } 
-          else { 
-            isPendingApiRequestRef.current = true; 
-          }
-    } else  //check if some item of this.association changed (edited)
+    //if new change
+    if(lastChangeTimestamp&&lastFetchTime.current&&lastFetchTime.current<lastChangeTimestamp) {
+      //update last fetch time
+      lastFetchTime.current = Date.now();
+
+      //check if this.association changed (items added or removed)
+      if(lastModelChanged&&lastModelChanged.<%- name _%>&&
+          lastModelChanged.<%- name _%>[String(item.id)]&&
+          lastModelChanged.<%- name _%>[String(item.id)].changedAssociations&&
+          lastModelChanged.<%- name _%>[String(item.id)].changedAssociations.<%- sortedAssociations[aindex].relationName _%>) {
+        
+            //reload
+            if (!isOnApiRequestRef.current) {
+              setDataTrigger(prevDataTrigger => !prevDataTrigger); 
+            } 
+            else { 
+              isPendingApiRequestRef.current = true; 
+            }
+      } else  //check if some item of this.association changed (edited)
       if(lastModelChanged&&
           lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>) {
             //lookup item
@@ -285,7 +292,8 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
             }
             //...item not found
       }//done
-  }, [lastModelChanged, items, item.id]);
+    }
+  }, [lastModelChanged, lastChangeTimestamp, items, item.id]);
 
   useEffect(() => {
     //return if this flag is set
@@ -320,7 +328,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
     } else { 
       setAreItemsReady(false); 
     }
-
+    lastFetchTime.current = Date.now();
   }, [items]);
 
   useEffect(() => {

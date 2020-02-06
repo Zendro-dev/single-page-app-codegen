@@ -86,6 +86,7 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
   const [open, setOpen] = useState(true);
   const [tabsValue, setTabsValue] = useState(0);
   const [valueOkStates, setValueOkStates] = useState(getInitialValueOkStates());
+  const lastFetchTime = useRef(Date.now());
   <%if(hasOwnForeingKeys){-%>
   const [foreignKeys, setForeignKeys] = useState(getInitialForeignKeys());
   <%}-%>
@@ -132,6 +133,7 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
 
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
   const lastModelChanged = useSelector(state => state.changes.lastModelChanged);
+  const lastChangeTimestamp = useSelector(state => state.changes.lastChangeTimestamp);
 
   const actionText = useRef(null);
   const action = (key) => (
@@ -155,21 +157,25 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
     //check if this.item changed
     if(lastModelChanged&&
       lastModelChanged.<%- name _%>&&
-      lastModelChanged.<%- name _%>[String(item.id)]) {
-          //updated item
-          if(lastModelChanged.<%- name _%>[String(item.id)].op === "update"&&
-              lastModelChanged.<%- name _%>[String(item.id)].newItem) {
-                //show alert
-                setUpdated(true);
-          } else {
-            //deleted item
-            if(lastModelChanged.<%- name _%>[String(item.id)].op === "delete") {
-                //show alert
-                setDeleted(true);
-            }
+      lastModelChanged.<%- name _%>[String(item.id)]&&
+      lastChangeTimestamp&&lastFetchTime.current&&lastFetchTime.current<lastChangeTimestamp) {
+        //update last fetch time
+        lastFetchTime.current = Date.now();
+
+        //updated item
+        if(lastModelChanged.<%- name _%>[String(item.id)].op === "update"&&
+            lastModelChanged.<%- name _%>[String(item.id)].newItem) {
+              //show alert
+              setUpdated(true);
+        } else {
+          //deleted item
+          if(lastModelChanged.<%- name _%>[String(item.id)].op === "delete") {
+              //show alert
+              setDeleted(true);
           }
+        }
     }
-  }, [lastModelChanged, item.id]);
+  }, [lastModelChanged, lastChangeTimestamp, item.id]);
 
   useEffect(() => {
     if(deleted&&updated) {

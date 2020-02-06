@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import <%- nameOnPascal -%>DetailPanel from './<%- nameLc -%>-detail-panel/<%- nameCp -%>DetailPanel'
@@ -39,31 +39,37 @@ export default function <%- nameOnPascal -%>DeleteConfirmationDialog(props) {
   } = props;
   const [open, setOpen] = useState(true);
   const { t } = useTranslation();
+  const lastFetchTime = useRef(Date.now());
 
   const [updated, setUpdated] = useState(false);
   const [deleted, setDeleted] = useState(false);
 
   const lastModelChanged = useSelector(state => state.changes.lastModelChanged);
+  const lastChangeTimestamp = useSelector(state => state.changes.lastChangeTimestamp);
 
   useEffect(() => {
     //check if this.item changed
     if(lastModelChanged&&
       lastModelChanged.<%- name _%>&&
-      lastModelChanged.<%- name _%>[String(item.id)]) {
-          //updated item
-          if(lastModelChanged.<%- name _%>[String(item.id)].op === "update"&&
-              lastModelChanged.<%- name _%>[String(item.id)].newItem) {
-                //show alert
-                setUpdated(true);
-          } else {
-            //deleted item
-            if(lastModelChanged.<%- name _%>[String(item.id)].op === "delete") {
-                //show alert
-                setDeleted(true);
-            }
+      lastModelChanged.<%- name _%>[String(item.id)]&&
+      lastChangeTimestamp&&lastFetchTime.current&&lastFetchTime.current<lastChangeTimestamp) {
+        //update last fetch time
+        lastFetchTime.current = Date.now();
+
+        //updated item
+        if(lastModelChanged.<%- name _%>[String(item.id)].op === "update"&&
+            lastModelChanged.<%- name _%>[String(item.id)].newItem) {
+              //show alert
+              setUpdated(true);
+        } else {
+          //deleted item
+          if(lastModelChanged.<%- name _%>[String(item.id)].op === "delete") {
+              //show alert
+              setDeleted(true);
           }
+        }
     }
-  }, [lastModelChanged, item.id]);
+  }, [lastModelChanged, lastChangeTimestamp, item.id]);
 
   useEffect(() => {
     if(deleted&&updated) {

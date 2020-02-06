@@ -105,6 +105,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   const isOnApiRequestRef = useRef(false);
   const isGettingFirstDataRef = useRef(true);
   const pageRef = useRef(0);
+  const lastFetchTime = useRef(null);
 
   /*
     State B (to add list)
@@ -122,14 +123,16 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   const isOnApiRequestRefB = useRef(false);
   const isGettingFirstDataRefB = useRef(true);
   const pageRefB = useRef(0);
+  const lastFetchTimeB = useRef(null);
 
   const [thereAreItemsToAdd, setThereAreItemsToAdd] = useState((idsToAdd && Array.isArray(idsToAdd) && idsToAdd.length > 0));
-  const lidsToAdd = useRef((idsToAdd && Array.isArray(idsToAdd)) ? idsToAdd : []);
+  const lidsToAdd = useRef((idsToAdd && Array.isArray(idsToAdd)) ? Array.from(idsToAdd) : []);
 
   const cancelablePromises = useRef([]);
 
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
   const lastModelChanged = useSelector(state => state.changes.lastModelChanged);
+  const lastChangeTimestamp = useSelector(state => state.changes.lastChangeTimestamp);
 
   const actionText = useRef(null);
   const action = useRef((key) => (
@@ -543,72 +546,96 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   }, [getDataB]);
 
   useEffect(() => {
-    if(lastModelChanged&&
-        lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>) {
-          //lookup item on table A
-          let nitems = Array.from(items);
-          //find item
-          let foundA = false;
-          for(let i=0; (i<nitems.length)&&!foundA; i++) {
-            //item found
-            if(lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>[String(nitems[i].id)]) {
-              //update item
-              if(lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>[String(nitems[i].id)].op === "update"&&
-                  lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>[String(nitems[i].id)].newItem) {
-                    //set new item
-                    nitems[i] = lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>[String(nitems[i].id)].newItem;
-                    setItems(nitems);
-              } else { // deleted item || !newItem
-                //reload A
-                if (!isOnApiRequestRef.current) {
-                  setDataTrigger(prevDataTrigger => !prevDataTrigger); 
-                } 
-                else { 
-                  isPendingApiRequestRef.current = true; 
-                }
-              }
-              foundA = true;
-            }
-          }
-          //...for done
+    /*
+     * Handle changes 
+     */
+    if(lastChangeTimestamp&&lastModelChanged&&lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>) {
+      
+      if(lastFetchTime.current&&lastFetchTime.current<lastChangeTimestamp)
+      { 
+        //update last fetch time
+        lastFetchTime.current = Date.now();
 
-          //lookup item on table B
-          let nitemsB = Array.from(itemsB);
-          //find item
-          let foundB = false;
-          for(let i=0; (i<nitemsB.length)&&!foundB; i++) {
-            //item found
-            if(lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>[String(nitemsB[i].id)]) {
-              //update item
-              if(lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>[String(nitemsB[i].id)].op === "update"&&
-                  lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>[String(nitemsB[i].id)].newItem) {
-                    //set new item
-                    nitemsB[i] = lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>[String(nitemsB[i].id)].newItem;
-                    setItemsB(nitemsB);
-              } else { // deleted item || !newItem
-                //remove from lidsToAdd
+        //lookup item on table A
+        let nitems = Array.from(items);
+        //find item
+        let foundA = false;
+        for(let i=0; (i<nitems.length)&&!foundA; i++) {
+          //item found
+          if(lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>[String(nitems[i].id)]) {
+            //update item
+            if(lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>[String(nitems[i].id)].op === "update"&&
+                lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>[String(nitems[i].id)].newItem) {
+                  //set new item
+                  nitems[i] = lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>[String(nitems[i].id)].newItem;
+                  setItems(nitems);
+            } else { // deleted item || !newItem
+              //reload A
+              if (!isOnApiRequestRef.current) {
+                setDataTrigger(prevDataTrigger => !prevDataTrigger); 
+              } 
+              else { 
+                isPendingApiRequestRef.current = true; 
+              }
+            }
+            foundA = true;
+          }
+        }
+        //...for done
+      }
+
+      if(lastFetchTimeB.current&&lastFetchTimeB.current<lastChangeTimestamp)
+      { 
+        //update last fetch time
+        lastFetchTimeB.current = Date.now();
+        
+        //lookup item on table B
+        let nitemsB = Array.from(itemsB);
+        //find item
+        let foundB = false;
+        for(let i=0; (i<nitemsB.length)&&!foundB; i++) {
+          //item found
+          if(lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>[String(nitemsB[i].id)]) {
+            //update item
+            if(lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>[String(nitemsB[i].id)].op === "update"&&
+                lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>[String(nitemsB[i].id)].newItem) {
+                  //set new item
+                  nitemsB[i] = lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>[String(nitemsB[i].id)].newItem;
+                  setItemsB(nitemsB);
+            } else { // deleted item || !newItem
+              //remove from lidsToAdd
 <%if(sortedAssociations[aindex].type === 'to_one'){-%>
+              if(lidsToAdd.current.length > 0) {
                 lidsToAdd.current = [];
                 setThereAreItemsToAdd(false);
-<%} else {-%>
-                lidsToAdd.current.splice(lidsToAdd.current.indexOf(nitemsB[i].id), 1);
-              
-                if(lidsToAdd.current.length === 0) {
-                  setThereAreItemsToAdd(false);
-                }
-<%}-%>
-
                 updateHeights();
+
                 setDataTrigger(prevDataTrigger => !prevDataTrigger);
                 setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
                 handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', nitemsB[i].id);
               }
-              foundB = true;
+<%} else {-%>
+              let iof = lidsToAdd.current.indexOf(nitemsB[i].id);
+              if(iof !== -1) { 
+                lidsToAdd.current.splice(iof, 1);
+                if(lidsToAdd.current.length === 0) {
+                  setThereAreItemsToAdd(false);
+                }
+                updateHeights();
+
+                setDataTrigger(prevDataTrigger => !prevDataTrigger);
+                setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+                handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', nitemsB[i].id);
+              }
+<%}-%>
             }
+            foundB = true;
           }
-          //...for done
+        }
+        //...for done
+      }
     }
-  }, [lastModelChanged, items, itemsB, handleUntransfer]);
+  }, [lastModelChanged, lastChangeTimestamp, items, itemsB, handleUntransfer]);
   
   useEffect(() => {
     //return if this flag is set
@@ -670,6 +697,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
     } else { 
       setAreItemsReady(false); 
     }
+    lastFetchTime.current = Date.now();
   }, [items]);
 
   useEffect(() => {
@@ -678,6 +706,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
     } else { 
       setAreItemsReadyB(false); 
     }
+    lastFetchTimeB.current = Date.now();
   }, [itemsB]);
 
   useEffect(() => {
@@ -774,36 +803,55 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 
   const handleAddItem = (event, item) => {
 <%if(sortedAssociations[aindex].type === 'to_one'){-%>
-    lidsToAdd.current = [];
-    lidsToAdd.current.push(item.id);
-    setThereAreItemsToAdd(true);
-<%} else {-%>
-    lidsToAdd.current.push(item.id);
-    setThereAreItemsToAdd(true);
-<%}-%>
-    updateHeights();
+    if(lidsToAdd.current.indexOf(item.id) === -1) {
+      lidsToAdd.current = [];
+      lidsToAdd.current.push(item.id);
+      setThereAreItemsToAdd(true);
+      updateHeights();
 
-    setDataTrigger(prevDataTrigger => !prevDataTrigger);
-    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-    handleTransfer('<%- sortedAssociations[aindex].relationName _%>', item.id);
+      setDataTrigger(prevDataTrigger => !prevDataTrigger);
+      setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+      handleTransfer('<%- sortedAssociations[aindex].relationName _%>', item.id);
+    }
+<%} else {-%>
+    if(lidsToAdd.current.indexOf(item.id) === -1) {
+      lidsToAdd.current.push(item.id);
+      setThereAreItemsToAdd(true);
+      updateHeights();
+
+      setDataTrigger(prevDataTrigger => !prevDataTrigger);
+      setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+      handleTransfer('<%- sortedAssociations[aindex].relationName _%>', item.id);
+    }
+<%}-%>
   };
 
   const handleRemoveItem = (event, item) => {
 <%if(sortedAssociations[aindex].type === 'to_one'){-%>
-    lidsToAdd.current = [];
-    setThereAreItemsToAdd(false);
-  <%} else {-%>
-    lidsToAdd.current.splice(lidsToAdd.current.indexOf(item.id), 1);
-
-    if(lidsToAdd.current.length === 0) {
+    if(lidsToAdd.current.length > 0) {
+      lidsToAdd.current = [];
       setThereAreItemsToAdd(false);
+      updateHeights();
+
+      setDataTrigger(prevDataTrigger => !prevDataTrigger);
+      setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+      handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', item.id);
+    }
+  <%} else {-%>
+    let iof = lidsToAdd.current.indexOf(item.id);
+    if(iof !== -1) { 
+      lidsToAdd.current.splice(iof, 1);
+
+      if(lidsToAdd.current.length === 0) {
+        setThereAreItemsToAdd(false);
+      }
+      updateHeights();
+
+      setDataTrigger(prevDataTrigger => !prevDataTrigger);
+      setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+      handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', item.id);
     }
   <%}-%>
-  updateHeights();
-
-    setDataTrigger(prevDataTrigger => !prevDataTrigger);
-    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-    handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', item.id);
   };
 
   return (

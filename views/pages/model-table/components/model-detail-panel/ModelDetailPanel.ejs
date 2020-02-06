@@ -81,6 +81,7 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
   const [open, setOpen] = useState(true);
   const [itemState, setItemState] = useState(item);
   const [valueOkStates, setValueOkStates] = useState(getInitialValueOkStates(item));
+  const lastFetchTime = useRef(Date.now());
 
   const [updated, setUpdated] = useState(false);
   const [deleted, setDeleted] = useState(false);
@@ -99,6 +100,7 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
 
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl);
   const lastModelChanged = useSelector(state => state.changes.lastModelChanged);
+  const lastChangeTimestamp = useSelector(state => state.changes.lastChangeTimestamp);
   const dispatch = useDispatch();
 
   const actionText = useRef(null);
@@ -123,22 +125,26 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
     //check if this.item changed
     if(lastModelChanged&&
       lastModelChanged.<%- name _%>&&
-      lastModelChanged.<%- name _%>[String(itemState.id)]) {
-          //updated item
-          if(lastModelChanged.<%- name _%>[String(itemState.id)].op === "update"&&
-              lastModelChanged.<%- name _%>[String(itemState.id)].newItem) {
-                setItemState(lastModelChanged.<%- name _%>[String(itemState.id)].newItem);
-                //show alert
-                setUpdated(true);
-          } else {
-            //deleted item
-            if(lastModelChanged.<%- name _%>[String(itemState.id)].op === "delete") {
-                //show alert
-                setDeleted(true);
-            }
+      lastModelChanged.<%- name _%>[String(itemState.id)]&&
+      lastChangeTimestamp&&lastFetchTime.current&&lastFetchTime.current<lastChangeTimestamp) {
+        //update last fetch time
+        lastFetchTime.current = Date.now();
+          
+        //updated item
+        if(lastModelChanged.<%- name _%>[String(itemState.id)].op === "update"&&
+            lastModelChanged.<%- name _%>[String(itemState.id)].newItem) {
+              setItemState(lastModelChanged.<%- name _%>[String(itemState.id)].newItem);
+              //show alert
+              setUpdated(true);
+        } else {
+          //deleted item
+          if(lastModelChanged.<%- name _%>[String(itemState.id)].op === "delete") {
+              //show alert
+              setDeleted(true);
           }
+        }
     }
-  }, [lastModelChanged, itemState.id]);
+  }, [lastModelChanged, lastChangeTimestamp, itemState.id]);
 
   useEffect(() => {
     if(deleted&&updated) {
@@ -171,6 +177,7 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
     if(itemState) {
       setValueOkStates(getInitialValueOkStates(itemState));
     }
+    lastFetchTime.current = Date.now();
   }, [itemState]);
 
   function doDelete(event, item) {
