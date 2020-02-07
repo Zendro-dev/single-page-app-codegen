@@ -29,10 +29,12 @@ if(!program.jsonFiles){
   process.exit(1);
 }
 
-// Output directory
+// output/input directories
+let jsonFiles = program.jsonFiles;
 let directory = program.outputDirectory || __dirname;
 //msg
-console.log('Output base-directory: ', colors.dim(path.resolve(directory)));
+console.log('Input directory: ', colors.dim(path.resolve(jsonFiles)));
+console.log('Output directory: ', colors.dim(path.resolve(directory)));
 
 // Verbose
 let verbose = program.verbose !== undefined ? true : false;
@@ -66,18 +68,18 @@ if(allRequiredDirsExists) {
   process.exit(1);
 }
 
-// Start rendering phase
-let modelsOpts = {models: [], adminModels: []};
-let modelAtts = {};
-
+/*
+ * Parse JSON definitions
+ */
 //msg
-console.log(colors.white('\n@ Starting render GUI components for models in: \n', colors.green(path.resolve(directory))));
+console.log(colors.white('\n@ Processing models JSON definitions in: \n', colors.green(path.resolve(jsonFiles))));
+let opts = [];
 let promises = []
 let totalFiles = 0;
 let totalWrongFiles = 0;
-fs.readdirSync(program.jsonFiles).forEach( async (json_file) =>{
+fs.readdirSync(jsonFiles).forEach( (json_file) => {
   totalFiles++;
-  let fileData = funks.parseFile(program.jsonFiles + '/'+json_file );
+  let fileData = funks.parseFile(jsonFiles + '/'+json_file );
   if(fileData === null) return;
   //msg
   if(verbose) console.log("\n@@ Proccessing model in: ", colors.blue(json_file));
@@ -95,12 +97,24 @@ fs.readdirSync(program.jsonFiles).forEach( async (json_file) =>{
     if(verbose) console.log(colors.dim("@@@ Cheking json model definition... "), colors.green('done'));
   }
 
-  let ejbOpts = funks.fillOptionsForViews(fileData);
+  opts.push(funks.fillOptionsForViews(fileData));
+});
+//add attribute
+funks.addPeerRelationName(opts);
 
-  // Table path
+/*
+ * Code generation
+ */
+let modelsOpts = {models: [], adminModels: []};
+let modelAtts = {};
+//msg
+console.log(colors.white('\n@ Starting code generation in: \n', colors.green(path.resolve(directory))));
+opts.forEach((ejbOpts) => {
+
+  // set table path
   var tablePath = 'src/components/main-panel/table-panel/models-tables';
   
-  // Collect models and attributes
+  // collect models and attributes
   if(ejbOpts.nameLc === 'role' || ejbOpts.nameLc === 'user' || ejbOpts.nameLc === 'userInfo') {
     tablePath = 'src/components/main-panel/table-panel/admin-tables';
     modelsOpts.adminModels.push(ejbOpts);

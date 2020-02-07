@@ -272,6 +272,8 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
   function setAddRemove<%- sortedAssociations[i].relationNameCp %>(variables) {
     variables.add<%- sortedAssociations[i].relationNameCp %> = undefined;
     variables.remove<%- sortedAssociations[i].relationNameCp %> = undefined;
+    //data to notify changes
+    changedAssociations.current.<%- sortedAssociations[i].relationName %> = {added: false, removed: false};
     
     //currently to-one-associated
     if(item.<%- sortedAssociations[i].relationName %>&&item.<%- sortedAssociations[i].relationName %>.id) {
@@ -283,12 +285,18 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
         if(item.<%- sortedAssociations[i].relationName %>.id !== <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current[0]) {
           variables.add<%- sortedAssociations[i].relationNameCp %> = <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current[0];
           variables.remove<%- sortedAssociations[i].relationNameCp %> = item.<%- sortedAssociations[i].relationName %>.id;
-          changedAssociations.current.<%- sortedAssociations[i].relationName %> = true;
+
+          changedAssociations.current.<%- sortedAssociations[i].relationName %>.added = true;
+          changedAssociations.current.<%- sortedAssociations[i].relationName %>.idsAdded = <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current;
+          changedAssociations.current.<%- sortedAssociations[i].relationName %>.removed = true;
+          changedAssociations.current.<%- sortedAssociations[i].relationName %>.idsRemoved = [item.<%- sortedAssociations[i].relationName %>.id];
         }
       } else { //case: current association removed
         variables.add<%- sortedAssociations[i].relationNameCp %> = null;
         variables.remove<%- sortedAssociations[i].relationNameCp %> = item.<%- sortedAssociations[i].relationName %>.id;
-        changedAssociations.current.<%- sortedAssociations[i].relationName %> = true;
+        
+        changedAssociations.current.<%- sortedAssociations[i].relationName %>.removed = true;
+        changedAssociations.current.<%- sortedAssociations[i].relationName %>.idsRemoved = [item.<%- sortedAssociations[i].relationName %>.id];
       }
     } else { //currently not to-one-associated
       
@@ -296,7 +304,9 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
       if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.length>0) {
         variables.add<%- sortedAssociations[i].relationNameCp %> = <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current[0];
         variables.remove<%- sortedAssociations[i].relationNameCp %> = null;
-        changedAssociations.current.<%- sortedAssociations[i].relationName %> = true;
+
+        changedAssociations.current.<%- sortedAssociations[i].relationName %>.added = true;
+        changedAssociations.current.<%- sortedAssociations[i].relationName %>.idsAdded = <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current;
       }
     }
   }
@@ -331,14 +341,20 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
 <%for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === "to_many") {
 -%>
+    //data to notify changes
+    changedAssociations.current.<%- sortedAssociations[i].relationName %> = {added: false, removed: false};
+    
     if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.length>0) {
       variables.add<%- sortedAssociations[i].relationNameCp %> = <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current;
+      
+      changedAssociations.current.<%- sortedAssociations[i].relationName %>.added = true;
+      changedAssociations.current.<%- sortedAssociations[i].relationName %>.idsAdded = <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current;
     }
     if(<%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current.length>0) {
       variables.remove<%- sortedAssociations[i].relationNameCp %> = <%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current;
-    }
-    if(variables.add<%- sortedAssociations[i].relationNameCp %>||variables.remove<%- sortedAssociations[i].relationNameCp %>) {
-      changedAssociations.current.<%- sortedAssociations[i].relationName %> = true;
+      
+      changedAssociations.current.<%- sortedAssociations[i].relationName %>.removed = true;
+      changedAssociations.current.<%- sortedAssociations[i].relationName %>.idsRemoved = <%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current;
     }
 <%}}-%>
 

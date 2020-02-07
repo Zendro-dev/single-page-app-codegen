@@ -306,6 +306,67 @@ exports.fillOptionsForViews = function(fileData){
   return opts;
 }
 
+exports.addPeerRelationName = function(opts) {
+
+  opts.forEach( (opt) => {
+    opt.sortedAssociations.forEach( (association) => {
+      //if already has peer realtion name
+      if(association.hasOwnProperty('peerRelationName')) {
+        //done
+        return;
+      }
+
+      //find target model
+      let found = false;
+      for(let i=0; !found && i<opts.length; i++) {
+        if(association.targetModel === opts[i].name) {
+          found = true;
+
+          //find peer association
+          let foundB = false;
+          for(let j=0; !foundB && j<opts[i].sortedAssociations.length; j++) {
+            //case: 'to_one' or 'hasMany'
+            if(opts[i].sortedAssociations[j].type === 'to_one' || opts[i].sortedAssociations[j].sqlType === 'hasMany') {
+              if(opts[i].sortedAssociations[j].targetKey === association.targetKey) {
+                foundB = true;
+
+                //set peer relation names
+                association.peerRelationName = opts[i].sortedAssociations[j].relationName;
+                association.peerRelationNameCp = opts[i].sortedAssociations[j].relationNameCp;
+                association.peerRelationNameLc = opts[i].sortedAssociations[j].relationNameLc;
+                association.peerRelationNameOnPascal = opts[i].sortedAssociations[j].relationNameOnPascal;
+
+                opts[i].sortedAssociations[j].peerRelationName = association.relationName;
+                opts[i].sortedAssociations[j].peerRelationNameCp = association.relationNameCp;
+                opts[i].sortedAssociations[j].peerRelationNameLc = association.relationNameLc;
+                opts[i].sortedAssociations[j].peerRelationNameOnPascal = association.relationNameOnPascal;
+              }
+            } else { //case: 'belongsToMany'
+              if(opts[i].sortedAssociations[j].sqlType === 'belongsToMany') {
+                if(opts[i].sortedAssociations[j].keysIn === association.keysIn) {
+                  foundB = true;
+  
+                  //set peer relation names
+                  association.peerRelationName = opts[i].sortedAssociations[j].relationName;
+                  association.peerRelationNameCp = opts[i].sortedAssociations[j].relationNameCp;
+                  association.peerRelationNameLc = opts[i].sortedAssociations[j].relationNameLc;
+                  association.peerRelationNameOnPascal = opts[i].sortedAssociations[j].relationNameOnPascal;
+  
+                  opts[i].sortedAssociations[j].peerRelationName = association.relationName;
+                  opts[i].sortedAssociations[j].peerRelationNameCp = association.relationNameCp;
+                  opts[i].sortedAssociations[j].peerRelationNameLc = association.relationNameLc;
+                  opts[i].sortedAssociations[j].peerRelationNameOnPascal = association.relationNameOnPascal;
+                }
+              }
+            }
+          }
+        }
+      }
+    })
+  });
+
+}
+
 
 /**
  * attributesArrayFromFile - Given a object containing attributes description, this function will
@@ -375,18 +436,22 @@ parseAssociationsFromFile = function(associations){
         case "belongsTo":
           assoc.hasOwnForeingKeys = true;
           assoc.ownForeignKeysArr.push(association.targetKey);
-          baa.foreignKey = association.targetKey;        
+          baa.foreignKey = association.targetKey;
+          baa.targetKey = association.targetKey;     
           break;
 
         case "hasOne":
           baa.foreignKey = association.targetKey;
+          baa.targetKey = association.targetKey;
           break;
 
         case "belongsToMany":
+          baa.keysIn = association.keysIn;
           break;
 
         case "hasMany":
-          baa.foreignKey = association.targetKey;     
+          baa.foreignKey = association.targetKey; 
+          baa.targetKey = association.targetKey;    
           break;
       
         default:
