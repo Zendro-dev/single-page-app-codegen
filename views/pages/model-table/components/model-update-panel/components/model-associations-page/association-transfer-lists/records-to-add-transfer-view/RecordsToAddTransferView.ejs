@@ -878,17 +878,19 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
           
           //remove any dis-associated id from idsToAdd[]
           let idsRemoved = lastModelChanged.<%- name _%>[String(item.id)].changedAssociations.<%- sortedAssociations[aindex].relationName _%>.idsRemoved;
-          idsRemoved.forEach( (idRemoved) => {
-            //remove from lidsToAdd
-            let iof = lidsToAdd.current.indexOf(idRemoved);
-            if(iof !== -1) { 
-              lidsToAdd.current.splice(iof, 1);
-              if(lidsToAdd.current.length === 0) {
-                setThereAreItemsToAdd(false);
+          if(idsRemoved) {
+            idsRemoved.forEach( (idRemoved) => {
+              //remove from lidsToAdd
+              let iof = lidsToAdd.current.indexOf(idRemoved);
+              if(iof !== -1) { 
+                lidsToAdd.current.splice(iof, 1);
+                if(lidsToAdd.current.length === 0) {
+                  setThereAreItemsToAdd(false);
+                }
               }
-            }
-            handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', idRemoved);
-          });
+              handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', idRemoved);
+            });
+          }
 
           //clear associatedIds[] to cause a re-fetch on next getData().
           lidsAssociated.current = undefined;
@@ -917,12 +919,12 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
      * 
      * Actions:
      * if A:
-     * - remove the id of the '<%- sortedAssociations[aindex].targetModel _%>' from idsToAdd[].
      * - update associatedIds[].
      * - reload both transfer tables.
      * - return
      * 
      * else if B:
+     * - remove the id of the '<%- sortedAssociations[aindex].targetModel _%>' from idsToAdd[].
      * - update associatedIds[].
      * - reload both transfer tables.
      * - return
@@ -936,53 +938,57 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
             //case A: this item was removed from peer relation.
             if(entry[1].changedAssociations.<%- sortedAssociations[aindex].peerRelationName _%>.removed) {
               let idsRemoved = entry[1].changedAssociations.<%- sortedAssociations[aindex].peerRelationName _%>.idsRemoved;
-              let iof = idsRemoved.indexOf(item.id);
-              if(iof !== -1) {
-                //remove changed item from lidsToAdd
-                let idRemoved = entry[1].newItem.id;
-                let iofB = lidsToAdd.current.indexOf(idRemoved);
-                if(iofB !== -1) {
-                  lidsToAdd.current.splice(iofB, 1);
-                  if(lidsToAdd.current.length === 0) {
-                    setThereAreItemsToAdd(false);
-                  }
+              if(idsRemoved) {
+                let iof = idsRemoved.indexOf(item.id);
+                if(iof !== -1) {
+                  //clear associatedIds[] to cause a re-fetch on next getData().
+                  lidsAssociated.current = undefined;
+
+                  //reload
+                  updateHeights();
+                  //reload A
+                  if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
+                  else { isPendingApiRequestRef.current = true; }
+                  //reload B
+                  if (!isOnApiRequestRefB.current) { setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); } 
+                  else { isPendingApiRequestRefB.current = true; }
+
+                  return;
                 }
-                handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', idRemoved);
               }
-
-              //clear associatedIds[] to cause a re-fetch on next getData().
-              lidsAssociated.current = undefined;
-
-              //reload
-              updateHeights();
-              //reload A
-              if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
-              else { isPendingApiRequestRef.current = true; }
-              //reload B
-              if (!isOnApiRequestRefB.current) { setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); } 
-              else { isPendingApiRequestRefB.current = true; }
-
-              return;
             }//end: case A
 
             //case B: this item was added on peer relation.
-            if(entry[1].changedAssociations.<%- sortedAssociations[aindex].peerRelationName _%>.removed) {
+            if(entry[1].changedAssociations.<%- sortedAssociations[aindex].peerRelationName _%>.added) {
               let idsAdded = entry[1].changedAssociations.<%- sortedAssociations[aindex].peerRelationName _%>.idsAdded;
-              let iof = idsAdded.indexOf(item.id);
-              if(iof !== -1) {
-                //clear associatedIds[] to cause a re-fetch on next getData().
-                lidsAssociated.current = undefined;
+              if(idsAdded) {
+                let iof = idsAdded.indexOf(item.id);
+                if(iof !== -1) {
+                  //remove changed item from lidsToAdd
+                  let idAdded = entry[1].newItem.id;
+                  let iofB = lidsToAdd.current.indexOf(idAdded);
+                  if(iofB !== -1) {
+                    lidsToAdd.current.splice(iofB, 1);
+                    if(lidsToAdd.current.length === 0) {
+                      setThereAreItemsToAdd(false);
+                    }
+                  }
+                  handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', idAdded);
 
-                //reload
-                updateHeights();
-                //reload A
-                if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
-                else { isPendingApiRequestRef.current = true; }
-                //reload B
-                if (!isOnApiRequestRefB.current) { setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); } 
-                else { isPendingApiRequestRefB.current = true; }
-                
-                return;
+                  //clear associatedIds[] to cause a re-fetch on next getData().
+                  lidsAssociated.current = undefined;
+
+                  //reload
+                  updateHeights();
+                  //reload A
+                  if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
+                  else { isPendingApiRequestRef.current = true; }
+                  //reload B
+                  if (!isOnApiRequestRefB.current) { setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); } 
+                  else { isPendingApiRequestRefB.current = true; }
+                  
+                  return;
+                }
               }
             }//end: case B
         }
@@ -1015,10 +1021,11 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
         
         //case A: updated
         if(entry[1].op === "update"&&entry[1].newItem) {
+          let idUpdated = entry[1].item.id;
           
           //lookup item on table A
           let nitemsA = Array.from(items);
-          let iofA = nitemsA.indexOf(entry[1].item.id);
+          let iofA = nitemsA.findIndex((item) => item.id===idUpdated);
           if(iofA !== -1) {
             //set new item
             nitemsA[iofA] = entry[1].newItem;
@@ -1027,7 +1034,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 
           //lookup item on table B
           let nitemsB = Array.from(itemsB);
-          let iofB = nitemsB.indexOf(entry[1].item.id);
+          let iofB = nitemsB.findIndex((item) => item.id===idUpdated);
           if(iofB !== -1) {
             //set new item
             nitemsB[iofB] = entry[1].newItem;
@@ -1037,14 +1044,11 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 
         //case B: deleted
         if(entry[1].op === "delete") {
-
           let idRemoved = entry[1].item.id;
-          let nitemsA = Array.from(items);
-          let nitemsB = Array.from(itemsB);
 
           //lookup item on any tables or associated ids
-          let iofA = items.indexOf(idRemoved);
-          let iofB = itemsB.indexOf(idRemoved);
+          let iofA = items.findIndex((item) => item.id===idRemoved);
+          let iofB = itemsB.findIndex((item) => item.id===idRemoved);
           let iofC = lidsAssociated.current.indexOf(idRemoved);
           if(iofA !== -1 || iofB !== -1 || iofC !== -1) {
             
@@ -1057,21 +1061,21 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
               }
             }
             handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', idRemoved);
+
+            //clear associatedIds[] to cause a re-fetch on next getData().
+            lidsAssociated.current = undefined;
+
+            //reload
+            updateHeights();
+            //reload A
+            if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
+            else { isPendingApiRequestRef.current = true; }
+            //reload B
+            if (!isOnApiRequestRefB.current) { setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); } 
+            else { isPendingApiRequestRefB.current = true; }
+
+            return;
           }
-
-          //clear associatedIds[] to cause a re-fetch on next getData().
-          lidsAssociated.current = undefined;
-
-          //reload
-          updateHeights();
-          //reload A
-          if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
-          else { isPendingApiRequestRef.current = true; }
-          //reload B
-          if (!isOnApiRequestRefB.current) { setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); } 
-          else { isPendingApiRequestRefB.current = true; }
-
-          return;
         }
       });
     }//end: Case 3

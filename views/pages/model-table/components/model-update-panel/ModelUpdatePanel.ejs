@@ -154,13 +154,51 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
   }, []);
 
   useEffect(() => {
+    /*
+     * Handle changes 
+     */
+    
+    /*
+     * Checks
+     */
+    if(!lastModelChanged) {
+      return;
+    }
+    if(!lastChangeTimestamp || !lastFetchTime.current) {
+      return;
+    }
+    let isNewChange = (lastFetchTime.current<lastChangeTimestamp);
+    if(!isNewChange) {
+      return;
+    }
+
+    /*
+     * Update timestamps
+     */
+    lastFetchTime.current = Date.now();
+    
+    /*
+     * Case 1: 
+     * This item was updated, either in his attributes or in his associations, or was deleted.
+     * 
+     * Conditions:
+     * A: the item was modified.
+     * B: the item was deleted.
+     * 
+     * Actions:
+     * if A:
+     * - set 'updated' alert
+     * - return
+     * 
+     * if B:
+     * - set 'deleted' alert
+     * - return
+     */
+
     //check if this.item changed
     if(lastModelChanged&&
       lastModelChanged.<%- name _%>&&
-      lastModelChanged.<%- name _%>[String(item.id)]&&
-      lastChangeTimestamp&&lastFetchTime.current&&lastFetchTime.current<lastChangeTimestamp) {
-        //update last fetch time
-        lastFetchTime.current = Date.now();
+      lastModelChanged.<%- name _%>[String(item.id)]) {
 
         //updated item
         if(lastModelChanged.<%- name _%>[String(item.id)].op === "update"&&
@@ -174,7 +212,7 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
               setDeleted(true);
           }
         }
-    }
+    }//end: Case 1
   }, [lastModelChanged, lastChangeTimestamp, item.id]);
 
   useEffect(() => {

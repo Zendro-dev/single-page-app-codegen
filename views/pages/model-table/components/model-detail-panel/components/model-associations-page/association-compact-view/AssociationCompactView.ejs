@@ -244,55 +244,142 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
   }, [getData]);
 
   useEffect(() => {
-    //if new change
-    if(lastChangeTimestamp&&lastFetchTime.current&&lastFetchTime.current<lastChangeTimestamp) {
-      //update last fetch time
-      lastFetchTime.current = Date.now();
+    /*
+     * Handle changes 
+     */
 
-      //check if this.association changed (items added or removed)
-      if(lastModelChanged&&lastModelChanged.<%- name _%>&&
-          lastModelChanged.<%- name _%>[String(item.id)]&&
-          lastModelChanged.<%- name _%>[String(item.id)].changedAssociations&&
-          lastModelChanged.<%- name _%>[String(item.id)].changedAssociations.<%- sortedAssociations[aindex].relationName _%>) {
-        
-            //reload
-            if (!isOnApiRequestRef.current) {
-              setDataTrigger(prevDataTrigger => !prevDataTrigger); 
-            } 
-            else { 
-              isPendingApiRequestRef.current = true; 
-            }
-      } else  //check if some item of this.association changed (edited)
-      if(lastModelChanged&&
-          lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>) {
-            //lookup item
-            let nitems = Array.from(items);
-            //find item
-            for(let i=0; i<nitems.length; i++) {
-              
-              //item found
-              if(lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>[String(nitems[i].id)]) {
-                //update item
-                if(lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>[String(nitems[i].id)].op === "update"&&
-                    lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>[String(nitems[i].id)].newItem) {
-                      //set new item
-                      nitems[i] = lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>[String(nitems[i].id)].newItem;
-                      setItems(nitems);
-                      return;
-                } else { // deleted item || !newItem
+    /*
+     * Checks
+     */
+    if(!lastModelChanged) {
+      return;
+    }
+    if(!lastChangeTimestamp || !lastFetchTime.current) {
+      return;
+    }
+    let isNewChange = (lastFetchTime.current<lastChangeTimestamp);
+    if(!isNewChange) {
+      return;
+    }
+
+    /*
+     * Update timestamps
+     */
+    lastFetchTime.current = Date.now();
+
+    /*
+     * Case 1: 
+     * The peer relation '<%- sortedAssociations[aindex].peerRelationName _%>' for this item was updated.
+     * That is to say that this current item was associated or dis-associated with some '<%- sortedAssociations[aindex].targetModel _%>',
+     * but this action happened on the peer relation '<%- sortedAssociations[aindex].peerRelationName _%>'.
+     * 
+     * Conditions:
+     * A: the current item id is in the removedIds of the updated '<%- sortedAssociations[aindex].targetModel _%>'.
+     * B: the current item id is in the addedIds of the updated '<%- sortedAssociations[aindex].targetModel _%>'.
+     * 
+     * Actions:
+     * if A:
+     * - reload table.
+     * - return
+     * 
+     * else if B:
+     * - reload table.
+     * - return
+     */
+    if(lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>) {
+      let oens = Object.entries(lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>);
+      oens.forEach( (entry) => {
+        if(entry[1].changedAssociations&&
+          entry[1].changedAssociations.<%- sortedAssociations[aindex].peerRelationName _%>) {
+
+            //case A: this item was removed from peer relation.
+            if(entry[1].changedAssociations.<%- sortedAssociations[aindex].peerRelationName _%>.removed) {
+              let idsRemoved = entry[1].changedAssociations.<%- sortedAssociations[aindex].peerRelationName _%>.idsRemoved;
+              if(idsRemoved) {
+                let iof = idsRemoved.indexOf(item.id);
+                if(iof !== -1) {
                   //reload
-                  if (!isOnApiRequestRef.current) {
-                    setDataTrigger(prevDataTrigger => !prevDataTrigger); 
-                  } 
-                  else { 
-                    isPendingApiRequestRef.current = true; 
-                  }
+                  updateHeights();
+                  if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
+                  else { isPendingApiRequestRef.current = true; }
+
+                  return;
                 }
               }
-            }
-            //...item not found
-      }//done
-    }
+            }//end: case A
+
+            //case B: this item was added on peer relation.
+            if(entry[1].changedAssociations.<%- sortedAssociations[aindex].peerRelationName _%>.added) {
+              let idsAdded = entry[1].changedAssociations.<%- sortedAssociations[aindex].peerRelationName _%>.idsAdded;
+              if(idsAdded) {
+                let iof = idsAdded.indexOf(item.id);
+                if(iof !== -1) {
+                  //reload
+                  updateHeights();
+                  if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
+                  else { isPendingApiRequestRef.current = true; }
+
+                  return;
+                }
+              }
+            }//end: case B
+        }
+      })
+    }//end: Case 1
+
+    /*
+     * Case 2: 
+     * The attributes of some '<%- sortedAssociations[aindex].targetModel _%>' were modified or the item was deleted.
+     * 
+     * Conditions:
+     * A: the item was modified and is currently displayed in the list.
+     * B: the item was deleted and is currently displayed the  list.
+     * 
+     * Actions:
+     * if A:
+     * - update the list with the new item.
+     * - return
+     * 
+     * if B:
+     * - reload table.
+     * - return
+     */
+    if(lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>) {
+
+      let oens = Object.entries(lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>);
+      oens.forEach( (entry) => {
+        
+        //case A: updated
+        if(entry[1].op === "update"&&entry[1].newItem) {
+          let idUpdated = entry[1].item.id;
+          
+          //lookup item on table
+          let nitemsA = Array.from(items);
+          let iofA = nitemsA.findIndex((item) => item.id===idUpdated);
+          if(iofA !== -1) {
+            //set new item
+            nitemsA[iofA] = entry[1].newItem;
+            setItems(nitemsA);
+          }
+        }
+
+        //case B: deleted
+        if(entry[1].op === "delete") {
+          let idRemoved = entry[1].item.id;
+
+          //lookup item on table
+          let iofA = items.findIndex((item) => item.id===idRemoved);
+          if(iofA !== -1) {
+            //reload
+            updateHeights();
+            if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
+            else { isPendingApiRequestRef.current = true; }
+
+            return;
+          }
+        }
+      });
+    }//end: Case 2
   }, [lastModelChanged, lastChangeTimestamp, items, item.id]);
 
   useEffect(() => {
