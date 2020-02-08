@@ -512,7 +512,7 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
                         avatar={
                           <DeletedWarning style={{ color: red[700] }} />
                         }
-                        title="This item no longer exists. It was deleted elsewhere."
+                        title={ t('modelPanels.deletedWarning', "This item no longer exists. It was deleted elsewhere.") }
                         subheader="Deleted"
                       />
                     </Card>
@@ -536,7 +536,7 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
                         avatar={
                           <UpdateOk style={{ color: green[700] }} />
                         }
-                        title="This item was updated."
+                        title={ t('modelPanels.updatedWarning', "This item was updated elsewhere.") }
                         subheader="Updated"
                       />
                       <CardActions>

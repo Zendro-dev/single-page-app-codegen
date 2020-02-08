@@ -172,7 +172,7 @@ export default function FloatField(props) {
                 error.current = true;
                 setHelperText(null);
                 if(textValue.current === null || textValue.current === '') {
-                  setErrorText( t('modelPanels.undefinedNumber', 'Undefined number, no value will be sent for modification') );
+                  setErrorText( t('modelPanels.undefinedNumber', 'Undefined number, no value will be sent for modification on this field') );
                   handleSetValue(null, 0, itemKey);
                   rvalueOk.current = 0;
                 } else {
@@ -220,7 +220,7 @@ export default function FloatField(props) {
                     error.current = true;
                     setHelperText(null);
                     if(textValue.current === null || textValue.current === '') {
-                      setErrorText( t('modelPanels.undefinedNumber', 'Undefined number, no value will be sent for modification') );
+                      setErrorText( t('modelPanels.undefinedNumber', 'Undefined number, no value will be sent for modification on this field') );
                       handleSetValue(null, 0, itemKey);
                       rvalueOk.current = 0;
                     } else {
