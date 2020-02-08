@@ -27,7 +27,7 @@ import Fab from '@material-ui/core/Fab';
 import Tooltip from '@material-ui/core/Tooltip';
 import SaveIcon from '@material-ui/icons/Save';
 
-const debounceTimeout = 500;
+const debounceTimeout = 700;
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -100,6 +100,7 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
   const cancelablePromises = useRef([]);
   const isSaving = useRef(false);
   const isCanceling = useRef(false);
+  const isClosing = useRef(false);
   const isDebouncingTabsChange = useRef(false);
   const currentTabValue = useRef(tabsValue);
   const lastTabValue = useRef(tabsValue);
@@ -302,11 +303,14 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
   }
 
   const handleTabsChange = (event, newValue) => {
+    //save last value
+    lastTabValue.current = newValue;
+    
     if(!isDebouncingTabsChange.current){
-      //save & set last value
-      lastTabValue.current = newValue;
+      //set last value
       currentTabValue.current = newValue;
       setTabsValue(newValue);
+
       //debounce
       isDebouncingTabsChange.current = true;
       let cancelableTimer = startTimerToDebounceTabsChange();
@@ -314,10 +318,10 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
       cancelableTimer
         .promise
         .then(() => {
-          //delete from cancelables
-          cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableTimer), 1);
           //clear flag
           isDebouncingTabsChange.current = false;
+          //delete from cancelables
+          cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableTimer), 1);
           //check
           if(lastTabValue.current !== currentTabValue.current){
             setTabsValue(lastTabValue.current);
@@ -327,9 +331,6 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
         .catch(() => {
           return;
         })
-    } else{
-      //save last value
-      lastTabValue.current = newValue;
     }
   };
 
@@ -365,8 +366,11 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
       setConfirmationAcceptText( t('modelPanels.saveIncompleteAccept', "YES, SAVE") );
       setConfirmationRejectText( t('modelPanels.saveIncompleteReject', "DON'T SAVE YET") );
       handleAccept.current = () => {
-        doSave(event);
-        setConfirmationOpen(false);
+        if(!isClosing.current) {
+          isClosing.current = true;
+          doSave(event);
+          setConfirmationOpen(false);
+        }
       }
       handleReject.current = () => {
         isSaving.current = false;
@@ -385,8 +389,11 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
       setConfirmationAcceptText( t('modelPanels.cancelChangesAccept', "YES, EXIT") );
       setConfirmationRejectText( t('modelPanels.cancelChangesReject', "STAY") );
       handleAccept.current = () => {
-        setConfirmationOpen(false);
-        onClose(event, false, null);
+        if(!isClosing.current) {
+          isClosing.current = true;
+          setConfirmationOpen(false);
+          onClose(event, false, null);
+        }
       }
       handleReject.current = () => {
         isCanceling.current = false;
@@ -498,7 +505,14 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
 
   return (
     
-    <Dialog fullScreen open={open} onClose={handleCancel} TransitionComponent={Transition}>
+    <Dialog fullScreen open={open} TransitionComponent={Transition}
+      onClose={(event) => {
+        if(!isCanceling.current){
+          isCanceling.current = true;
+          handleCancel(event);
+        }
+      }}
+    >
       <CssBaseline />
       <AppBar>
         <Toolbar>

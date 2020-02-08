@@ -45,6 +45,10 @@ export default function <%- nameOnPascal -%>UploadFileDialog(props) {
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl);
   const appMaxUploadSize = useSelector(state => state.limits.appMaxUploadSize);
 
+  //debouncing & event contention
+  const isUploading = useRef(false);
+  const isCanceling = useRef(false);
+
   const actionText = useRef(null);
   const action = (key) => (
     <>
@@ -121,8 +125,13 @@ export default function <%- nameOnPascal -%>UploadFileDialog(props) {
 
   return (
     <Dialog 
-      open={open} 
-      onClose={handleCancel} 
+      open={open}
+      onClose={(event) => {
+        if(!isCanceling.current){
+          isCanceling.current = true;
+          handleCancel(event);
+        }
+      }}
     >
       <DialogTitle>
       { t('modelPanels.uploading') + ' <%- namePlCp %>' }
@@ -171,8 +180,11 @@ export default function <%- nameOnPascal -%>UploadFileDialog(props) {
           className={classes.button}
           color="secondary"
           onClick={(event) => {
-            setOpen(false);
-            handleCancel(event);
+            if(!isCanceling.current){
+              isCanceling.current = true;
+              setOpen(false);
+              handleCancel(event);
+            }
           }}
         >
           { t('modelPanels.cancel') }
@@ -184,7 +196,10 @@ export default function <%- nameOnPascal -%>UploadFileDialog(props) {
           disabled={maxSizeError || !fileChosen}
           type="submit"
           onClick={(event) => {
-            handleSubmit(event);
+            if(!isUploading.current){
+              isUploading.current = true;
+              handleSubmit(event);
+            }
           }}
         >
           { t('modelPanels.upload') }

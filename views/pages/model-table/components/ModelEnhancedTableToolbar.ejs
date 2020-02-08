@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
@@ -68,8 +68,12 @@ export default function <%- nameOnPascal -%>EnhancedTableToolbar(props) {
   
   const exportServerUrl = useSelector(state => state.urls.exportServerUrl)
 
+  //debouncing & event contention
+  const isDownloading = useRef(false);
+
   const handleDownloadsIconClick = event => {
     setDownloadsAnchorEl(event.currentTarget);
+    isDownloading.current = false;
   };
 
   const handleDownloadsMenuClose = () => {
@@ -233,7 +237,14 @@ export default function <%- nameOnPascal -%>EnhancedTableToolbar(props) {
                                             className={classes.textButton} 
                                             color="default"
                                             type="submit"
-                                            onClick={handleDownloadsMenuClose}
+                                            onClick={(event)=>{
+                                              if(!isDownloading.current) {
+                                                isDownloading.current = true;
+                                                handleDownloadsMenuClose();
+                                              } else {
+                                                event.preventDefault();
+                                              }
+                                            }}
                                           >
                                             <span>
                                               <Typography component="span" variant="subtitle1" display='block' noWrap={true}>
@@ -252,8 +263,11 @@ export default function <%- nameOnPascal -%>EnhancedTableToolbar(props) {
                                           className={classes.textButton} 
                                           color="default"
                                           onClick={()=>{
-                                            handleCsvTemplateClicked();
-                                            handleDownloadsMenuClose();
+                                            if(!isDownloading.current) {
+                                              isDownloading.current = true;
+                                              handleCsvTemplateClicked();
+                                              handleDownloadsMenuClose();
+                                            }
                                           }}
                                         >
                                           <span>

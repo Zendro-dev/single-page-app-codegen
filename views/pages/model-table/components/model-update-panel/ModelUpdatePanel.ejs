@@ -36,7 +36,7 @@ import DeletedWarning from '@material-ui/icons/DeleteForeverOutlined';
 import UpdateWarning from '@material-ui/icons/ErrorOutline';
 import { amber, red } from '@material-ui/core/colors';
 
-const debounceTimeout = 500;
+const debounceTimeout = 700;
 const appBarHeight = 64;
 
 const useStyles = makeStyles(theme => ({
@@ -127,6 +127,7 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
   const cancelablePromises = useRef([]);
   const isSaving = useRef(false);
   const isCanceling = useRef(false);
+  const isClosing = useRef(false);
   const isDebouncingTabsChange = useRef(false);
   const currentTabValue = useRef(tabsValue);
   const lastTabValue = useRef(tabsValue);
@@ -467,11 +468,14 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
   }
 
   const handleTabsChange = (event, newValue) => {
+    //save last value
+    lastTabValue.current = newValue;
+
     if(!isDebouncingTabsChange.current){
-      //save & set last value
-      lastTabValue.current = newValue;
+      //set last value
       currentTabValue.current = newValue;
       setTabsValue(newValue);
+      
       //debounce
       isDebouncingTabsChange.current = true;
       let cancelableTimer = startTimerToDebounceTabsChange();
@@ -479,10 +483,10 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
       cancelableTimer
         .promise
         .then(() => {
-          //delete from cancelables
-          cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableTimer), 1);
           //clear flag
           isDebouncingTabsChange.current = false;
+          //delete from cancelables
+          cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableTimer), 1);
           //check
           if(lastTabValue.current !== currentTabValue.current){
             setTabsValue(lastTabValue.current);
@@ -492,9 +496,6 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
         .catch(() => {
           return;
         })
-    } else{
-      //save last value
-      lastTabValue.current = newValue;
     }
   };
 
@@ -530,8 +531,11 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
       setConfirmationAcceptText( t('modelPanels.saveIncompleteAccept', "YES, SAVE") );
       setConfirmationRejectText( t('modelPanels.saveIncompleteReject', "DON'T SAVE YET") );
       handleAccept.current = () => {
-        doSave(event);
-        setConfirmationOpen(false);
+        if(!isClosing.current) {
+          isClosing.current = true;
+          doSave(event);
+          setConfirmationOpen(false);
+        }
       }
       handleReject.current = () => {
         isSaving.current = false;
@@ -550,8 +554,11 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
         setConfirmationAcceptText( t('modelPanels.cancelChangesAccept', "YES, EXIT") );
         setConfirmationRejectText( t('modelPanels.cancelChangesReject', "STAY") );
         handleAccept.current = () => {
-          setConfirmationOpen(false);
-          onClose(event, false, null);
+          if(!isClosing.current) {
+            isClosing.current = true;
+            setConfirmationOpen(false);
+            onClose(event, false, null);
+          }
         }
         handleReject.current = () => {
           isCanceling.current = false;
@@ -695,7 +702,14 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
   };
 
   return (
-    <Dialog fullScreen open={open} onClose={handleCancel} TransitionComponent={Transition}>
+    <Dialog fullScreen open={open} TransitionComponent={Transition}
+      onClose={(event) => {
+        if(!isCanceling.current){
+          isCanceling.current = true;
+          handleCancel(event);
+        }
+      }}
+    >
       <AppBar>
         <Toolbar>
           <Tooltip title={ t('modelPanels.cancel') }>
@@ -800,8 +814,6 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
             <<%- nameOnPascal _%>TabsA
               value={tabsValue}
               handleChange={handleTabsChange}
-              handleCancel={handleCancel}
-              handleSave={handleSave}
             />
           </Grid>
           

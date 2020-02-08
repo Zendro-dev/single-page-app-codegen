@@ -96,7 +96,9 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
   const [<%- sortedAssociatedModels[i].targetModelLc _%>DetailItem, set<%- sortedAssociatedModels[i].targetModelCp _%>DetailItem] = useState(undefined);
 <%}-%>
 
+  //debouncing & event contention
   const cancelablePromises = useRef([]);
+  const isCanceling = useRef(false);
 
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl);
   const lastModelChanged = useSelector(state => state.changes.lastModelChanged);
@@ -415,14 +417,26 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
       {/* Dialog Mode */}
       {(dialog !== undefined && dialog === true) && (
         
-        <Dialog fullScreen open={open} onClose={handleCancel} TransitionComponent={Transition}>
+        <Dialog fullScreen open={open} TransitionComponent={Transition}
+          onClose={(event) => {
+            if(!isCanceling.current){
+              isCanceling.current = true;
+              handleCancel(event);
+            }
+          }}
+        >
           <AppBar className={classes.appBar}>
             <Toolbar>
               <Tooltip title={ t('modelPanels.close') }>
                 <IconButton
                   edge="start"
                   color="inherit"
-                  onClick={handleCancel}
+                  onClick={(event) => {
+                    if(!isCanceling.current){
+                      isCanceling.current = true;
+                      handleCancel(event);
+                    }
+                  }}
                 >
                   <CloseIcon fontSize="small" />
                 </IconButton>

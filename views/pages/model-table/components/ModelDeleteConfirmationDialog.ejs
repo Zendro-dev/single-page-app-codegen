@@ -47,6 +47,10 @@ export default function <%- nameOnPascal -%>DeleteConfirmationDialog(props) {
   const lastModelChanged = useSelector(state => state.changes.lastModelChanged);
   const lastChangeTimestamp = useSelector(state => state.changes.lastChangeTimestamp);
 
+  //debouncing & event contention
+  const isDeleting = useRef(false);
+  const isCanceling = useRef(false);
+
   useEffect(() => {
     /*
      * Handle changes 
@@ -130,7 +134,12 @@ export default function <%- nameOnPascal -%>DeleteConfirmationDialog(props) {
       open={open}
       fullWidth={true}
       maxWidth='lg'
-      onClose={handleCancel}
+      onClose={(event) => {
+        if(!isCanceling.current){
+          isCanceling.current = true;
+          handleCancel(event);
+        }
+      }}
     >
       
       <DialogTitle>
@@ -203,10 +212,24 @@ export default function <%- nameOnPascal -%>DeleteConfirmationDialog(props) {
 
       {(!deleted) && (
         <DialogActions>
-          <Button className={classes.button} onClick={handleCancel} color="primary">
+          <Button className={classes.button} color="primary"
+            onClick={(event) => {
+              if(!isCanceling.current){
+                isCanceling.current = true;
+                handleCancel(event);
+              }
+            }}
+          >
               { t('modelPanels.deleteReject') }
           </Button>
-          <Button className={classes.button} onClick={handleOk} variant="contained" color="secondary">
+          <Button className={classes.button} variant="contained" color="secondary"
+            onClick={(event) => {
+              if(!isDeleting.current){
+                isDeleting.current = true;
+                handleOk(event);
+              }
+            }}
+          >
               { t('modelPanels.deleteAccept') }
           </Button>
         </DialogActions>
@@ -214,7 +237,14 @@ export default function <%- nameOnPascal -%>DeleteConfirmationDialog(props) {
 
       {(deleted) && (
         <DialogActions>
-          <Button className={classes.button} onClick={handleCancel} color="primary">
+          <Button className={classes.button} color="primary"
+            onClick={(event) => {
+              if(!isCanceling.current){
+                isCanceling.current = true;
+                handleCancel(event);
+              }
+            }}
+          >
               { t('modelPanels.close', "Close") }
           </Button>
         </DialogActions>

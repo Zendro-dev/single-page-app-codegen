@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
+import { makeCancelable } from '../../../../../../../../../utils'
 import PropTypes from 'prop-types';
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
 import <%- sortedAssociations[i].relationNameOnPascal _%>TransferLists from './<%- sortedAssociations[i].relationNameLc _%>-transfer-lists/<%- sortedAssociations[i].relationNameCp _%>TransferLists'
@@ -7,6 +8,8 @@ import <%- nameOnPascal _%>AssociationsMenuTabs from './<%- nameCp _%>Associatio
 import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Fade from '@material-ui/core/Fade';
+
+const debounceTimeout = 700;
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -41,9 +44,60 @@ export default function <%- nameOnPascal _%>AssociationsPage(props) {
   } = props;
   const [associationSelected, setAssociationSelected] = React.useState('<%- (sortedAssociations.length > 0) ? sortedAssociations[0].relationNameLc : 'no-associations' _%>');
 
+  //debouncing & event contention
+  const cancelablePromises = useRef([]);
+  const isDebouncingAssociationClick = useRef(false);
+  const currentAssociationSelected = useRef(associationSelected);
+  const lastAssociationSelected = useRef(associationSelected);
+
+  useEffect(() => {
+
+    //cleanup on unmounted.
+    return function cleanup() {
+      cancelablePromises.current.forEach(p => p.cancel());
+      cancelablePromises.current = [];
+    };
+  }, []);
+
   const handleAssociationClick = (event, newValue) => {
-    setAssociationSelected(newValue);
-  }
+    //save last value
+    lastAssociationSelected.current = newValue;
+
+    if(!isDebouncingAssociationClick.current){
+      //set last value
+      currentAssociationSelected.current = newValue;
+      setAssociationSelected(newValue);
+
+      //debounce
+      isDebouncingAssociationClick.current = true;
+      let cancelableTimer = startTimerToDebounceAssociationClick();
+      cancelablePromises.current.push(cancelableTimer);
+      cancelableTimer
+        .promise
+        .then(() => {
+          //clear flag
+          isDebouncingAssociationClick.current = false;
+          //delete from cancelables
+          cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableTimer), 1);
+          //check
+          if(lastAssociationSelected.current !== currentAssociationSelected.current){
+            setAssociationSelected(lastAssociationSelected.current);
+            currentAssociationSelected.current = lastAssociationSelected.current;
+          }
+        })
+        .catch(() => {
+          return;
+        })
+    }
+  };
+  
+  const startTimerToDebounceAssociationClick = () => {
+    return makeCancelable( new Promise(resolve => {
+      window.setTimeout(function() { 
+        resolve(); 
+      }, debounceTimeout);
+    }));
+  };
 
   return (
     <div hidden={hidden}>
