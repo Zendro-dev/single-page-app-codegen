@@ -97,7 +97,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('id');
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(50);
+  const [rowsPerPage, setRowsPerPage] = useState(25);
   const [isOnApiRequest, setIsOnApiRequest] = useState(false);
   const [dataTrigger, setDataTrigger] = useState(false);
   const isPendingApiRequestRef = useRef(false);
@@ -367,6 +367,8 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
       isPendingApiRequestRef.current = false;
       setDataTrigger(prevDataTrigger => !prevDataTrigger);
     }
+
+    updateSizes();
   }, [isOnApiRequest]);
 
   useEffect(() => {
