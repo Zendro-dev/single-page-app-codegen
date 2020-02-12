@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-// Required packages:
+//required packages:
 ejs = require('ejs');
 inflection = require('inflection');
 fs = require('fs-extra');
@@ -13,34 +13,38 @@ const colors = require('colors/safe');
 modelsCreated = require(path.resolve(__dirname, 'modelsNames.js'));
 
 
-// Parse command-line-arguments and execute:
+//parse command-line-arguments and execute:
 program
   .description('Code generator for SPA')
   .option('-f, --jsonFiles <filesFolder>', 'Folder containing one json file for each model')
   .option('-o, --outputDirectory <directory>', 'Directory where generated code will be written')
+  .option('-D, --createBaseDirs', 'Try to create base directories if they do not exist')
   .option('-v, --verbose', 'Show details about the results of running code generation process')
   .parse(process.argv);
-// Do your job:
 
-// Check input JSON files
+//check input JSON files
 if(!program.jsonFiles){
   //msg
   console.log(colors.red('! Error: '), 'You must indicate the json files in order to generate the code.');
   process.exit(1);
 }
 
-// output/input directories
+//ops: output/input directories
 let jsonFiles = program.jsonFiles;
 let directory = program.outputDirectory || __dirname;
 //msg
 console.log('Input directory: ', colors.dim(path.resolve(jsonFiles)));
 console.log('Output directory: ', colors.dim(path.resolve(directory)));
 
-// Verbose
+//op: verbose
 let verbose = program.verbose !== undefined ? true : false;
 
-// Check: required directories
+//op: createBaseDirs
+let createBaseDirs = program.createBaseDirs !== undefined ? true : false;
+
+// check: required directories
 let allRequiredDirsExists = true;
+let allRequiredDirsCreated = true;
 let requiredDirs=
   ['src',
     'src/components',
@@ -57,9 +61,26 @@ for(var i=0; i<requiredDirs.length; ++i) {
     allRequiredDirsExists = false;
     //msg
     console.log('@@ dir: ', colors.dim(dir), "... ", colors.red('does not exist') );
+
+    //create dir
+    if(createBaseDirs) {
+      try {
+        fs.mkdirSync(dir, {recursive: true});
+        //msg
+        if(verbose) console.log("@@@ dir created: ", colors.dim(dir), "... ", colors.green('ok') );
+      } catch(e) {
+        allRequiredDirsCreated = false;
+        //err
+        console.log(colors.red("! mkdir.error: "), "A problem occured while trying to create a required directory, please ensure you have the sufficient privileges to create directories and that you have a recent version of NodeJS");
+        console.log(colors.red("!@ mkdir.error: "), e);
+      }
+    } else {
+      allRequiredDirsCreated = false;
+    }
+
   }
 }
-if(allRequiredDirsExists) {
+if(allRequiredDirsExists || allRequiredDirsCreated) {
   //msg
   console.log(colors.white('@ Checking required directories... ', colors.green('done')));
 } else {
