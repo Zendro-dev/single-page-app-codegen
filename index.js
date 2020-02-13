@@ -90,30 +90,43 @@ if(allRequiredDirsExists || allRequiredDirsCreated) {
 }
 
 /*
- * Parse JSON definitions
+ * Parse & validate JSON model definitions
  */
 //msg
 console.log(colors.white('\n@ Processing models JSON definitions in: \n', colors.green(path.resolve(jsonFiles))));
+
 let opts = [];
 let promises = []
 let totalFiles = 0;
 let totalWrongFiles = 0;
+
+//process input JSON files
 fs.readdirSync(jsonFiles).forEach( (json_file) => {
   totalFiles++;
+  
+  //parse
   let fileData = funks.parseFile(jsonFiles + '/'+json_file );
   if(fileData === null) return;
+  
   //msg
   if(verbose) console.log("\n@@ Proccessing model in: ", colors.blue(json_file));
+  
+  //do semantic validation
   let check_json_model = funks.checkJsonDataFile(fileData);
-  if(!check_json_model.pass){
+  
+  //if no-valid
+  if(!check_json_model.pass) {
     totalWrongFiles++;
     check_json_model.errors.forEach( (error) =>{
+      //err
       console.log(colors.red(error));
     });
+
     //msg
     if(verbose) console.log(colors.dim("@@@ Cheking json model definition... "), colors.red('error'));
+    
     return;
-  } else {
+  } else { //if valid
     //msg
     if(verbose) console.log(colors.dim("@@@ Cheking json model definition... "), colors.green('done'));
   }

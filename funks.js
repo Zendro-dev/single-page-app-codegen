@@ -176,12 +176,12 @@ exports.parseFile = function(jFile){
 
 
 /**
- * checkJsonDataFile - description
+ * checkJsonDataFile - Semantic validations are carried out on the definition of the JSON model.
  *
- * @param  {object} json_file_data Javascript object parser from json file containgin a model info
- * @return {object}                Contains a boolean indicatin if the model data is described correctly and an array of errors.
+ * @param  {object} jsonModel Javascript object parsed from JSON model file.
+ * @return {object}                Object containing a boolean status of the validaton process (pass) and an array of errors (errors).
  */
-exports.checkJsonDataFile = function(json_file_data){
+exports.checkJsonDataFile = function(jsonModel){
   let result = {
     pass : true,
     errors: []
@@ -189,46 +189,46 @@ exports.checkJsonDataFile = function(json_file_data){
 
   //check for required json fields
   //'model'
-  if(!json_file_data.hasOwnProperty('model')) {
+  if(!jsonModel.hasOwnProperty('model')) {
     result.pass = false;
     result.errors.push(`ERROR: 'model' is a mandatory field.`);
   } else {
     //check 'model' type
-    if(typeof json_file_data.model !== 'string') {
+    if(typeof jsonModel.model !== 'string') {
       result.pass = false;
       result.errors.push(`ERROR: 'model' field must be a string.`);
     }
   }
   //'storageType'
-  if(!json_file_data.hasOwnProperty('storageType')) {
+  if(!jsonModel.hasOwnProperty('storageType')) {
     result.pass = false;
     result.errors.push(`ERROR: 'storageType' is a mandatory field.`);
   } else {
     //check 'storageType' type
-    if(typeof json_file_data.storageType !== 'string') {
+    if(typeof jsonModel.storageType !== 'string') {
       result.pass = false;
       result.errors.push(`ERROR: 'storageType' field must be a string.`);
     }
   }
   //'attributes'
-  if(!json_file_data.hasOwnProperty('attributes')) {
+  if(!jsonModel.hasOwnProperty('attributes')) {
     result.pass = false;
     result.errors.push(`ERROR: 'attributes' is a mandatory field.`);
   } else {
     //check for attributes type
-    if(typeof json_file_data.attributes !== 'object') {
+    if(typeof jsonModel.attributes !== 'object') {
       result.pass = false;
       result.errors.push(`ERROR: 'attributes' field must be an object.`);
     } else {
       //check for non empty attributes object
-      let keys = Object.keys(json_file_data.attributes);
+      let keys = Object.keys(jsonModel.attributes);
       if(keys.length === 0) {
         result.pass = false;
         result.errors.push(`ERROR: 'attributes' object can not be empty`);
       } else {
         //check for correct attributes types
         for(var i=0; i<keys.length; ++i) {
-          switch(json_file_data.attributes[keys[i]]) {
+          switch(jsonModel.attributes[keys[i]]) {
             case 'String':
             case 'Int':
             case 'Float':
@@ -242,7 +242,7 @@ exports.checkJsonDataFile = function(json_file_data){
             default:
               //not ok
               result.pass = false;
-              result.errors.push(`ERROR: 'attribute.${keys[i]}' has an invalid type. One of the following types is expected: [String, Int, Float, Boolean, Date, Time, DateTime]. But '${json_file_data.attributes[keys[i]]}' was obtained.`);
+              result.errors.push(`ERROR: 'attribute.${keys[i]}' has an invalid type. One of the following types is expected: [String, Int, Float, Boolean, Date, Time, DateTime]. But '${jsonModel.attributes[keys[i]]}' was obtained.`);
               break;
           }
         }
@@ -250,20 +250,52 @@ exports.checkJsonDataFile = function(json_file_data){
     }
   }
   //'associations'
-  if(json_file_data.hasOwnProperty('associations')) {
+  if(jsonModel.hasOwnProperty('associations')) {
     //check 'associations' type
-    if(typeof json_file_data.associations !== 'object') {
+    if(typeof jsonModel.associations !== 'object') {
       result.pass = false;
       result.errors.push(`ERROR: 'associations' field must be an object.`);
     }
   }
 
+  //'internalId'
+  if(jsonModel.hasOwnProperty('internalId')) {
+    //check: 'internalId' type
+    if(typeof jsonModel.internalId !== 'string') {
+      result.pass = false;
+      result.errors.push(`ERROR: 'internalId' attribute should have a value of type 'string', but it has one of type: '${typeof jsonModel.internalId}'`);
+    
+    } else {
+      //check: the respective attribute has actually been defined in the "attributes" object
+      if(!jsonModel.attributes.hasOwnProperty(jsonModel.internalId)) {
+        result.pass = false;
+        result.errors.push(`ERROR: 'internalId' value has to be defined in model's attributes, but has not been defined. '${jsonModel.internalId}' is not an attribute.`);
+      
+      } else {
+        //check: the respective attribute is of the allowed types String, Int, or Float
+        switch(jsonModel.attributes[jsonModel.internalId]) {
+          case 'String':
+          case 'Int':
+          case 'Float':
+            //ok
+            break;
+          
+          default:
+            //not ok
+            result.pass = false;
+            result.errors.push(`ERROR: 'internalId' has an invalid type. One of the following types is expected: [String, Int, Float]. But '${jsonModel.attributes[jsonModel.internalId]}' was obtained.`);
+            break;
+        }
+      }
+    }
+  }
+
   //check for label field in each association
-  if(json_file_data.associations !== undefined){
-    Object.entries(json_file_data.associations).forEach( ([name, association], index) =>{
+  if(jsonModel.associations !== undefined){
+    Object.entries(jsonModel.associations).forEach( ([name, association], index) =>{
       if(association.label === undefined || association.label === ''){
         result.pass = false;
-        result.errors.push(`ERROR IN MODEL ${json_file_data.model}: 'label' is mandatory field. It should be defined in association ${name}`);
+        result.errors.push(`ERROR IN MODEL ${jsonModel.model}: 'label' is mandatory field. It should be defined in association ${name}`);
       }
    })
   }
