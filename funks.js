@@ -242,7 +242,7 @@ exports.checkJsonDataFile = function(jsonModel){
       //check: the respective attribute has actually been defined in the "attributes" object
       if(!jsonModel.attributes.hasOwnProperty(jsonModel.internalId)) {
         result.pass = false;
-        result.errors.push(`ERROR: 'internalId' value has to be defined in model's attributes, but has not been defined. '${jsonModel.internalId}' is not an attribute.`);
+        result.errors.push(`ERROR: 'internalId' value has not been defined as an attribute. '${jsonModel.internalId}' is not an attribute.`);
       
       } else {
         //check: the respective attribute is of the allowed types String, Int, or Float

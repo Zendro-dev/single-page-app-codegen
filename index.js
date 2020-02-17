@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-
-//required packages:
 ejs = require('ejs');
 inflection = require('inflection');
 fs = require('fs-extra');
@@ -13,7 +11,9 @@ const colors = require('colors/safe');
 modelsCreated = require(path.resolve(__dirname, 'modelsNames.js'));
 
 
-//parse command-line-arguments and execute:
+/*
+ * Parse & set command-line-arguments
+ */
 program
   .description('Code generator for SPA')
   .option('-f, --jsonFiles <filesFolder>', 'Folder containing one json file for each model')
@@ -42,7 +42,9 @@ let verbose = program.verbose !== undefined ? true : false;
 //op: createBaseDirs
 let createBaseDirs = program.createBaseDirs !== undefined ? true : false;
 
-// check: required directories
+/*
+ * Check: required directories
+ */
 let allRequiredDirsExists = true;
 let allRequiredDirsCreated = true;
 let requiredDirs=
@@ -82,7 +84,7 @@ for(var i=0; i<requiredDirs.length; ++i) {
 }
 if(allRequiredDirsExists || allRequiredDirsCreated) {
   //msg
-  console.log(colors.white('@ Checking required directories... ', colors.green('done')));
+  console.log(colors.white('@ ', colors.green('done')));
 } else {
   //msg
   console.log(colors.red('! Error: '), 'Some required directories does not exists on output base-directory');
@@ -90,10 +92,10 @@ if(allRequiredDirsExists || allRequiredDirsCreated) {
 }
 
 /*
- * Parse & validate JSON model definitions
+ * Parse, validate JSON model definitions & set options for EJS templates.
  */
 //msg
-console.log(colors.white('\n@ Processing models JSON definitions in: \n', colors.green(path.resolve(jsonFiles))));
+console.log(colors.white('\n@ Processing JSON files in: \n', colors.dim(path.resolve(jsonFiles)), "\n"));
 
 let opts = [];
 let promises = []
@@ -109,32 +111,44 @@ fs.readdirSync(jsonFiles).forEach( (json_file) => {
   if(fileData === null) return;
   
   //msg
-  if(verbose) console.log("\n@@ Proccessing model in: ", colors.blue(json_file));
+  if(verbose) console.log("@@ Processing model in: ", colors.blue(json_file));
   
   //do semantic validation
   let check_json_model = funks.checkJsonDataFile(fileData);
   
   //if no-valid
   if(!check_json_model.pass) {
+    //err
+    console.log("@@@ Error on model: ", colors.blue(json_file));
+
     totalWrongFiles++;
     check_json_model.errors.forEach( (error) =>{
       //err
-      console.log(colors.red(error));
+      console.log("@@@", colors.red(error));
     });
-
-    //msg
-    if(verbose) console.log(colors.dim("@@@ Cheking json model definition... "), colors.red('error'));
-    
     return;
-  } else { //if valid
-    //msg
-    if(verbose) console.log(colors.dim("@@@ Cheking json model definition... "), colors.green('done'));
-  }
 
-  opts.push(funks.fillOptionsForViews(fileData));
+  } else { //valid json
+    //msg
+    if(verbose) console.log("@@ ", colors.green('done'));
+    opts.push(funks.fillOptionsForViews(fileData));
+  }
 });
 //add attribute
 funks.addPeerRelationName(opts);
+
+//msg
+console.log("\n@@ Total JSON files processed: ", colors.blue(totalFiles));
+//msg
+console.log("@@ Total JSON files processed with errors: ", colors.red(totalWrongFiles));
+if(opts.length === 0) {
+  //msg
+  console.log("@ No JSON files was processed successfully... DONE ");
+  process.exit(1);
+} else {
+  //msg
+  console.log("@ ", colors.green('done'));
+}
 
 /*
  * Code generation
@@ -142,7 +156,7 @@ funks.addPeerRelationName(opts);
 let modelsOpts = {models: [], adminModels: []};
 let modelAtts = {};
 //msg
-console.log(colors.white('\n@ Starting code generation in: \n', colors.green(path.resolve(directory))));
+console.log(colors.white('\n@ Starting code generation in: \n', colors.dim(path.resolve(directory))), "\n");
 opts.forEach((ejbOpts) => {
 
   // set table path
@@ -157,7 +171,12 @@ opts.forEach((ejbOpts) => {
   }
   modelAtts[ejbOpts.name] = ejbOpts.attributesArr;
 
-  // Create required directories
+  /*
+   * Create required directories
+   */
+  //msg
+  console.log(colors.white('\n@@ Creating required directories...'));
+  //table
   let modelTableDirs = [
     path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/`),
     path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components`),
@@ -192,12 +211,16 @@ opts.forEach((ejbOpts) => {
         //err
         console.log(colors.red("! mkdir.error: "), "A problem occured while trying to create a required directory, please ensure you have the sufficient privileges to create directories and that you have a recent version of NodeJS");
         console.log(colors.red("!@ mkdir.error: "), e);
+        console.log(colors.red("\nDONE"));
+        process.exit(1);
       }
     } else {
       //msg
       if(verbose) console.log("@@@ dir exists: ", colors.dim(dir));
     }
   }
+  //msg
+  console.log("@@ ", colors.green('done'));
 
   /**
    * Debug
@@ -205,6 +228,11 @@ opts.forEach((ejbOpts) => {
   //console.log("ejbOpts: ", ejbOpts);
   //console.log("fileData: ", fileData);
 
+  /*
+   * Generate code
+   */
+  //msg
+  console.log(colors.white('@@ Generating code...'));
 
   /**
    * modelTable
@@ -592,7 +620,7 @@ fpath = path.resolve(directory, `src/`, `utils.js`);
 promises.push( funks.renderToFile(fpath, 'utils/utils') );
 
 
-Promise.all(promises).then( (values) =>{
+Promise.all(promises).then( (values) => {
   //msg
   if(verbose) {
     for(var i=0; i<values.length; i++)
@@ -600,7 +628,8 @@ Promise.all(promises).then( (values) =>{
     console.log("@@@ file generated: ", colors.dim(values[i]));
     }
   }
+  //msg
+  console.log("@@ ", colors.green('done'));
+  console.log("@ ", colors.green('done'));
 })
 .catch((error)=>{console.log(error); console.log("SOMETHING WRONG")});
-
-console.log("\nDONE\n");
