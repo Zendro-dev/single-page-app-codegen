@@ -306,17 +306,18 @@ exports.checkJsonDataFile = function(jsonModel){
 
 
 /**
- * fillOptionsForViews - Creates object with all extra info and with all data model info that templates will use.
+ * fillOptionsForViews - Creates object with all the information about data model that templates will use.
  *
  * @param  {object} fileData object originally created from a json file containing data model info.
  * @return {object}          Object with all extra data model info that will be needed to create files with templates.
  */
 exports.fillOptionsForViews = function(fileData){
-  //fileData = parseFile(jFile);
+  //get associations options
   let associations = parseAssociationsFromFile(fileData.associations);
+  
+  //set options used by EJS templates
   let opts = {
     baseUrl: fileData.baseUrl,
-    //check compatibility with name in express_graphql_gen
     name: fileData.model,
     nameLc: exports.uncapitalizeString(fileData.model),
     namePl: inflection.pluralize(exports.uncapitalizeString(fileData.model)),
@@ -333,6 +334,7 @@ exports.fillOptionsForViews = function(fileData){
     ownForeignKeysArr: associations.ownForeignKeysArr,
     hasOwnForeingKeys: associations.hasOwnForeingKeys,
     hasToManyAssociations: associations.hasToManyAssociations,
+    internalId: getInternalId(fileData),
   }
 
   return opts;
@@ -535,6 +537,16 @@ parseAssociationsFromFile = function(associations){
   }
 
   return assoc;
+}
+
+/**
+ * getInternalId - Check wether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.
+ *
+ * @param  {object} jsonModel object originally created from a json file containing data model info.
+ * @return {type} Name of the attribute that functions as an internalId
+ */
+getInternalId = function(jsonModel){
+  return (jsonModel.internalId) ? jsonModel.internalId : 'id';
 }
 
 getSqlType = function(association){
