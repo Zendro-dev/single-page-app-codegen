@@ -48,11 +48,6 @@ exports.renderToFile = async function(outFile, templateName, options) {
   return p;
 }
 
-// Parse input 'attributes' argument into array of arrays:
-// [ [ 'name':'string' ], [ 'is_human':'boolean' ] ]
-//
-
-
 /**
  * exports - Parse input 'attributes' argument into array of arrays:
  *
@@ -85,9 +80,8 @@ exports.typeAttributes = function(attributesArray) {
   return y;
 }
 
-
 /**
- * uncapitalizeString - set initial character to lower case
+ * uncapitalizeString - Set initial character to lower case
  *
  * @param  {string} word String input to uncapitalize
  * @return {string}      String with lower case in the initial character
@@ -101,9 +95,8 @@ exports.uncapitalizeString = function(word){
   }
 }
 
-
 /**
- * capitalizeString - set initial character to upper case
+ * capitalizeString - Set initial character to upper case
  *
  * @param  {type} word String input to capitalize
  * @return {type}      String with upper case in the initial character
@@ -118,7 +111,7 @@ exports.capitalizeString = function(word){
 }
 
 /**
- * snakeToPascalCase - converts string from snake case to pascal case.
+ * snakeToPascalCase - Converts string from snake case to pascal case.
  *
  * @param  {type} word String input to convert.
  * @return {type}      String on pascal case.
@@ -131,27 +124,6 @@ exports.toPascalCase = function(word){
                     .replace('_', '')
   ));
 }
-
-
-// Copies file found under sourcePath to targetPath if and only if target does
-// not exist:
-
-
-/**
- * copyFileIfNotExists - Copies file found under sourcePath to targetPath if and only if target does not exist.
- *
- * @param  {string} sourcePath Source path where file to copy is stored
- * @param  {type} targetPath Target path where source file will be copied
- */
-exports.copyFileIfNotExists = async function(sourcePath, targetPath) {
-
-    fs.stat(targetPath, function(err, stat) {
-      if (err != null) {
-        fs.copySync(sourcePath, targetPath);
-      }
-    });
-}
-
 
 /**
  * parseFile - Parse a json file
@@ -173,8 +145,6 @@ exports.parseFile = function(jFile){
   return words;
 }
 
-
-
 /**
  * checkJsonDataFile - Semantic validations are carried out on the definition of the JSON model.
  *
@@ -187,7 +157,10 @@ exports.checkJsonDataFile = function(jsonModel){
     errors: []
   }
 
-  //check for required json fields
+  /*
+    Checks:
+  */
+
   //'model'
   if(!jsonModel.hasOwnProperty('model')) {
     result.pass = false;
@@ -303,8 +276,6 @@ exports.checkJsonDataFile = function(jsonModel){
   return result;
 }
 
-
-
 /**
  * fillOptionsForViews - Creates object with all the information about data model that templates will use.
  *
@@ -340,6 +311,11 @@ exports.fillOptionsForViews = function(fileData){
   return opts;
 }
 
+/**
+ * addPeerRelationName - Adds 'peerRelation' name-attributes to each association defined on each model.
+ *
+ * @param  {array} opts Array of already calculated EJS options.
+ */
 exports.addPeerRelationName = function(opts) {
 
   opts.forEach( (opt) => {
@@ -401,7 +377,6 @@ exports.addPeerRelationName = function(opts) {
 
 }
 
-
 /**
  * attributesArrayFromFile - Given a object containing attributes description, this function will
  * convert it to an array of arrays, where each item is as array with field name and its type (example [ [ 'name','string' ], [ 'is_human','boolean' ] ])
@@ -418,7 +393,6 @@ attributesArrayFromFile = function(attributes){
 
   return attArray;
 }
-
 
 /**
  * parseAssociationsFromFile - Parse associations description for a given model
@@ -540,7 +514,7 @@ parseAssociationsFromFile = function(associations){
 }
 
 /**
- * getInternalId - Check wether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.
+ * getInternalId - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.
  *
  * @param  {object} jsonModel object originally created from a json file containing data model info.
  * @return {type} Name of the attribute that functions as an internalId
@@ -549,6 +523,11 @@ getInternalId = function(jsonModel){
   return (jsonModel.internalId) ? jsonModel.internalId : 'id';
 }
 
+/**
+ * getSqlType - Calculates the type of relation of the given association, in terms of Sequelize concepts.
+ *
+ * @param  {object} association Association attributes (already calculated).
+ */
 getSqlType = function(association){
   if(association.type === 'to_one' && association.keyIn !== association.target){
     return 'belongsTo';
