@@ -102,11 +102,13 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
               Fields 
             */}
 
+<%if(internalId === 'id'){-%>
             {/* Id */}
             <CardContent key='id' className={classes.cardContent}>
               <Typography variant="h6" display="inline">Id:</Typography>
               <Typography variant="h6" display="inline" color="textSecondary">&nbsp;{item.id}</Typography>
-            </CardContent>            
+            </CardContent>
+<%}-%>        
 <%for( let i=0; i<attributesArr.length; i++ ){
   let a = attributesArr[i][0];
   let label = a[0].toUpperCase() + a.slice(1);
