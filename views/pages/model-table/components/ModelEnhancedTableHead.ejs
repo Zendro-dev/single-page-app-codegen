@@ -51,6 +51,7 @@ export default function <%- nameOnPascal -%>EnhancedTableHead(props) {
           Headers 
         */}
 
+<%if(internalId === 'id'){-%>
         {/* Id */}
         <TableCell
           key='id'
@@ -68,11 +69,12 @@ export default function <%- nameOnPascal -%>EnhancedTableHead(props) {
             </Typography>
           </TableSortLabel>
         </TableCell>
-        <%for( let i=0; i<attributesArr.length; i++ ){
-          let a = attributesArr[i][0];
-          let label = a[0].toUpperCase() + a.slice(1);
-          let type = attributesArr[i][1];
-          -%>
+<%}-%>
+<%for( let i=0; i<attributesArr.length; i++ ){
+let a = attributesArr[i][0];
+let label = a[0].toUpperCase() + a.slice(1);
+let type = attributesArr[i][1];
+-%>
 
         <TableCell
           key='<%- a -%>'
@@ -91,7 +93,7 @@ export default function <%- nameOnPascal -%>EnhancedTableHead(props) {
             </Typography>
           </TableSortLabel>
         </TableCell>
-        <%}-%>
+<%}-%>
 
       </TableRow>
     </TableHead>
