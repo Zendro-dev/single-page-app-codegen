@@ -127,7 +127,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
     let sublabel = '<%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='') ? `${sortedAssociations[aindex].sublabel}` : '' _%>';
     let cancelableApiReq = makeCancelable(api.<%- nameLc _%>.get<%- sortedAssociations[aindex].relationNameCp _%>Filter(
       graphqlServerUrl, 
-      item.id,
+      item.<%- internalId _%>,
       label,
       sublabel,
       search,
@@ -223,7 +223,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
           return;
         }
       });
-  }, [graphqlServerUrl, enqueueSnackbar, t, dataTrigger, item.id, search, rowsPerPage]);
+  }, [graphqlServerUrl, enqueueSnackbar, t, dataTrigger, item.<%- internalId _%>, search, rowsPerPage]);
 
   useEffect(() => {
 
@@ -274,8 +274,8 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
      * but this action happened on the peer relation '<%- sortedAssociations[aindex].peerRelationName _%>'.
      * 
      * Conditions:
-     * A: the current item id is in the removedIds of the updated '<%- sortedAssociations[aindex].targetModel _%>'.
-     * B: the current item id is in the addedIds of the updated '<%- sortedAssociations[aindex].targetModel _%>'.
+     * A: the current item '<%- internalId _%>' attribute is in the removedIds of the updated '<%- sortedAssociations[aindex].targetModel _%>'.
+     * B: the current item '<%- internalId _%>' attribute is in the addedIds of the updated '<%- sortedAssociations[aindex].targetModel _%>'.
      * 
      * Actions:
      * if A:
@@ -296,7 +296,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
             if(entry[1].changedAssociations.<%- sortedAssociations[aindex].peerRelationName _%>.removed) {
               let idsRemoved = entry[1].changedAssociations.<%- sortedAssociations[aindex].peerRelationName _%>.idsRemoved;
               if(idsRemoved) {
-                let iof = idsRemoved.indexOf(item.id);
+                let iof = idsRemoved.indexOf(item.<%- internalId _%>);
                 if(iof !== -1) {
                   //reload
                   updateHeights();
@@ -312,7 +312,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
             if(entry[1].changedAssociations.<%- sortedAssociations[aindex].peerRelationName _%>.added) {
               let idsAdded = entry[1].changedAssociations.<%- sortedAssociations[aindex].peerRelationName _%>.idsAdded;
               if(idsAdded) {
-                let iof = idsAdded.indexOf(item.id);
+                let iof = idsAdded.indexOf(item.<%- internalId _%>);
                 if(iof !== -1) {
                   //reload
                   updateHeights();
@@ -351,11 +351,11 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
         
         //case A: updated
         if(entry[1].op === "update"&&entry[1].newItem) {
-          let idUpdated = entry[1].item.id;
+          let idUpdated = entry[1].item.<%- internalId _%>;
           
           //lookup item on table
           let nitemsA = Array.from(items);
-          let iofA = nitemsA.findIndex((item) => item.id===idUpdated);
+          let iofA = nitemsA.findIndex((item) => item.<%- internalId _%>===idUpdated);
           if(iofA !== -1) {
             //set new item
             nitemsA[iofA] = entry[1].newItem;
@@ -365,10 +365,10 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
 
         //case B: deleted
         if(entry[1].op === "delete") {
-          let idRemoved = entry[1].item.id;
+          let idRemoved = entry[1].item.<%- internalId _%>;
 
           //lookup item on table
-          let iofA = items.findIndex((item) => item.id===idRemoved);
+          let iofA = items.findIndex((item) => item.<%- internalId _%>===idRemoved);
           if(iofA !== -1) {
             //reload
             updateHeights();
@@ -380,7 +380,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
         }
       });
     }//end: Case 2
-  }, [lastModelChanged, lastChangeTimestamp, items, item.id]);
+  }, [lastModelChanged, lastChangeTimestamp, items, item.<%- internalId _%>]);
 
   useEffect(() => {
     //return if this flag is set
@@ -517,7 +517,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
                   <Box className={classes.listBox} ref={lref}>
                     <List dense component="div" role="list" >
                       {items.map(it => {
-                        let key = it.id;
+                        let key = it.<%- internalId _%>;
                         let label = <%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='') ? `it.${sortedAssociations[aindex].label}` : 'undefined' _%>;
                         let sublabel = <%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='') ? `it.${sortedAssociations[aindex].sublabel}` : 'undefined' _%>;
        
@@ -536,7 +536,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
                                   
                                   {/* Id */}
                                   <Grid item>
-                                    <Typography className={classes.id} variant="caption" display="block" noWrap={true}>{it.id}</Typography>
+                                    <Typography className={classes.id} variant="caption" display="block" noWrap={true}>{it.<%- internalId _%>}</Typography>
                                   </Grid>
 
                                   {/* Divider */}
