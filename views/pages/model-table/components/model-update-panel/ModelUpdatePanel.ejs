@@ -109,8 +109,8 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
   
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
 <%if(sortedAssociations[i].type === 'to_one'){-%>
-  const <%- sortedAssociations[i].relationNameLc _%>IdsToAdd = useRef((item.<%- sortedAssociations[i].relationName _%> && item.<%- sortedAssociations[i].relationName _%>.id) ? [item.<%- sortedAssociations[i].relationName _%>.id] : []);
-  const [<%- sortedAssociations[i].relationNameLc _%>IdsToAddState, set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState] = useState((item.<%- sortedAssociations[i].relationName _%> && item.<%- sortedAssociations[i].relationName _%>.id) ? [item.<%- sortedAssociations[i].relationName _%>.id] : []);
+  const <%- sortedAssociations[i].relationNameLc _%>IdsToAdd = useRef((item.<%- sortedAssociations[i].relationName _%> && item.<%- sortedAssociations[i].relationName _%>.<%- sortedAssociations[i].internalId _%>) ? [item.<%- sortedAssociations[i].relationName _%>.<%- sortedAssociations[i].internalId _%>] : []);
+  const [<%- sortedAssociations[i].relationNameLc _%>IdsToAddState, set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState] = useState((item.<%- sortedAssociations[i].relationName _%> && item.<%- sortedAssociations[i].relationName _%>.<%- sortedAssociations[i].internalId _%>) ? [item.<%- sortedAssociations[i].relationName _%>.<%- sortedAssociations[i].internalId _%>] : []);
 <%} else {-%>
   const [<%- sortedAssociations[i].relationNameLc _%>IdsToAddState, set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState] = useState([]);
   const <%- sortedAssociations[i].relationNameLc _%>IdsToAdd = useRef([]);
@@ -199,22 +199,22 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
     //check if this.item changed
     if(lastModelChanged&&
       lastModelChanged.<%- name _%>&&
-      lastModelChanged.<%- name _%>[String(item.id)]) {
+      lastModelChanged.<%- name _%>[String(item.<%- internalId _%>)]) {
 
         //updated item
-        if(lastModelChanged.<%- name _%>[String(item.id)].op === "update"&&
-            lastModelChanged.<%- name _%>[String(item.id)].newItem) {
+        if(lastModelChanged.<%- name _%>[String(item.<%- internalId _%>)].op === "update"&&
+            lastModelChanged.<%- name _%>[String(item.<%- internalId _%>)].newItem) {
               //show alert
               setUpdated(true);
         } else {
           //deleted item
-          if(lastModelChanged.<%- name _%>[String(item.id)].op === "delete") {
+          if(lastModelChanged.<%- name _%>[String(item.<%- internalId _%>)].op === "delete") {
               //show alert
               setDeleted(true);
           }
         }
     }//end: Case 1
-  }, [lastModelChanged, lastChangeTimestamp, item.id]);
+  }, [lastModelChanged, lastChangeTimestamp, item.<%- internalId _%>]);
 
   useEffect(() => {
     if(deleted&&updated) {
@@ -315,27 +315,27 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
     changedAssociations.current.<%- sortedAssociations[i].relationName %> = {added: false, removed: false};
     
     //currently to-one-associated
-    if(item.<%- sortedAssociations[i].relationName %>&&item.<%- sortedAssociations[i].relationName %>.id) {
+    if(item.<%- sortedAssociations[i].relationName %>&&item.<%- sortedAssociations[i].relationName _%>.<%- sortedAssociations[i].internalId _%>) {
       
       //case: has id to add
       if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.length>0) {
         
         //case: current association changed
-        if(item.<%- sortedAssociations[i].relationName %>.id !== <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current[0]) {
+        if(item.<%- sortedAssociations[i].relationName %>.<%- sortedAssociations[i].internalId _%> !== <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current[0]) {
           variables.add<%- sortedAssociations[i].relationNameCp %> = <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current[0];
-          variables.remove<%- sortedAssociations[i].relationNameCp %> = item.<%- sortedAssociations[i].relationName %>.id;
+          variables.remove<%- sortedAssociations[i].relationNameCp %> = item.<%- sortedAssociations[i].relationName %>.<%- sortedAssociations[i].internalId _%>;
 
           changedAssociations.current.<%- sortedAssociations[i].relationName %>.added = true;
           changedAssociations.current.<%- sortedAssociations[i].relationName %>.idsAdded = <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current;
           changedAssociations.current.<%- sortedAssociations[i].relationName %>.removed = true;
-          changedAssociations.current.<%- sortedAssociations[i].relationName %>.idsRemoved = [item.<%- sortedAssociations[i].relationName %>.id];
+          changedAssociations.current.<%- sortedAssociations[i].relationName %>.idsRemoved = [item.<%- sortedAssociations[i].relationName %>.<%- sortedAssociations[i].internalId _%>];
         }
       } else { //case: current association removed
         variables.add<%- sortedAssociations[i].relationNameCp %> = null;
-        variables.remove<%- sortedAssociations[i].relationNameCp %> = item.<%- sortedAssociations[i].relationName %>.id;
+        variables.remove<%- sortedAssociations[i].relationNameCp %> = item.<%- sortedAssociations[i].relationName %>.<%- sortedAssociations[i].internalId _%>;
         
         changedAssociations.current.<%- sortedAssociations[i].relationName %>.removed = true;
-        changedAssociations.current.<%- sortedAssociations[i].relationName %>.idsRemoved = [item.<%- sortedAssociations[i].relationName %>.id];
+        changedAssociations.current.<%- sortedAssociations[i].relationName %>.idsRemoved = [item.<%- sortedAssociations[i].relationName %>.<%- sortedAssociations[i].internalId _%>];
       }
     } else { //currently not to-one-associated
       
@@ -359,9 +359,11 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
     let keys = Object.keys(values.current);
     let variables = {};
 
+<%if(internalId === 'id'){-%>
     //id
     variables.id = item.id;
-    
+<%}-%>
+
     //attributes
     for(let i=0; i<keys.length; i++) {
       if(valuesOkRefs.current[keys[i]] !== -1) {
@@ -727,7 +729,7 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
             </IconButton>
           </Tooltip>
           <Typography variant="h6" className={classes.title}>
-            { t('modelPanels.editing') +  ": <%- nameCp %> | id: " + item.id }
+            { t('modelPanels.editing') +  ": <%- nameCp %> | <%- internalId _%>: " + item.<%- internalId _%> }
           </Typography>
           
           {(!deleted)&&(
