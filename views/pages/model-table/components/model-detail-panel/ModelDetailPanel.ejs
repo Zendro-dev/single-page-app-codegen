@@ -169,24 +169,24 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
     //check if this.item changed
     if(lastModelChanged&&
       lastModelChanged.<%- name _%>&&
-      lastModelChanged.<%- name _%>[String(itemState.id)]) {
+      lastModelChanged.<%- name _%>[String(itemState.<%- internalId _%>)]) {
           
         //updated item
-        if(lastModelChanged.<%- name _%>[String(itemState.id)].op === "update"&&
-            lastModelChanged.<%- name _%>[String(itemState.id)].newItem) {
+        if(lastModelChanged.<%- name _%>[String(itemState.<%- internalId _%>)].op === "update"&&
+            lastModelChanged.<%- name _%>[String(itemState.<%- internalId _%>)].newItem) {
               //replace item
-              setItemState(lastModelChanged.<%- name _%>[String(itemState.id)].newItem);
+              setItemState(lastModelChanged.<%- name _%>[String(itemState.<%- internalId _%>)].newItem);
               //show alert
               setUpdated(true);
         } else {
           //deleted item
-          if(lastModelChanged.<%- name _%>[String(itemState.id)].op === "delete") {
+          if(lastModelChanged.<%- name _%>[String(itemState.<%- internalId _%>)].op === "delete") {
               //show alert
               setDeleted(true);
           }
         }
     }//end: Case 1
-  }, [lastModelChanged, lastChangeTimestamp, itemState.id]);
+  }, [lastModelChanged, lastChangeTimestamp, itemState.<%- internalId _%>]);
 
   useEffect(() => {
     if(deleted&&updated) {
@@ -224,7 +224,12 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
 
   function doDelete(event, item) {
     //variables
-    let variables = {id: item.id};
+    let variables = {};
+
+<%if(internalId === 'id'){-%>
+    //id
+    variables.id = item.id;
+<%}-%>
 
     /*
       API Request: deleteItem
@@ -442,7 +447,7 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
                 </IconButton>
               </Tooltip>
               <Typography variant="h6" className={classes.title}>
-                { t('modelPanels.detailOf') +  ": <%- nameCp %> | id: " + itemState.id }
+                { t('modelPanels.detailOf') +  ": <%- nameCp %> | <%- internalId _%>: " + itemState.<%- internalId _%> }
               </Typography>
               {/*
                 Actions:
