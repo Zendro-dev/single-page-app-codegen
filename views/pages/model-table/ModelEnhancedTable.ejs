@@ -391,7 +391,12 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 
   function doDelete(event, item) {
     //variables
-    let variables = {id: item.id};
+    let variables = {};
+
+<%if(internalId === 'id'){-%>
+    //set id
+    variables.id = item.id;
+<%}-%>
 
     /*
       API Request: deleteItem
@@ -553,9 +558,11 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
       }
     } else {
       let nitems = Array.from(items);
+      let oid = oldItem.<%- internalId _%>;
       //find item
       for(let i=0; i<nitems.length; i++) {
-        if(nitems[i].id === oldItem.id) {
+        let iid = nitems[i].<%- internalId _%>;
+        if(iid === oid) {
           //set new item
           nitems[i] = newItem;
           setItems(nitems);
@@ -922,7 +929,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                                 onClick={event => handleClickOnRow(event, item)}
                                 role="checkbox"
                                 tabIndex={-1}
-                                key={item.id}
+                                key={item.<%- internalId _%>}
                               >
 
                                 {/* SeeInfo icon */}
@@ -987,7 +994,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                                 }
 
                                 {/* Item fields */}
-
+<%if(internalId === 'id'){-%>
                                 {/* id */}
                                 <TableCell
                                   key='id'
@@ -998,6 +1005,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                                     <Typography variant='body2' color='textSecondary' display='block' noWrap={true}>{item.id}</Typography>
                                   </Tooltip>
                                 </TableCell>
+<%}-%>
 
   <%for( let i=0; i<attributesArr.length; i++ ){
     let a = attributesArr[i][0];
