@@ -134,8 +134,9 @@ fs.readdirSync(jsonFiles).forEach( (json_file) => {
     opts.push(funks.fillOptionsForViews(fileData));
   }
 });
-//add attribute
+//add additional attributes
 funks.addPeerRelationName(opts);
+funks.addInternalIdToAssociations(opts);
 
 //msg
 console.log("\n@@ Total JSON files processed: ", colors.blue(totalFiles));
@@ -549,8 +550,8 @@ modelsOpts.adminModels.sort(function (a, b) {
 /**
  * Debug
  */
-//console.log("modelsOpts: ", modelsOpts);
-//console.log("modelAtts: ", modelAtts);
+console.log("modelsOpts: ", modelsOpts);
+console.log("modelAtts: ", modelAtts);
 
 /**
  * requests - model
@@ -561,6 +562,11 @@ for(let i=0; i<modelsOpts.models.length; i++)
 {
   let m = modelsOpts.models[i];
   m.modelsAtts = modelAtts;
+
+  /**
+   * Debug
+   */
+  console.log("MODEL_OPTS: ", m);
 
   fpath = path.resolve(directory, `src/requests/`, `${m.nameLc}.js`);
   promises.push( funks.renderToFile(fpath, 'requests/model', m) );

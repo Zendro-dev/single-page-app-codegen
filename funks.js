@@ -317,10 +317,11 @@ exports.fillOptionsForViews = function(fileData){
  * @param  {array} opts Array of already calculated EJS options.
  */
 exports.addPeerRelationName = function(opts) {
-
+  //for each model
   opts.forEach( (opt) => {
+    //for each association
     opt.sortedAssociations.forEach( (association) => {
-      //if already has peer realtion name
+      //if already has peer-relation name
       if(association.hasOwnProperty('peerRelationName')) {
         //done
         return;
@@ -378,6 +379,32 @@ exports.addPeerRelationName = function(opts) {
 }
 
 /**
+ * addInternalIdToAssociations - Adds 'internalId' attribute to each association defined on each model.
+ *
+ * @param  {array} opts Array of already calculated EJS options.
+ */
+exports.addInternalIdToAssociations = function(opts) {
+  //for each model
+  opts.forEach( (opt) => {
+    //for each association
+    opt.sortedAssociations.forEach( (association) => {
+
+      //find target model
+      let found = false;
+      for(let i=0; !found && i<opts.length; i++) {
+        if(association.targetModel === opts[i].name) {
+          found = true;
+
+          //set internalId
+          association.internalId = opts[i].internalId;
+        }
+      }
+    })
+  });
+
+}
+
+/**
  * attributesArrayFromFile - Given a object containing attributes description, this function will
  * convert it to an array of arrays, where each item is as array with field name and its type (example [ [ 'name','string' ], [ 'is_human','boolean' ] ])
  *
@@ -421,7 +448,6 @@ parseAssociationsFromFile = function(associations){
       let baa = {
         "type" : type,
         "sqlType" : sqlType,
-        "primaryKey" : "id",
 
         "relationName" : name,
         "relationNameCp": exports.capitalizeString(name),

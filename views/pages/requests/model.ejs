@@ -81,13 +81,15 @@ export default {
         
         query =
           `{ <%- namePlLc _%>( ${s}, ${o}, ${p} ) {
+<%if(internalId === 'id'){-%>
             id,
+<%}-%>
 <%_for( let i=0; i<attributesArr.length; i++ ){-%>
             <%- attributesArr[i][0] -%>,
 <%}-%>
 <%_for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === 'to_one') {-%>
-            <%- sortedAssociations[i].relationName -%>{ id },
+            <%- sortedAssociations[i].relationName -%>{ <%- internalId -%> },
 <%}}-%>
            }}`
       }
@@ -95,13 +97,15 @@ export default {
 
         query =
           `{ <%- namePlLc _%>( ${s}, ${p} ) {
+<%if(internalId === 'id'){-%>
             id,
+<%}-%>
 <%_for( let i=0; i<attributesArr.length; i++ ){-%>
             <%- attributesArr[i][0] -%>,
 <%}-%>
 <%_for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === 'to_one') {-%>
-            <%- sortedAssociations[i].relationName -%>{ id },
+            <%- sortedAssociations[i].relationName -%>{ <%- internalId -%> },
 <%}}-%>
            }}`
       }
@@ -112,13 +116,15 @@ export default {
         
         query =
           `{ <%- namePlLc _%>( ${o}, ${p} ) {
+<%if(internalId === 'id'){-%>
             id,
+<%}-%>
 <%_for( let i=0; i<attributesArr.length; i++ ){-%>
             <%- attributesArr[i][0] -%>,
 <%}-%>
 <%_for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === 'to_one') {-%>
-            <%- sortedAssociations[i].relationName -%>{ id },
+            <%- sortedAssociations[i].relationName -%>{ <%- internalId -%> },
 <%}}-%>
            }}`
       }
@@ -126,13 +132,15 @@ export default {
         
         query =
           `{ <%- namePlLc _%>( ${p} ) {
+<%if(internalId === 'id'){-%>
             id,
+<%}-%>
 <%_for( let i=0; i<attributesArr.length; i++ ){-%>
             <%- attributesArr[i][0] -%>,
 <%}-%>
 <%_for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === 'to_one') {-%>
-            <%- sortedAssociations[i].relationName -%>{ id },
+            <%- sortedAssociations[i].relationName -%>{ <%- internalId -%> },
 <%}}-%>
            }}`
       }
@@ -177,7 +185,9 @@ export default {
             add<%- sortedAssociations[i].relationNameCp _%>: $add<%- sortedAssociations[i].relationNameCp _%>,
 <%}}-%>
           ) {
+<%if(internalId === 'id'){-%>
             id,
+<%}-%>
 <%_for( let i=0; i<attributesArr.length; i++ ){-%>
             <%- attributesArr[i][0] _%>,
 <%}-%> 
@@ -204,10 +214,12 @@ export default {
     var query = 
       `mutation
         update<%- nameCp %>(
-          $id:ID!
-<%_for( let i=0; i<attributesArr.length; i++ ){-%>
+          $<%- internalId _%>:ID!
+<%_for( let i=0; i<attributesArr.length; i++ ){
+  if((internalId === 'id') || (attributesArr[i][0] !== internalId)) {
+-%>
           $<%- attributesArr[i][0] _%>:<%- attributesArr[i][1] _%>,
-<%}-%>
+<%}}-%>
 <%_for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === "to_many") {
 -%>
@@ -215,7 +227,9 @@ export default {
           $remove<%- sortedAssociations[i].relationNameCp _%>: [ID],
 <%}}-%>
           ) { update<%- nameCp %>(
-            id:$id
+<%if(internalId === 'id'){-%>
+            id:$id,
+<%}-%>
 <%_for( let i=0; i<attributesArr.length; i++ ){-%>
             <%- attributesArr[i][0] _%>:$<%- attributesArr[i][0] _%>,
 <%}-%>
@@ -226,13 +240,15 @@ export default {
             remove<%- sortedAssociations[i].relationNameCp _%>: $remove<%- sortedAssociations[i].relationNameCp _%>,
 <%}}-%>
           ) {
+<%if(internalId === 'id'){-%>
             id,
+<%}-%>
 <%_for( let i=0; i<attributesArr.length; i++ ){-%>
             <%- attributesArr[i][0] _%>,
 <%}-%>
 <%_for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === 'to_one') {-%>
-            <%- sortedAssociations[i].relationName -%>{ id },
+            <%- sortedAssociations[i].relationName -%>{ <%- internalId -%> },
 <%}}-%>
           } }`;
 
@@ -257,10 +273,10 @@ export default {
     var query = 
       `mutation
         delete<%- nameCp %>(
-          $id:ID! 
+          $<%- internalId _%>:ID! 
         ) {
           delete<%- nameCp %>(
-            id:$id
+            <%- internalId _%>:$<%- internalId -%>
 
         ) }`
 
@@ -282,7 +298,7 @@ export default {
    * 
    * 
    * @param {String} url GraphQL Server url
-   * @param {Number} itemId Model item id.
+   * @param {Number} itemId Model item internalId.
    * @param {String} label Label name.
    * @param {String} sublabel Sublabel name.
    * @param {String} searchText Text string currently on search bar.
@@ -300,18 +316,22 @@ export default {
     var p = `pagination: {offset: ${paginationOffset}, limit: ${paginationLimit}}`
 
     var query = (s) ?
-      `{ readOne<%- nameCp %>(id: ${itemId}) { 
+      `{ readOne<%- nameCp %>(<%- internalId _%>: ${itemId}) { 
         <%- sortedAssociations[i].relationNameLc _%>Filter( ${s}, ${p} ) { 
+<%if(internalId === 'id'){-%>
           id,
+<%}-%>
 <%_for( let j=0; j<modelsAtts[sortedAssociations[i].targetModel].length; j++ ){-%>
           <%- modelsAtts[sortedAssociations[i].targetModel][j][0] -%>,
 <%}-%>
         }, 
         countFiltered<%- sortedAssociations[i].relationNameCp %>( ${s} ) 
       } }` :      
-      `{ readOne<%- nameCp %>(id: ${itemId}) { 
+      `{ readOne<%- nameCp %>(<%- internalId _%>: ${itemId}) { 
         <%- sortedAssociations[i].relationNameLc _%>Filter( ${p} ) { 
+<%if(internalId === 'id'){-%>
           id,
+<%}-%>
 <%_for( let j=0; j<modelsAtts[sortedAssociations[i].targetModel].length; j++ ){-%>
           <%- modelsAtts[sortedAssociations[i].targetModel][j][0] -%>,
 <%}-%>
@@ -320,9 +340,11 @@ export default {
       } }`;
 <%} else {-%>
     var query = 
-      `{ readOne<%- nameCp %>(id: ${itemId}) { 
+      `{ readOne<%- nameCp %>(<%- internalId _%>: ${itemId}) { 
         <%- sortedAssociations[i].relationName _%> { 
+<%if(internalId === 'id'){-%>
           id,
+<%}-%>
 <%_for( let j=0; j<modelsAtts[sortedAssociations[i].targetModel].length; j++ ){-%>
           <%- modelsAtts[sortedAssociations[i].targetModel][j][0] -%>,
 <%}-%>
@@ -346,17 +368,17 @@ export default {
    * through association '<%- sortedAssociations[i].relationNameCp %>', from GraphQL Server.
    * 
    * @param {String} url GraphQL Server url
-   * @param {Number} itemId Model item id.
+   * @param {Number} itemId Model item internalId.
    */
   getAssociated<%- sortedAssociations[i].relationNameCp %>(url, itemId) {
 <%_if( sortedAssociations[i].type === 'to_many' ){-%>
     var query = 
-      `{ readOne<%- nameCp %>( id: ${itemId} ){ 
-        <%- sortedAssociations[i].relationNameLc _%>Filter{ id } } }`;
+      `{ readOne<%- nameCp %>( <%- internalId _%>: ${itemId} ){ 
+        <%- sortedAssociations[i].relationNameLc _%>Filter{ <%- sortedAssociations[i].internalId -%> } } }`;
 <%} else {-%>
     var query = 
-    `{ readOne<%- nameCp %>( id: ${itemId} ){ 
-      <%- sortedAssociations[i].relationName _%>{ id } } }`;
+    `{ readOne<%- nameCp %>( <%- internalId _%>: ${itemId} ){ 
+      <%- sortedAssociations[i].relationName _%>{ <%- sortedAssociations[i].internalId -%> } } }`;
 <%}-%>
     /**
      * Debug
@@ -404,7 +426,6 @@ function getSearchArgument(filterName, searchText, ops) {
           Case (special): attribute: id
         */
         if (modelAttributes[i] === 'id') {
-          console.log("@--s: case ID (INT): num: ", parseInt(words[w]));
           num = parseInt(words[w]);
           //add if: word is an integer number
           if (!isNaN(num)) {
@@ -421,7 +442,6 @@ function getSearchArgument(filterName, searchText, ops) {
               break;
 
             case 'Int':
-              console.log("@--s: case Int: num: ", parseInt(words[w]));
               num = parseInt(words[w]);
               //add if: word is an integer number
               if (!isNaN(num)) {
@@ -524,9 +544,10 @@ function getSearchArgument(filterName, searchText, ops) {
           let o = ops.only[i];
           /*
             Switch type
-            At the momment, just 'Int' type is supported for only option
+            At the momment, this only works for [InternalId] fields.
+            An internalID can be of types: Int, Float or String.
           */
-          if (o.type === 'Int') {
+          if (o.type === 'Int' || o.type === 'Float' || o.type === 'String') {
             let v = o.values;
             let vkeys = Object.keys(v);
 
@@ -536,11 +557,7 @@ function getSearchArgument(filterName, searchText, ops) {
 
               //for each value
               for(let kv = 0; kv < va.length; kv++) {
-                let nvalue = parseInt(va[kv]);
-                //add if: value is an integer number
-                if (!isNaN(nvalue)) {
-                  onlyOrs += `{field:${vkeys[k]}, value:{value:"${nvalue}"}, operator:eq},`
-                }
+                onlyOrs += `{field:${vkeys[k]}, value:{value:"${String(va[kv])}"}, operator:eq},`
               }//end: for earch value
             }//end: for earch key
           }//end: if type 'Int
@@ -582,11 +599,13 @@ function getSearchArgument(filterName, searchText, ops) {
         //for each exclude object
         for(let i = 0; i < ops.exclude.length; i++) {
           let o = ops.exclude[i];
+
           /*
             Switch type
-            At the momment, just 'Int' type is supported for exclude option
+            At the momment, this only works for [InternalId] fields.
+            An internalID can be of types: Int, Float or String.
           */
-          if (o.type === 'Int') {
+          if (o.type === 'Int' || o.type === 'Float' || o.type === 'String') {
             let v = o.values;
             let vkeys = Object.keys(v);
 
@@ -596,11 +615,7 @@ function getSearchArgument(filterName, searchText, ops) {
 
               //for each value
               for(let kv = 0; kv < va.length; kv++) {
-                let nvalue = parseInt(va[kv]);
-                //add if: value is an integer number
-                if (!isNaN(nvalue)) {
-                  ands += `{field:${vkeys[k]}, value:{value:"${nvalue}"}, operator:ne},`
-                }
+                ands += `{field:${vkeys[k]}, value:{value:"${String(va[kv])}"}, operator:ne},`
               }//end: for earch value
             }//end: for earch key
           }//end: if type 'Int
@@ -655,10 +670,10 @@ function getSearchArgument(filterName, searchText, ops) {
           let o = ops.only[i];
           /*
             Switch type
-
-            At the momment, just 'Int' type is supported for only option
+            At the momment, this only works for [InternalId] fields.
+            An internalID can be of types: Int, Float or String.
           */
-          if (o.type === 'Int') {
+          if (o.type === 'Int' || o.type === 'Float' || o.type === 'String') {
             let v = o.values;
             let vkeys = Object.keys(v);
 
@@ -668,11 +683,7 @@ function getSearchArgument(filterName, searchText, ops) {
 
               //for each value
               for(let kv = 0; kv < va.length; kv++) {
-                let nvalue = parseInt(va[kv]);
-                //add if: value is an integer number
-                if (!isNaN(nvalue)) {
-                  onlyOrs += `{field:${vkeys[k]}, value:{value:"${nvalue}"}, operator:eq},`
-                }
+                onlyOrs += `{field:${vkeys[k]}, value:{value:"${String(va[kv])}"}, operator:eq},`
               }//end: for earch value
             }//end: for earch key
           }//end: if type 'Int
@@ -717,10 +728,10 @@ function getSearchArgument(filterName, searchText, ops) {
           let o = ops.exclude[i];
           /*
             Switch type
-  
-            At the momment, just 'Int' type is supported for exclude option key
+            At the momment, this only works for [InternalId] fields.
+            An internalID can be of types: Int, Float or String.
           */
-          if (o.type === 'Int') {
+          if (o.type === 'Int' || o.type === 'Float' || o.type === 'String') {
             let v = o.values;
             let vkeys = Object.keys(v);
 
@@ -730,11 +741,7 @@ function getSearchArgument(filterName, searchText, ops) {
 
               //for each value
               for(let kv = 0; kv < va.length; kv++) {
-                let nvalue = parseInt(va[kv]);
-                //add if: value is an integer number
-                if (!isNaN(nvalue)) {
-                  ands += `{field:${vkeys[k]}, value:{value:"${nvalue}"}, operator:ne},`
-                }
+                ands += `{field:${vkeys[k]}, value:{value:"${String(va[kv])}"}, operator:ne},`
               }//end: for earch value
             }//end: for earch key
           }//end: if type 'Int
@@ -761,7 +768,6 @@ function getIsoDate(text) {
 
     //if has the correct content
     if ((numM >= 1 && numM <= 12) && (numD >= 1 && numD <= 31)) {
-      console.log("ISO Date ok: ", text);
       return text;
     }
   }
@@ -779,7 +785,6 @@ function getIsoTime(text) {
     let numH = parseInt(h);
 
     if (numH >= 0 && numH <= 23) {
-      console.log("ISO Time ok(1): ", text);
       return text;
     }
 
@@ -794,7 +799,6 @@ function getIsoTime(text) {
       let numH = parseInt(h);
 
       if (numH >= 0 && numH <= 23) {
-        console.log("ISO Time ok(2): ", text);
         return text;
       }
 
@@ -809,7 +813,6 @@ function getIsoTime(text) {
         let numH = parseInt(h);
 
         if (numH >= 0 && numH <= 23) {
-          console.log("ISO Time ok(3): ", text);
           return text;
         }
 
@@ -838,7 +841,6 @@ function getIsoDateTime(text) {
 
     //if content ok
     if ((numM >= 1 && numM <= 12) && (numD >= 1 && numD <= 31) && (numH >= 0 && numH <= 23)) {
-      console.log("ISO Date ok(1): ", text);
       return text;
     }
 
@@ -859,7 +861,6 @@ function getIsoDateTime(text) {
 
       //if content ok
       if ((numM >= 1 && numM <= 12) && (numD >= 1 && numD <= 31) && (numH >= 0 && numH <= 23)) {
-        console.log("ISO Date ok(2): ", text);
         return text;
       }
 
@@ -880,7 +881,6 @@ function getIsoDateTime(text) {
 
         //if content ok
         if ((numM >= 1 && numM <= 12) && (numD >= 1 && numD <= 31) && (numH >= 0 && numH <= 23)) {
-          console.log("ISO Date ok(3): ", text);
           return text;
         }
 
@@ -899,7 +899,6 @@ function getIsoDateTime(text) {
 
           //if content ok
           if ((numM >= 1 && numM <= 12) && (numD >= 1 && numD <= 31)) {
-            console.log("ISO Date ok(4): ", text);
             return text;
           }
 
