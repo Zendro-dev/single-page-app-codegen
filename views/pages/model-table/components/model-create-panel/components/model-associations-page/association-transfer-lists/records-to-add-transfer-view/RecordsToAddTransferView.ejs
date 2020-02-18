@@ -165,8 +165,8 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
     if(lidsToAdd.current !== undefined && lidsToAdd.current.length > 0) {
       ops = {
         exclude: [{
-          type: <%- internalIdType _%>,
-          values: {<%- internalId _%>: lidsToAdd.current}
+          type: '<%- sortedAssociations[aindex].internalIdType _%>',
+          values: {<%- sortedAssociations[aindex].internalId _%>: lidsToAdd.current}
         }]
       };
     }    
@@ -347,8 +347,8 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
     if(lidsToAdd.current !== undefined && lidsToAdd.current.length > 0) {
       ops = {
         only: [{
-          type: <%- internalIdType _%>,
-          values: {<%- internalId _%>: lidsToAdd.current}
+          type: '<%- sortedAssociations[aindex].internalIdType _%>',
+          values: {<%- sortedAssociations[aindex].internalId _%>: lidsToAdd.current}
         }]
       };
     } else {
@@ -585,7 +585,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
      * - return
      * 
      * if B:
-     * - remove the deleted id from idsToAdd[]
+     * - remove the deleted internalId from idsToAdd[]
      * - reload both transfer tables.
      * - return
      */
@@ -596,11 +596,11 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
         
         //case A: updated
         if(entry[1].op === "update"&&entry[1].newItem) {
-          let idUpdated = entry[1].item.<%- internalId _%>;
+          let idUpdated = entry[1].item.<%- sortedAssociations[aindex].internalId _%>;
           
           //lookup item on table A
           let nitemsA = Array.from(items);
-          let iofA = nitemsA.findIndex((item) => item.<%- internalId _%>===idUpdated);
+          let iofA = nitemsA.findIndex((item) => item.<%- sortedAssociations[aindex].internalId _%>===idUpdated);
           if(iofA !== -1) {
             //set new item
             nitemsA[iofA] = entry[1].newItem;
@@ -609,7 +609,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 
           //lookup item on table B
           let nitemsB = Array.from(itemsB);
-          let iofB = nitemsB.findIndex((item) => item.<%- internalId _%>===idUpdated);
+          let iofB = nitemsB.findIndex((item) => item.<%- sortedAssociations[aindex].internalId _%>===idUpdated);
           if(iofB !== -1) {
             //set new item
             nitemsB[iofB] = entry[1].newItem;
@@ -619,11 +619,11 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 
         //case B: deleted
         if(entry[1].op === "delete") {
-          let idRemoved = entry[1].item.<%- internalId _%>;
+          let idRemoved = entry[1].item.<%- sortedAssociations[aindex].internalId _%>;
 
           //lookup item on any tables
-          let iofA = items.findIndex((item) => item.<%- internalId _%>===idRemoved);
-          let iofB = itemsB.findIndex((item) => item.<%- internalId _%>===idRemoved);
+          let iofA = items.findIndex((item) => item.<%- sortedAssociations[aindex].internalId _%>===idRemoved);
+          let iofB = itemsB.findIndex((item) => item.<%- sortedAssociations[aindex].internalId _%>===idRemoved);
           if(iofA !== -1 || iofB !== -1) {
             
             //remove deleted item from lidsToAdd
@@ -818,25 +818,25 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 
   const handleAddItem = (event, item) => {
 <%if(sortedAssociations[aindex].type === 'to_one'){-%>
-    if(lidsToAdd.current.indexOf(item.<%- internalId _%>) === -1) {
+    if(lidsToAdd.current.indexOf(item.<%- sortedAssociations[aindex].internalId _%>) === -1) {
       lidsToAdd.current = [];
-      lidsToAdd.current.push(item.<%- internalId _%>);
+      lidsToAdd.current.push(item.<%- sortedAssociations[aindex].internalId _%>);
       setThereAreItemsToAdd(true);
       updateHeights();
 
       setDataTrigger(prevDataTrigger => !prevDataTrigger);
       setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-      handleTransfer('<%- sortedAssociations[aindex].relationName _%>', item.<%- internalId _%>);
+      handleTransfer('<%- sortedAssociations[aindex].relationName _%>', item.<%- sortedAssociations[aindex].internalId _%>);
     }
 <%} else {-%>
-    if(lidsToAdd.current.indexOf(item.<%- internalId _%>) === -1) {
-      lidsToAdd.current.push(item.<%- internalId _%>);
+    if(lidsToAdd.current.indexOf(item.<%- sortedAssociations[aindex].internalId _%>) === -1) {
+      lidsToAdd.current.push(item.<%- sortedAssociations[aindex].internalId _%>);
       setThereAreItemsToAdd(true);
       updateHeights();
 
       setDataTrigger(prevDataTrigger => !prevDataTrigger);
       setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-      handleTransfer('<%- sortedAssociations[aindex].relationName _%>', item.<%- internalId _%>);
+      handleTransfer('<%- sortedAssociations[aindex].relationName _%>', item.<%- sortedAssociations[aindex].internalId _%>);
     }
 <%}-%>
   };
@@ -850,10 +850,10 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 
       setDataTrigger(prevDataTrigger => !prevDataTrigger);
       setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-      handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', item.<%- internalId _%>);
+      handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', item.<%- sortedAssociations[aindex].internalId _%>);
     }
   <%} else {-%>
-    let iof = lidsToAdd.current.indexOf(item.<%- internalId _%>);
+    let iof = lidsToAdd.current.indexOf(item.<%- sortedAssociations[aindex].internalId _%>);
     if(iof !== -1) { 
       lidsToAdd.current.splice(iof, 1);
 
@@ -864,7 +864,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 
       setDataTrigger(prevDataTrigger => !prevDataTrigger);
       setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-      handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', item.<%- internalId _%>);
+      handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', item.<%- sortedAssociations[aindex].internalId _%>);
     }
   <%}-%>
   };
@@ -918,7 +918,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                 <Box className={classes.listBox} ref={lref}>
                   <List dense component="div" role="list" >
                     {items.map(it => {
-                      let key = it.<%- internalId _%>;
+                      let key = it.<%- sortedAssociations[aindex].internalId _%>;
                       let label = <%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='') ? `it.${sortedAssociations[aindex].label}` : 'undefined' _%>;
                       let sublabel = <%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='') ? `it.${sortedAssociations[aindex].sublabel}` : 'undefined' _%>;
                       
@@ -937,7 +937,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                                 
                                 {/* Id */}
                                 <Grid item>
-                                  <Typography className={classes.id} variant="caption" display="block" noWrap={true}>{it.<%- internalId _%>}</Typography>
+                                  <Typography className={classes.id} variant="caption" display="block" noWrap={true}>{it.<%- sortedAssociations[aindex].internalId _%>}</Typography>
                                 </Grid>
 
                                 {/* Divider */}
@@ -1151,7 +1151,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                 <Box className={classes.listBox} ref={lrefB}>
                   <List dense component="div" role="list">
                     {itemsB.map(it => {
-                      let key = it.<%- internalId _%>;
+                      let key = it.<%- sortedAssociations[aindex].internalId _%>;
                       let label = <%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='') ? `it.${sortedAssociations[aindex].label}` : 'undefined' _%>;
                       let sublabel = <%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='') ? `it.${sortedAssociations[aindex].sublabel}` : 'undefined' _%>;
                       
@@ -1168,9 +1168,9 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                             <Grid item xs={12}>
                               <Grid container justify='flex-start' alignItems='center' wrap='nowrap'>
                                 
-                                {/* Id */}
+                                {/* InternalId */}
                                 <Grid item>
-                                  <Typography className={classes.id} variant="caption" display="block" noWrap={true}>{it.<%- internalId _%>}</Typography>
+                                  <Typography className={classes.id} variant="caption" display="block" noWrap={true}>{it.<%- sortedAssociations[aindex].internalId _%>}</Typography>
                                 </Grid>
 
                                 {/* Divider */}
