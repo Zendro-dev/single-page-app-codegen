@@ -96,22 +96,22 @@ export default function <%- nameOnPascal -%>DeleteConfirmationDialog(props) {
     //check if this.item changed
     if(lastModelChanged&&
       lastModelChanged.<%- name _%>&&
-      lastModelChanged.<%- name _%>[String(item.id)]) {
+      lastModelChanged.<%- name _%>[String(item.<%- internalId _%>)]) {
 
         //updated item
-        if(lastModelChanged.<%- name _%>[String(item.id)].op === "update"&&
-            lastModelChanged.<%- name _%>[String(item.id)].newItem) {
+        if(lastModelChanged.<%- name _%>[String(item.<%- internalId _%>)].op === "update"&&
+            lastModelChanged.<%- name _%>[String(item.<%- internalId _%>)].newItem) {
               //show alert
               setUpdated(true);
         } else {
           //deleted item
-          if(lastModelChanged.<%- name _%>[String(item.id)].op === "delete") {
+          if(lastModelChanged.<%- name _%>[String(item.<%- internalId _%>)].op === "delete") {
               //show alert
               setDeleted(true);
           }
         }
     }//end: Case 1
-  }, [lastModelChanged, lastChangeTimestamp, item.id]);
+  }, [lastModelChanged, lastChangeTimestamp, item.<%- internalId _%>]);
 
   useEffect(() => {
     if(deleted&&updated) {
