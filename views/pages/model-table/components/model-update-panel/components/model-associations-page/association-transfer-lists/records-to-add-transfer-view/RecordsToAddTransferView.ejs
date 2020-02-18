@@ -217,7 +217,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   <%} else {-%>
             //set internalId
             let idso = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].relationName _%>;
-            lidsAssociated.current = (idso&&typeof idso==='object'&&idso.hasOwnProperty('<%- internalId _%>')) ? [idso.<%- sortedAssociations[aindex].internalId _%>] : [];
+            lidsAssociated.current = (idso&&typeof idso==='object'&&idso.hasOwnProperty('<%- sortedAssociations[aindex].internalId _%>')) ? [idso.<%- sortedAssociations[aindex].internalId _%>] : [];
 
             //set ops: excluded ids: toAddId
             let ops = null;
