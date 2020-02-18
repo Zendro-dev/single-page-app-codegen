@@ -306,6 +306,7 @@ exports.fillOptionsForViews = function(fileData){
     hasOwnForeingKeys: associations.hasOwnForeingKeys,
     hasToManyAssociations: associations.hasToManyAssociations,
     internalId: getInternalId(fileData),
+    internalIdType: getInternalIdType(fileData),
   }
 
   return opts;
@@ -543,10 +544,20 @@ parseAssociationsFromFile = function(associations){
  * getInternalId - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.
  *
  * @param  {object} jsonModel object originally created from a json file containing data model info.
- * @return {type} Name of the attribute that functions as an internalId
+ * @return {string} Name of the attribute that functions as an internalId
  */
 getInternalId = function(jsonModel){
   return (jsonModel.internalId) ? jsonModel.internalId : 'id';
+}
+
+/**
+ * getInternalIdType - Check whether an attribute "internalId" is given in the JSON model and returns its type. If not the type of standard "id" is returned instead.
+ *
+ * @param  {object} jsonModel object originally created from a json file containing data model info.
+ * @return {string} Name of the attribute that functions as an internalId
+ */
+getInternalIdType = function(jsonModel){
+  return (jsonModel.internalId) ? jsonModel.attributes[jsonModel.internalId] : 'Int';
 }
 
 /**
