@@ -398,6 +398,8 @@ exports.addInternalIdToAssociations = function(opts) {
 
           //set internalId
           association.internalId = opts[i].internalId;
+          //set internalIdType
+          association.internalIdType = opts[i].internalIdType;
         }
       }
     })
