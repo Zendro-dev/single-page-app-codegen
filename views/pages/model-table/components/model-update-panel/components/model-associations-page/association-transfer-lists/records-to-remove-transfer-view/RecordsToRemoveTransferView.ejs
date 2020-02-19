@@ -532,14 +532,14 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
      * - return
      */
     if(lastModelChanged.<%- name _%>&&
-        lastModelChanged.<%- name _%>[String(item.id)]&&
-        lastModelChanged.<%- name _%>[String(item.id)].changedAssociations&&
-        lastModelChanged.<%- name _%>[String(item.id)].changedAssociations.<%- sortedAssociations[aindex].relationName _%>&&
-        (lastModelChanged.<%- name _%>[String(item.id)].changedAssociations.<%- sortedAssociations[aindex].relationName _%>.added ||
-         lastModelChanged.<%- name _%>[String(item.id)].changedAssociations.<%- sortedAssociations[aindex].relationName _%>.removed)) {
+        lastModelChanged.<%- name _%>[String(item.<%- internalId _%>)]&&
+        lastModelChanged.<%- name _%>[String(item.<%- internalId _%>)].changedAssociations&&
+        lastModelChanged.<%- name _%>[String(item.<%- internalId _%>)].changedAssociations.<%- sortedAssociations[aindex].relationName _%>&&
+        (lastModelChanged.<%- name _%>[String(item.<%- internalId _%>)].changedAssociations.<%- sortedAssociations[aindex].relationName _%>.added ||
+         lastModelChanged.<%- name _%>[String(item.<%- internalId _%>)].changedAssociations.<%- sortedAssociations[aindex].relationName _%>.removed)) {
           
           //remove any dis-associated id from idsToRemove[]
-          let idsRemoved = lastModelChanged.<%- name _%>[String(item.id)].changedAssociations.<%- sortedAssociations[aindex].relationName _%>.idsRemoved;
+          let idsRemoved = lastModelChanged.<%- name _%>[String(item.<%- internalId _%>)].changedAssociations.<%- sortedAssociations[aindex].relationName _%>.idsRemoved;
           if(idsRemoved) {
             idsRemoved.forEach( (idRemoved) => {
               //remove from lidsToRemove
