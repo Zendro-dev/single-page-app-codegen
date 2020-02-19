@@ -282,6 +282,10 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
             action,
           });
           console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
+          
+          //reset contention flags
+          isSaving.current = false;
+          isClosing.current = false;
           return;
         }
       })
@@ -297,6 +301,10 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
             action,
           });
           console.log("Error: ", err);
+
+          //reset contention flags
+          isSaving.current = false;
+          isClosing.current = false;
           return;
         }
       });
