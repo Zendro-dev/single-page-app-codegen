@@ -89,7 +89,7 @@ export default {
 <%}-%>
 <%_for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === 'to_one') {-%>
-            <%- sortedAssociations[i].relationName -%>{ <%- internalId -%> },
+            <%- sortedAssociations[i].relationName -%>{ <%- sortedAssociations[i].internalId -%> },
 <%}}-%>
            }}`
       }
@@ -105,7 +105,7 @@ export default {
 <%}-%>
 <%_for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === 'to_one') {-%>
-            <%- sortedAssociations[i].relationName -%>{ <%- internalId -%> },
+            <%- sortedAssociations[i].relationName -%>{ <%- sortedAssociations[i].internalId -%> },
 <%}}-%>
            }}`
       }
@@ -124,7 +124,7 @@ export default {
 <%}-%>
 <%_for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === 'to_one') {-%>
-            <%- sortedAssociations[i].relationName -%>{ <%- internalId -%> },
+            <%- sortedAssociations[i].relationName -%>{ <%- sortedAssociations[i].internalId -%> },
 <%}}-%>
            }}`
       }
@@ -140,7 +140,7 @@ export default {
 <%}-%>
 <%_for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === 'to_one') {-%>
-            <%- sortedAssociations[i].relationName -%>{ <%- internalId -%> },
+            <%- sortedAssociations[i].relationName -%>{ <%- sortedAssociations[i].internalId -%> },
 <%}}-%>
            }}`
       }
@@ -248,7 +248,7 @@ export default {
 <%}-%>
 <%_for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === 'to_one') {-%>
-            <%- sortedAssociations[i].relationName -%>{ <%- internalId -%> },
+            <%- sortedAssociations[i].relationName -%>{ <%- sortedAssociations[i].internalId -%> },
 <%}}-%>
           } }`;
 
@@ -318,7 +318,7 @@ export default {
     var query = (s) ?
       `{ readOne<%- nameCp %>(<%- internalId _%>: ${itemId}) { 
         <%- sortedAssociations[i].relationNameLc _%>Filter( ${s}, ${p} ) { 
-<%if(internalId === 'id'){-%>
+<%if(sortedAssociations[i].internalId === 'id'){-%>
           id,
 <%}-%>
 <%_for( let j=0; j<modelsAtts[sortedAssociations[i].targetModel].length; j++ ){-%>
@@ -329,7 +329,7 @@ export default {
       } }` :      
       `{ readOne<%- nameCp %>(<%- internalId _%>: ${itemId}) { 
         <%- sortedAssociations[i].relationNameLc _%>Filter( ${p} ) { 
-<%if(internalId === 'id'){-%>
+<%if(sortedAssociations[i].internalId === 'id'){-%>
           id,
 <%}-%>
 <%_for( let j=0; j<modelsAtts[sortedAssociations[i].targetModel].length; j++ ){-%>
@@ -342,7 +342,7 @@ export default {
     var query = 
       `{ readOne<%- nameCp %>(<%- internalId _%>: ${itemId}) { 
         <%- sortedAssociations[i].relationName _%> { 
-<%if(internalId === 'id'){-%>
+<%if(sortedAssociations[i].internalId === 'id'){-%>
           id,
 <%}-%>
 <%_for( let j=0; j<modelsAtts[sortedAssociations[i].targetModel].length; j++ ){-%>
