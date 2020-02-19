@@ -176,7 +176,7 @@ opts.forEach((ejbOpts) => {
    * Create required directories
    */
   //msg
-  console.log(colors.white('\n@@ Creating required directories...'));
+  if(verbose) console.log(colors.white('\n@@ Creating required directories...'));
   //table
   let modelTableDirs = [
     path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/`),
@@ -221,7 +221,7 @@ opts.forEach((ejbOpts) => {
     }
   }
   //msg
-  console.log("@@ ", colors.green('done'));
+  if(verbose)console.log("@@ ", colors.green('done'));
 
   /**
    * Debug
@@ -232,8 +232,6 @@ opts.forEach((ejbOpts) => {
   /*
    * Generate code
    */
-  //msg
-  console.log(colors.white('@@ Generating code...'));
 
   /**
    * modelTable
@@ -524,6 +522,8 @@ opts.forEach((ejbOpts) => {
 
   }
 
+  //msg
+  console.log(colors.white('@@ Generating code for model: '), colors.blue(ejbOpts.name), '... ', colors.green('done'));
 });
 
 //sort models
@@ -627,15 +627,24 @@ promises.push( funks.renderToFile(fpath, 'utils/utils') );
 
 
 Promise.all(promises).then( (values) => {
+  
   //msg
   if(verbose) {
     for(var i=0; i<values.length; i++)
     {
-    console.log("@@@ file generated: ", colors.dim(values[i]));
+      //msg
+      console.log("@@@ file generated: ", colors.dim(values[i]));
     }
+    //msg
+    console.log("@@@ Total generated files: ", colors.green(values.length));
+    //msg
+    console.log("@@ Listing generated files ...", colors.green('done'));
   }
+
   //msg
-  console.log("@@ ", colors.green('done'));
-  console.log("@ ", colors.green('done'));
+  console.log("@ Code generation: ", colors.green('done'));
+
 })
-.catch((error)=>{console.log(error); console.log("SOMETHING WRONG")});
+.catch((error)=>{
+  console.log(error); console.log("SOMETHING WRONG");
+});
