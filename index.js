@@ -550,8 +550,8 @@ modelsOpts.adminModels.sort(function (a, b) {
 /**
  * Debug
  */
-console.log("modelsOpts: ", modelsOpts);
-console.log("modelAtts: ", modelAtts);
+//console.log("modelsOpts: ", modelsOpts);
+//console.log("modelAtts: ", modelAtts);
 
 /**
  * requests - model
@@ -566,7 +566,7 @@ for(let i=0; i<modelsOpts.models.length; i++)
   /**
    * Debug
    */
-  console.log("MODEL_OPTS: ", m);
+  //console.log("MODEL_OPTS: ", m);
 
   fpath = path.resolve(directory, `src/requests/`, `${m.nameLc}.js`);
   promises.push( funks.renderToFile(fpath, 'requests/model', m) );
