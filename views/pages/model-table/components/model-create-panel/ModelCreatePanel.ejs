@@ -218,6 +218,16 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
       }
     }
 
+    //undefine: fk's
+<%for( let i=0; i<attributesArr.length; i++ ){
+  let a = attributesArr[i][0];
+  let isForeignKey = (hasOwnForeingKeys&&ownForeignKeysArr.includes(a));
+
+  if(isForeignKey) {
+-%>
+    delete variables.<%- a _%>;
+<%}}-%>
+
     //add: to_one's
 <%for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === "to_one") {
