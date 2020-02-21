@@ -167,14 +167,17 @@ export default {
     var query = 
       `mutation
         add<%- nameCp %>(
+<%if(internalId !== 'id'){-%>
+          $<%- internalId _%>:ID!,
+<%}-%>
 <%_for( let i=0; i<attributesArr.length; i++ ){
   /*
-   * Render each attribute, except FK attributes. 
+   * Render each attribute, except FK attributes and internalId. 
    */
 
   let a = attributesArr[i][0];
   let isForeignKey = (hasOwnForeingKeys&&ownForeignKeysArr.includes(a));
-  if(!isForeignKey) {
+  if(!isForeignKey && (attributesArr[i][0] !== internalId)) {
 -%>
           $<%- attributesArr[i][0] _%>:<%- attributesArr[i][1] _%>,
 <%}}-%>
@@ -197,14 +200,17 @@ export default {
           $add<%- sortedAssociations[i].relationNameCp _%>: [ID],
 <%}}-%>
           ) { add<%- nameCp %>(
+<%if(internalId !== 'id'){-%>
+            <%- internalId _%>:$<%- internalId _%>,
+<%}-%>
 <%_for( let i=0; i<attributesArr.length; i++ ){
   /*
-   * Render each attribute, except FK attributes. 
+   * Render each attribute, except FK attributes and internalId.
    */
 
   let a = attributesArr[i][0];
   let isForeignKey = (hasOwnForeingKeys&&ownForeignKeysArr.includes(a));
-  if(!isForeignKey) {
+  if(!isForeignKey && (attributesArr[i][0] !== internalId)) {
 -%>
             <%- attributesArr[i][0] _%>:$<%- attributesArr[i][0] _%>,
 <%}}-%>
