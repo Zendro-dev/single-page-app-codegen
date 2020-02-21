@@ -393,10 +393,8 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     //variables
     let variables = {};
 
-<%if(internalId === 'id'){-%>
-    //set id
-    variables.id = item.id;
-<%}-%>
+    //set <%- internalId %> (internalId)
+    variables.<%- internalId %> = item.<%- internalId _%>;
 
     /*
       API Request: deleteItem

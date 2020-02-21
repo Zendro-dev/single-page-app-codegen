@@ -358,7 +358,7 @@ export default {
     var p = `pagination: {offset: ${paginationOffset}, limit: ${paginationLimit}}`
 
     var query = (s) ?
-      `{ readOne<%- nameCp %>(<%- internalId _%>: ${itemId}) { 
+      `{ readOne<%- nameCp %>(<%- internalId _%>:<%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%>) { 
         <%- sortedAssociations[i].relationNameLc _%>Filter( ${s}, ${p} ) { 
 <%if(sortedAssociations[i].internalId === 'id'){-%>
           id,
@@ -369,7 +369,7 @@ export default {
         }, 
         countFiltered<%- sortedAssociations[i].relationNameCp %>( ${s} ) 
       } }` :      
-      `{ readOne<%- nameCp %>(<%- internalId _%>: ${itemId}) { 
+      `{ readOne<%- nameCp %>(<%- internalId _%>:<%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%>) { 
         <%- sortedAssociations[i].relationNameLc _%>Filter( ${p} ) { 
 <%if(sortedAssociations[i].internalId === 'id'){-%>
           id,
@@ -382,7 +382,7 @@ export default {
       } }`;
 <%} else {-%>
     var query = 
-      `{ readOne<%- nameCp %>(<%- internalId _%>: ${itemId}) { 
+      `{ readOne<%- nameCp %>(<%- internalId _%>:<%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%>) { 
         <%- sortedAssociations[i].relationName _%> { 
 <%if(sortedAssociations[i].internalId === 'id'){-%>
           id,
@@ -415,11 +415,11 @@ export default {
   getAssociated<%- sortedAssociations[i].relationNameCp %>(url, itemId) {
 <%_if( sortedAssociations[i].type === 'to_many' ){-%>
     var query = 
-      `{ readOne<%- nameCp %>( <%- internalId _%>: ${itemId} ){ 
+      `{ readOne<%- nameCp %>( <%- internalId _%>: <%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%> ){ 
         <%- sortedAssociations[i].relationNameLc _%>Filter{ <%- sortedAssociations[i].internalId -%> } } }`;
 <%} else {-%>
     var query = 
-    `{ readOne<%- nameCp %>( <%- internalId _%>: ${itemId} ){ 
+    `{ readOne<%- nameCp %>( <%- internalId _%>: <%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%> ){ 
       <%- sortedAssociations[i].relationName _%>{ <%- sortedAssociations[i].internalId -%> } } }`;
 <%}-%>
     /**
