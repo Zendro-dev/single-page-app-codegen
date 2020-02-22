@@ -264,11 +264,31 @@ export default {
         update<%- nameCp %>(
           $<%- internalId _%>:ID!
 <%_for( let i=0; i<attributesArr.length; i++ ){
-  if((internalId === 'id') || (attributesArr[i][0] !== internalId)) {
+  /*
+   * Render each attribute, except FK attributes and internalId. 
+   */
+
+  let a = attributesArr[i][0];
+  let isForeignKey = (hasOwnForeingKeys&&ownForeignKeysArr.includes(a));
+  if(!isForeignKey && (attributesArr[i][0] !== internalId)) {
 -%>
           $<%- attributesArr[i][0] _%>:<%- attributesArr[i][1] _%>,
 <%}}-%>
+<%for( let i=0; i<sortedAssociations.length; i++ ){
+  /*
+   * Render each toAdd & toRemove attributes for to_one associations. 
+   */
+
+  if(sortedAssociations[i].type === "to_one") {
+-%>
+          $add<%- sortedAssociations[i].relationNameCp _%>: ID,
+          $remove<%- sortedAssociations[i].relationNameCp _%>: ID,
+<%}}-%>
 <%_for( let i=0; i<sortedAssociations.length; i++ ){
+  /*
+   * Render each toAdd attributes for to_many associations. 
+   */
+
   if(sortedAssociations[i].type === "to_many") {
 -%>
           $add<%- sortedAssociations[i].relationNameCp _%>: [ID],
@@ -278,10 +298,32 @@ export default {
 <%if(internalId === 'id'){-%>
             id:$id,
 <%}-%>
-<%_for( let i=0; i<attributesArr.length; i++ ){-%>
+<%_for( let i=0; i<attributesArr.length; i++ ){
+  /*
+   * Render each attribute, except FK attributes and internalId.
+   */
+
+  let a = attributesArr[i][0];
+  let isForeignKey = (hasOwnForeingKeys&&ownForeignKeysArr.includes(a));
+  if(!isForeignKey && (attributesArr[i][0] !== internalId)) {
+-%>
             <%- attributesArr[i][0] _%>:$<%- attributesArr[i][0] _%>,
-<%}-%>
+<%}}-%>
+<%for( let i=0; i<sortedAssociations.length; i++ ){
+  /*
+   * Render each toAdd & toRemove attributes for to_one associations. 
+   */
+
+  if(sortedAssociations[i].type === "to_one") {
+-%>
+            add<%- sortedAssociations[i].relationNameCp _%>: $add<%- sortedAssociations[i].relationNameCp _%>,
+            remove<%- sortedAssociations[i].relationNameCp _%>: $remove<%- sortedAssociations[i].relationNameCp _%>,
+<%}}-%>
 <%_for( let i=0; i<sortedAssociations.length; i++ ){
+  /*
+   * Render each toAdd attributes for to_many associations. 
+   */
+
   if(sortedAssociations[i].type === "to_many") {
 -%>
             add<%- sortedAssociations[i].relationNameCp _%>: $add<%- sortedAssociations[i].relationNameCp _%>,

@@ -307,45 +307,68 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
 
 <%for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === "to_one") {
+    /*
+     * Following lines apply only to to_one associations
+     */
 -%>
   function setAddRemove<%- sortedAssociations[i].relationNameCp %>(variables) {
-    variables.add<%- sortedAssociations[i].relationNameCp %> = undefined;
-    variables.remove<%- sortedAssociations[i].relationNameCp %> = undefined;
     //data to notify changes
     changedAssociations.current.<%- sortedAssociations[i].relationName %> = {added: false, removed: false};
     
-    //currently to-one-associated
+    /*
+     * Case I: Currently, this record is associated.
+     */
     if(item.<%- sortedAssociations[i].relationName %>&&item.<%- sortedAssociations[i].relationName _%>.<%- sortedAssociations[i].internalId _%>) {
-      
-      //case: has id to add
+      /*
+       * Case I.a: The toAdd list isn't empty.
+       */      
       if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.length>0) {
-        
-        //case: current association changed
+        /*
+         * Case I.a.1: There is a new ID (current association changed).
+         */
         if(item.<%- sortedAssociations[i].relationName %>.<%- sortedAssociations[i].internalId _%> !== <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current[0]) {
+          //set id to add
           variables.add<%- sortedAssociations[i].relationNameCp %> = <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current[0];
-          variables.remove<%- sortedAssociations[i].relationNameCp %> = item.<%- sortedAssociations[i].relationName %>.<%- sortedAssociations[i].internalId _%>;
-
+          
           changedAssociations.current.<%- sortedAssociations[i].relationName %>.added = true;
           changedAssociations.current.<%- sortedAssociations[i].relationName %>.idsAdded = <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current;
           changedAssociations.current.<%- sortedAssociations[i].relationName %>.removed = true;
           changedAssociations.current.<%- sortedAssociations[i].relationName %>.idsRemoved = [item.<%- sortedAssociations[i].relationName %>.<%- sortedAssociations[i].internalId _%>];
+        } else {
+          /*
+           * Case I.a.2: The ID on toAdd list es equal to the current associated ID.
+           */
+          //do nothing here (nothing changes).
         }
-      } else { //case: current association removed
-        variables.add<%- sortedAssociations[i].relationNameCp %> = null;
+      } else {
+        /*
+         * Case I.b: The toAdd list is empty (current association removed).
+         */
+        //set id to remove
         variables.remove<%- sortedAssociations[i].relationNameCp %> = item.<%- sortedAssociations[i].relationName %>.<%- sortedAssociations[i].internalId _%>;
         
         changedAssociations.current.<%- sortedAssociations[i].relationName %>.removed = true;
         changedAssociations.current.<%- sortedAssociations[i].relationName %>.idsRemoved = [item.<%- sortedAssociations[i].relationName %>.<%- sortedAssociations[i].internalId _%>];
       }
     } else { //currently not to-one-associated
+      /*
+       * Case II: Currently, this record is not associated.
+       */
       
-      //case: has new id to add
+      /*
+       * Case II.a: The toAdd list isn't empty (has new id to add).
+       */
       if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.length>0) {
+        //set id to add
         variables.add<%- sortedAssociations[i].relationNameCp %> = <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current[0];
-        variables.remove<%- sortedAssociations[i].relationNameCp %> = null;
-
+        
         changedAssociations.current.<%- sortedAssociations[i].relationName %>.added = true;
         changedAssociations.current.<%- sortedAssociations[i].relationName %>.idsAdded = <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current;
+      } else {
+        /*
+         * Case II.b: The toAdd list is empty.
+         */
+        //do nothing here (nothing changes).
       }
     }
   }
@@ -370,6 +393,16 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
         variables[keys[i]] = values.current[keys[i]];
       }
     }
+
+    //delete: fk's
+<%for( let i=0; i<attributesArr.length; i++ ){
+  let a = attributesArr[i][0];
+  let isForeignKey = (hasOwnForeingKeys&&ownForeignKeysArr.includes(a));
+
+  if(isForeignKey) {
+-%>
+    delete variables.<%- a _%>;
+<%}}-%>
 
     //add & remove: to_one's
 <%for( let i=0; i<sortedAssociations.length; i++ ){
