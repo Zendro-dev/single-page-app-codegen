@@ -149,13 +149,21 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
       status codes:
         1: acceptable
         0: unknown/not tested yet (this is set on initial render)/empty
-       -1: not acceptable 
+       -1: not acceptable
+       -2: foreing key
     */
     let initialValueOkStates = {};
 
-<%for( let i=0; i<attributesArr.length; i++ ){-%>
+<%for( let i=0; i<attributesArr.length; i++ ){
+  let a = attributesArr[i][0];
+  let isForeignKey = (hasOwnForeingKeys&&ownForeignKeysArr.includes(a));
+
+  if(isForeignKey) {
+-%>
+    initialValueOkStates.<%- attributesArr[i][0] %> = -2; //FK
+<%} else {-%>
     initialValueOkStates.<%- attributesArr[i][0] %> = 0;
-<%}-%>
+<%}}-%>
 
     return initialValueOkStates;
   }

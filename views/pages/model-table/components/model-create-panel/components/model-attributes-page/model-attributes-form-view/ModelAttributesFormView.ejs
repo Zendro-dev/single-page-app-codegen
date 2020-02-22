@@ -8,17 +8,37 @@ import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
 import Attributes from '@material-ui/icons/HdrWeakTwoTone';
+<%
+  let contString = 0;
+  let contFloat = 0;
+  let contInt = 0;
+
+  for( let i=0; i<attributesArr.length; i++ ){
+    let a = attributesArr[i][0];
+    let type = attributesArr[i][1];
+    let isForeignKey = (hasOwnForeingKeys&&ownForeignKeysArr.includes(a));
+
+    if(type === 'Int' && !isForeignKey) {
+      contInt++;
+    } else if(type === 'Float' && !isForeignKey) {
+      contFloat++;
+    } else if(type === 'String' && !isForeignKey) {
+      contString++;
+    }
+  }
+-%>
+
 <%let keys = Object.keys(typeAttributes);
   for( let i=0; i<keys.length; i++ ){
     let type = keys[i];
 -%>
-<%if(type === 'String') {%>
+<%if(type === 'String' && contString > 0) {%>
 import StringField from './components/StringField'
 <%}-%>
-<%if(type === 'Float') {%>
+<%if(type === 'Float' && contFloat > 0) {%>
 import FloatField from './components/FloatField'
 <%}-%>
-<%if(type === 'Int') {%>
+<%if(type === 'Int' && contInt > 0) {%>
 import IntField from './components/IntField'
 <%}-%>
 <%if(type === 'Boolean') {%>
@@ -58,9 +78,6 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
   const classes = useStyles();
   const { t } = useTranslation();
   const { valueOkStates,
-<%if(hasOwnForeingKeys){-%>
-          foreignKeys,
-<%}-%> 
           handleSetValue,
         } = props;
 
@@ -106,7 +123,7 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
   let type = attributesArr[i][1];
   let isForeignKey = (hasOwnForeingKeys&&ownForeignKeysArr.includes(a));
 -%>
-<% if(type === 'String') {%>
+<% if(type === 'String' && !isForeignKey) {%>
             {/* <%- label %> */}
             <CardContent key='<%- a %>' className={classes.cardContent} >
               <StringField
@@ -121,7 +138,7 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
               />
             </CardContent>
 <%}-%>
-<% if(type === 'Float') {%>
+<% if(type === 'Float' && !isForeignKey) {%>
             {/* <%- label %> */}
             <CardContent key='<%- a %>' className={classes.cardContent} >
               <FloatField
@@ -136,17 +153,13 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
               />
             </CardContent>
 <%}-%>
-<% if(type === 'Int') {%>
+<% if(type === 'Int' && !isForeignKey) {%>
             {/* <%- label %> */}
             <CardContent key='<%- a %>' className={classes.cardContent} >
               <IntField
                 itemKey='<%- a %>'
                 name='<%- a %>'
                 label='<%- label %>'
-<%if(isForeignKey){-%>
-                foreignKey
-                text={foreignKeys.<%- a %>}
-<%}-%>
                 valueOk={valueOkStates.<%- a _%>}
 <% if(i===0) {-%>
                 autoFocus={true}
@@ -225,8 +238,5 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
 }
 <%- nameOnPascal _%>AttributesFormView.propTypes = {
   valueOkStates: PropTypes.object.isRequired,
-<%if(hasOwnForeingKeys){-%>
-  foreignKeys: PropTypes.object.isRequired,
-<%}-%>
   handleSetValue: PropTypes.func.isRequired,
 };
