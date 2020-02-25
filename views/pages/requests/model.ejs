@@ -297,6 +297,8 @@ export default {
           ) { update<%- nameCp %>(
 <%if(internalId === 'id'){-%>
             id:$id,
+<%} else {-%>
+            <%- internalId _%>: $<%- internalId %>
 <%}-%>
 <%_for( let i=0; i<attributesArr.length; i++ ){
   /*
@@ -307,7 +309,7 @@ export default {
   let isForeignKey = (hasOwnForeingKeys&&ownForeignKeysArr.includes(a));
   if(!isForeignKey && (attributesArr[i][0] !== internalId)) {
 -%>
-            <%- attributesArr[i][0] _%>:$<%- attributesArr[i][0] _%>,
+            <%- attributesArr[i][0] _%>: $<%- attributesArr[i][0] _%>,
 <%}}-%>
 <%for( let i=0; i<sortedAssociations.length; i++ ){
   /*
