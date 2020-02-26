@@ -134,9 +134,9 @@ fs.readdirSync(jsonFiles).forEach( (json_file) => {
     opts.push(funks.fillOptionsForViews(fileData));
   }
 });
-//add additional attributes
+//add extra attributes
 funks.addPeerRelationName(opts);
-funks.addInternalIdToAssociations(opts);
+funks.addExtraAttributesAssociations(opts);
 
 //msg
 console.log("\n@@ Total JSON files processed: ", colors.blue(totalFiles));

@@ -404,11 +404,11 @@ exports.addPeerRelationName = function(opts) {
 }
 
 /**
- * addInternalIdToAssociations - Adds 'internalId' attribute to each association defined on each model.
+ * addExtraAttributesAssociations - Adds extra attributes to each association defined on each model.
  *
  * @param  {array} opts Array of already calculated EJS options.
  */
-exports.addInternalIdToAssociations = function(opts) {
+exports.addExtraAttributesAssociations = function(opts) {
   //for each model
   opts.forEach( (opt) => {
     //for each association
@@ -420,10 +420,17 @@ exports.addInternalIdToAssociations = function(opts) {
         if(association.targetModel === opts[i].name) {
           found = true;
 
+          /**
+           * Add extra attributes: 
+           */
+
           //set internalId
           association.internalId = opts[i].internalId;
           //set internalIdType
           association.internalIdType = opts[i].internalIdType;
+          
+          //set paginationType
+          association.paginationType = opts[i].paginationType;
         }
       }
     })
