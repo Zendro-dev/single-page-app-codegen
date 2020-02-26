@@ -263,6 +263,29 @@ exports.checkJsonDataFile = function(jsonModel){
     }
   }
 
+  //'paginationType'
+  if(jsonModel.hasOwnProperty('paginationType')) {
+    //check: 'paginationType' type
+    if(typeof jsonModel.paginationType !== 'string') {
+      result.pass = false;
+      result.errors.push(`ERROR: 'paginationType' attribute should have a value of type 'string', but it has one of type: '${typeof jsonModel.paginationType}'`);
+    
+    } else {
+      //check: value should be 'limitOffset' or 'cursorBased';
+      if(jsonModel.paginationType !== 'limitOffset' && jsonModel.paginationType !== 'cursorBased') {
+        result.pass = false;
+        result.errors.push(`ERROR: 'paginationType' value should be either 'limitOffset' or 'cursorBased', but it is: '${jsonModel.paginationType}'`);
+      
+      } else {
+        //check: cursorBased is the only option for non sql models
+        if( (jsonModel.storageType)&&(String(jsonModel.storageType).toLowerCase() !== 'sql')&&(jsonModel.paginationType !== 'cursorBased') ){ 
+          //warning
+          console.log("@@ Warning: on model ", colors.blue(jsonModel.model), ", 'paginationType' attribute will be set to the appropriate value: 'cursorBased'.");
+        }
+      }
+    }
+  }
+
   //check for label field in each association
   if(jsonModel.associations !== undefined){
     Object.entries(jsonModel.associations).forEach( ([name, association], index) =>{
@@ -307,6 +330,7 @@ exports.fillOptionsForViews = function(fileData){
     hasToManyAssociations: associations.hasToManyAssociations,
     internalId: getInternalId(fileData),
     internalIdType: getInternalIdType(fileData),
+    paginationType: getPaginationType(fileData),
   }
 
   return opts;
@@ -560,6 +584,22 @@ getInternalId = function(jsonModel){
  */
 getInternalIdType = function(jsonModel){
   return (jsonModel.internalId) ? jsonModel.attributes[jsonModel.internalId] : 'Int';
+}
+
+/**
+ * getPaginationType - Check whether an the attribute "paginationType" is given in the JSON model and returns its type. If not the type of standard "id" is returned instead.
+ *
+ * @param  {object} jsonModel object originally created from a json file containing data model info.
+ * @return {string} Either 'limitOffset' or 'cursorBased' as appropriate for the given model.
+ */
+getPaginationType = function(jsonModel){
+  //sql
+  if(String(jsonModel.storageType).toLowerCase() === 'sql') {
+    return (jsonModel.paginationType) ? jsonModel.paginationType : 'limitOffset';
+  } else {
+    //ddm
+    return 'cursorBased';
+  }
 }
 
 /**
