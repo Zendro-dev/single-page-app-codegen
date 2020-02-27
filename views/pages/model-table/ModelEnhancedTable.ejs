@@ -104,7 +104,10 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   const isOnApiRequestRef = useRef(false);
   const isGettingFirstDataRef = useRef(true);
   const pageRef = useRef(0);
-  
+<%if(paginationType === 'cursorBased') {-%>
+  const pageInfo = useRef({endCursor: null, hasNextPage: null});
+<%}-%>
+
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [updateItem, setUpdateItem] = useState(undefined);
@@ -194,6 +197,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           /*
             API Request: items
           */
+<%if(paginationType === 'limitOffset') {-%>
           let cancelableApiReqB = makeCancelable(api.<%- nameLc -%>.getItems(
             graphqlServerUrl,
             search,
@@ -202,6 +206,16 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
             pageRef.current * rowsPerPage, //paginationOffset
             rowsPerPage, //paginationLimit
           ));
+<%} else if(paginationType === 'cursorBased') {-%>
+          let cancelableApiReqB = makeCancelable(api.<%- nameLc -%>.getItemsConnection(
+            graphqlServerUrl,
+            search,
+            orderBy,
+            order,
+            pageInfo.current.endCursor, //paginationCursor
+            rowsPerPage, //paginationFirst
+          ));
+<%}-%>
           cancelablePromises.current.push(cancelableApiReqB);
           cancelableApiReqB
             .promise
@@ -224,8 +238,15 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                   });
                   console.log("Errors: ", response.data.errors);
                 }
+<%if(paginationType === 'limitOffset') {-%>
                 //save response data
                 let its = response.data.data.<%- namePlLc -%>;
+<%} else if(paginationType === 'cursorBased') {-%>
+                //save response data
+                let its = response.data.data.<%- namePlLc -%>Connection.edges.map(o => o.node);
+                //update pageInfo
+                pageInfo.current = response.data.data.<%- namePlLc -%>Connection.pageInfo;
+<%}-%>
                 
                 //ok
                 setCount((newCount&&typeof newCount==='number') ? newCount : 0);
@@ -243,6 +264,10 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                   action: action.current,
                 });
                 console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
+<%if(paginationType === 'cursorBased') {-%>
+                //update pageInfo
+                pageInfo.current = {endCursor: null, hasNextPage: null};
+<%}-%>
                 setCount(0);
                 setItems([]);
                 isOnApiRequestRef.current = false;
@@ -262,6 +287,10 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                   action: action.current,
                 });
                 console.log("Error: ", err);
+<%if(paginationType === 'cursorBased') {-%>
+                //update pageInfo
+                pageInfo.current = {endCursor: null, hasNextPage: null};
+<%}-%>
                 setCount(0);
                 setItems([]);
                 isOnApiRequestRef.current = false;
@@ -279,6 +308,10 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
             action: action.current,
           });
           console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
+<%if(paginationType === 'cursorBased') {-%>
+          //update pageInfo
+          pageInfo.current = {endCursor: null, hasNextPage: null};
+<%}-%>
           setCount(0);
           setItems([]);
           isOnApiRequestRef.current = false;
@@ -299,6 +332,10 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
             action: action.current,
           });
           console.log("Error: ", err);
+<%if(paginationType === 'cursorBased') {-%>
+          //update pageInfo
+          pageInfo.current = {endCursor: null, hasNextPage: null};
+<%}-%>
           setCount(0);
           setItems([]);
           isOnApiRequestRef.current = false;
@@ -704,9 +741,19 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   const handleCreateDialogClose = (event, status, newItem) => {
     dispatch(changesCompleted());
     delayedCloseCreatePanel(event, 500);
+<%if(paginationType === 'limitOffset') {-%>
     if(status) {
       addNewItem(newItem);
     }
+<%} else if(paginationType === 'cursorBased') {-%>
+    //reload
+    if (!isOnApiRequestRef.current) {
+      setDataTrigger(prevDataTrigger => !prevDataTrigger); 
+    } 
+    else { 
+      isPendingApiRequestRef.current = true; 
+    }
+<%}-%>
   }
 
   const delayedCloseCreatePanel = async (event, ms) => {
@@ -729,9 +776,19 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   const handleUpdateDialogClose = (event, status, oldItem, newItem) => {
     dispatch(changesCompleted());
     delayedCloseUpdatePanel(event, 500);
+<%if(paginationType === 'limitOffset') {-%>
     if(status) {
       setNewItem(oldItem, newItem);
     }
+<%} else if(paginationType === 'cursorBased') {-%>
+    //reload
+    if (!isOnApiRequestRef.current) {
+      setDataTrigger(prevDataTrigger => !prevDataTrigger); 
+    } 
+    else { 
+      isPendingApiRequestRef.current = true; 
+    }
+<%}-%>
   }
 
   const delayedCloseUpdatePanel = async (event, ms) => {
