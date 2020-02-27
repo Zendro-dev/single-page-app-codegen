@@ -45,6 +45,7 @@ export default {
     return requestGraphql({ url, query });
   },
 
+<%if(paginationType === 'limitOffset') {-%>
   /**
    * getItems
    * 
@@ -73,6 +74,17 @@ export default {
     var p = `pagination: {offset: ${paginationOffset}, limit: ${paginationLimit}}`
 
     var query = '';
+    var qbody = `
+<%if(internalId === 'id'){-%>
+            id,
+<%}-%>
+<%_for( let i=0; i<attributesArr.length; i++ ){-%>
+            <%- attributesArr[i][0] -%>,
+<%}-%>
+<%_for( let i=0; i<sortedAssociations.length; i++ ){
+  if(sortedAssociations[i].type === 'to_one') {-%>
+            <%- sortedAssociations[i].relationName -%>{ <%- sortedAssociations[i].internalId -%> },
+<%}}-%>`
 
     //if has search
     if (s !== null) {
@@ -81,32 +93,14 @@ export default {
         
         query =
           `{ <%- namePlLc _%>( ${s}, ${o}, ${p} ) {
-<%if(internalId === 'id'){-%>
-            id,
-<%}-%>
-<%_for( let i=0; i<attributesArr.length; i++ ){-%>
-            <%- attributesArr[i][0] -%>,
-<%}-%>
-<%_for( let i=0; i<sortedAssociations.length; i++ ){
-  if(sortedAssociations[i].type === 'to_one') {-%>
-            <%- sortedAssociations[i].relationName -%>{ <%- sortedAssociations[i].internalId -%> },
-<%}}-%>
+            ${qbody}
            }}`
       }
       else {
 
         query =
           `{ <%- namePlLc _%>( ${s}, ${p} ) {
-<%if(internalId === 'id'){-%>
-            id,
-<%}-%>
-<%_for( let i=0; i<attributesArr.length; i++ ){-%>
-            <%- attributesArr[i][0] -%>,
-<%}-%>
-<%_for( let i=0; i<sortedAssociations.length; i++ ){
-  if(sortedAssociations[i].type === 'to_one') {-%>
-            <%- sortedAssociations[i].relationName -%>{ <%- sortedAssociations[i].internalId -%> },
-<%}}-%>
+            ${qbody}
            }}`
       }
     }
@@ -116,32 +110,14 @@ export default {
         
         query =
           `{ <%- namePlLc _%>( ${o}, ${p} ) {
-<%if(internalId === 'id'){-%>
-            id,
-<%}-%>
-<%_for( let i=0; i<attributesArr.length; i++ ){-%>
-            <%- attributesArr[i][0] -%>,
-<%}-%>
-<%_for( let i=0; i<sortedAssociations.length; i++ ){
-  if(sortedAssociations[i].type === 'to_one') {-%>
-            <%- sortedAssociations[i].relationName -%>{ <%- sortedAssociations[i].internalId -%> },
-<%}}-%>
+            ${qbody}
            }}`
       }
       else {
         
         query =
           `{ <%- namePlLc _%>( ${p} ) {
-<%if(internalId === 'id'){-%>
-            id,
-<%}-%>
-<%_for( let i=0; i<attributesArr.length; i++ ){-%>
-            <%- attributesArr[i][0] -%>,
-<%}-%>
-<%_for( let i=0; i<sortedAssociations.length; i++ ){
-  if(sortedAssociations[i].type === 'to_one') {-%>
-            <%- sortedAssociations[i].relationName -%>{ <%- sortedAssociations[i].internalId -%> },
-<%}}-%>
+            ${qbody}
            }}`
       }
     }
@@ -154,6 +130,100 @@ export default {
     return requestGraphql({ url, query });
 
   },
+<%} else if(paginationType === 'cursorBased') {-%>
+  /**
+   * getItemsConnection
+   * 
+   * Get items from GraphQL Server using a cursor-based-connection. 
+   * 
+   * @param {String} url GraphQL Server url
+   * @param {String} searchText Text string currently on search bar.
+   * @param {String} orderBy Order field string.
+   * @param {String} orderDirection Text string: asc | desc.
+   * @param {String} cursor Cursor parameter to connection query.
+   * @param {Number} first Max number of items to retreive.
+   * @param {String} ops Object with additional query options.
+   */
+  getItemsConnection(url, searchText, orderBy, orderDirection, cursor, first, ops) {
+    //search
+    var s = getSearchArgument('<%- nameLc _%>', searchText, ops);
+
+    //order
+    var o = null;
+    if (orderBy !== '' && orderBy !== null) {
+      let upOrderDirection = String(orderDirection).toUpperCase();
+      o = `order: [ {field: ${orderBy}, order: ${upOrderDirection}} ]`;
+    }
+    
+    //pagination
+    var p = `pagination: {first: ${first}, cursor: ${cursor}}`
+
+    var query = '';
+    var qbody = `
+          pageInfo {
+            endCursor
+            hasNextPage
+          }
+          edges {
+            node {
+<%if(internalId === 'id'){-%>
+              id,
+<%}-%>
+<%_for( let i=0; i<attributesArr.length; i++ ){-%>
+              <%- attributesArr[i][0] -%>,
+<%}-%>
+<%_for( let i=0; i<sortedAssociations.length; i++ ){
+      if(sortedAssociations[i].type === 'to_one') {-%>
+              <%- sortedAssociations[i].relationName -%>{ <%- sortedAssociations[i].internalId -%> },
+<%}}-%>
+            }
+          }`
+
+    //if has search
+    if (s !== null) {
+      //if has order
+      if (o != null) {
+        
+        query =
+          `{ <%- namePlLc _%>Connection( ${s}, ${o}, ${p} ) {
+            ${qbody}
+           }}`
+      }
+      else {
+
+        query =
+          `{ <%- namePlLc _%>( ${s}, ${p} ) {
+            ${qbody}
+           }}`
+      }
+    }
+    else {
+      //if has order
+      if (o != null) {
+        
+        query =
+          `{ <%- namePlLc _%>( ${o}, ${p} ) {
+            ${qbody}
+           }}`
+      }
+      else {
+        
+        query =
+          `{ <%- namePlLc _%>( ${p} ) {
+            ${qbody}
+           }}`
+      }
+    }
+
+    /**
+     * Debug
+     */
+    console.log("getData.query: gql:\n", query);
+
+    return requestGraphql({ url, query });
+
+  },
+<%}-%>
 
   /**
    * createItem
@@ -386,6 +456,7 @@ export default {
   },
 
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
+<%if(sortedAssociations[i].paginationType === 'limitOffset') {-%>
   /**
    * get<%- sortedAssociations[i].relationNameCp %>Filter
    * 
@@ -454,7 +525,82 @@ export default {
 
     return requestGraphql({ url, query });
   },
+<%} else if(sortedAssociations[i].paginationType === 'cursorBased') {-%>
+  /**
+   * get<%- sortedAssociations[i].relationNameCp %>Connection
+   * 
+   * Get <%- sortedAssociations[i].targetModelPlLc %> connection (cursor based) records associated to the given <%- nameLc %> record
+   * through association '<%- sortedAssociations[i].relationNameCp %>', from GraphQL Server.
+   * 
+   * 
+   * @param {String} url GraphQL Server url
+   * @param {Number} itemId Model item internalId.
+   * @param {String} label Label name.
+   * @param {String} sublabel Sublabel name.
+   * @param {String} searchText Text string currently on search bar.
+   * @param {Number} cursor Offset.
+   * @param {Number} first Max number of items to retreive.
+   * @param {String} ops Object with adittional query options.
+   */
+  get<%- sortedAssociations[i].relationNameCp %>Connection(url, itemId, label, sublabel, searchText, cursor, first, ops) {
+<%_if( sortedAssociations[i].type === 'to_many' ){-%>
 
+    //search
+    var s = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops); 
+
+    //pagination
+    var p = `pagination: {first: ${first}, cursor: ${cursor}}`
+
+    var qbody = `
+          pageInfo {
+            endCursor
+            hasNextPage
+          }
+          edges {
+            node {
+<%if(sortedAssociations[i].internalId === 'id'){-%>
+              id,
+<%}-%>
+<%_for( let j=0; j<modelsAtts[sortedAssociations[i].targetModel].length; j++ ){-%>
+              <%- modelsAtts[sortedAssociations[i].targetModel][j][0] -%>,
+<%}-%>
+            }
+          }`
+
+    var query = (s) ?
+      `{ readOne<%- nameCp %>(<%- internalId _%>:<%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%>) { 
+        <%- sortedAssociations[i].relationNameLc _%>Connection( ${s}, ${p} ) { 
+          ${qbody},
+        countFiltered<%- sortedAssociations[i].relationNameCp %>( ${s} ) 
+      } }` :      
+      `{ readOne<%- nameCp %>(<%- internalId _%>:<%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%>) { 
+        <%- sortedAssociations[i].relationNameLc _%>Connection( ${p} ) { 
+          ${qbody},
+        countFiltered<%- sortedAssociations[i].relationNameCp %> 
+      } }`;
+<%} else {-%>
+    var query = 
+      `{ readOne<%- nameCp %>(<%- internalId _%>:<%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%>) { 
+        <%- sortedAssociations[i].relationName _%> { 
+<%if(sortedAssociations[i].internalId === 'id'){-%>
+          id,
+<%}-%>
+<%_for( let j=0; j<modelsAtts[sortedAssociations[i].targetModel].length; j++ ){-%>
+          <%- modelsAtts[sortedAssociations[i].targetModel][j][0] -%>,
+<%}-%>
+      } } }`;
+<%}-%>
+
+    /**
+     * Debug
+     */
+    console.log("getAssociationFilter.query: gql:\n", query);
+
+    return requestGraphql({ url, query });
+  },
+<%}-%>
+
+<%if(sortedAssociations[i].paginationType === 'limitOffset') {-%>
   /**
    * 
    *  
@@ -483,7 +629,36 @@ export default {
 
     return requestGraphql({ url, query });
   },
-  
+<%} else if(sortedAssociations[i].paginationType === 'cursorBased') {-%>
+  /**
+   * 
+   *  
+   * getAssociated<%- sortedAssociations[i].relationNameCp %>Connection
+   * 
+   * Get the <%- sortedAssociations[i].targetModelLc %>-ids associated (by cursor based connection) to the given <%- nameLc %> record 
+   * through association '<%- sortedAssociations[i].relationNameCp %>', from GraphQL Server.
+   * 
+   * @param {String} url GraphQL Server url
+   * @param {Number} itemId Model item internalId.
+   */
+  getAssociated<%- sortedAssociations[i].relationNameCp %>Connection(url, itemId) {
+<%_if( sortedAssociations[i].type === 'to_many' ){-%>
+    var query = 
+      `{ readOne<%- nameCp %>( <%- internalId _%>: <%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%> ){ 
+        <%- sortedAssociations[i].relationNameLc _%>Connection{ edges { node { <%- sortedAssociations[i].internalId -%> } } } } }`;
+<%} else {-%>
+    var query = 
+    `{ readOne<%- nameCp %>( <%- internalId _%>: <%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%> ){ 
+      <%- sortedAssociations[i].relationName _%>{ <%- sortedAssociations[i].internalId -%> } } }`;
+<%}-%>
+    /**
+     * Debug
+     */
+    console.log("getAssociatedIds.query: gql:\n", query);
+
+    return requestGraphql({ url, query });
+  },
+<%}-%>
 <%}-%>
 }
 
