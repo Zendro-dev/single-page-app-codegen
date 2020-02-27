@@ -192,7 +192,7 @@ export default {
       else {
 
         query =
-          `{ <%- namePlLc _%>( ${s}, ${p} ) {
+          `{ <%- namePlLc _%>Connection( ${s}, ${p} ) {
             ${qbody}
            }}`
       }
@@ -202,14 +202,14 @@ export default {
       if (o != null) {
         
         query =
-          `{ <%- namePlLc _%>( ${o}, ${p} ) {
+          `{ <%- namePlLc _%>Connection( ${o}, ${p} ) {
             ${qbody}
            }}`
       }
       else {
         
         query =
-          `{ <%- namePlLc _%>( ${p} ) {
+          `{ <%- namePlLc _%>Connection( ${p} ) {
             ${qbody}
            }}`
       }
