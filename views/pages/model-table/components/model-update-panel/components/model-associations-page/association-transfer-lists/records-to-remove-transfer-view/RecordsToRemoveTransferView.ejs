@@ -106,6 +106,9 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   const isGettingFirstDataRef = useRef(true);
   const pageRef = useRef(0);
   const lastFetchTime = useRef(null);
+<%if(paginationType === 'cursorBased') {-%>
+  const pageInfo = useRef({endCursor: null, hasNextPage: null});
+<%}-%>
 
   /*
     State Table B (to remove)
@@ -124,6 +127,9 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   const isGettingFirstDataRefB = useRef(true);
   const pageRefB = useRef(0);
   const lastFetchTimeB = useRef(null);
+<%if(paginationType === 'cursorBased') {-%>
+  const pageInfoB = useRef({endCursor: null, hasNextPage: null});
+<%}-%>
 
   const [thereAreItemsToAdd, setThereAreItemsToAdd] = useState((idsToRemove && Array.isArray(idsToRemove) && idsToRemove.length > 0));
   const lidsToRemove = useRef((idsToRemove && Array.isArray(idsToRemove)) ? Array.from(idsToRemove) : []);
@@ -180,6 +186,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
     */
     let label = '<%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='') ? `${sortedAssociations[aindex].label}` : '' _%>';
     let sublabel = '<%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='') ? `${sortedAssociations[aindex].sublabel}` : '' _%>';
+<%if(paginationType === 'limitOffset') {-%>
     let cancelableApiReq = makeCancelable(api.<%- nameLc _%>.get<%- sortedAssociations[aindex].relationNameCp _%>Filter(
       graphqlServerUrl, 
       item.<%- internalId _%>,
@@ -190,6 +197,18 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
       rowsPerPage, //paginationLimit
       // ops
     ));
+<%} else if(paginationType === 'cursorBased') {-%>
+    let cancelableApiReq = makeCancelable(api.<%- nameLc _%>.get<%- sortedAssociations[aindex].relationNameCp _%>Connection(
+      graphqlServerUrl, 
+      item.<%- internalId _%>,
+      label,
+      sublabel,
+      search,
+      pageInfo.current.endCursor, //paginationCursor
+      rowsPerPage, //paginationFirst
+      // ops
+    ));
+<%}-%>
     cancelablePromises.current.push(cancelableApiReq);
     cancelableApiReq
       .promise
@@ -212,10 +231,17 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
             });
             console.log("Errors: ", response.data.errors);
           }
+<%if(paginationType === 'limitOffset') {-%>
           //save response data
           let newCount = response.data.data.readOne<%- nameCp _%>.countFiltered<%- sortedAssociations[aindex].relationNameCp _%>;
           let its = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].relationNameLc _%>Filter;
-
+<%} else if(paginationType === 'cursorBased') {-%>
+          //save response data
+          let newCount = response.data.data.readOne<%- nameCp _%>.countFiltered<%- sortedAssociations[aindex].relationNameCp _%>;
+          let its = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].relationNameLc _%>Connection.edges.map(o => o.node);
+          //update pageInfo
+          pageInfo.current = response.data.data.<%- sortedAssociations[aindex].targetModelPlLc _%>Connection.pageInfo;
+<%}-%>
           /*
             Check: empty page
           */
@@ -243,6 +269,10 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
             action: action.current,
           });
           console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
+<%if(paginationType === 'cursorBased') {-%>
+          //update pageInfo
+          pageInfo.current = {endCursor: null, hasNextPage: null};
+<%}-%>
           setCount(0);
           setItems([]);
           isOnApiRequestRef.current = false;
@@ -262,6 +292,10 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
             action: action.current,
           });
           console.log("Error: ", err);
+<%if(paginationType === 'cursorBased') {-%>
+          //update pageInfo
+          pageInfo.current = {endCursor: null, hasNextPage: null};
+<%}-%>
           setCount(0);
           setItems([]);
           isOnApiRequestRef.current = false;
@@ -294,6 +328,10 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
         }]
       };
     } else {
+<%if(paginationType === 'cursorBased') {-%>
+      //update pageInfo
+      pageInfoB.current = {endCursor: null, hasNextPage: null};
+<%}-%> 
       setCountB(0);
       setItemsB([]);
       isOnApiRequestRefB.current = false;
@@ -344,6 +382,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
           /*
             API Request: items
           */
+<%if(paginationType === 'limitOffset') {-%>
           let cancelableApiReqB = makeCancelable(api.<%- sortedAssociations[aindex].targetModelLc _%>.getItems(
             graphqlServerUrl,
             searchB,
@@ -353,6 +392,17 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
             rowsPerPageB, //paginationLimit
             ops
           ));
+<%} else if(paginationType === 'cursorBased') {-%>
+          let cancelableApiReqB = makeCancelable(api.<%- sortedAssociations[aindex].targetModelLc _%>.getItemsConnection(
+            graphqlServerUrl,
+            searchB,
+            null, //orderBy
+            null, //orderDirection
+            pageInfoB.current.endCursor, //paginationCursor
+            rowsPerPageB, //paginationFirst
+            ops
+          ));
+<%}-%>
           cancelablePromises.current.push(cancelableApiReqB);
           cancelableApiReqB
             .promise
@@ -375,8 +425,15 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                   });
                   console.log("Errors: ", response.data.errors);
                 }
+<%if(paginationType === 'limitOffset') {-%>
                 //save response data
                 let its = response.data.data.<%- sortedAssociations[aindex].targetModelPlLc _%>;
+<%} else if(paginationType === 'cursorBased') {-%>
+                //save response data
+                let its = response.data.data.<%- sortedAssociations[aindex].targetModelPlLc _%>Connection.edges.map(o => o.node);
+                //update pageInfo
+                pageInfoB.current = response.data.data.<%- sortedAssociations[aindex].targetModelPlLc _%>Connection.pageInfo;
+<%}-%>
                 
                 //ok
                 setCountB((newCount&&typeof newCount==='number') ? newCount : 0);
@@ -394,6 +451,10 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                   action: action.current,
                 });
                 console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
+<%if(paginationType === 'cursorBased') {-%>
+                //update pageInfo
+                pageInfoB.current = {endCursor: null, hasNextPage: null};
+<%}-%>                
                 setCountB(0);
                 setItemsB([]);
                 isOnApiRequestRefB.current = false;
@@ -413,6 +474,10 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                   action: action.current,
                 });
                 console.log("Error: ", err);
+<%if(paginationType === 'cursorBased') {-%>
+                //update pageInfo
+                pageInfoB.current = {endCursor: null, hasNextPage: null};
+<%}-%>                
                 setCountB(0);
                 setItemsB([]);
                 isOnApiRequestRefB.current = false;
@@ -430,6 +495,10 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
             action: action.current,
           });
           console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
+<%if(paginationType === 'cursorBased') {-%>
+          //update pageInfo
+          pageInfoB.current = {endCursor: null, hasNextPage: null};
+<%}-%>                
           setCountB(0);
           setItemsB([]);
           isOnApiRequestRefB.current = false;
@@ -449,6 +518,10 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
             action: action.current,
           });
           console.log("Error: ", err);
+<%if(paginationType === 'cursorBased') {-%>
+          //update pageInfo
+          pageInfoB.current = {endCursor: null, hasNextPage: null};
+<%}-%>                
           setCountB(0);
           setItemsB([]);
           isOnApiRequestRefB.current = false;
