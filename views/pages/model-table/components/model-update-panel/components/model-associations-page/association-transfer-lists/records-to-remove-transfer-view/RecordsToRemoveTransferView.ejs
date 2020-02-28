@@ -106,7 +106,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   const isGettingFirstDataRef = useRef(true);
   const pageRef = useRef(0);
   const lastFetchTime = useRef(null);
-<%if(paginationType === 'cursorBased') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
   const pageInfo = useRef({endCursor: null, hasNextPage: null});
 <%}-%>
 
@@ -127,7 +127,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   const isGettingFirstDataRefB = useRef(true);
   const pageRefB = useRef(0);
   const lastFetchTimeB = useRef(null);
-<%if(paginationType === 'cursorBased') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
   const pageInfoB = useRef({endCursor: null, hasNextPage: null});
 <%}-%>
 
@@ -186,7 +186,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
     */
     let label = '<%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='') ? `${sortedAssociations[aindex].label}` : '' _%>';
     let sublabel = '<%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='') ? `${sortedAssociations[aindex].sublabel}` : '' _%>';
-<%if(paginationType === 'limitOffset') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
     let cancelableApiReq = makeCancelable(api.<%- nameLc _%>.get<%- sortedAssociations[aindex].relationNameCp _%>Filter(
       graphqlServerUrl, 
       item.<%- internalId _%>,
@@ -197,7 +197,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
       rowsPerPage, //paginationLimit
       // ops
     ));
-<%} else if(paginationType === 'cursorBased') {-%>
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
     let cancelableApiReq = makeCancelable(api.<%- nameLc _%>.get<%- sortedAssociations[aindex].relationNameCp _%>Connection(
       graphqlServerUrl, 
       item.<%- internalId _%>,
@@ -231,11 +231,11 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
             });
             console.log("Errors: ", response.data.errors);
           }
-<%if(paginationType === 'limitOffset') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
           //save response data
           let newCount = response.data.data.readOne<%- nameCp _%>.countFiltered<%- sortedAssociations[aindex].relationNameCp _%>;
           let its = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].relationNameLc _%>Filter;
-<%} else if(paginationType === 'cursorBased') {-%>
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
           //save response data
           let newCount = response.data.data.readOne<%- nameCp _%>.countFiltered<%- sortedAssociations[aindex].relationNameCp _%>;
           let its = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].relationNameLc _%>Connection.edges.map(o => o.node);
@@ -269,7 +269,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
             action: action.current,
           });
           console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
-<%if(paginationType === 'cursorBased') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
           //update pageInfo
           pageInfo.current = {endCursor: null, hasNextPage: null};
 <%}-%>
@@ -292,7 +292,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
             action: action.current,
           });
           console.log("Error: ", err);
-<%if(paginationType === 'cursorBased') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
           //update pageInfo
           pageInfo.current = {endCursor: null, hasNextPage: null};
 <%}-%>
@@ -328,7 +328,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
         }]
       };
     } else {
-<%if(paginationType === 'cursorBased') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
       //update pageInfo
       pageInfoB.current = {endCursor: null, hasNextPage: null};
 <%}-%> 
@@ -382,7 +382,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
           /*
             API Request: items
           */
-<%if(paginationType === 'limitOffset') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
           let cancelableApiReqB = makeCancelable(api.<%- sortedAssociations[aindex].targetModelLc _%>.getItems(
             graphqlServerUrl,
             searchB,
@@ -392,7 +392,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
             rowsPerPageB, //paginationLimit
             ops
           ));
-<%} else if(paginationType === 'cursorBased') {-%>
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
           let cancelableApiReqB = makeCancelable(api.<%- sortedAssociations[aindex].targetModelLc _%>.getItemsConnection(
             graphqlServerUrl,
             searchB,
@@ -425,10 +425,10 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                   });
                   console.log("Errors: ", response.data.errors);
                 }
-<%if(paginationType === 'limitOffset') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
                 //save response data
                 let its = response.data.data.<%- sortedAssociations[aindex].targetModelPlLc _%>;
-<%} else if(paginationType === 'cursorBased') {-%>
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
                 //save response data
                 let its = response.data.data.<%- sortedAssociations[aindex].targetModelPlLc _%>Connection.edges.map(o => o.node);
                 //update pageInfo
@@ -451,7 +451,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                   action: action.current,
                 });
                 console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
-<%if(paginationType === 'cursorBased') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
                 //update pageInfo
                 pageInfoB.current = {endCursor: null, hasNextPage: null};
 <%}-%>                
@@ -474,7 +474,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                   action: action.current,
                 });
                 console.log("Error: ", err);
-<%if(paginationType === 'cursorBased') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
                 //update pageInfo
                 pageInfoB.current = {endCursor: null, hasNextPage: null};
 <%}-%>                
@@ -495,7 +495,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
             action: action.current,
           });
           console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
-<%if(paginationType === 'cursorBased') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
           //update pageInfo
           pageInfoB.current = {endCursor: null, hasNextPage: null};
 <%}-%>                
@@ -518,7 +518,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
             action: action.current,
           });
           console.log("Error: ", err);
-<%if(paginationType === 'cursorBased') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
           //update pageInfo
           pageInfoB.current = {endCursor: null, hasNextPage: null};
 <%}-%>                
