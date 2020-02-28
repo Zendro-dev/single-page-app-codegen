@@ -180,7 +180,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
           let newCount = response.data.data.readOne<%- nameCp _%>.countFiltered<%- sortedAssociations[aindex].relationNameCp _%>;
           let its = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].relationNameLc _%>Connection.edges.map(o => o.node);
           //update pageInfo
-          pageInfo.current = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].relationNameLc _%>Connection..pageInfo;
+          pageInfo.current = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].relationNameLc _%>Connection.pageInfo;
 <%}-%>
           /*
             Check: empty page
