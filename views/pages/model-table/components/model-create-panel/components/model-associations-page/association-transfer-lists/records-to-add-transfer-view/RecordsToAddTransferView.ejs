@@ -334,7 +334,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
             action: action.current,
           });
           console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
-<%if(paginationType === 'cursorBased') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
           //update pageInfo
           pageInfo.current = {endCursor: null, hasNextPage: null};
 <%}-%>
