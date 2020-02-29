@@ -156,7 +156,7 @@ export default {
     }
     
     //pagination
-    var p = `pagination: {first: ${first}, cursor: ${cursor}}`
+    var p = (cursor) ? `pagination: {first: ${first}, cursor: "${cursor}"}` : `pagination: {first: ${first}, cursor: null}`
 
     var query = '';
     var qbody = `
@@ -549,13 +549,13 @@ export default {
     var s = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops); 
 
     //pagination
-    var p = `pagination: {first: ${first}, cursor: ${cursor}}`
+    var p = (cursor) ? `pagination: {first: ${first}, cursor: "${cursor}"}` : `pagination: {first: ${first}, cursor: null}`
 
     var qbody = `
           pageInfo {
             endCursor
             hasNextPage
-          }
+          },
           edges {
             node {
 <%if(sortedAssociations[i].internalId === 'id'){-%>
@@ -571,12 +571,14 @@ export default {
       `{ readOne<%- nameCp %>(<%- internalId _%>:<%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%>) { 
         <%- sortedAssociations[i].relationNameLc _%>Connection( ${s}, ${p} ) { 
           ${qbody},
-        countFiltered<%- sortedAssociations[i].relationNameCp %>( ${s} ) 
+        },
+          countFiltered<%- sortedAssociations[i].relationNameCp %>( ${s} ) 
       } }` :      
       `{ readOne<%- nameCp %>(<%- internalId _%>:<%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%>) { 
         <%- sortedAssociations[i].relationNameLc _%>Connection( ${p} ) { 
           ${qbody},
-        countFiltered<%- sortedAssociations[i].relationNameCp %> 
+        },
+          countFiltered<%- sortedAssociations[i].relationNameCp %> 
       } }`;
 <%} else {-%>
     var query = 
