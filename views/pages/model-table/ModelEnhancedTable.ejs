@@ -95,7 +95,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   const [count, setCount] = useState(0);
   const [search, setSearch] = useState('');
   const [order, setOrder] = useState('asc');
-  const [orderBy, setOrderBy] = useState('id');
+  const [orderBy, setOrderBy] = useState('<%- internalId _%>');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
   const [isOnApiRequest, setIsOnApiRequest] = useState(false);
