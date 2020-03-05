@@ -105,7 +105,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   const isGettingFirstDataRef = useRef(true);
   const pageRef = useRef(0);
 <%if(paginationType === 'cursorBased') {-%>
-  const pageInfo = useRef({startCursor: null, endCursor: null, hasNextPage: false, hasNextPage: false});
+  const pageInfo = useRef({startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false});
   const isForwardPagination = useRef(true);
 <%}-%>
 
@@ -209,10 +209,12 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           ));
 <%} else if(paginationType === 'cursorBased') {-%>
           let variables = {
-            cursor: isForwardPagination.current ? pageInfo.current.endCursor : null,
-            before: !isForwardPagination.current ? pageInfo.current.startCursor : null,
-            first: isForwardPagination.current ? rowsPerPage : null,
-            last: !isForwardPagination.current ? rowsPerPage : null,
+            pagination: {
+              cursor: isForwardPagination.current ? pageInfo.current.endCursor : null,
+              before: !isForwardPagination.current ? pageInfo.current.startCursor : null,
+              first: isForwardPagination.current ? rowsPerPage : null,
+              last: !isForwardPagination.current ? rowsPerPage : null,
+            }
           };
           let cancelableApiReqB = makeCancelable(api.<%- nameLc -%>.getItemsConnection(
             graphqlServerUrl,
@@ -272,7 +274,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                 console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
 <%if(paginationType === 'cursorBased') {-%>
                 //update pageInfo
-                pageInfo.current = {startCursor: null, endCursor: null, hasNextPage: false, hasNextPage: false};
+                pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
 <%}-%>
                 setCount(0);
                 setItems([]);
@@ -295,7 +297,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                 console.log("Error: ", err);
 <%if(paginationType === 'cursorBased') {-%>
                 //update pageInfo
-                pageInfo.current = {startCursor: null, endCursor: null, hasNextPage: false, hasNextPage: false};
+                pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
 <%}-%>
                 setCount(0);
                 setItems([]);
@@ -316,7 +318,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
 <%if(paginationType === 'cursorBased') {-%>
           //update pageInfo
-          pageInfo.current = {startCursor: null, endCursor: null, hasNextPage: false, hasNextPage: false};
+          pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
 <%}-%>
           setCount(0);
           setItems([]);
@@ -340,7 +342,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           console.log("Error: ", err);
 <%if(paginationType === 'cursorBased') {-%>
           //update pageInfo
-          pageInfo.current = {startCursor: null, endCursor: null, hasNextPage: false, hasNextPage: false};
+          pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
 <%}-%>
           setCount(0);
           setItems([]);
@@ -587,6 +589,12 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
         }
       });
   }
+  function resetPageRefs() {
+<%if(paginationType === 'cursorBased') {-%>
+    isForwardPagination.current = true;
+<%}-%>
+    pageRef.current = 0;
+  }
 
   function setNewItem(oldItem, newItem) {
     if(!newItem) {
@@ -668,7 +676,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   const handleSearchEnter = text => {
     if(text !== search)
     {
-      pageRef.current = 0;
+      resetPageRefs();
       if(page !== 0) {
         isGettingFirstDataRef.current = true; //avoids to get data on [page] effect
         setPage(0);
@@ -681,7 +689,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
    * Sort handlers
    */
   const handleRequestSort = (event, property) => {
-    pageRef.current = 0;
+    resetPageRefs();
     if(page !== 0) {
       isGettingFirstDataRef.current = true; //avoids to get data on [page] effect
       setPage(0);
@@ -699,13 +707,20 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
    * Pagination handlers
    */
   const handleChangePage = (event, newPage) => {
+<%if(paginationType === 'cursorBased') {-%>
+    if(newPage > pageRef.current) {
+      isForwardPagination.current = true;
+    } else if (newPage < pageRef.current){
+      isForwardPagination.current = false;
+    }
+<%}-%>
     setPage(newPage);
   };
 
   const handleChangeRowsPerPage = event => {
     if(event.target.value !== rowsPerPage)
     {
-      pageRef.current = 0;
+      resetPageRefs();
       if(page !== 0) {
         isGettingFirstDataRef.current = true; //avoids to get data on [page] effect
         setPage(0);
