@@ -220,8 +220,8 @@ export default {
     /**
      * Debug
      */
-    console.log("createItem.query: gql:\n", query);
-    console.log("createItem.variables: gql:\n", variables);
+    console.log("getItemsConnection.query: gql:\n", query);
+    console.log("getItemsConnection.variables: gql:\n", variables);
 
     return requestGraphql({ url, query, variables });
 
@@ -541,18 +541,13 @@ export default {
    * @param {String} label Label name.
    * @param {String} sublabel Sublabel name.
    * @param {String} searchText Text string currently on search bar.
-   * @param {Number} cursor Offset.
-   * @param {Number} first Max number of items to retreive.
+   * @param {Object} variables Object with cursor-based-pagination variables.
    * @param {String} ops Object with adittional query options.
    */
-  get<%- sortedAssociations[i].relationNameCp %>Connection(url, itemId, label, sublabel, searchText, cursor, first, ops) {
+  get<%- sortedAssociations[i].relationNameCp %>Connection(url, itemId, label, sublabel, searchText, variables, ops) {
 <%_if( sortedAssociations[i].type === 'to_many' ){-%>
-
     //search
     var s = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops); 
-
-    //pagination
-    var p = (cursor) ? `pagination: {first: ${first}, cursor: "${cursor}"}` : `pagination: {first: ${first}, cursor: null}`
 
     var qbody = `
           pageInfo {
@@ -573,16 +568,18 @@ export default {
           }`
 
     var query = (s) ?
-      `{ readOne<%- nameCp %>(<%- internalId _%>:<%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%>) { 
-        <%- sortedAssociations[i].relationNameLc _%>Connection( ${s}, ${p} ) { 
-          ${qbody},
-        },
+      `query readOne<%- nameCp %>($pagination: paginationCursorInput) {
+        readOne<%- nameCp %>(<%- internalId _%>:<%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%>) { 
+          <%- sortedAssociations[i].relationNameLc _%>Connection( ${s}, pagination: $pagination ) { 
+            ${qbody},
+          },
           countFiltered<%- sortedAssociations[i].relationNameCp %>( ${s} ) 
       } }` :      
-      `{ readOne<%- nameCp %>(<%- internalId _%>:<%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%>) { 
-        <%- sortedAssociations[i].relationNameLc _%>Connection( ${p} ) { 
-          ${qbody},
-        },
+      `query readOne<%- nameCp %>($pagination: paginationCursorInput) {
+        readOne<%- nameCp %>(<%- internalId _%>:<%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%>) { 
+          <%- sortedAssociations[i].relationNameLc _%>Connection( pagination: $pagination ) { 
+            ${qbody},
+          },
           countFiltered<%- sortedAssociations[i].relationNameCp %> 
       } }`;
 <%} else {-%>
@@ -602,8 +599,9 @@ export default {
      * Debug
      */
     console.log("getAssociationFilter.query: gql:\n", query);
+    console.log("getAssociationFilter.variables: gql:\n", variables);
 
-    return requestGraphql({ url, query });
+    return requestGraphql({ url, query, variables });
   },
 <%}-%>
 
