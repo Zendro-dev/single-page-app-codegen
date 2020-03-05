@@ -107,6 +107,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 <%if(paginationType === 'cursorBased') {-%>
   const pageInfo = useRef({startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false});
   const isForwardPagination = useRef(true);
+  const isCursorPaginating = useRef(false);
 <%}-%>
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -190,6 +191,9 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           */
           if((newCount === (pageRef.current * rowsPerPage)) && (pageRef.current > 0)) {
             isOnApiRequestRef.current = false;
+<%if(paginationType === 'cursorBased') {-%>
+            isCursorPaginating.current = false;
+<%}-%>
             setIsOnApiRequest(false);
             setPage(pageRef.current - 1);
             return;
@@ -260,6 +264,9 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                 setCount((newCount&&typeof newCount==='number') ? newCount : 0);
                 setItems(its&&Array.isArray(its) ? its : []);
                 isOnApiRequestRef.current = false;
+<%if(paginationType === 'cursorBased') {-%>
+                isCursorPaginating.current = false;
+<%}-%>
                 setIsOnApiRequest(false);
                 return;
 
@@ -279,6 +286,9 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                 setCount(0);
                 setItems([]);
                 isOnApiRequestRef.current = false;
+<%if(paginationType === 'cursorBased') {-%>
+            isCursorPaginating.current = false;
+<%}-%>
                 setIsOnApiRequest(false);
                 return;
               }
@@ -302,6 +312,9 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                 setCount(0);
                 setItems([]);
                 isOnApiRequestRef.current = false;
+<%if(paginationType === 'cursorBased') {-%>
+                isCursorPaginating.current = false;
+<%}-%>
                 setIsOnApiRequest(false);
                 return;
               }
@@ -323,6 +336,9 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           setCount(0);
           setItems([]);
           isOnApiRequestRef.current = false;
+<%if(paginationType === 'cursorBased') {-%>
+          isCursorPaginating.current = false;
+<%}-%>
           setIsOnApiRequest(false);
           return;
         }
@@ -347,6 +363,9 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           setCount(0);
           setItems([]);
           isOnApiRequestRef.current = false;
+<%if(paginationType === 'cursorBased') {-%>
+          isCursorPaginating.current = false;
+<%}-%>
           setIsOnApiRequest(false);
           return;
         }
@@ -592,6 +611,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   function resetPageRefs() {
 <%if(paginationType === 'cursorBased') {-%>
     isForwardPagination.current = true;
+    pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
 <%}-%>
     pageRef.current = 0;
   }
@@ -708,6 +728,10 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
    */
   const handleChangePage = (event, newPage) => {
 <%if(paginationType === 'cursorBased') {-%>
+    //strict contention
+    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+  
+    isCursorPaginating.current = true;
     if(newPage > pageRef.current) {
       isForwardPagination.current = true;
     } else if (newPage < pageRef.current){
