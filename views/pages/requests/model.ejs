@@ -140,11 +140,10 @@ export default {
    * @param {String} searchText Text string currently on search bar.
    * @param {String} orderBy Order field string.
    * @param {String} orderDirection Text string: asc | desc.
-   * @param {String} cursor Cursor parameter to connection query.
-   * @param {Number} first Max number of items to retreive.
+   * @param {Object} variables Object with cursor-based-pagination variables. 
    * @param {String} ops Object with additional query options.
    */
-  getItemsConnection(url, searchText, orderBy, orderDirection, cursor, first, ops) {
+  getItemsConnection(url, searchText, orderBy, orderDirection, variables, ops) {
     //search
     var s = getSearchArgument('<%- nameLc _%>', searchText, ops);
 
@@ -155,13 +154,12 @@ export default {
       o = `order: [ {field: ${orderBy}, order: ${upOrderDirection}} ]`;
     }
     
-    //pagination
-    var p = (cursor) ? `pagination: {first: ${first}, cursor: "${cursor}"}` : `pagination: {first: ${first}, cursor: null}`
-
     var query = '';
     var qbody = `
           pageInfo {
+            startCursor
             endCursor
+            hasPreviousPage
             hasNextPage
           }
           edges {
@@ -185,16 +183,18 @@ export default {
       if (o != null) {
         
         query =
-          `{ <%- namePlLc _%>Connection( ${s}, ${o}, ${p} ) {
-            ${qbody}
-           }}`
+          `query <%- namePlLc _%>Connection($pagination: paginationCursorInput)
+            { <%- namePlLc _%>Connection( ${s}, ${o}, pagination: $pagination ) {
+              ${qbody}
+            }}`
       }
       else {
 
         query =
-          `{ <%- namePlLc _%>Connection( ${s}, ${p} ) {
-            ${qbody}
-           }}`
+          `query <%- namePlLc _%>Connection($pagination: paginationCursorInput)
+            { <%- namePlLc _%>Connection( ${s}, pagination: $pagination ) {
+              ${qbody}
+            }}`
       }
     }
     else {
@@ -202,25 +202,28 @@ export default {
       if (o != null) {
         
         query =
-          `{ <%- namePlLc _%>Connection( ${o}, ${p} ) {
+          `query <%- namePlLc _%>Connection($pagination: paginationCursorInput)
+          { <%- namePlLc _%>Connection( ${o}, pagination: $pagination ) {
             ${qbody}
-           }}`
+          }}`
       }
       else {
         
         query =
-          `{ <%- namePlLc _%>Connection( ${p} ) {
+          `query <%- namePlLc _%>Connection($pagination: paginationCursorInput)
+          { <%- namePlLc _%>Connection( pagination: $pagination ) {
             ${qbody}
-           }}`
+          }}`
       }
     }
 
     /**
      * Debug
      */
-    console.log("getData.query: gql:\n", query);
+    console.log("createItem.query: gql:\n", query);
+    console.log("createItem.variables: gql:\n", variables);
 
-    return requestGraphql({ url, query });
+    return requestGraphql({ url, query, variables });
 
   },
 <%}-%>
@@ -553,7 +556,9 @@ export default {
 
     var qbody = `
           pageInfo {
+            startCursor
             endCursor
+            hasPreviousPage
             hasNextPage
           },
           edges {
