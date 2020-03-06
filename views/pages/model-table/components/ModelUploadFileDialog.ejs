@@ -62,7 +62,7 @@ export default function <%- nameOnPascal -%>UploadFileDialog(props) {
     if(file.current !== undefined && file.current !== null) {
       
       let formData = new FormData();
-      let query = 'mutation{ bulkAdd<%- nameCp -%>Csv{ id } }'
+      let query = 'mutation{ bulkAdd<%- nameCp -%>Csv{ <%- internalId _%> } }'
       formData.append('csv_file', file.current);
       formData.append('query', query)
 

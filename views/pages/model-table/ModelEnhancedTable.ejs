@@ -108,6 +108,8 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   const pageInfo = useRef({startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false});
   const isForwardPagination = useRef(true);
   const isCursorPaginating = useRef(false);
+  const previousLast = useRef(null);
+  const previousFirst = useRef(null);
 <%}-%>
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -193,6 +195,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
             isOnApiRequestRef.current = false;
 <%if(paginationType === 'cursorBased') {-%>
             isCursorPaginating.current = false;
+            isForwardPagination.current = false;
 <%}-%>
             setIsOnApiRequest(false);
             setPage(pageRef.current - 1);
@@ -255,7 +258,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                 let its = response.data.data.<%- namePlLc -%>;
 <%} else if(paginationType === 'cursorBased') {-%>
                 //save response data
-                let its = response.data.data.<%- namePlLc -%>Connection.edges.map(o => o.node);
+                let its = response.data.data.<%- namePlLc -%>Connection.edges.map(o => o.node); 
                 //update pageInfo
                 pageInfo.current = response.data.data.<%- namePlLc -%>Connection.pageInfo;
 <%}-%>
@@ -282,12 +285,13 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 <%if(paginationType === 'cursorBased') {-%>
                 //update pageInfo
                 pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+                previousLast.current = null;
 <%}-%>
                 setCount(0);
                 setItems([]);
                 isOnApiRequestRef.current = false;
 <%if(paginationType === 'cursorBased') {-%>
-            isCursorPaginating.current = false;
+                isCursorPaginating.current = false;
 <%}-%>
                 setIsOnApiRequest(false);
                 return;
@@ -308,6 +312,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 <%if(paginationType === 'cursorBased') {-%>
                 //update pageInfo
                 pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+                previousLast.current = null;
 <%}-%>
                 setCount(0);
                 setItems([]);
@@ -332,6 +337,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 <%if(paginationType === 'cursorBased') {-%>
           //update pageInfo
           pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+          previousLast.current = null;
 <%}-%>
           setCount(0);
           setItems([]);
@@ -359,6 +365,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 <%if(paginationType === 'cursorBased') {-%>
           //update pageInfo
           pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+          previousLast.current = null;
 <%}-%>
           setCount(0);
           setItems([]);
@@ -395,13 +402,24 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
       //if there were changes
       if(changes.models&&
           (Object.keys(changes.models).length>0)) {
+<%if(paginationType === 'limitOffset') {-%>
             //reload
-            if (!isOnApiRequestRef.current) {
-              setDataTrigger(prevDataTrigger => !prevDataTrigger); 
-            } 
-            else { 
-              isPendingApiRequestRef.current = true; 
+            setDataTrigger(prevDataTrigger => !prevDataTrigger);
+<%} else if(paginationType === 'cursorBased') {-%>
+            //configure
+            if(previousLast.current) {  
+              isForwardPagination.current = true;
+              pageInfo.current.endCursor = previousLast.current;
+            } else if(previousFirst.current){
+              isForwardPagination.current = false;
+              pageInfo.current.startCursor = previousFirst.current;
+            } else {
+              isForwardPagination.current = true;
+              pageInfo.current.endCursor = null;
             }
+            //reload
+            setDataTrigger(prevDataTrigger => !prevDataTrigger);
+<%}-%>
       }
       //clear changes state
       dispatch(clearChanges());
@@ -497,7 +515,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
               },
             });
           }
-          setDataTrigger(prevDataTrigger => !prevDataTrigger);
+          reloadData();
           return;
 
         } else { //error: bad response on deleteItem()
@@ -509,7 +527,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
             action: action.current,
           });
           console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
-          setDataTrigger(prevDataTrigger => !prevDataTrigger);
+          reloadData();
           return;
         }
       })
@@ -525,7 +543,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
             action: action.current,
           });
           console.log("Error: ", err);
-          setDataTrigger(prevDataTrigger => !prevDataTrigger);
+          reloadData();
           return;
         }
       });
@@ -612,19 +630,41 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 <%if(paginationType === 'cursorBased') {-%>
     isForwardPagination.current = true;
     pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+    previousLast.current = null;
+    previousFirst.current = null;
 <%}-%>
     pageRef.current = 0;
   }
 
+  function reloadData() {
+<%if(paginationType === 'limitOffset') {-%>
+    //reload
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+<%} else if(paginationType === 'cursorBased') {-%>
+    //reload
+    configurePagination();
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+<%}-%>
+  }
+
+  function configurePagination() {
+    if(previousLast.current) {  
+      isForwardPagination.current = true;
+      pageInfo.current.endCursor = previousLast.current;
+    } else if(previousFirst.current){
+      isForwardPagination.current = false;
+      pageInfo.current.startCursor = previousFirst.current;
+    } else {
+      isForwardPagination.current = true;
+      pageInfo.current.endCursor = null;
+    }
+  }
+
+<%if(paginationType === 'limitOffset') {-%>
   function setNewItem(oldItem, newItem) {
     if(!newItem) {
       //reload
-      if (!isOnApiRequestRef.current) {
-        setDataTrigger(prevDataTrigger => !prevDataTrigger); 
-      } 
-      else { 
-        isPendingApiRequestRef.current = true; 
-      }
+      setDataTrigger(prevDataTrigger => !prevDataTrigger);
     } else {
       let nitems = Array.from(items);
       let oid = oldItem.<%- internalId _%>;
@@ -644,12 +684,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   function addNewItem(newItem) {
     if(!newItem) {
       //reload
-      if (!isOnApiRequestRef.current) {
-        setDataTrigger(prevDataTrigger => !prevDataTrigger); 
-      } 
-      else { 
-        isPendingApiRequestRef.current = true; 
-      }
+      setDataTrigger(prevDataTrigger => !prevDataTrigger);
     } else {
       if( (count - (page*rowsPerPage)) < rowsPerPage ){
         //add new item
@@ -665,6 +700,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
       }
     }
   }
+<%}-%>
 
   function updateSizes() {
     //update tw & th & tscl
@@ -734,8 +770,12 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     isCursorPaginating.current = true;
     if(newPage > pageRef.current) {
       isForwardPagination.current = true;
+      previousLast.current = pageInfo.current.endCursor;
+      previousFirst.current = null;
     } else if (newPage < pageRef.current){
       isForwardPagination.current = false;
+      previousLast.current = null;
+      previousFirst.current = pageInfo.current.startCursor;
     }
 <%}-%>
     setPage(newPage);
@@ -791,12 +831,8 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
       addNewItem(newItem);
     }
 <%} else if(paginationType === 'cursorBased') {-%>
-    //reload
-    if (!isOnApiRequestRef.current) {
-      setDataTrigger(prevDataTrigger => !prevDataTrigger); 
-    } 
-    else { 
-      isPendingApiRequestRef.current = true; 
+    if(status) {
+      reloadData();
     }
 <%}-%>
   }
@@ -826,12 +862,8 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
       setNewItem(oldItem, newItem);
     }
 <%} else if(paginationType === 'cursorBased') {-%>
-    //reload
-    if (!isOnApiRequestRef.current) {
-      setDataTrigger(prevDataTrigger => !prevDataTrigger); 
-    } 
-    else { 
-      isPendingApiRequestRef.current = true; 
+    if(status) {
+      reloadData();
     }
 <%}-%>
   }
@@ -889,14 +921,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 
   const handleBulkUploadDone = (event) => {
     delayedCloseBulkUploadDialog(event, 500);
-
-    //reload
-    if (!isOnApiRequestRef.current) {
-      setDataTrigger(prevDataTrigger => !prevDataTrigger); 
-    } 
-    else { 
-      isPendingApiRequestRef.current = true; 
-    }
+    reloadData();
   }
 
   const delayedCloseBulkUploadDialog = async (event, ms) => {
