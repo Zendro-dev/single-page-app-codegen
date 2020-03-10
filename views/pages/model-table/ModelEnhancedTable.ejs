@@ -442,6 +442,17 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   useEffect(() => {      
     if (!isOnApiRequest && isPendingApiRequestRef.current) {
       isPendingApiRequestRef.current = false;
+<%if(paginationType === 'limitOffset') {-%>
+      //reload
+      setDataTrigger(prevDataTrigger => !prevDataTrigger);
+<%} else if(paginationType === 'cursorBased') {-%>
+      //configure
+      isForwardPagination.current = true;
+      pageInfo.current.endCursor = pageInfo.current.startCursor;
+      includeCursor.current = true;
+      //reload    
+      setDataTrigger(prevDataTrigger => !prevDataTrigger);
+<%}-%>
       setDataTrigger(prevDataTrigger => !prevDataTrigger);
     }
 
