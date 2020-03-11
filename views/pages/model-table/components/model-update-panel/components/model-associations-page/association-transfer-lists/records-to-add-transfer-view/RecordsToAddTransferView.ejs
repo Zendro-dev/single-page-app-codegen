@@ -175,7 +175,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
    * 
    * Get @items and @count from GrahpQL Server.
    * Uses current state properties to fill query request.
-   * Updates state to inform new @items and @count retreived.
+   * Updates state to inform new @items and @count retrieved.
    * 
    */
   const getData = useCallback(() => {
@@ -999,8 +999,10 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                 console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
 <%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
                 //update pageInfo
-                pageInfoB.current = {endCursor: null, hasNextPage: null};
-<%}-%>                
+                pageInfoB.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+                setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
+                setHasNextPageB(pageInfoB.current.hasNextPage);
+<%}-%>               
                 setCountB(0);
                 setItemsB([]);
                 isOnApiRequestRefB.current = false;
