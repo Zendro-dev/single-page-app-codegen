@@ -15,21 +15,21 @@ import Divider from '@material-ui/core/Divider';
 import ClearInactive from '@material-ui/icons/BackspaceOutlined';
 import ClearActive from '@material-ui/icons/Backspace';
 import Search from '@material-ui/icons/Search';
-import CachedIcon from '@material-ui/icons/Cached';
+import Reload from '@material-ui/icons/Replay';
 
 const useToolbarStyles = makeStyles(theme => ({
-    root: {
-      padding: theme.spacing(2),
-    },
-    headers: {
-      paddingTop: theme.spacing(2),
-    },
-    id: {
-      width: 33,
-    },
-    label: {
-      paddingLeft: theme.spacing(2),
-    },
+  root: {
+    padding: theme.spacing(2),
+  },
+  headers: {
+    paddingTop: theme.spacing(2),
+  },
+  id: {
+    width: 33,
+  },
+  label: {
+    paddingLeft: theme.spacing(2),
+  },
 }));
 
 export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferViewToolbar(props) {
@@ -211,7 +211,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                         onReloadClick();
                       }}
                     >
-                      <CachedIcon color="inherit" fontSize="small" />
+                      <Reload color="inherit" fontSize="small" />
                     </IconButton>
                   </Tooltip>
                 </Grid>

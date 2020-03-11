@@ -15,6 +15,7 @@ import Divider from '@material-ui/core/Divider';
 import ClearInactive from '@material-ui/icons/BackspaceOutlined';
 import ClearActive from '@material-ui/icons/Backspace';
 import Search from '@material-ui/icons/Search';
+import Reload from '@material-ui/icons/Replay';
 
 const useToolbarStyles = makeStyles(theme => ({
   root: {
@@ -22,9 +23,6 @@ const useToolbarStyles = makeStyles(theme => ({
   },
   headers: {
     paddingTop: theme.spacing(2),
-  },
-  title: {
-    paddingTop: theme.spacing(0),
   },
   id: {
     width: 33,
@@ -34,7 +32,7 @@ const useToolbarStyles = makeStyles(theme => ({
   },
 }));
 
-export default function <%- sortedAssociations[aindex].relationNameOnPascal %>ToAddTransferViewToolbar(props) {
+export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferViewToolbar(props) {
   const classes = useToolbarStyles();
   const { t } = useTranslation();
   const {
@@ -43,6 +41,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal %>To
       titleIcon,
       searchDisabled,
       onSearchEnter,
+      onReloadClick,
   } = props;
   
   const [displayedSearch, setDisplayedSearch] = useState('');
@@ -202,6 +201,20 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal %>To
                   </Grid>
                 </Grow>
 
+                {/* Reload Icon */}
+                <Grid item>
+                  <Tooltip title={ t('modelPanels.reloadList', "Reload list") }>
+                    <IconButton
+                      color='inherit'
+                      onClick={(event) => {
+                        onReloadClick();
+                      }}
+                    >
+                      <Reload color="inherit" fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Grid>
+
               </Grid>
             </Grid>
 
@@ -241,4 +254,5 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal %>To
     title: PropTypes.string.isRequired,
     titleIcon: PropTypes.number,
     onSearchEnter: PropTypes.func.isRequired,
+    onReloadClick: PropTypes.func.isRequired,
 };

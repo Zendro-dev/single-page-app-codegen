@@ -269,7 +269,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                 /*
                   Check: empty page
                 */
-                if( its.length === 0 && pi.hasPreviousPage ) 
+                if( its.length === 0 && pi&&pi.hasPreviousPage ) 
                 {
                   //configure
                   isOnApiRequestRef.current = false;

@@ -64,36 +64,42 @@ export default function <%- nameOnPascal -%>CursorPagination(props) {
         <Grid item xs={12}>
           <Grid container justify='space-between' alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
             
-            {/* Row Selector */}
-            <Grow in={rowsPerPageOptions.length > 0}>
               <Grid item xs={4}>
                 <Grid container justify='flex-start' wrap='nowrap' spacing={2}>
-                  <Grid item>
-                    <FormControl className={classes.formControl}>
-                      <InputLabel>{labelRowsPerPage}</InputLabel>
-                      <Select
-                        value={rowsPerPage}
-                        onChange={handleChangeRowsPerPage}
-                      >
-                        {rowsPerPageOptions.map((rowValue, index) => (
-                          <MenuItem value={rowValue} key={index}>{rowValue}</MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item>
-                    <div>
-                      <InputLabel shrink>{ t('modelPanels.count', "Count") }</InputLabel>
-                      <InputBase
-                        className={classes.margin}
-                        value={count}
-                        disabled ={true}
-                      />
-                    </div>
-                  </Grid>
+                  
+                  {/* Row Selector */}
+                  <Grow in={rowsPerPageOptions.length > 0}>
+                    <Grid item>
+                      <FormControl className={classes.formControl}>
+                        <InputLabel>{labelRowsPerPage}</InputLabel>
+                        <Select
+                          value={rowsPerPage}
+                          onChange={handleChangeRowsPerPage}
+                        >
+                          {rowsPerPageOptions.map((rowValue, index) => (
+                            <MenuItem value={rowValue} key={index}>{rowValue}</MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                  </Grow>
+
+                  {/* Count */}
+                  <Grow in={true}>
+                    <Grid item>
+                      <div>
+                        <InputLabel shrink>{ t('modelPanels.count', "Count") }</InputLabel>
+                        <InputBase
+                          className={classes.margin}
+                          value={count}
+                          disabled ={true}
+                        />
+                      </div>
+                    </Grid>
+                  </Grow>
+
                 </Grid>
               </Grid>
-            </Grow>
 
             {/* Navigation Icons */}
             <Grid item xs={8}>

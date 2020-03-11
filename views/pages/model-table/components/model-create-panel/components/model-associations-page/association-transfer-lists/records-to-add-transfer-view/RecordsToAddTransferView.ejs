@@ -297,7 +297,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                 /*
                   Check: empty page
                 */
-                if( its.length === 0 && pi.hasPreviousPage ) 
+                if( its.length === 0 && pi&&pi.hasPreviousPage ) 
                 {
                   //configure
                   isOnApiRequestRef.current = false;
@@ -538,7 +538,6 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
             ops
           ));
 <%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
-          
           let variables = {
             pagination: {
               cursor: isForwardPaginationB.current ? pageInfoB.current.endCursor : null,
@@ -862,20 +861,24 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
             if (!isOnApiRequestRefB.current) { setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); } 
             else { isPendingApiRequestRefB.current = true; }
 <%} else if(paginationType === 'cursorBased') {-%>
-            //configure A
-            isForwardPagination.current = true;
-            pageInfo.current.endCursor = pageInfo.current.startCursor;
-            includeCursor.current = true;
-            //reload A
-            if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
-            else { isPendingApiRequestRef.current = true; }
-            //configure B
-            isForwardPaginationB.current = true;
-            pageInfoB.current.endCursor = pageInfoB.current.startCursor;
-            includeCursorB.current = true;
-            //reload B
-            if (!isOnApiRequestRefB.current) { setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); } 
-            else { isPendingApiRequestRefB.current = true; }
+            //strict contention
+            if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
+              //configure A
+              isForwardPagination.current = true;
+              pageInfo.current.endCursor = pageInfo.current.startCursor;
+              includeCursor.current = true;
+              //reload A
+              setDataTrigger(prevDataTrigger => !prevDataTrigger);
+            }
+            //strict contention
+            if (!isOnApiRequestRefB.current && !isCursorPaginatingB.current) {
+              //configure B
+              isForwardPaginationB.current = true;
+              pageInfoB.current.endCursor = pageInfoB.current.startCursor;
+              includeCursorB.current = true;
+              //reload B
+              setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+            }
 <%}-%>
             return;
           }
@@ -935,7 +938,6 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
       setDataTrigger(prevDataTrigger => !prevDataTrigger);
 <%}-%>
     }
-
     updateHeights();
   }, [isOnApiRequest]);
 
@@ -954,7 +956,6 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
       setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
 <%}-%>
     }
-
     updateHeights();
   }, [isOnApiRequestB]);
 
@@ -992,7 +993,6 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
     }
   }, [countB]);
 
-
   function updateHeights() {
     if(lref.current) {
       let h =lref.current.clientHeight;
@@ -1026,11 +1026,10 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
     pageRefB.current = 0;
   }
 
-  function reloadDataA() {
+  function resetReloadDataA() {
 <%if(paginationType === 'limitOffset') {-%>
     //reload A
     resetPageRefs();
-    updateHeights();
     if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
     else { isPendingApiRequestRef.current = true; }
 <%} else if(paginationType === 'cursorBased') {-%>
@@ -1041,16 +1040,15 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
     resetPageRefs();
     isCursorPaginating.current = true;
     //reload A
-    updateHeights();
     setDataTrigger(prevDataTrigger => !prevDataTrigger);
 <%}-%>
+    updateHeights();
   }
 
-  function reloadDataB() {
+  function resetReloadDataB() {
 <%if(paginationType === 'limitOffset') {-%>
     //reload B
     resetPageRefsB();
-    updateHeights();
     if (!isOnApiRequestRefB.current) { setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); } 
     else { isPendingApiRequestRefB.current = true; }
 <%} else if(paginationType === 'cursorBased') {-%>
@@ -1061,41 +1059,47 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
     resetPageRefsB();
     isCursorPaginatingB.current = true;
     //reload B
-    updateHeights();
     setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
 <%}-%>
+    updateHeights();
   }
 
-  function reloadCurrentDataA() {
+  function reloadDataA() {
 <%if(paginationType === 'limitOffset') {-%>
     //reload A
     if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
     else { isPendingApiRequestRef.current = true; }
 <%} else if(paginationType === 'cursorBased') {-%>
+    //strict contention
+    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+
     //configure A
     isForwardPagination.current = true;
     pageInfo.current.endCursor = pageInfo.current.startCursor;
     includeCursor.current = true;
     //reload A
-    if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
-    else { isPendingApiRequestRef.current = true; }
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
 <%}-%>
+    updateHeights();
   }
 
-  function reloadCurrentDataB() {
+  function reloadDataB() {
 <%if(paginationType === 'limitOffset') {-%>
     //reload B
     if (!isOnApiRequestRefB.current) { setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); } 
     else { isPendingApiRequestRefB.current = true; }
 <%} else if(paginationType === 'cursorBased') {-%>
+    //strict contention
+    if (isOnApiRequestRefB.current || isCursorPaginatingB.current) { return; }
+    
     //configure B
     isForwardPaginationB.current = true;
     pageInfoB.current.endCursor = pageInfoB.current.startCursor;
     includeCursorB.current = true;
     //reload B
-    if (!isOnApiRequestRefB.current) { setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); } 
-    else { isPendingApiRequestRefB.current = true; }
+    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
 <%}-%>
+    updateHeights();
   }
 
   /**
@@ -1264,7 +1268,6 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
     if(event.target.value !== rowsPerPage)
     {
       resetPageRefs();
-      
       if(page !== 0) {
         isGettingFirstDataRef.current = true; //avoids to get data on [page] effect
         setPage(0);
@@ -1288,10 +1291,10 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   };
 
   const handleReloadClick = (event) => {
-    reloadDataA();
+    resetReloadDataA();
   };
   const handleReloadClickB = (event) => {
-    reloadDataB();
+    resetReloadDataB();
   };
   
 
@@ -1310,9 +1313,9 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
       setThereAreItemsToAdd(true);
       updateHeights();
       //reload A
-      reloadCurrentDataA();
+      reloadDataA();
       //reload B (full)
-      reloadDataB();
+      resetReloadDataB();
       handleTransfer('<%- sortedAssociations[aindex].relationName _%>', item.<%- sortedAssociations[aindex].internalId _%>);
     }
 <%} else {-%>
@@ -1321,9 +1324,9 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
       setThereAreItemsToAdd(true);
       updateHeights();
       //reload A
-      reloadCurrentDataA();
+      reloadDataA();
       //reload B (full)
-      reloadDataB();
+      resetReloadDataB();
       handleTransfer('<%- sortedAssociations[aindex].relationName _%>', item.<%- sortedAssociations[aindex].internalId _%>);
     }
 <%}-%>
@@ -1336,9 +1339,9 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
       setThereAreItemsToAdd(false);
       updateHeights();
       //reload A (full)
-      reloadDataA();
+      resetReloadDataA();
       //reload B
-      reloadCurrentDataB();
+      reloadDataB();
       handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', item.<%- sortedAssociations[aindex].internalId _%>);
     }
   <%} else {-%>
@@ -1351,9 +1354,9 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
       }
       updateHeights();
       //reload A (full)
-      reloadDataA();
+      resetReloadDataA();
       //reload B
-      reloadCurrentDataB();
+      reloadDataB();
       handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', item.<%- sortedAssociations[aindex].internalId _%>);
     }
   <%}-%>
