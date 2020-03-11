@@ -345,6 +345,9 @@ opts.forEach((ejbOpts) => {
     fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-transfer-lists/${ejbOpts.sortedAssociations[i].relationNameLc}-to-add-transfer-view/components/`, `${ejbOpts.sortedAssociations[i].relationNameCp}ToAddTransferViewToolbar.js`);
     promises.push( funks.renderToFile(fpath, 'model-table/components/model-create-panel/components/model-associations-page/association-transfer-lists/records-to-add-transfer-view/components/RecordsToAddTransferViewToolbar', ejbOpts) );
   
+    // template 22_b: RecordsToAddTransferViewCursorPagination
+    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-transfer-lists/${ejbOpts.sortedAssociations[i].relationNameLc}-to-add-transfer-view/components/`, `${ejbOpts.sortedAssociations[i].relationNameCp}ToAddTransferViewCursorPagination.js`);
+    promises.push( funks.renderToFile(fpath, 'model-table/components/model-create-panel/components/model-associations-page/association-transfer-lists/records-to-add-transfer-view/components/RecordsToAddTransferViewCursorPagination', ejbOpts) );
   }
 
   /**

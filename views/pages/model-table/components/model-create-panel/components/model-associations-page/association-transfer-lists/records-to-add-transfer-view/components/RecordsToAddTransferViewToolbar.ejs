@@ -15,6 +15,7 @@ import Divider from '@material-ui/core/Divider';
 import ClearInactive from '@material-ui/icons/BackspaceOutlined';
 import ClearActive from '@material-ui/icons/Backspace';
 import Search from '@material-ui/icons/Search';
+import CachedIcon from '@material-ui/icons/Cached';
 
 const useToolbarStyles = makeStyles(theme => ({
     root: {
@@ -40,6 +41,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
       titleIcon,
       searchDisabled,
       onSearchEnter,
+      onReloadClick,
   } = props;
   
   const [displayedSearch, setDisplayedSearch] = useState('');
@@ -200,6 +202,20 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                   </Grid>
                 </Grow>  
 
+                {/* Reload Icon */}
+                <Grid item>
+                  <Tooltip title={ t('modelPanels.reloadList', "Reload list") }>
+                    <IconButton
+                      color='inherit'
+                      onClick={(event) => {
+                        onReloadClick();
+                      }}
+                    >
+                      <CachedIcon color="inherit" fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Grid>
+
               </Grid>
             </Grid>
 
@@ -239,4 +255,5 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   title: PropTypes.string.isRequired,
   titleIcon: PropTypes.number,
   onSearchEnter: PropTypes.func.isRequired,
+  onReloadClick: PropTypes.func.isRequired,
 };
