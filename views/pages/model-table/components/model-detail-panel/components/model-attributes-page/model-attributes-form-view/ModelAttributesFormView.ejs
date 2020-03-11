@@ -132,7 +132,7 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
 <%}-%>        
 <%for( let i=0; i<attributesArr.length; i++ ){
   let a = attributesArr[i][0];
-  let label = a[0].toUpperCase() + a.slice(1);
+  let label = a;
   let type = attributesArr[i][1];
   let isForeignKey = (hasOwnForeingKeys&&ownForeignKeysArr.includes(a));
 -%>
