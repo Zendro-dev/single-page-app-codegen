@@ -1264,10 +1264,13 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
     if(event.target.value !== rowsPerPage)
     {
       resetPageRefs();
+      
       if(page !== 0) {
         isGettingFirstDataRef.current = true; //avoids to get data on [page] effect
         setPage(0);
       }
+
+      updateHeights();
       setRowsPerPage(parseInt(event.target.value, 10));
     }
   };

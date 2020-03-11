@@ -17,10 +17,15 @@ import <%- nameOnPascal -%>UpdatePanel from './components/<%- nameLc -%>-update-
 import <%- nameOnPascal -%>DetailPanel from './components/<%- nameLc -%>-detail-panel/<%- nameCp -%>DetailPanel'
 import <%- nameOnPascal -%>DeleteConfirmationDialog from './components/<%- nameCp -%>DeleteConfirmationDialog'
 import <%- nameOnPascal -%>UploadFileDialog from './components/<%- nameCp -%>UploadFileDialog'
+<%if(paginationType === 'cursorBased') {-%>
+import <%- nameOnPascal -%>CursorPagination from './components/<%- nameCp -%>CursorPagination'
+<%}-%>
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
+<%if(paginationType === 'limitOffset') {-%>
 import TablePagination from '@material-ui/core/TablePagination';
+<%}-%>
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import Button from '@material-ui/core/Button';
@@ -105,6 +110,8 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   const isGettingFirstDataRef = useRef(true);
   const pageRef = useRef(0);
 <%if(paginationType === 'cursorBased') {-%>
+  const [hasPreviousPage, setHasPreviousPage] = useState(false);
+  const [hasNextPage, setHasNextPage] = useState(false);
   const pageInfo = useRef({startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false});
   const isForwardPagination = useRef(true);
   const isCursorPaginating = useRef(false);
@@ -187,19 +194,17 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           //save response data
           var newCount = response.data.data.count<%- namePlCp -%>;
 
+<%if(paginationType === 'limitOffset') {-%>
           /*
             Check: empty page
           */
           if((newCount === (pageRef.current * rowsPerPage)) && (pageRef.current > 0)) {
             isOnApiRequestRef.current = false;
-<%if(paginationType === 'cursorBased') {-%>
-            isCursorPaginating.current = false;
-            isForwardPagination.current = false;
-<%}-%>
             setIsOnApiRequest(false);
             setPage(pageRef.current - 1);
             return;
           }
+<%}-%>
 
           /*
             API Request: items
@@ -258,9 +263,29 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                 let its = response.data.data.<%- namePlLc -%>;
 <%} else if(paginationType === 'cursorBased') {-%>
                 //save response data
-                let its = response.data.data.<%- namePlLc -%>Connection.edges.map(o => o.node); 
+                let its = response.data.data.<%- namePlLc -%>Connection.edges.map(o => o.node);
+                let pi = response.data.data.<%- namePlLc -%>Connection.pageInfo;
+                
+                /*
+                  Check: empty page
+                */
+                if( its.length === 0 && pi.hasPreviousPage ) 
+                {
+                  //configure
+                  isOnApiRequestRef.current = false;
+                  isCursorPaginating.current = false;
+                  isForwardPagination.current = false;
+                  setIsOnApiRequest(false);
+                  
+                  //reload
+                  setDataTrigger(prevDataTrigger => !prevDataTrigger);
+                  return;
+                }//else
+
                 //update pageInfo
-                pageInfo.current = response.data.data.<%- namePlLc -%>Connection.pageInfo;
+                pageInfo.current = pi;
+                setHasPreviousPage(pageInfo.current.hasPreviousPage);
+                setHasNextPage(pageInfo.current.hasNextPage);
 <%}-%>
                 
                 //ok
@@ -286,6 +311,8 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 <%if(paginationType === 'cursorBased') {-%>
                 //update pageInfo
                 pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+                setHasPreviousPage(pageInfo.current.hasPreviousPage);
+                setHasNextPage(pageInfo.current.hasNextPage);
 <%}-%>
                 setCount(0);
                 setItems([]);
@@ -313,6 +340,8 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 <%if(paginationType === 'cursorBased') {-%>
                 //update pageInfo
                 pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+                setHasPreviousPage(pageInfo.current.hasPreviousPage);
+                setHasNextPage(pageInfo.current.hasNextPage);
 <%}-%>
                 setCount(0);
                 setItems([]);
@@ -338,6 +367,8 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 <%if(paginationType === 'cursorBased') {-%>
           //update pageInfo
           pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+          setHasPreviousPage(pageInfo.current.hasPreviousPage);
+          setHasNextPage(pageInfo.current.hasNextPage);
 <%}-%>
           setCount(0);
           setItems([]);
@@ -366,6 +397,8 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 <%if(paginationType === 'cursorBased') {-%>
           //update pageInfo
           pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+          setHasPreviousPage(pageInfo.current.hasPreviousPage);
+          setHasNextPage(pageInfo.current.hasNextPage);
 <%}-%>
           setCount(0);
           setItems([]);
@@ -636,6 +669,8 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 <%if(paginationType === 'cursorBased') {-%>
     isForwardPagination.current = true;
     pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+    setHasPreviousPage(pageInfo.current.hasPreviousPage);
+    setHasNextPage(pageInfo.current.hasNextPage);
     includeCursor.current = false;
 <%}-%>
     pageRef.current = 0;
@@ -651,6 +686,24 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     pageInfo.current.endCursor = pageInfo.current.startCursor;
     includeCursor.current = true;
     //reload    
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+<%}-%>
+  }
+
+function resetData() {
+<%if(paginationType === 'limitOffset') {-%>
+    //reload
+    resetPageRefs();
+    if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
+    else { isPendingApiRequestRef.current = true; }
+<%} else if(paginationType === 'cursorBased') {-%>
+    //strict contention
+    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+
+    //configure
+    resetPageRefs();
+    isCursorPaginating.current = true;
+    //reload
     setDataTrigger(prevDataTrigger => !prevDataTrigger);
 <%}-%>
   }
@@ -757,23 +810,12 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   /*
    * Pagination handlers
    */
+<%if(paginationType === 'limitOffset') {-%>
   const handleChangePage = (event, newPage) => {
-<%if(paginationType === 'cursorBased') {-%>
-    //strict contention
-    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
-  
-    //configure
-    isCursorPaginating.current = true;
-    includeCursor.current = false;
-    if(newPage > pageRef.current) {
-      isForwardPagination.current = true;
-    } else if (newPage < pageRef.current){
-      isForwardPagination.current = false;
-    }
-<%}-%>
     //set
     setPage(newPage);
   };
+<%}-%>
 
   const handleChangeRowsPerPage = event => {
     if(event.target.value !== rowsPerPage)
@@ -786,6 +828,66 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
       setRowsPerPage(parseInt(event.target.value, 10));
     }
   };
+
+  const handleReloadClick = (event) => {
+    resetData();
+  };
+
+<%if(paginationType === 'cursorBased') {-%>
+  const handleFirstPageButtonClick = (event) => {
+    //strict contention
+    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+
+    //configure
+    isCursorPaginating.current = true;
+    includeCursor.current = false;
+    isForwardPagination.current = true;
+    pageInfo.current.endCursor = null;
+
+    //reload
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  };
+
+  const handleLastPageButtonClick = (event) => {
+    //strict contention
+    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+
+    //configure
+    isCursorPaginating.current = true;
+    includeCursor.current = false;
+    isForwardPagination.current = false;
+    pageInfo.current.startCursor = null;
+
+    //reload
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  };
+
+  const handleNextButtonClick = (event) => {
+    //strict contention
+    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+
+    //configure
+    isCursorPaginating.current = true;
+    includeCursor.current = false;
+    isForwardPagination.current = true;
+
+    //reload
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  };
+
+  const handleBackButtonClick = (event) => {
+    //strict contention
+    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+
+    //configure
+    isCursorPaginating.current = true;
+    includeCursor.current = false;
+    isForwardPagination.current = false;
+
+    //reload
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  };
+<%}-%>
 
   /**
    * Detail-Panel handlers
@@ -951,6 +1053,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                   permissions={permissions}
                   search={search}
                   onSearchEnter={handleSearchEnter}
+                  onReloadClick={handleReloadClick}
                   handleAddClicked={handleCreateClicked}
                   handleBulkImportClicked={handleBulkImportClicked}
                   handleCsvTemplateClicked={handleCsvTemplateClicked}
@@ -1161,6 +1264,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                 {/*
                   Pagination
                 */}
+<%if(paginationType === 'limitOffset') {-%>
                 <TablePagination
                   rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
                   component="div"
@@ -1172,6 +1276,21 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                   onChangePage={handleChangePage}
                   onChangeRowsPerPage={handleChangeRowsPerPage}
                 />
+<%} else if(paginationType === 'cursorBased') {-%>
+                <<%- nameOnPascal _%>CursorPagination
+                  count={count}
+                  rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
+                  rowsPerPage={rowsPerPage}
+                  labelRowsPerPage = { t('modelPanels.rows') }
+                  hasNextPage={hasNextPage}
+                  hasPreviousPage={hasPreviousPage}
+                  handleFirstPageButtonClick={handleFirstPageButtonClick}
+                  handleLastPageButtonClick={handleLastPageButtonClick}
+                  handleNextButtonClick={handleNextButtonClick}
+                  handleBackButtonClick={handleBackButtonClick}
+                  handleChangeRowsPerPage={handleChangeRowsPerPage}
+                />
+<%}-%>
               </Paper>
             </Grid>
           </Grid>

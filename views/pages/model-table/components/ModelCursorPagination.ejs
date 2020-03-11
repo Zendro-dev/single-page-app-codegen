@@ -8,7 +8,6 @@ import Tooltip from '@material-ui/core/Tooltip';
 import Grid from '@material-ui/core/Grid';
 import InputBase from '@material-ui/core/InputBase';
 import InputLabel from '@material-ui/core/InputLabel';
-import TextField from '@material-ui/core/TextField';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
@@ -32,7 +31,12 @@ const useStyles = makeStyles(theme => ({
       paddingLeft: theme.spacing(2),
     },
     margin: {
-      margin: theme.spacing(1),
+      height: 32,
+      paddingTop: theme.spacing(2),
+      paddingBottom: theme.spacing(2),
+    },
+    formControl: {
+      minWidth: 80,
     },
 }));
 
@@ -58,12 +62,12 @@ export default function <%- nameOnPascal -%>CursorPagination(props) {
     <Toolbar className={classes.root}>
       <Grid container>
         <Grid item xs={12}>
-          <Grid container justify='space-between' alignItems='center' wrap='nowrap' spacing={1}>
+          <Grid container justify='space-between' alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
             
             {/* Row Selector */}
             <Grow in={rowsPerPageOptions.length > 0}>
-              <Grid item xs={2}>
-                <Grid container justify='flex-start' alignItems='center' wrap='nowrap' spacing={2}>
+              <Grid item xs={4}>
+                <Grid container justify='flex-start' wrap='nowrap' spacing={2}>
                   <Grid item>
                     <FormControl className={classes.formControl}>
                       <InputLabel>{labelRowsPerPage}</InputLabel>
@@ -77,23 +81,19 @@ export default function <%- nameOnPascal -%>CursorPagination(props) {
                       </Select>
                     </FormControl>
                   </Grid>
+                  <Grid item>
+                    <div>
+                      <InputLabel shrink>{ t('modelPanels.count', "Count") }</InputLabel>
+                      <InputBase
+                        className={classes.margin}
+                        value={count}
+                        disabled ={true}
+                      />
+                    </div>
+                  </Grid>
                 </Grid>
               </Grid>
             </Grow>
-            <Grid item xs={2}>
-              <Grid container justify='flex-start' alignItems='center' wrap='nowrap' spacing={2}>
-                <Grid item>
-                  <FormControl className={classes.formControl}>
-                    <InputLabel>{ t('modelPanels.count', "Count") }</InputLabel>
-                    <InputBase
-                      className={classes.margin}
-                      value={count}
-                      disabled ={true}
-                    />
-                  </FormControl>
-                </Grid>
-              </Grid>
-            </Grid>
 
             {/* Navigation Icons */}
             <Grid item xs={8}>

@@ -258,6 +258,10 @@ opts.forEach((ejbOpts) => {
   fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/`, `${ejbOpts.nameCp}DeleteConfirmationDialog.js`);
   promises.push( funks.renderToFile(fpath, 'model-table/components/ModelDeleteConfirmationDialog', ejbOpts) );
 
+  // template 5_b: ModelCursorPagination
+  fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/`, `${ejbOpts.nameCp}CursorPagination.js`);
+  promises.push( funks.renderToFile(fpath, 'model-table/components/ModelCursorPagination', ejbOpts) );
+
   /**
    * modelTable - modelCreatePanel 
    * 
