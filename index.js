@@ -536,6 +536,10 @@ opts.forEach((ejbOpts) => {
     fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-compact-view/components/`, `${ejbOpts.sortedAssociations[i].relationNameCp}CompactViewToolbar.js`);
     promises.push( funks.renderToFile(fpath, 'model-table/components/model-detail-panel/components/model-associations-page/association-compact-view/components/AssociationCompactViewToolbar', ejbOpts) );
 
+    // template 55_b: AssociationCompactViewCursorPagination
+    fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-compact-view/components/`, `${ejbOpts.sortedAssociations[i].relationNameCp}CompactViewCursorPagination.js`);
+    promises.push( funks.renderToFile(fpath, 'model-table/components/model-detail-panel/components/model-associations-page/association-compact-view/components/AssociationCompactViewCursorPagination', ejbOpts) );
+
   }
 
   //msg

@@ -16,6 +16,7 @@ import ClearInactive from '@material-ui/icons/BackspaceOutlined';
 import ClearActive from '@material-ui/icons/Backspace';
 import Search from '@material-ui/icons/Search';
 import AssociationIcon from '@material-ui/icons/HdrStrongTwoTone';
+import Reload from '@material-ui/icons/Replay';
 
 const useToolbarStyles = makeStyles(theme => ({
   root: {
@@ -40,6 +41,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
       title,
       titleIcon,
       onSearchEnter,
+      onReloadClick,
   } = props;
   
   const [displayedSearch, setDisplayedSearch] = useState('');
@@ -192,7 +194,21 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
                         onChange={event => setDisplayedSearch(event.target.value)}
                       />
                     </Grid>
-                  </Grow>  
+                  </Grow>
+
+                  {/* Reload Icon */}
+                  <Grid item>
+                    <Tooltip title={ t('modelPanels.reloadList', "Reload list") }>
+                      <IconButton
+                        color='inherit'
+                        onClick={(event) => {
+                          onReloadClick();
+                        }}
+                      >
+                        <Reload color="inherit" fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </Grid>
                   
                 </Grid>
               </Grid>
@@ -234,4 +250,5 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
   title: PropTypes.string.isRequired,
   titleIcon: PropTypes.bool,
   onSearchEnter: PropTypes.func.isRequired,
+  onReloadClick: PropTypes.func.isRequired,
 };

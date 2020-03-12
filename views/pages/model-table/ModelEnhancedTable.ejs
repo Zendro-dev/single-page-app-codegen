@@ -438,15 +438,18 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           (Object.keys(changes.models).length>0)) {
 <%if(paginationType === 'limitOffset') {-%>
             //reload
-            setDataTrigger(prevDataTrigger => !prevDataTrigger);
+            if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
+            else { isPendingApiRequestRef.current = true; }
 <%} else if(paginationType === 'cursorBased') {-%>
-            //configure
-            isForwardPagination.current = true;
-            pageInfo.current.endCursor = pageInfo.current.startCursor;
-            includeCursor.current = true;
-            
-            //reload
-            setDataTrigger(prevDataTrigger => !prevDataTrigger);
+            //strict contention
+            if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
+              //configure
+              isForwardPagination.current = true;
+              pageInfo.current.endCursor = pageInfo.current.startCursor;
+              includeCursor.current = true;
+              //reload
+              setDataTrigger(prevDataTrigger => !prevDataTrigger);
+            }
 <%}-%>
       }
       //clear changes state
@@ -486,9 +489,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
       //reload    
       setDataTrigger(prevDataTrigger => !prevDataTrigger);
 <%}-%>
-      setDataTrigger(prevDataTrigger => !prevDataTrigger);
     }
-
     updateSizes();
   }, [isOnApiRequest]);
 
@@ -665,6 +666,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
         }
       });
   }
+
   function resetPageRefs() {
 <%if(paginationType === 'cursorBased') {-%>
     isForwardPagination.current = true;
@@ -690,7 +692,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 <%}-%>
   }
 
-function resetData() {
+function resetReloadData() {
 <%if(paginationType === 'limitOffset') {-%>
     //reload
     resetPageRefs();
@@ -830,7 +832,7 @@ function resetData() {
   };
 
   const handleReloadClick = (event) => {
-    resetData();
+    resetReloadData();
   };
 
 <%if(paginationType === 'cursorBased') {-%>

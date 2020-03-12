@@ -7,7 +7,11 @@ import PropTypes from 'prop-types';
 import api from '../../../../../../../../../../requests/requests.index.js';
 import { makeCancelable } from '../../../../../../../../../../utils'
 import <%- sortedAssociations[aindex].relationNameOnPascal _%>CompactViewToolbar from './components/<%- sortedAssociations[aindex].relationNameCp _%>CompactViewToolbar';
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+import <%- sortedAssociations[aindex].relationNameOnPascal _%>CompactViewCursorPagination from './components/<%- sortedAssociations[aindex].relationNameCp _%>CompactViewCursorPagination';
+<%} else if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
 import TablePagination from '@material-ui/core/TablePagination';
+<%}-%>
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
@@ -89,7 +93,12 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
   const pageRef = useRef(0);
   const lastFetchTime = useRef(null);
 <%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
-  const pageInfo = useRef({endCursor: null, hasNextPage: null});
+  const [hasPreviousPage, setHasPreviousPage] = useState(false);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const pageInfo = useRef({startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false});
+  const isForwardPagination = useRef(true);
+  const isCursorPaginating = useRef(false);
+  const includeCursor = useRef(false);
 <%}-%>
 
   const cancelablePromises = useRef([]);
@@ -139,14 +148,22 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
       rowsPerPage, //paginationLimit
     ));
 <%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+    let variables = {
+      pagination: {
+        cursor: isForwardPagination.current ? pageInfo.current.endCursor : null,
+        before: !isForwardPagination.current ? pageInfo.current.startCursor : null,
+        first: isForwardPagination.current ? rowsPerPage : null,
+        last: !isForwardPagination.current ? rowsPerPage : null,
+        includeCursor: includeCursor.current,
+      }
+    };
     let cancelableApiReq = makeCancelable(api.<%- nameLc _%>.get<%- sortedAssociations[aindex].relationNameCp _%>Connection(
       graphqlServerUrl, 
       item.<%- internalId _%>,
       label,
       sublabel,
       search,
-      pageInfo.current.endCursor, //paginationCursor
-      rowsPerPage, //paginationFirst
+      variables
     ));
 <%}-%>
     cancelablePromises.current.push(cancelableApiReq);
@@ -175,28 +192,53 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
           let newCount = response.data.data.readOne<%- nameCp _%>.countFiltered<%- sortedAssociations[aindex].relationNameCp _%>;
           let its = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].relationNameLc _%>Filter;
+
+          /*
+            Check: empty page
+          */
+         if( (newCount === (pageRef.current * rowsPerPage)) && (pageRef.current > 0) ) 
+         {
+           isOnApiRequestRef.current = false;
+           setIsOnApiRequest(false);
+           setPage(pageRef.current - 1);
+           return;
+         }
 <%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
           //save response data
           let newCount = response.data.data.readOne<%- nameCp _%>.countFiltered<%- sortedAssociations[aindex].relationNameCp _%>;
           let its = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].relationNameLc _%>Connection.edges.map(o => o.node);
-          //update pageInfo
-          pageInfo.current = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].relationNameLc _%>Connection.pageInfo;
-<%}-%>
+          let pi = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].relationNameLc _%>Connection.pageInfo;
+
           /*
             Check: empty page
           */
-          if( (newCount === (pageRef.current * rowsPerPage)) && (pageRef.current > 0) ) 
+          if( its.length === 0 && pi&&pi.hasPreviousPage ) 
           {
+            //configure
             isOnApiRequestRef.current = false;
+            isCursorPaginating.current = false;
+            isForwardPagination.current = false;
             setIsOnApiRequest(false);
-            setPage(pageRef.current - 1);
+            
+            //reload
+            setDataTrigger(prevDataTrigger => !prevDataTrigger);
             return;
-          }
+          }//else
+
+          //update pageInfo
+          pageInfo.current = pi;
+          setHasPreviousPage(pageInfo.current.hasPreviousPage);
+          setHasNextPage(pageInfo.current.hasNextPage);
+<%}-%>
 
           //ok
           setCount((newCount&&typeof newCount==='number') ? newCount : 0);
           setItems((its&&Array.isArray(its)) ? its : []);
           isOnApiRequestRef.current = false;
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+          isCursorPaginating.current = false;
+          includeCursor.current = false;
+<%}-%>
           setIsOnApiRequest(false);
           return;
 <%} else {-%> 
@@ -206,6 +248,10 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
           setCount((it&&typeof it==='object') ? 1 : 0);
           setItems((it&&typeof it==='object') ? [it] : []);
           isOnApiRequestRef.current = false;
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+          isCursorPaginating.current = false;
+          includeCursor.current = false;
+<%}-%>
           setIsOnApiRequest(false);
           return;
 <%}-%>
@@ -221,11 +267,17 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
           console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
 <%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
           //update pageInfo
-          pageInfo.current = {endCursor: null, hasNextPage: null};
+          pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+          setHasPreviousPage(pageInfo.current.hasPreviousPage);
+          setHasNextPage(pageInfo.current.hasNextPage);
 <%}-%>          
           setCount(0);
           setItems([]);
           isOnApiRequestRef.current = false;
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+          isCursorPaginating.current = false;
+          includeCursor.current = false;
+<%}-%>
           setIsOnApiRequest(false);
           return;
         }
@@ -244,11 +296,17 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
           console.log("Error: ", err);
 <%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
           //update pageInfo
-          pageInfo.current = {endCursor: null, hasNextPage: null};
-<%}-%>
+          pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+          setHasPreviousPage(pageInfo.current.hasPreviousPage);
+          setHasNextPage(pageInfo.current.hasNextPage);
+<%}-%> 
           setCount(0);
           setItems([]);
           isOnApiRequestRef.current = false;
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+          isCursorPaginating.current = false;
+          includeCursor.current = false;
+<%}-%>
           setIsOnApiRequest(false);
           return;
         }
@@ -330,9 +388,21 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
                 if(iof !== -1) {
                   //reload
                   updateHeights();
+<%if(paginationType === 'limitOffset') {-%>
+                  //reload
                   if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
                   else { isPendingApiRequestRef.current = true; }
-
+<%} else if(paginationType === 'cursorBased') {-%>
+                  //strict contention
+                  if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
+                    //configure
+                    isForwardPagination.current = true;
+                    pageInfo.current.endCursor = pageInfo.current.startCursor;
+                    includeCursor.current = true;
+                    //reload
+                    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+                  }
+<%}-%>
                   return;
                 }
               }
@@ -346,9 +416,21 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
                 if(iof !== -1) {
                   //reload
                   updateHeights();
+<%if(paginationType === 'limitOffset') {-%>
+                  //reload
                   if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
                   else { isPendingApiRequestRef.current = true; }
-
+<%} else if(paginationType === 'cursorBased') {-%>
+                  //strict contention
+                  if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
+                    //configure
+                    isForwardPagination.current = true;
+                    pageInfo.current.endCursor = pageInfo.current.startCursor;
+                    includeCursor.current = true;
+                    //reload
+                    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+                  }
+<%}-%>
                   return;
                 }
               }
@@ -402,8 +484,21 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
           if(iofA !== -1) {
             //reload
             updateHeights();
+<%if(paginationType === 'limitOffset') {-%>
+            //reload
             if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
             else { isPendingApiRequestRef.current = true; }
+<%} else if(paginationType === 'cursorBased') {-%>
+            //strict contention
+            if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
+              //configure
+              isForwardPagination.current = true;
+              pageInfo.current.endCursor = pageInfo.current.startCursor;
+              includeCursor.current = true;
+              //reload
+              setDataTrigger(prevDataTrigger => !prevDataTrigger);
+            }
+<%}-%>
 
             return;
           }
@@ -431,12 +526,21 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
   }, [page]);
 
   useEffect(() => {
-    updateHeights();
-        
     if (!isOnApiRequest && isPendingApiRequestRef.current) {
       isPendingApiRequestRef.current = false;
+<%if(paginationType === 'limitOffset') {-%>
+      //reload
       setDataTrigger(prevDataTrigger => !prevDataTrigger);
+<%} else if(paginationType === 'cursorBased') {-%>
+      //configure
+      isForwardPagination.current = true;
+      pageInfo.current.endCursor = pageInfo.current.startCursor;
+      includeCursor.current = true;
+      //reload
+      setDataTrigger(prevDataTrigger => !prevDataTrigger);
+<%}-%>
     }
+    updateHeights();
   }, [isOnApiRequest]);
 
   useEffect(() => {
@@ -464,28 +568,70 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
     }
   }
 
+  function resetPageRefs() {
+<%if(paginationType === 'cursorBased') {-%>
+    isForwardPagination.current = true;
+    pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+    setHasPreviousPage(pageInfo.current.hasPreviousPage);
+    setHasNextPage(pageInfo.current.hasNextPage);
+    includeCursor.current = false;
+<%}-%>
+    pageRef.current = 0;
+  }
+
+function resetReloadData() {
+<%if(paginationType === 'limitOffset') {-%>
+    //reload
+    resetPageRefs();
+    if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
+    else { isPendingApiRequestRef.current = true; }
+<%} else if(paginationType === 'cursorBased') {-%>
+    //strict contention
+    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+
+    //configure
+    resetPageRefs();
+    isCursorPaginating.current = true;
+    //reload
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+<%}-%>
+  }
+
+  /**
+   * Handlers
+   */
+
+  /*
+   * Search handlers
+   */
   const handleSearchEnter = text => {
     updateHeights();
 
     if(text !== search)
     {
-      pageRef.current = 0;
+      resetPageRefs();
       if(page !== 0) {
         isGettingFirstDataRef.current = true; //avoids to get data on [page] effect
         setPage(0);
       }
       setSearch(text);
     }
-  }
+  };
 
+  /*
+   * Pagination handlers
+   */
+<%if(paginationType === 'limitOffset') {-%>
   const handleChangePage = (event, newPage) => {
+    //set
     setPage(newPage);
   };
+<%}-%>
 
   const handleChangeRowsPerPage = event => {
     if(event.target.value !== rowsPerPage)
     {
-      pageRef.current = 0;
+      resetPageRefs();
       if(page !== 0) {
         isGettingFirstDataRef.current = true; //avoids to get data on [page] effect
         setPage(0);
@@ -493,6 +639,70 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
       setRowsPerPage(parseInt(event.target.value, 10));
     }
   };
+
+  const handleReloadClick = (event) => {
+    resetReloadData();
+  };
+
+  <%if(paginationType === 'cursorBased') {-%>
+  const handleFirstPageButtonClick = (event) => {
+    //strict contention
+    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+
+    //configure
+    isCursorPaginating.current = true;
+    includeCursor.current = false;
+    isForwardPagination.current = true;
+    pageInfo.current.endCursor = null;
+
+    //reload
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  };
+
+  const handleLastPageButtonClick = (event) => {
+    //strict contention
+    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+
+    //configure
+    isCursorPaginating.current = true;
+    includeCursor.current = false;
+    isForwardPagination.current = false;
+    pageInfo.current.startCursor = null;
+
+    //reload
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  };
+
+  const handleNextButtonClick = (event) => {
+    //strict contention
+    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+
+    //configure
+    isCursorPaginating.current = true;
+    includeCursor.current = false;
+    isForwardPagination.current = true;
+
+    //reload
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  };
+
+  const handleBackButtonClick = (event) => {
+    //strict contention
+    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+
+    //configure
+    isCursorPaginating.current = true;
+    includeCursor.current = false;
+    isForwardPagination.current = false;
+
+    //reload
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  };
+<%}-%>
+
+  /**
+   * Items handlers
+   */
 
   const handleRowClicked = (event, item) => {
     handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row(event, item);
@@ -513,6 +723,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
                 title={'<%- (sortedAssociations[aindex].type === 'to_one') ? sortedAssociations[aindex].targetModelCp : sortedAssociations[aindex].targetModelPlCp %>'}
                 search={search}
                 onSearchEnter={handleSearchEnter}
+                onReloadClick={handleReloadClick}
               />
 
               {/* Case: no data */}
@@ -621,6 +832,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
               )}
 
               {/* Pagination */}
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
               {(<%- (sortedAssociations[aindex].type==='to_many') ? true : false _%>) && (
                 <TablePagination
                   rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
@@ -634,6 +846,24 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
                   onChangeRowsPerPage={handleChangeRowsPerPage}
                 />
               )}
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+              {(<%- (sortedAssociations[aindex].type==='to_many') ? true : false _%>) && (
+                
+                <<%- sortedAssociations[aindex].relationNameOnPascal _%>CompactViewCursorPagination
+                  count={count}
+                  rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
+                  rowsPerPage={rowsPerPage}
+                  labelRowsPerPage = { t('modelPanels.rows') }
+                  hasNextPage={hasNextPage}
+                  hasPreviousPage={hasPreviousPage}
+                  handleFirstPageButtonClick={handleFirstPageButtonClick}
+                  handleLastPageButtonClick={handleLastPageButtonClick}
+                  handleNextButtonClick={handleNextButtonClick}
+                  handleBackButtonClick={handleBackButtonClick}
+                  handleChangeRowsPerPage={handleChangeRowsPerPage}
+                />
+              )}
+<%}-%>
             </Card>
           )}
         </Grid>
