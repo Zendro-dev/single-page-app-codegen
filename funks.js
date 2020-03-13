@@ -347,6 +347,7 @@ exports.fillOptionsForViews = function(fileData){
     hasToManyAssociations: associations.hasToManyAssociations,
     internalId: getInternalId(fileData),
     internalIdType: getInternalIdType(fileData),
+    isDefaultId: (fileData.internalId) ? false : true,
     paginationType: getPaginationType(fileData),
     storageType: fileData.storageType,
   }
@@ -451,6 +452,8 @@ exports.addExtraAttributesAssociations = function(opts) {
             association.internalId = opts[i].internalId;
             //set internalIdType
             association.internalIdType = opts[i].internalIdType;
+            //set isDefaultId
+            association.isDefaultId = opts[i].isDefaultId;
             //set paginationType
             association.paginationType = opts[i].paginationType;
           }

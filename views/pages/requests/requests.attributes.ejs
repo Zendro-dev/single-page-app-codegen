@@ -4,7 +4,7 @@ export default function getAttributes(filterName) {
     case '<%- models[i].nameLc _%>':
       return {
 <%if(models[i].isDefaultId){-%>
-        "<%- internalId _%>": "<%- internalIdType _%>",
+        "<%- models[i].internalId _%>": "<%- models[i].internalIdType _%>",
 <%}-%>
 <%for( let j=0; j<models[i].attributesArr.length; j++ ){-%>
         "<%- models[i].attributesArr[j][0] _%>": "<%- models[i].attributesArr[j][1] _%>",
@@ -14,8 +14,8 @@ export default function getAttributes(filterName) {
 <%for( let i=0; i<adminModels.length; i++ ){-%>
     case '<%- adminModels[i].nameLc _%>':
       return {
-<%if(models[i].isDefaultId){-%>
-        "<%- internalId _%>": "<%- internalIdType _%>",
+<%if(adminModels[i].isDefaultId){-%>
+        "<%- adminModels[i].internalId _%>": "<%- adminModels[i].internalIdType _%>",
 <%}-%>
 <%for( let j=0; j<adminModels[i].attributesArr.length; j++ ){-%>
         "<%- adminModels[i].attributesArr[j][0] _%>": "<%- adminModels[i].attributesArr[j][1] _%>",
