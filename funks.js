@@ -181,6 +181,23 @@ exports.checkJsonDataFile = function(jsonModel){
     if(typeof jsonModel.storageType !== 'string') {
       result.pass = false;
       result.errors.push(`ERROR: 'storageType' field must be a string.`);
+    } else {
+      //check for valid storageType
+      switch(jsonModel.storageType.toLowerCase()) {
+        case 'sql':
+        case 'webservice':
+        case 'cenz_server':
+        case 'distributed-data-model':
+        case 'cenzontle-web-service-adapter':
+          //ok
+          break;
+        
+        default:
+          //not ok
+          result.pass = false;
+          result.errors.push(`ERROR: The attribute 'storageType' has an invalid value. One of the following types is expected: [sql, webservice, cenz_server, distributed-data-model, cenzontle-web-service-adapter]. But '${jsonModel.storageType}' was obtained.`);
+          break;
+      }
     }
   }
   //'attributes'
@@ -331,6 +348,7 @@ exports.fillOptionsForViews = function(fileData){
     internalId: getInternalId(fileData),
     internalIdType: getInternalIdType(fileData),
     paginationType: getPaginationType(fileData),
+    storageType: fileData.storageType,
   }
 
   return opts;
