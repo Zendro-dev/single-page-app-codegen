@@ -1222,42 +1222,42 @@ function resetReloadData() {
 <%}-%>
 
                                 {/* Item fields */}
-<%if(internalId === 'id'){-%>
-                                {/* id */}
+<%if(isDefaultId){-%>
+                                {/* <%- internalId _%> */}
                                 <TableCell
-                                  key='id'
+                                  key='<%- internalId _%>'
                                   align='left'
                                   padding="checkbox"
                                 >
-                                  <Tooltip title={ 'id: ' + item.id }>
-                                    <Typography variant='body2' color='textSecondary' display='block' noWrap={true}>{item.id}</Typography>
+                                  <Tooltip title={ '<%- internalId _%>: ' + item.<%- internalId _%> }>
+                                    <Typography variant='body2' color='textSecondary' display='block' noWrap={true}>{item.<%- internalId _%>}</Typography>
                                   </Tooltip>
                                 </TableCell>
 <%}-%>
 
-  <%for( let i=0; i<attributesArr.length; i++ ){
+<%for( let i=0; i<attributesArr.length; i++ ){
     let a = attributesArr[i][0];
     let label = a[0].toUpperCase() + a.slice(1);
     let type = attributesArr[i][1];
-  -%>
+-%>
                                 {/* <%- label %> */}
                                 <TableCell
                                   key='<%- a -%>'
                                   align='<%- (type==='Int' || type === 'Float') ? 'right' : 'left' _%>'
                                   padding="default"
                                 >
-  <%if(type==='Date'){-%>
+<%if(type==='Date'){-%>
                                   {String((item.<%- a _%>!==null)?moment(item.<%- a _%>, "YYYY-MM-DD").format("YYYY-MM-DD"):'')}
-  <%}else if(type==='Time'){-%>
+<%}else if(type==='Time'){-%>
                                   {String((item.<%- a _%>!==null)?moment(item.<%- a _%>, "HH:mm:ss.SSSZ").format("HH:mm:ss.SSSZ"):'')}
-  <%}else if(type==='DateTime'){-%>
+<%}else if(type==='DateTime'){-%>
                                   {String((item.<%- a _%>!==null)?moment(item.<%- a _%>, "YYYY-MM-DDTHH:mm:ss.SSSZ").format("YYYY-MM-DDTHH:mm:ss.SSSZ"):'')}
-  <%}else{-%>
+<%}else{-%>
                                   {String((item.<%- a _%>!==null)?item.<%- a _%>:'')}
-  <%}-%>
+<%}-%>
                                 </TableCell>
 
-  <%}-%>
+<%}-%>
                               </TableRow>,
                             ]);
                           })

@@ -390,9 +390,9 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
     let keys = Object.keys(values.current);
     let variables = {};
 
-<%if(internalId === 'id'){-%>
-    //id
-    variables.id = item.id;
+<%if(isDefaultId){-%>
+    //<%- internalId _%>
+    variables.<%- internalId _%> = item.<%- internalId _%>;
 <%}-%>
 
     //attributes

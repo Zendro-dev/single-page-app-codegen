@@ -226,9 +226,9 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
     //variables
     let variables = {};
 
-<%if(internalId === 'id'){-%>
-    //id
-    variables.id = item.id;
+<%if(isDefaultId){-%>
+    //<%- internalId _%>
+    variables.<%- internalId _%> = item.<%- internalId _%>;
 <%}-%>
 
     /*

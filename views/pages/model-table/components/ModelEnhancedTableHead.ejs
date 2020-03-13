@@ -53,21 +53,21 @@ export default function <%- nameOnPascal -%>EnhancedTableHead(props) {
           Headers 
         */}
 
-<%if(internalId === 'id'){-%>
-        {/* Id */}
+<%if(isDefaultId){-%>
+        {/* <%- internalId _%> */}
         <TableCell
-          key='id'
+          key='<%- internalId _%>'
           align='left'
           padding="checkbox"
-          sortDirection={orderBy === 'id' ? order : false}
+          sortDirection={orderBy === '<%- internalId _%>' ? order : false}
         >
           <TableSortLabel
-            active={orderBy === 'id'}
+            active={orderBy === '<%- internalId _%>'}
             direction={order}
-            onClick={(event) => { onRequestSort(event, 'id') }}
+            onClick={(event) => { onRequestSort(event, '<%- internalId _%>') }}
           >
             <Typography color="inherit" variant="caption">
-              id
+              <%- internalId _%>
             </Typography>
           </TableSortLabel>
         </TableCell>

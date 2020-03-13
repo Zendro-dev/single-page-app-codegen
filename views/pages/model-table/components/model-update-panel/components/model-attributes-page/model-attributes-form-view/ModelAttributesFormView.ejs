@@ -119,11 +119,11 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
               Fields 
             */}
 
-<%if(internalId === 'id'){-%>
-            {/* Id */}
-            <CardContent key='id' className={classes.cardContent}>
-              <Typography variant="h6" display="inline">Id:</Typography>
-              <Typography variant="h6" display="inline" color="textSecondary">&nbsp;{item.id}</Typography>
+<%if(isDefaultId){-%>
+            {/* <%- internalId _%> */}
+            <CardContent key='<%- internalId _%>' className={classes.cardContent}>
+              <Typography variant="h6" display="inline"><%- internalId _%>:</Typography>
+              <Typography variant="h6" display="inline" color="textSecondary">&nbsp;{item.<%- internalId _%>}</Typography>
             </CardContent>
 <%}-%>            
 <%for( let i=0; i<attributesArr.length; i++ ){
