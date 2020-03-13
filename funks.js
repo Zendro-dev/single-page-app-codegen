@@ -294,10 +294,10 @@ exports.checkJsonDataFile = function(jsonModel){
         result.errors.push(`ERROR: 'paginationType' value should be either 'limitOffset' or 'cursorBased', but it is: '${jsonModel.paginationType}'`);
       
       } else {
-        //check: cursorBased is the only option for non sql models
-        if( (jsonModel.storageType)&&(String(jsonModel.storageType).toLowerCase() !== 'sql')&&(jsonModel.paginationType !== 'cursorBased') ){ 
-          //warning
-          console.log("@@ Warning: on model ", colors.blue(jsonModel.model), ", 'paginationType' attribute will be set to the appropriate value: 'cursorBased'.");
+        //check: cursorBased is the only option for non-sql models
+        if( (jsonModel.storageType)&&(String(jsonModel.storageType).toLowerCase() !== 'sql')&&(jsonModel.paginationType !== 'cursorBased') ){
+          result.pass = false;
+          result.errors.push(`ERROR: 'limitOffset' pagination is not supported on non-sql storage types`);
         }
       }
     }
@@ -636,9 +636,9 @@ getInternalIdType = function(jsonModel){
 getPaginationType = function(jsonModel){
   //sql
   if(String(jsonModel.storageType).toLowerCase() === 'sql') {
-    return (jsonModel.paginationType) ? jsonModel.paginationType : 'limitOffset';
+    return (jsonModel.paginationType) ? jsonModel.paginationType : 'cursorBased';
   } else {
-    //ddm
+    //non-sql
     return 'cursorBased';
   }
 }
