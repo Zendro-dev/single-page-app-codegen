@@ -462,6 +462,7 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
                 - Edit
                 - Delete
               */}
+<%if(storageType !== 'distributed-data-model') {-%>
               {
                 /* acl check */
                 (permissions&&permissions.user&&Array.isArray(permissions.user)
@@ -482,6 +483,8 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
 
                 )
               }
+<%}-%>
+<%if(storageType !== 'distributed-data-model') {-%>
               {
                 /* acl check */
                 (permissions&&permissions.user&&Array.isArray(permissions.user)
@@ -502,6 +505,7 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
                     
                 )
               }
+<%}-%>
             </Toolbar>
           </AppBar>
           <Toolbar className={classes.appBar}/>

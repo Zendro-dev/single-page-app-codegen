@@ -24,6 +24,7 @@ export default function <%- nameOnPascal -%>EnhancedTableHead(props) {
         <TableCell padding="checkbox" />
 
         {/* Actions */}
+<%if(storageType !== 'distributed-data-model') {-%>
         {
           /* acl check */
           (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
@@ -46,6 +47,7 @@ export default function <%- nameOnPascal -%>EnhancedTableHead(props) {
             </TableCell>
           )
         }
+<%}-%>
 
         {/* 
           Headers 
