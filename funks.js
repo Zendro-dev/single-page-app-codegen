@@ -430,30 +430,46 @@ exports.addExtraAttributesAssociations = function(opts) {
   //for each model
   opts.forEach( (opt) => {
     //for each association
-    opt.sortedAssociations.forEach( (association) => {
-
+    opt.sortedAssociations.forEach( (association, aindex, aarray) => {
       //find target model
       let found = false;
       for(let i=0; !found && i<opts.length; i++) {
         if(association.targetModel === opts[i].name) {
           found = true;
-
           /**
-           * Add extra attributes: 
+           * Nullify not-supported associations:
+           *  - 'cenzontle-web-service-adapter'
+           * 
            */
-
-          //set internalId
-          association.internalId = opts[i].internalId;
-          //set internalIdType
-          association.internalIdType = opts[i].internalIdType;
-          
-          //set paginationType
-          association.paginationType = opts[i].paginationType;
+          if(opts[i].storageType === 'cenzontle-web-service-adapter') {
+            aarray.splice(aindex, 1, null);
+          } else {
+            /**
+             * Add extra attributes: 
+             */
+            //set internalId
+            association.internalId = opts[i].internalId;
+            //set internalIdType
+            association.internalIdType = opts[i].internalIdType;
+            //set paginationType
+            association.paginationType = opts[i].paginationType;
+          }
         }
       }
     })
+    /**
+     * Remove all nullified asoociations
+     */
+    //for each association
+    let ai = 0;
+    while(ai<opt.sortedAssociations.length) {
+      if(opt.sortedAssociations[ai]===null) {
+        opt.sortedAssociations.splice(ai, 1);
+      } else {
+        ai++;
+      }
+    }
   });
-
 }
 
 /**
