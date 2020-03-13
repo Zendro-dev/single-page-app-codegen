@@ -316,7 +316,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 <%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
                   let variables = {
                     pagination: {
-                      cursor: isForwardPagination.current ? pageInfo.current.endCursor : null,
+                      after: isForwardPagination.current ? pageInfo.current.endCursor : null,
                       before: !isForwardPagination.current ? pageInfo.current.startCursor : null,
                       first: isForwardPagination.current ? rowsPerPage : null,
                       last: !isForwardPagination.current ? rowsPerPage : null,
@@ -630,7 +630,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 <%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
             let variables = {
               pagination: {
-                cursor: isForwardPagination.current ? pageInfo.current.endCursor : null,
+                after: isForwardPagination.current ? pageInfo.current.endCursor : null,
                 before: !isForwardPagination.current ? pageInfo.current.startCursor : null,
                 first: isForwardPagination.current ? rowsPerPage : null,
                 last: !isForwardPagination.current ? rowsPerPage : null,
@@ -909,7 +909,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 <%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
           let variables = {
             pagination: {
-              cursor: isForwardPaginationB.current ? pageInfoB.current.endCursor : null,
+              after: isForwardPaginationB.current ? pageInfoB.current.endCursor : null,
               before: !isForwardPaginationB.current ? pageInfoB.current.startCursor : null,
               first: isForwardPaginationB.current ? rowsPerPageB : null,
               last: !isForwardPaginationB.current ? rowsPerPageB : null,

@@ -150,7 +150,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
 <%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
     let variables = {
       pagination: {
-        cursor: isForwardPagination.current ? pageInfo.current.endCursor : null,
+        after: isForwardPagination.current ? pageInfo.current.endCursor : null,
         before: !isForwardPagination.current ? pageInfo.current.startCursor : null,
         first: isForwardPagination.current ? rowsPerPage : null,
         last: !isForwardPagination.current ? rowsPerPage : null,
