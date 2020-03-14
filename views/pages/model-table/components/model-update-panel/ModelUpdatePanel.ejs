@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useSnackbar } from 'notistack';
 import PropTypes from 'prop-types';
-<%if(typeAttributes.hasOwnProperty('Date') || typeAttributes.hasOwnProperty('Time') || typeAttributes.hasOwnProperty('DateTime')) {-%>
-  import moment from "moment";
+<%if(typeAttributes.hasOwnProperty('Time') || typeAttributes.hasOwnProperty('DateTime')) {-%>
+import moment from "moment";
 <%}-%>
 import { useTranslation } from 'react-i18next';
 import <%- nameOnPascal _%>AttributesPage from './components/<%- nameLc _%>-attributes-page/<%- nameCp _%>AttributesPage'
