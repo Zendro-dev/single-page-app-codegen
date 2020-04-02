@@ -186,12 +186,12 @@ exports.checkJsonDataFile = function(jsonModel){
       switch(jsonModel.storageType.toLowerCase()) {
         case 'sql':
         case 'webservice':
-        case 'cenz_server':
+        case 'cenz-server':
         case 'distributed-data-model':
-        case 'cenzontle-web-service-adapter':
+        //case 'cenzontle-web-service-adapter':
           //ok
           break;
-        
+
         default:
           //not ok
           result.pass = false;
@@ -228,7 +228,7 @@ exports.checkJsonDataFile = function(jsonModel){
             case 'DateTime':
               //ok
               break;
-            
+
             default:
               //not ok
               result.pass = false;
@@ -254,13 +254,13 @@ exports.checkJsonDataFile = function(jsonModel){
     if(typeof jsonModel.internalId !== 'string') {
       result.pass = false;
       result.errors.push(`ERROR: 'internalId' attribute should have a value of type 'string', but it has one of type: '${typeof jsonModel.internalId}'`);
-    
+
     } else {
       //check: the respective attribute has actually been defined in the "attributes" object
       if(!jsonModel.attributes.hasOwnProperty(jsonModel.internalId)) {
         result.pass = false;
         result.errors.push(`ERROR: 'internalId' value has not been defined as an attribute. '${jsonModel.internalId}' is not an attribute.`);
-      
+
       } else {
         //check: the respective attribute is of the allowed types String, Int, or Float
         switch(jsonModel.attributes[jsonModel.internalId]) {
@@ -269,7 +269,7 @@ exports.checkJsonDataFile = function(jsonModel){
           case 'Float':
             //ok
             break;
-          
+
           default:
             //not ok
             result.pass = false;
@@ -286,13 +286,13 @@ exports.checkJsonDataFile = function(jsonModel){
     if(typeof jsonModel.paginationType !== 'string') {
       result.pass = false;
       result.errors.push(`ERROR: 'paginationType' attribute should have a value of type 'string', but it has one of type: '${typeof jsonModel.paginationType}'`);
-    
+
     } else {
       //check: value should be 'limitOffset' or 'cursorBased';
       if(jsonModel.paginationType !== 'limitOffset' && jsonModel.paginationType !== 'cursorBased') {
         result.pass = false;
         result.errors.push(`ERROR: 'paginationType' value should be either 'limitOffset' or 'cursorBased', but it is: '${jsonModel.paginationType}'`);
-      
+
       } else {
         //check: cursorBased is the only option for non-sql models
         if( (jsonModel.storageType)&&(String(jsonModel.storageType).toLowerCase() !== 'sql')&&(jsonModel.paginationType !== 'cursorBased') ){
@@ -325,7 +325,7 @@ exports.checkJsonDataFile = function(jsonModel){
 exports.fillOptionsForViews = function(fileData){
   //get associations options
   let associations = parseAssociationsFromFile(fileData.associations);
-  
+
   //set options used by EJS templates
   let opts = {
     baseUrl: fileData.baseUrl,
@@ -400,13 +400,13 @@ exports.addPeerRelationName = function(opts) {
               if(opts[i].sortedAssociations[j].sqlType === 'belongsToMany') {
                 if(opts[i].sortedAssociations[j].keysIn === association.keysIn) {
                   foundB = true;
-  
+
                   //set peer relation names
                   association.peerRelationName = opts[i].sortedAssociations[j].relationName;
                   association.peerRelationNameCp = opts[i].sortedAssociations[j].relationNameCp;
                   association.peerRelationNameLc = opts[i].sortedAssociations[j].relationNameLc;
                   association.peerRelationNameOnPascal = opts[i].sortedAssociations[j].relationNameOnPascal;
-  
+
                   opts[i].sortedAssociations[j].peerRelationName = association.relationName;
                   opts[i].sortedAssociations[j].peerRelationNameCp = association.relationNameCp;
                   opts[i].sortedAssociations[j].peerRelationNameLc = association.relationNameLc;
@@ -440,13 +440,13 @@ exports.addExtraAttributesAssociations = function(opts) {
           /**
            * Nullify not-supported associations:
            *  - 'cenzontle-web-service-adapter'
-           * 
+           *
            */
-          if(opts[i].storageType === 'cenzontle-web-service-adapter') {
-            aarray.splice(aindex, 1, null);
-          } else {
+          // if(opts[i].storageType === 'cenzontle-web-service-adapter') {
+          //   aarray.splice(aindex, 1, null);
+          // } else {
             /**
-             * Add extra attributes: 
+             * Add extra attributes:
              */
             //set internalId
             association.internalId = opts[i].internalId;
@@ -456,7 +456,7 @@ exports.addExtraAttributesAssociations = function(opts) {
             association.isDefaultId = opts[i].isDefaultId;
             //set paginationType
             association.paginationType = opts[i].paginationType;
-          }
+        //  }
         }
       }
     })
@@ -464,14 +464,14 @@ exports.addExtraAttributesAssociations = function(opts) {
      * Remove all nullified asoociations
      */
     //for each association
-    let ai = 0;
-    while(ai<opt.sortedAssociations.length) {
-      if(opt.sortedAssociations[ai]===null) {
-        opt.sortedAssociations.splice(ai, 1);
-      } else {
-        ai++;
-      }
-    }
+    // let ai = 0;
+    // while(ai<opt.sortedAssociations.length) {
+    //   if(opt.sortedAssociations[ai]===null) {
+    //     opt.sortedAssociations.splice(ai, 1);
+    //   } else {
+    //     ai++;
+    //   }
+    // }
   });
 }
 
@@ -542,7 +542,7 @@ parseAssociationsFromFile = function(associations){
           assoc.hasOwnForeingKeys = true;
           assoc.ownForeignKeysArr.push(association.targetKey);
           baa.foreignKey = association.targetKey;
-          baa.targetKey = association.targetKey;     
+          baa.targetKey = association.targetKey;
           break;
 
         case "hasOne":
@@ -555,10 +555,10 @@ parseAssociationsFromFile = function(associations){
           break;
 
         case "hasMany":
-          baa.foreignKey = association.targetKey; 
-          baa.targetKey = association.targetKey;    
+          baa.foreignKey = association.targetKey;
+          baa.targetKey = association.targetKey;
           break;
-      
+
         default:
           //unknown sqlType
           console.log("Association sqlType "+ sqlType + " not supported.");
