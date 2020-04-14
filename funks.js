@@ -209,7 +209,6 @@ exports.checkJsonDataFile = function(jsonModel){
       switch(jsonModel.storageType.toLowerCase()) {
         //models
         case 'sql':
-<<<<<<< HEAD
         case 'distributed-data-model':
         case 'webservice':
         case 'cenz-server':
@@ -221,15 +220,6 @@ exports.checkJsonDataFile = function(jsonModel){
         //ok
         break;
         
-=======
-        case 'webservice':
-        case 'cenz-server':
-        case 'distributed-data-model':
-        //case 'cenzontle-web-service-adapter':
-          //ok
-          break;
-
->>>>>>> e1f81eb77d9902c38b96e78a22042fd947d1d8b7
         default:
           //not ok
           result.pass = false;
@@ -477,7 +467,6 @@ exports.addExtraAttributesAssociations = function(opts) {
           found = true;
           
           /**
-<<<<<<< HEAD
            * Add extra attributes: 
            */
           //set internalId
@@ -492,42 +481,6 @@ exports.addExtraAttributesAssociations = function(opts) {
         }
       }
     })
-=======
-           * Nullify not-supported associations:
-           *  - 'cenzontle-web-service-adapter'
-           *
-           */
-          // if(opts[i].storageType === 'cenzontle-web-service-adapter') {
-          //   aarray.splice(aindex, 1, null);
-          // } else {
-            /**
-             * Add extra attributes:
-             */
-            //set internalId
-            association.internalId = opts[i].internalId;
-            //set internalIdType
-            association.internalIdType = opts[i].internalIdType;
-            //set isDefaultId
-            association.isDefaultId = opts[i].isDefaultId;
-            //set paginationType
-            association.paginationType = opts[i].paginationType;
-        //  }
-        }
-      }
-    })
-    /**
-     * Remove all nullified asoociations
-     */
-    //for each association
-    // let ai = 0;
-    // while(ai<opt.sortedAssociations.length) {
-    //   if(opt.sortedAssociations[ai]===null) {
-    //     opt.sortedAssociations.splice(ai, 1);
-    //   } else {
-    //     ai++;
-    //   }
-    // }
->>>>>>> e1f81eb77d9902c38b96e78a22042fd947d1d8b7
   });
 }
 
