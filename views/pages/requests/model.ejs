@@ -228,7 +228,6 @@ export default {
   },
 <%}-%>
 
-<%if(storageType !== 'distributed-data-model') {-%>
   /**
    * createItem
    * 
@@ -327,9 +326,7 @@ export default {
 
     return requestGraphql({ url, query, variables });
   },
-<%}-%>
 
-<%if(storageType !== 'distributed-data-model') {-%>
   /**
    * updateItem
    * 
@@ -432,9 +429,7 @@ export default {
 
     return requestGraphql({ url, query, variables });
   },
-<%}-%>
 
-<%if(storageType !== 'distributed-data-model') {-%>
   /**
    * deleteItem
    * 
@@ -462,7 +457,6 @@ export default {
 
     return requestGraphql({ url, query, variables });
   },
-<%}-%>
 
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
 <%if(sortedAssociations[i].paginationType === 'limitOffset') {-%>

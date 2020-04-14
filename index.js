@@ -100,6 +100,7 @@ console.log(colors.white('\n@ Processing JSON files in: \n', colors.dim(path.res
 let opts = [];
 let promises = []
 let totalFiles = 0;
+let totalExcludedFiles = 0;
 let totalWrongFiles = 0;
 
 //process input JSON files
@@ -108,7 +109,10 @@ fs.readdirSync(jsonFiles).forEach( (json_file) => {
   
   //parse
   let fileData = funks.parseFile(jsonFiles + '/'+json_file );
-  if(fileData === null) return;
+  if(fileData === null) {
+    totalExcludedFiles++;
+    return;
+  }
   
   //msg
   if(verbose) console.log("@@ Processing model in: ", colors.blue(json_file));
@@ -141,7 +145,11 @@ funks.addExtraAttributesAssociations(opts);
 //msg
 console.log("\n@@ Total JSON files processed: ", colors.blue(totalFiles));
 //msg
+console.log("@@ Total JSON files excluded: ", (totalExcludedFiles>0) ? colors.yellow(totalExcludedFiles) : colors.green(totalExcludedFiles));
+//msg
 console.log("@@ Total JSON files processed with errors: ", (totalWrongFiles>0) ? colors.red(totalWrongFiles) : colors.green(totalWrongFiles));
+
+
 if(opts.length === 0) {
   //msg
   console.log("@ No JSON files was processed successfully... ", colors.green('done'));
@@ -159,16 +167,6 @@ let modelAtts = {};
 //msg
 console.log(colors.white('\n@ Starting code generation in: \n', colors.dim(path.resolve(directory))), "\n");
 opts.forEach((ejbOpts) => {
-
-  /**
-   * Check: non-supported storage types:
-   * - 'cenzontle-web-service-adapter'
-   */
-  if(ejbOpts.storageType === 'cenzontle-web-service-adapter'){
-    //msg
-    console.log(colors.white('@@ Generating code for model: '), colors.blue(ejbOpts.name), '... ', colors.yellow('omited'), ' cenzontle-web-service-adapter (nothing to do on spa)');
-    return;
-  }
 
   // set table path
   var tablePath = 'src/components/main-panel/table-panel/models-tables';

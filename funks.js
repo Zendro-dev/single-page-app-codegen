@@ -136,6 +136,29 @@ exports.parseFile = function(jFile){
   let words = null;
   try {
     words=JSON.parse(data);
+    
+    /**
+     * Check storageType: exclude adapter types.
+     */
+    if(words&&words.storageType&&typeof words.storageType === 'string')
+    {
+      switch(words.storageType.toLowerCase()){
+        //adapters
+        case 'sql-adapter':
+        case 'ddm-adapter':
+        case 'cenzontle-webservice-adapter':
+        case 'generic-adapter':
+        //msg
+        console.log(colors.white('@@ Adapter: '), colors.blue(words.model+'.'+words.adapterName), ` [${words.storageType}]... `, colors.yellow('excluded'), '');
+        words = null;
+        break;
+
+        default:
+          break;
+      }
+    } else {
+      throw new Error("Invalid attributes found.");
+    }
   } catch (e) {
     //msg
     console.log(colors.red('\n! Error: '), 'Parsing JSON model definition file: ', colors.dim(jFile));
@@ -184,18 +207,23 @@ exports.checkJsonDataFile = function(jsonModel){
     } else {
       //check for valid storageType
       switch(jsonModel.storageType.toLowerCase()) {
+        //models
         case 'sql':
-        case 'webservice':
-        case 'cenz_server':
         case 'distributed-data-model':
-        case 'cenzontle-web-service-adapter':
-          //ok
-          break;
+        case 'webservice':
+        case 'cenz-server':
+        //adapters
+        case 'sql-adapter':
+        case 'ddm-adapter':
+        case 'cenzontle-webservice-adapter':
+        case 'generic-adapter':
+        //ok
+        break;
         
         default:
           //not ok
           result.pass = false;
-          result.errors.push(`ERROR: The attribute 'storageType' has an invalid value. One of the following types is expected: [sql, webservice, cenz_server, distributed-data-model, cenzontle-web-service-adapter]. But '${jsonModel.storageType}' was obtained.`);
+          result.errors.push(`ERROR: The attribute 'storageType' has an invalid value. One of the following types is expected: [sql, webservice, cenz-server, distributed-data-model, cenzontle-webservice-adapter]. But '${jsonModel.storageType}' was obtained.`);
           break;
       }
     }
@@ -437,41 +465,22 @@ exports.addExtraAttributesAssociations = function(opts) {
       for(let i=0; !found && i<opts.length; i++) {
         if(association.targetModel === opts[i].name) {
           found = true;
+          
           /**
-           * Nullify not-supported associations:
-           *  - 'cenzontle-web-service-adapter'
-           * 
+           * Add extra attributes: 
            */
-          if(opts[i].storageType === 'cenzontle-web-service-adapter') {
-            aarray.splice(aindex, 1, null);
-          } else {
-            /**
-             * Add extra attributes: 
-             */
-            //set internalId
-            association.internalId = opts[i].internalId;
-            //set internalIdType
-            association.internalIdType = opts[i].internalIdType;
-            //set isDefaultId
-            association.isDefaultId = opts[i].isDefaultId;
-            //set paginationType
-            association.paginationType = opts[i].paginationType;
-          }
+          //set internalId
+          association.internalId = opts[i].internalId;
+          //set internalIdType
+          association.internalIdType = opts[i].internalIdType;
+          //set isDefaultId
+          association.isDefaultId = opts[i].isDefaultId;
+          //set paginationType
+          association.paginationType = opts[i].paginationType;
+          
         }
       }
     })
-    /**
-     * Remove all nullified asoociations
-     */
-    //for each association
-    let ai = 0;
-    while(ai<opt.sortedAssociations.length) {
-      if(opt.sortedAssociations[ai]===null) {
-        opt.sortedAssociations.splice(ai, 1);
-      } else {
-        ai++;
-      }
-    }
   });
 }
 

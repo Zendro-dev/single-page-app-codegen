@@ -1176,7 +1176,6 @@ function resetReloadData() {
                                   - Edit
                                   - Delete
                                 */}
-<%if(storageType !== 'distributed-data-model') {-%>
                                 {
                                   /* acl check */
                                   (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
@@ -1197,8 +1196,7 @@ function resetReloadData() {
                                     </TableCell>
                                   )
                                 }
-<%}-%>
-<%if(storageType !== 'distributed-data-model') {-%>
+
                                 {
                                   /* acl check */
                                   (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
@@ -1219,7 +1217,6 @@ function resetReloadData() {
                                     </TableCell>
                                   )
                                 }
-<%}-%>
 
                                 {/* Item fields */}
 <%if(isDefaultId){-%>

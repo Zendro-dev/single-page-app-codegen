@@ -184,7 +184,6 @@ export default function <%- nameOnPascal -%>EnhancedTableToolbar(props) {
                         <Grid item xs={12}>
                           <Grid container justify="center">
                             {/* Add */}
-<%if(storageType !== 'distributed-data-model') {-%>
                             {
                               /* acl check */
                               (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
@@ -202,9 +201,7 @@ export default function <%- nameOnPascal -%>EnhancedTableToolbar(props) {
                                 </Grid>
                               )
                             }
-<%}-%>
                             {/* Upload */}
-<%if(storageType !== 'distributed-data-model') {-%>
                             {
                               /* acl check */
                               (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
@@ -222,7 +219,6 @@ export default function <%- nameOnPascal -%>EnhancedTableToolbar(props) {
                                 </Grid>
                               )
                             }
-<%}-%>
                             {/* Download.menu */}
                             {
                               /* acl check */
