@@ -30,10 +30,10 @@ if(!program.jsonFiles){
 }
 
 //ops: output/input directories
-let jsonFiles = program.jsonFiles;
+let json_dir = program.jsonFiles;
 let directory = program.outputDirectory || __dirname;
 //msg
-console.log('Input directory: ', colors.dim(path.resolve(jsonFiles)));
+console.log('Input directory: ', colors.dim(path.resolve(json_dir)));
 console.log('Output directory: ', colors.dim(path.resolve(directory)));
 
 //op: verbose
@@ -95,23 +95,49 @@ if(allRequiredDirsExists || allRequiredDirsCreated) {
  * Parse, validate JSON model definitions & set options for EJS templates.
  */
 //msg
-console.log(colors.white('\n@ Processing JSON files in: \n', colors.dim(path.resolve(jsonFiles)), "\n"));
+console.log(colors.white('\n@ Processing JSON files in: \n', colors.dim(path.resolve(json_dir)), "\n"));
 
 let opts = [];
 let promises = []
-let totalFiles = 0;
-let totalExcludedFiles = 0;
-let totalWrongFiles = 0;
+let totalFiles = 0;         //files readed from input dir
+let totalExcludedFiles = 0; //files excluded: either by JSON error parsing or by semantic errors.
+let totalWrongFiles = 0;    //files with semantic errors.
 
 //process input JSON files
-fs.readdirSync(jsonFiles).forEach( (json_file) => {
+
+//read dir
+let json_files = null;
+try {
+  json_files = fs.readdirSync(json_dir);
+} catch(e) {
+  //msg
+  console.log(colors.red('Error:'),'could not read directory:', colors.blue(json_dir));
+  console.log(e);
+  exit(1);
+}
+
+//for each file
+for(let i=0; i<json_files.length; i++) {
+  let json_file = json_files[i];
+  let fileData = null;
   totalFiles++;
   
-  //parse
-  let fileData = funks.parseFile(jsonFiles + '/'+json_file );
-  if(fileData === null) {
+  //Parse JSON file
+  try {
+    fileData = funks.parseFile(json_dir + '/'+json_file );
+    //check
+    if(fileData === null) {
+      totalExcludedFiles++;
+      //msg
+      console.log('@@@ File:', colors.blue(json_file), colors.yellow('excluded'));
+      continue;
+    }
+  } catch(e) {
     totalExcludedFiles++;
-    return;
+    //msg
+    console.log(e);
+    console.log('@@@ File:', colors.blue(json_file), colors.yellow('excluded'));
+    continue;
   }
   
   //msg
@@ -122,22 +148,40 @@ fs.readdirSync(jsonFiles).forEach( (json_file) => {
   
   //if no-valid
   if(!check_json_model.pass) {
-    //err
-    console.log("@@@ Error on model: ", colors.blue(json_file));
-
     totalWrongFiles++;
+    totalExcludedFiles++;
+
+    //errors
+    console.log("@@@ Error on model: ", colors.blue(json_file));
     check_json_model.errors.forEach( (error) =>{
-      //err
       console.log("@@@", colors.red(error));
     });
-    return;
+    //msg
+    console.log('@@@ File:', colors.blue(json_file), colors.yellow('excluded'));
+    continue;
 
-  } else { //valid json
+  } else { //first phase of semantic validations: ok
+    
+    //get ops
+    let opt = null;
+    try {
+      opt = funks.fillOptionsForViews(fileData);
+    }catch(e) {
+      totalWrongFiles++;
+      totalExcludedFiles++;
+      //err
+      console.log(colors.red("@@@ Error on model:"), colors.blue(fileData.model));
+      console.log(e);
+      //msg
+      console.log('@@@ File:', colors.blue(json_file), colors.yellow('excluded'));
+      continue;
+    }
+
     //msg
     if(verbose) console.log("@@ ", colors.green('done'));
-    opts.push(funks.fillOptionsForViews(fileData));
+    opts.push(opt);
   }
-});
+}
 //add extra attributes
 funks.addPeerRelationName(opts);
 funks.addExtraAttributesAssociations(opts);
@@ -147,7 +191,7 @@ console.log("\n@@ Total JSON files processed: ", colors.blue(totalFiles));
 //msg
 console.log("@@ Total JSON files excluded: ", (totalExcludedFiles>0) ? colors.yellow(totalExcludedFiles) : colors.green(totalExcludedFiles));
 //msg
-console.log("@@ Total JSON files processed with errors: ", (totalWrongFiles>0) ? colors.red(totalWrongFiles) : colors.green(totalWrongFiles));
+console.log("@@ Total models with errors: ", (totalWrongFiles>0) ? colors.red(totalWrongFiles) : colors.green(totalWrongFiles));
 
 
 if(opts.length === 0) {

@@ -132,13 +132,25 @@ exports.toPascalCase = function(word){
  * @return {object}       json file converted to js object
  */
 exports.parseFile = function(jFile){
-  let data=fs.readFileSync(jFile, 'utf8');
+  let data = null;
   let words = null;
+
+  //read
+  try {
+    data=fs.readFileSync(jFile, 'utf8');
+  } catch (e) {
+    //msg
+    console.log(colors.red('! Error:'), 'Reading JSON model definition file:', colors.dim(jFile));
+    console.log(colors.red('! Error name: ' + e.name +':'), e.message);
+    throw new Error(e);
+  }
+
+  //parse
   try {
     words=JSON.parse(data);
     
     /**
-     * Check storageType: exclude adapter types.
+     * Check storageType: exclude adapters.
      */
     if(words&&words.storageType&&typeof words.storageType === 'string')
     {
@@ -157,13 +169,14 @@ exports.parseFile = function(jFile){
           break;
       }
     } else {
-      throw new Error("Invalid attributes found.");
+      //msg
+      console.log(colors.red('Error: '), "Invalid attributes found: @storageType attribute is not valid. In file:", colors.dim(jFile));
+      throw new Error("Invalid attributes found");
     }
   } catch (e) {
     //msg
-    console.log(colors.red('\n! Error: '), 'Parsing JSON model definition file: ', colors.dim(jFile));
-    console.log(colors.red('!@ Error name: ', e.name, ': '), e.message);
-    words = null;
+    console.log(colors.red('Error: '), 'Parsing JSON model definition file: ', colors.dim(jFile));
+    throw e;
   }
   return words;
 }
@@ -212,6 +225,7 @@ exports.checkJsonDataFile = function(jsonModel){
         case 'distributed-data-model':
         case 'webservice':
         case 'cenz-server':
+        case 'generic':
         //adapters
         case 'sql-adapter':
         case 'ddm-adapter':
@@ -223,7 +237,7 @@ exports.checkJsonDataFile = function(jsonModel){
         default:
           //not ok
           result.pass = false;
-          result.errors.push(`ERROR: The attribute 'storageType' has an invalid value. One of the following types is expected: [sql, webservice, cenz-server, distributed-data-model, cenzontle-webservice-adapter]. But '${jsonModel.storageType}' was obtained.`);
+          result.errors.push(`ERROR: The attribute 'storageType' has an invalid value. One of the following types is expected: [sql, webservice, cenz-server, distributed-data-model, generic]. But '${jsonModel.storageType}' was obtained.`);
           break;
       }
     }
@@ -351,8 +365,9 @@ exports.checkJsonDataFile = function(jsonModel){
  * @return {object}          Object with all extra data model info that will be needed to create files with templates.
  */
 exports.fillOptionsForViews = function(fileData){
+
   //get associations options
-  let associations = parseAssociationsFromFile(fileData.associations);
+  let associations = parseAssociationsFromFile(fileData);
 
   //set options used by EJS templates
   let opts = {
@@ -504,10 +519,14 @@ attributesArrayFromFile = function(attributes){
 /**
  * parseAssociationsFromFile - Parse associations description for a given model
  *
- * @param  {object} associations Object where each key is an association and its value is the info related to that association.
- * @return {object}              Associations classified as 'belongsTos' and 'hasManys'. Each association will contain all extra information required by the tamplatees views.
+ * @param  {object} fileData    Object parsed from a model JSON file definition.
+ * @return {object}             Associations classified as 'belongsTos' and 'hasManys'. Each association will contain all extra information required by the tamplatees views.
  */
-parseAssociationsFromFile = function(associations){
+parseAssociationsFromFile = function(fileData){
+  //check
+  checkAssociations(fileData); // !throws on error
+ 
+  let associations = fileData.associations;
   let assoc = {
     "belongsTos" : [],
     "hasManys" : [],
@@ -522,7 +541,7 @@ parseAssociationsFromFile = function(associations){
 
     Object.entries(associations).forEach( ([name, association]) =>{
       let type = association.type;
-      let sqlType = getSqlType(association);
+      let sqlType = getSqlType(association, name);
 
       //base association attributes
       let baa = {
@@ -569,21 +588,22 @@ parseAssociationsFromFile = function(associations){
           break;
 
         default:
-          //unknown sqlType
-          console.log("Association sqlType "+ sqlType + " not supported.");
-          break;
+          //unknown type
+          console.log(colors.red('@@@@Error on association:'), colors.blue(name), '- Association has insconsistent key attributes.');
+          throw new Error("Inconsistent attributes found");
       }
 
       if(type === 'to_one'){
         assoc.belongsTos.push(baa);
         assoc.sortedAssociations.push(baa);
-      }else if(type==="to_many"){
+      }else if(type==="to_many" || type==="to_many_through_sql_cross_table"){
         assoc.hasManys.push(baa);
         assoc.sortedAssociations.push(baa);
         assoc.hasToManyAssociations = true;
       }else{
         //unknown type
-        console.log("Association type "+ association.type + " not supported.");
+        console.log(colors.red('Error: '), "Association type:", colors.dim(association.type), colors.yellow("not supported"));
+        throw new Error("Invalid attributes found");
       }
 
     });
@@ -656,20 +676,98 @@ getPaginationType = function(jsonModel){
 }
 
 /**
+ * checkAssociations - Validate association type.
+ *
+ * @param  {object} fileData Object parsed from a model JSON file definition.
+ */
+checkAssociations = function(fileData){
+  let associations = fileData.associations;
+
+  //check: undefined
+  if(associations === undefined) return;
+
+  //check: typeof
+  if(typeof associations !== 'object') {
+    //error: invalid type
+    console.log(colors.red('@@@@Error:'), "Invalid type of model's attribute:", colors.dim('associations'), "Expected an object but got:", colors.dim(typeof associations));
+    throw new Error("Invalid attributes found");
+  }
+  
+  Object.entries(associations).forEach( ([name, association]) =>{
+
+    /**
+     * Attribute: association.type
+     */
+
+    //check: typeof
+    if(typeof association.type !== 'string') {
+      //error: invalid type
+      console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Invalid association attribute:", colors.dim('type'), "Expected an string but got:", colors.dim(typeof association.type));
+      throw new Error("Invalid attributes found");
+    }
+    
+    //check: value
+    switch(association.type.toLowerCase()) {
+      //adapters
+      case 'to_one':
+      case 'to_many':
+      case 'to_many_through_sql_cross_table':
+      case 'generic_to_one':
+      case 'generic_to_many':
+        //ok
+        break;
+
+      default:
+        //error: unknown type
+        console.log(colors.red('@@@@Error on association:'), colors.blue(name), '- Association type:', colors.dim(association.type), colors.yellow("not supported"), 'One of the following types is expected: [to_one, to_many, to_many_through_sql_cross_table, generic_to_one, generic_to_many].');
+        throw new Error("Invalid attributes found");
+    }
+
+    //case: to_many_through_sql_cross_table
+    if(association.type === 'to_many_through_sql_cross_table'){
+
+      //check: only sql
+      if(fileData.storageType.toLowerCase() !== 'sql' || association.targetStorageType !== 'sql') {
+        //error
+        console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "only allowed for relational database (sql) types with well defined cross-table");
+        throw new Error("Inconsistent attributes found");
+      }
+
+      //check: required attribute
+      if(association.sourceKey === undefined || typeof association.sourceKey !== 'string') {
+        //error
+        console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("sourceKey"), "and should be a string.");
+        throw new Error("Required attributes not found");
+      }
+
+      //check: required attribute
+      if(association.keysIn === undefined || typeof association.keysIn !== 'string') {
+        //error
+        console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("keysIn"), "and should be a string.");
+        throw new Error("Required attributes not found");
+      }
+    }
+  });
+}
+
+/**
  * getSqlType - Calculates the type of relation of the given association, in terms of Sequelize concepts.
  *
  * @param  {object} association Association attributes (already calculated).
+ * @param  {string} name Association's name.
  */
-getSqlType = function(association){
+getSqlType = function(association, name){
   if(association.type === 'to_one' && association.keyIn !== association.target){
     return 'belongsTo';
   }else if(association.type === 'to_one' && association.keyIn === association.target){
     return 'hasOne';
-  }else if(association.type === 'to_many' && association.hasOwnProperty('sourceKey')){
+  }else if(association.type === 'to_many_through_sql_cross_table'){
     return 'belongsToMany';
   }else if(association.type === 'to_many' && association.keyIn === association.target){
     return 'hasMany';
   }else {
-    return undefined;
+    //error
+    console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "has inconsistent key attributes.");
+    throw new Error("Required attributes not found");
   }
 }
