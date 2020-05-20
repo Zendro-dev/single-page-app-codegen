@@ -188,7 +188,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
             console.log("Errors: ", response.data.errors);
           }
           //save response data
-<%_if( sortedAssociations[aindex].type === 'to_many' ){-%>
+<%_if( sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' ){-%>
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
           let newCount = response.data.data.readOne<%- nameCp _%>.countFiltered<%- sortedAssociations[aindex].relationNameCp _%>;
           let its = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].relationNameLc _%>Filter;
@@ -833,7 +833,7 @@ function resetReloadData() {
 
               {/* Pagination */}
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
-              {(<%- (sortedAssociations[aindex].type==='to_many') ? true : false _%>) && (
+              {(<%- (sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table') ? true : false _%>) && (
                 <TablePagination
                   rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
                   component="div"
@@ -847,7 +847,7 @@ function resetReloadData() {
                 />
               )}
 <%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
-              {(<%- (sortedAssociations[aindex].type==='to_many') ? true : false _%>) && (
+              {(<%- (sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table') ? true : false _%>) && (
                 
                 <<%- sortedAssociations[aindex].relationNameOnPascal _%>CompactViewCursorPagination
                   count={count}

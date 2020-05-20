@@ -245,7 +245,7 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
     
     //add: to_many's
 <%for( let i=0; i<sortedAssociations.length; i++ ){
-  if(sortedAssociations[i].type === "to_many") {
+  if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table') {
 -%>
     variables.add<%- sortedAssociations[i].relationNameCp %> = <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current;
 <%}}-%>

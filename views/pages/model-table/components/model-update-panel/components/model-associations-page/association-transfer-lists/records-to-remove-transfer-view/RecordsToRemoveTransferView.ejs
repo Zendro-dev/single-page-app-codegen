@@ -1860,7 +1860,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 
               {/* Pagination */}
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
-              {(<%- (sortedAssociations[aindex].type==='to_many') ? true : false _%>) && (
+              {(<%- (sortedAssociations[aindex].type==='to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table') ? true : false _%>) && (
                 <TablePagination
                   rowsPerPageOptions={(countB <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
                   component="div"
@@ -1874,7 +1874,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                 />
               )}
 <%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
-              {(<%- (sortedAssociations[aindex].type==='to_many') ? true : false _%>) && (
+              {(<%- (sortedAssociations[aindex].type==='to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table') ? true : false _%>) && (
                 
                 <<%- sortedAssociations[aindex].relationNameOnPascal _%>ToRemoveTransferViewCursorPagination
                   count={countB}

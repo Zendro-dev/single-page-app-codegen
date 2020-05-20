@@ -268,7 +268,7 @@ export default {
    * Render each toAdd attributes for to_many associations. 
    */
 
-  if(sortedAssociations[i].type === "to_many") {
+  if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table') {
 -%>
           $add<%- sortedAssociations[i].relationNameCp _%>: [ID],
 <%}}-%>
@@ -301,7 +301,7 @@ export default {
    * Render each toAdd attributes for to_many associations. 
    */
 
-  if(sortedAssociations[i].type === "to_many") {
+  if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table') {
 -%>
             add<%- sortedAssociations[i].relationNameCp _%>: $add<%- sortedAssociations[i].relationNameCp _%>,
 <%}}-%>
@@ -366,7 +366,7 @@ export default {
    * Render each toAdd attributes for to_many associations. 
    */
 
-  if(sortedAssociations[i].type === "to_many") {
+  if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table') {
 -%>
           $add<%- sortedAssociations[i].relationNameCp _%>: [ID],
           $remove<%- sortedAssociations[i].relationNameCp _%>: [ID],
@@ -403,7 +403,7 @@ export default {
    * Render each toAdd attributes for to_many associations. 
    */
 
-  if(sortedAssociations[i].type === "to_many") {
+  if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table') {
 -%>
             add<%- sortedAssociations[i].relationNameCp _%>: $add<%- sortedAssociations[i].relationNameCp _%>,
             remove<%- sortedAssociations[i].relationNameCp _%>: $remove<%- sortedAssociations[i].relationNameCp _%>,
@@ -477,7 +477,7 @@ export default {
    * @param {String} ops Object with adittional query options.
    */
   get<%- sortedAssociations[i].relationNameCp %>Filter(url, itemId, label, sublabel, searchText, paginationOffset, paginationLimit, ops) {
-<%_if( sortedAssociations[i].type === 'to_many' ){-%>
+<%_if( sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' ){-%>
 
     //search
     var s = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops); 
@@ -545,7 +545,7 @@ export default {
    * @param {String} ops Object with adittional query options.
    */
   get<%- sortedAssociations[i].relationNameCp %>Connection(url, itemId, label, sublabel, searchText, variables, ops) {
-<%_if( sortedAssociations[i].type === 'to_many' ){-%>
+<%_if( sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' ){-%>
     //search
     var s = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops); 
 
@@ -618,7 +618,7 @@ export default {
    * @param {Number} itemId Model item internalId.
    */
   getAssociated<%- sortedAssociations[i].relationNameCp %>(url, itemId) {
-<%_if( sortedAssociations[i].type === 'to_many' ){-%>
+<%_if( sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' ){-%>
     var query = 
       `{ readOne<%- nameCp %>( <%- internalId _%>: <%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%> ){ 
         <%- sortedAssociations[i].relationNameLc _%>Filter{ <%- sortedAssociations[i].internalId -%> } } }`;
@@ -647,7 +647,7 @@ export default {
    * @param {Number} itemId Model item internalId.
    */
   getAssociated<%- sortedAssociations[i].relationNameCp %>Connection(url, itemId) {
-<%_if( sortedAssociations[i].type === 'to_many' ){-%>
+<%_if( sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' ){-%>
     var query = 
       `{ readOne<%- nameCp %>( <%- internalId _%>: <%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%> ){ 
         <%- sortedAssociations[i].relationNameLc _%>Connection{ edges { node { <%- sortedAssociations[i].internalId -%> } } } } }`;
