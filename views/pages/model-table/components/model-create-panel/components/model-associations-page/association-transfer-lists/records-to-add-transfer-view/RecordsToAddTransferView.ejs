@@ -1306,7 +1306,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   };
 
   const handleAddItem = (event, item) => {
-<%if(sortedAssociations[aindex].type === 'to_one'){-%>
+<%if(sortedAssociations[aindex].type === 'to_one' || sortedAssociations[aindex].type === 'generic_to_one'){-%>
     if(lidsToAdd.current.indexOf(item.<%- sortedAssociations[aindex].internalId _%>) === -1) {
       lidsToAdd.current = [];
       lidsToAdd.current.push(item.<%- sortedAssociations[aindex].internalId _%>);
@@ -1333,7 +1333,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   };
 
   const handleRemoveItem = (event, item) => {
-<%if(sortedAssociations[aindex].type === 'to_one'){-%>
+<%if(sortedAssociations[aindex].type === 'to_one' || sortedAssociations[aindex].type === 'generic_to_one'){-%>
     if(lidsToAdd.current.length > 0) {
       lidsToAdd.current = [];
       setThereAreItemsToAdd(false);
@@ -1598,10 +1598,10 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 
             {/* Toolbar */}
             <<%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferViewToolbar 
-              title={'<%- (sortedAssociations[aindex].type === 'to_one') ? sortedAssociations[aindex].targetModelCp : sortedAssociations[aindex].targetModelPlCp %>'}
+              title={'<%- (sortedAssociations[aindex].type === 'to_one' || sortedAssociations[aindex].type === 'generic_to_one') ? sortedAssociations[aindex].targetModelCp : sortedAssociations[aindex].targetModelPlCp %>'}
               titleIcon={2}
               search={searchB}
-<%if(sortedAssociations[aindex].type === 'to_one') {-%>
+<%if(sortedAssociations[aindex].type === 'to_one' || sortedAssociations[aindex].type === 'generic_to_one') {-%>
               searchDisabled={true}
 <%}-%>
               onSearchEnter={handleSearchEnterB}
@@ -1751,7 +1751,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 
             {/* Pagination */}
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
-            {(<%- (sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table') ? true : false _%>) && (
+            {(<%- (sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many') ? true : false _%>) && (
               <TablePagination
                 rowsPerPageOptions={(countB <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
                 component="div"
@@ -1765,7 +1765,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
               />
             )}
 <%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
-            {(<%- (sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table') ? true : false _%>) && (
+            {(<%- (sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many') ? true : false _%>) && (
               
               <<%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferViewCursorPagination
                 count={countB}

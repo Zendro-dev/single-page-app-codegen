@@ -41,7 +41,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                 <Typography variant="body2" display='inline'>
                   { t('modelPanels.toAddHelperA', "Please select ") }
                 </Typography>
-<%if(sortedAssociations[aindex].type === 'to_one') {-%>
+<%if(sortedAssociations[aindex].type === 'to_one' || sortedAssociations[aindex].type === 'generic_to_one') {-%>
                 <Typography variant="body2" display='inline'>
                   <b>{  t('modelPanels.theRecord', "the record ") }</b>
                 </Typography>

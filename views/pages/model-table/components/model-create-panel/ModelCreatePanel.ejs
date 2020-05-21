@@ -199,7 +199,7 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
   }
 
 <%for( let i=0; i<sortedAssociations.length; i++ ){
-  if(sortedAssociations[i].type === "to_one") {
+  if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one') {
 -%>
   function setAdd<%- sortedAssociations[i].relationNameCp %>(variables) {
     if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.length>0) {
@@ -238,14 +238,14 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
 
     //add: to_one's
 <%for( let i=0; i<sortedAssociations.length; i++ ){
-  if(sortedAssociations[i].type === "to_one") {
+  if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one') {
 -%>
     setAdd<%- sortedAssociations[i].relationNameCp %>(variables);
 <%}}-%>
     
     //add: to_many's
 <%for( let i=0; i<sortedAssociations.length; i++ ){
-  if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table') {
+  if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many') {
 -%>
     variables.add<%- sortedAssociations[i].relationNameCp %> = <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current;
 <%}}-%>

@@ -8,9 +8,6 @@ funks = require(path.resolve(__dirname, 'funks.js'));
 program = require('commander');
 const colors = require('colors/safe');
 
-modelsCreated = require(path.resolve(__dirname, 'modelsNames.js'));
-
-
 /*
  * Parse & set command-line-arguments
  */
@@ -244,7 +241,7 @@ opts.forEach((ejbOpts) => {
     let assocLc = ejbOpts.sortedAssociations[i].relationNameLc;
     modelTableDirs.push(path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/${assocLc}-transfer-lists/${assocLc}-to-add-transfer-view/components`));
     modelTableDirs.push(path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${assocLc}-transfer-lists/${assocLc}-to-add-transfer-view/components`));
-    if(ejbOpts.sortedAssociations[i].type === 'to_many' || ejbOpts.sortedAssociations[i].type === 'to_many_through_sql_cross_table') {
+    if(ejbOpts.sortedAssociations[i].type === 'to_many' || ejbOpts.sortedAssociations[i].type === 'to_many_through_sql_cross_table' || ejbOpts.sortedAssociations[i].type === 'generic_to_many') {
       modelTableDirs.push(path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${assocLc}-transfer-lists/${assocLc}-to-remove-transfer-view/components`));
     }
     modelTableDirs.push(path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-associations-page/${assocLc}-compact-view/components`));
@@ -497,7 +494,7 @@ opts.forEach((ejbOpts) => {
     fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-transfer-lists/${ejbOpts.sortedAssociations[i].relationNameLc}-to-add-transfer-view/components/`, `${ejbOpts.sortedAssociations[i].relationNameCp}ToAddTransferViewCursorPagination.js`);
     promises.push( funks.renderToFile(fpath, 'model-table/components/model-update-panel/components/model-associations-page/association-transfer-lists/records-to-add-transfer-view/components/RecordsToAddTransferViewCursorPagination', ejbOpts) );
 
-    if(ejbOpts.sortedAssociations[i].type === 'to_many' || ejbOpts.sortedAssociations[i].type === 'to_many_through_sql_cross_table') {
+    if(ejbOpts.sortedAssociations[i].type === 'to_many' || ejbOpts.sortedAssociations[i].type === 'to_many_through_sql_cross_table' || ejbOpts.sortedAssociations[i].type === 'generic_to_many') {
       // template 40: RecordsToRemoveTransferView
       fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-transfer-lists/${ejbOpts.sortedAssociations[i].relationNameLc}-to-remove-transfer-view/`, `${ejbOpts.sortedAssociations[i].relationNameCp}ToRemoveTransferView.js`);
       promises.push( funks.renderToFile(fpath, 'model-table/components/model-update-panel/components/model-associations-page/association-transfer-lists/records-to-remove-transfer-view/RecordsToRemoveTransferView', ejbOpts) );

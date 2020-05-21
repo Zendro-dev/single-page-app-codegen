@@ -108,7 +108,7 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
   const changedAssociations = useRef({});
   
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
-<%if(sortedAssociations[i].type === 'to_one'){-%>
+<%if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one'){-%>
   const <%- sortedAssociations[i].relationNameLc _%>IdsToAdd = useRef((item.<%- sortedAssociations[i].relationName _%> && item.<%- sortedAssociations[i].relationName _%>.<%- sortedAssociations[i].internalId _%>) ? [item.<%- sortedAssociations[i].relationName _%>.<%- sortedAssociations[i].internalId _%>] : []);
   const [<%- sortedAssociations[i].relationNameLc _%>IdsToAddState, set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState] = useState((item.<%- sortedAssociations[i].relationName _%> && item.<%- sortedAssociations[i].relationName _%>.<%- sortedAssociations[i].internalId _%>) ? [item.<%- sortedAssociations[i].relationName _%>.<%- sortedAssociations[i].internalId _%>] : []);
 <%} else {-%>
@@ -314,7 +314,7 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
   }
 
 <%for( let i=0; i<sortedAssociations.length; i++ ){
-  if(sortedAssociations[i].type === "to_one") {
+  if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one') {
     /*
      * Following lines apply only to to_one associations
      */
@@ -414,14 +414,14 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
 
     //add & remove: to_one's
 <%for( let i=0; i<sortedAssociations.length; i++ ){
-  if(sortedAssociations[i].type === "to_one") {
+  if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one') {
 -%>
     setAddRemove<%- sortedAssociations[i].relationNameCp %>(variables);
 <%}}-%>
 
     //add & remove: to_many's
 <%for( let i=0; i<sortedAssociations.length; i++ ){
-  if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table') {
+  if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many') {
 -%>
     //data to notify changes
     changedAssociations.current.<%- sortedAssociations[i].relationName %> = {added: false, removed: false};
@@ -691,7 +691,7 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
   const handleTransferToRemove = (associationKey, itemId) => {
     switch(associationKey) {
 <%for( let i=0; i<sortedAssociations.length; i++ ){
-  if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table') {
+  if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many') {
 -%>
       case '<%- sortedAssociations[i].relationName _%>':
         <%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current.push(itemId);
@@ -706,7 +706,7 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
 
   const handleUntransferFromRemove =(associationKey, itemId) => {
 <%for( let i=0; i<sortedAssociations.length; i++ ){
-  if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table') {
+  if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many') {
 -%>
     if(associationKey === '<%- sortedAssociations[i].relationName _%>') {
       for(let i=0; i<<%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current.length; ++i)
@@ -888,7 +888,7 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
               item={item}
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
               <%- sortedAssociations[i].relationNameLc _%>IdsToAdd={<%- sortedAssociations[i].relationNameLc _%>IdsToAddState}
-<%if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table'){-%>
+<%if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many'){-%>
               <%- sortedAssociations[i].relationNameLc _%>IdsToRemove={<%- sortedAssociations[i].relationNameLc _%>IdsToRemoveState}
 <%}}-%>
               handleTransferToAdd={handleTransferToAdd}

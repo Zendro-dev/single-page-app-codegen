@@ -82,7 +82,7 @@ export default {
             <%- attributesArr[i][0] -%>,
 <%}-%>
 <%_for( let i=0; i<sortedAssociations.length; i++ ){
-  if(sortedAssociations[i].type === 'to_one') {-%>
+  if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one') {-%>
             <%- sortedAssociations[i].relationName -%>{ <%- sortedAssociations[i].internalId -%> },
 <%}}-%>`
 
@@ -171,7 +171,7 @@ export default {
               <%- attributesArr[i][0] -%>,
 <%}-%>
 <%_for( let i=0; i<sortedAssociations.length; i++ ){
-      if(sortedAssociations[i].type === 'to_one') {-%>
+      if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one') {-%>
               <%- sortedAssociations[i].relationName -%>{ <%- sortedAssociations[i].internalId -%> },
 <%}}-%>
             }
@@ -259,7 +259,7 @@ export default {
    * Render each toAdd attributes for to_one associations. 
    */
 
-  if(sortedAssociations[i].type === "to_one") {
+  if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one') {
 -%>
           $add<%- sortedAssociations[i].relationNameCp _%>: ID,
 <%}}-%>
@@ -268,7 +268,7 @@ export default {
    * Render each toAdd attributes for to_many associations. 
    */
 
-  if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table') {
+  if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many') {
 -%>
           $add<%- sortedAssociations[i].relationNameCp _%>: [ID],
 <%}}-%>
@@ -292,7 +292,7 @@ export default {
    * Render each toAdd attributes for to_one associations. 
    */
 
-  if(sortedAssociations[i].type === "to_one") {
+  if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one') {
 -%>
             add<%- sortedAssociations[i].relationNameCp _%>: $add<%- sortedAssociations[i].relationNameCp _%>,
 <%}}-%>
@@ -301,7 +301,7 @@ export default {
    * Render each toAdd attributes for to_many associations. 
    */
 
-  if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table') {
+  if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many') {
 -%>
             add<%- sortedAssociations[i].relationNameCp _%>: $add<%- sortedAssociations[i].relationNameCp _%>,
 <%}}-%>
@@ -313,7 +313,7 @@ export default {
             <%- attributesArr[i][0] _%>,
 <%}-%>
 <%_for( let i=0; i<sortedAssociations.length; i++ ){
-  if(sortedAssociations[i].type === 'to_one') {-%>
+  if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one') {-%>
             <%- sortedAssociations[i].relationName -%>{ <%- sortedAssociations[i].internalId -%> },
 <%}}-%>
           } }`;
@@ -356,7 +356,7 @@ export default {
    * Render each toAdd & toRemove attributes for to_one associations. 
    */
 
-  if(sortedAssociations[i].type === "to_one") {
+  if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one') {
 -%>
           $add<%- sortedAssociations[i].relationNameCp _%>: ID,
           $remove<%- sortedAssociations[i].relationNameCp _%>: ID,
@@ -366,7 +366,7 @@ export default {
    * Render each toAdd attributes for to_many associations. 
    */
 
-  if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table') {
+  if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many') {
 -%>
           $add<%- sortedAssociations[i].relationNameCp _%>: [ID],
           $remove<%- sortedAssociations[i].relationNameCp _%>: [ID],
@@ -393,7 +393,7 @@ export default {
    * Render each toAdd & toRemove attributes for to_one associations. 
    */
 
-  if(sortedAssociations[i].type === "to_one") {
+  if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one') {
 -%>
             add<%- sortedAssociations[i].relationNameCp _%>: $add<%- sortedAssociations[i].relationNameCp _%>,
             remove<%- sortedAssociations[i].relationNameCp _%>: $remove<%- sortedAssociations[i].relationNameCp _%>,
@@ -403,7 +403,7 @@ export default {
    * Render each toAdd attributes for to_many associations. 
    */
 
-  if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table') {
+  if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many') {
 -%>
             add<%- sortedAssociations[i].relationNameCp _%>: $add<%- sortedAssociations[i].relationNameCp _%>,
             remove<%- sortedAssociations[i].relationNameCp _%>: $remove<%- sortedAssociations[i].relationNameCp _%>,
@@ -416,7 +416,7 @@ export default {
             <%- attributesArr[i][0] _%>,
 <%}-%>
 <%_for( let i=0; i<sortedAssociations.length; i++ ){
-  if(sortedAssociations[i].type === 'to_one') {-%>
+  if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one') {-%>
             <%- sortedAssociations[i].relationName -%>{ <%- sortedAssociations[i].internalId -%> },
 <%}}-%>
           } }`;
@@ -477,7 +477,7 @@ export default {
    * @param {String} ops Object with adittional query options.
    */
   get<%- sortedAssociations[i].relationNameCp %>Filter(url, itemId, label, sublabel, searchText, paginationOffset, paginationLimit, ops) {
-<%_if( sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' ){-%>
+<%_if( sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many' ){-%>
 
     //search
     var s = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops); 
@@ -545,7 +545,7 @@ export default {
    * @param {String} ops Object with adittional query options.
    */
   get<%- sortedAssociations[i].relationNameCp %>Connection(url, itemId, label, sublabel, searchText, variables, ops) {
-<%_if( sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' ){-%>
+<%_if( sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many' ){-%>
     //search
     var s = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops); 
 
@@ -618,7 +618,7 @@ export default {
    * @param {Number} itemId Model item internalId.
    */
   getAssociated<%- sortedAssociations[i].relationNameCp %>(url, itemId) {
-<%_if( sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' ){-%>
+<%_if( sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many' ){-%>
     var query = 
       `{ readOne<%- nameCp %>( <%- internalId _%>: <%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%> ){ 
         <%- sortedAssociations[i].relationNameLc _%>Filter{ <%- sortedAssociations[i].internalId -%> } } }`;
@@ -647,7 +647,7 @@ export default {
    * @param {Number} itemId Model item internalId.
    */
   getAssociated<%- sortedAssociations[i].relationNameCp %>Connection(url, itemId) {
-<%_if( sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' ){-%>
+<%_if( sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many' ){-%>
     var query = 
       `{ readOne<%- nameCp %>( <%- internalId _%>: <%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%> ){ 
         <%- sortedAssociations[i].relationNameLc _%>Connection{ edges { node { <%- sortedAssociations[i].internalId -%> } } } } }`;

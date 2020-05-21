@@ -406,6 +406,9 @@ exports.fillOptionsForViews = function(fileData){
 exports.addPeerRelationName = function(opts) {
   //for each model
   opts.forEach( (opt) => {
+    let genericToOneTargets={};
+    let genericToManyTargets={};
+    
     //for each association
     opt.sortedAssociations.forEach( (association) => {
       //if already has peer-relation name
@@ -420,28 +423,25 @@ exports.addPeerRelationName = function(opts) {
         if(association.targetModel === opts[i].name) {
           found = true;
 
-          //find peer association
-          let foundB = false;
-          for(let j=0; !foundB && j<opts[i].sortedAssociations.length; j++) {
-            //case: 'to_one' or 'hasMany'
-            if(opts[i].sortedAssociations[j].type === 'to_one' || opts[i].sortedAssociations[j].sqlType === 'hasMany') {
-              if(opts[i].sortedAssociations[j].targetKey === association.targetKey) {
-                foundB = true;
+          /**
+           * Generic associations
+           * 
+           * Peer name will be the targe model name (as no targetKey exists).
+           */
+          if(association.type === 'generic_to_one' || association.type === 'generic_to_many') {
+            //set peer relation names
+            association.peerRelationName = association.peerRelationName+'_'+association.type+'_'+opts[i].name;
+            association.peerRelationNameCp = association.peerRelationNameCp+'_'+association.type+'_'+opts[i].nameCp;
+            association.peerRelationNameLc = association.peerRelationNameLc+'_'+association.type+'_'+opts[i].nameLc;
+            association.peerRelationNameOnPascal = association.peerRelationNameOnPascal+'_'+association.type+'_'+opts[i].nameOnPascal;
 
-                //set peer relation names
-                association.peerRelationName = opts[i].sortedAssociations[j].relationName;
-                association.peerRelationNameCp = opts[i].sortedAssociations[j].relationNameCp;
-                association.peerRelationNameLc = opts[i].sortedAssociations[j].relationNameLc;
-                association.peerRelationNameOnPascal = opts[i].sortedAssociations[j].relationNameOnPascal;
-
-                opts[i].sortedAssociations[j].peerRelationName = association.relationName;
-                opts[i].sortedAssociations[j].peerRelationNameCp = association.relationNameCp;
-                opts[i].sortedAssociations[j].peerRelationNameLc = association.relationNameLc;
-                opts[i].sortedAssociations[j].peerRelationNameOnPascal = association.relationNameOnPascal;
-              }
-            } else { //case: 'belongsToMany'
-              if(opts[i].sortedAssociations[j].sqlType === 'belongsToMany') {
-                if(opts[i].sortedAssociations[j].keysIn === association.keysIn) {
+          } else {
+            //find peer association
+            let foundB = false;
+            for(let j=0; !foundB && j<opts[i].sortedAssociations.length; j++) {
+              //case: 'to_one' or 'hasMany'
+              if(opts[i].sortedAssociations[j].type === 'to_one' || opts[i].sortedAssociations[j].sqlType === 'hasMany') {
+                if(opts[i].sortedAssociations[j].targetKey === association.targetKey) {
                   foundB = true;
 
                   //set peer relation names
@@ -455,6 +455,21 @@ exports.addPeerRelationName = function(opts) {
                   opts[i].sortedAssociations[j].peerRelationNameLc = association.relationNameLc;
                   opts[i].sortedAssociations[j].peerRelationNameOnPascal = association.relationNameOnPascal;
                 }
+              } else if(opts[i].sortedAssociations[j].sqlType === 'belongsToMany') {
+                  if(opts[i].sortedAssociations[j].keysIn === association.keysIn) {
+                    foundB = true;
+
+                    //set peer relation names
+                    association.peerRelationName = opts[i].sortedAssociations[j].relationName;
+                    association.peerRelationNameCp = opts[i].sortedAssociations[j].relationNameCp;
+                    association.peerRelationNameLc = opts[i].sortedAssociations[j].relationNameLc;
+                    association.peerRelationNameOnPascal = opts[i].sortedAssociations[j].relationNameOnPascal;
+
+                    opts[i].sortedAssociations[j].peerRelationName = association.relationName;
+                    opts[i].sortedAssociations[j].peerRelationNameCp = association.relationNameCp;
+                    opts[i].sortedAssociations[j].peerRelationNameLc = association.relationNameLc;
+                    opts[i].sortedAssociations[j].peerRelationNameOnPascal = association.relationNameOnPascal;
+                  }
               }
             }
           }
@@ -587,16 +602,19 @@ parseAssociationsFromFile = function(fileData){
           baa.targetKey = association.targetKey;
           break;
 
+        case "generic":
+          break;
+
         default:
           //unknown type
           console.log(colors.red('@@@@Error on association:'), colors.blue(name), '- Association has insconsistent key attributes.');
           throw new Error("Inconsistent attributes found");
       }
 
-      if(type === 'to_one'){
+      if(type==='to_one' || type==='generic_to_one'){
         assoc.belongsTos.push(baa);
         assoc.sortedAssociations.push(baa);
-      }else if(type==="to_many" || type==="to_many_through_sql_cross_table"){
+      }else if(type==="to_many" || type==="to_many_through_sql_cross_table" || type==='generic_to_many'){
         assoc.hasManys.push(baa);
         assoc.sortedAssociations.push(baa);
         assoc.hasToManyAssociations = true;
@@ -765,7 +783,9 @@ getSqlType = function(association, name){
     return 'belongsToMany';
   }else if(association.type === 'to_many' && association.keyIn === association.target){
     return 'hasMany';
-  }else {
+  }else if(association.type === 'generic_to_one' || association.type === 'generic_to_many'){
+    return 'generic';
+  }else{
     //error
     console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "has inconsistent key attributes.");
     throw new Error("Required attributes not found");

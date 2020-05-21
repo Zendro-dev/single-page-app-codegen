@@ -94,7 +94,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
               SearchField + Actions
               Only rendered for to_many associations.
             */}
-            {(<%- (sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table') ? true : false _%>) && (
+            {(<%- (sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many') ? true : false _%>) && (
               <Grid item xs={12}>
                 <Grid container justify='flex-end' alignItems='center' wrap='nowrap'>
 

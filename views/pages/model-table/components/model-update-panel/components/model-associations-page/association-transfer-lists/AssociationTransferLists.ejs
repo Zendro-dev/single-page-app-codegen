@@ -1,14 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import <%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferView from './<%- sortedAssociations[aindex].relationNameLc _%>-to-add-transfer-view/<%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferView'
-<%if(sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table'){-%>
+<%if(sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many'){-%>
 import <%- sortedAssociations[aindex].relationNameOnPascal _%>ToRemoveTransferView from './<%- sortedAssociations[aindex].relationNameLc _%>-to-remove-transfer-view/<%- sortedAssociations[aindex].relationNameCp _%>ToRemoveTransferView'
 <%}-%>
 import { makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
 import Grid from '@material-ui/core/Grid';
 import Fade from '@material-ui/core/Fade';
-<%if(sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table'){-%>
+<%if(sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many'){-%>
 import Divider from '@material-ui/core/Divider';
 <%}-%>
 import Typography from '@material-ui/core/Typography';
@@ -26,12 +26,12 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   const {
     item,
     idsToAdd,
-<%if(sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table'){-%>
+<%if(sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many'){-%>
     idsToRemove,
 <%}-%>
     handleTransferToAdd,
     handleUntransferFromAdd,
-<%if(sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table'){-%>
+<%if(sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many'){-%>
     handleTransferToRemove,
     handleUntransferFromRemove,
 <%}-%>
@@ -54,7 +54,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                 <Typography variant="body2" display='inline'>
                   { t('modelPanels.toAddHelperA', "Please select ") }
                 </Typography>
-<%if(sortedAssociations[aindex].type === 'to_one') {-%>
+<%if(sortedAssociations[aindex].type === 'to_one' || sortedAssociations[aindex].type === 'generic_to_one') {-%>
                 <Typography variant="body2" display='inline'>
                   <b>{  t('modelPanels.theRecord', "the record ") }</b>
                 </Typography>
@@ -81,7 +81,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
               handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row={handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row}
             />
           </Grid>
-<%if(sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table'){-%>
+<%if(sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many'){-%>
           <Grid item xs={12}>
             <Divider />
             <Grid container justify='flex-start'>
@@ -89,7 +89,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                 <Typography variant="body2" display='inline'>
                   { t('modelPanels.toRemoveHelperA', "Please select ") }
                 </Typography>
-<%if(sortedAssociations[aindex].type === 'to_one') {-%>
+<%if(sortedAssociations[aindex].type === 'to_one' || sortedAssociations[aindex].type === 'generic_to_one') {-%>
                 <Typography variant="body2" display='inline'>
                   <b>{  t('modelPanels.theRecord', "the record ") }</b>
                 </Typography>
@@ -126,12 +126,12 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 <%- sortedAssociations[aindex].relationNameOnPascal _%>TransferLists.propTypes = {
   item: PropTypes.object.isRequired,
   idsToAdd: PropTypes.array.isRequired,
-<%if(sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table'){-%>
+<%if(sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many'){-%>
   idsToRemove: PropTypes.array.isRequired,
 <%}-%>
   handleTransferToAdd: PropTypes.func.isRequired,
   handleUntransferFromAdd: PropTypes.func.isRequired,
-<%if(sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table'){-%>
+<%if(sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many'){-%>
   handleTransferToRemove: PropTypes.func.isRequired,
   handleUntransferFromRemove: PropTypes.func.isRequired,
 <%}-%>
