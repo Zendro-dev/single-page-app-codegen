@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
+import Snackbar from '../../../../../../../../../snackbar/Snackbar';
 import PropTypes from 'prop-types';
 import api from '../../../../../../../../../../requests/requests.index.js';
 import { makeCancelable } from '../../../../../../../../../../utils'
@@ -64,9 +65,6 @@ const useStyles = makeStyles(theme => ({
     marginLeft: theme.spacing(1),
     marginRight: theme.spacing(1),
   },
-  notiErrorActionText: {
-    color: '#eba0a0',
-  },
 }));
 
 export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>CompactView(props) {
@@ -107,18 +105,56 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
   const lastModelChanged = useSelector(state => state.changes.lastModelChanged);
   const lastChangeTimestamp = useSelector(state => state.changes.lastChangeTimestamp);
 
-  const actionText = useRef(null);
+  const lref = useRef(null);
+  const [lh, setLh] = useState(82);
+
+  //snackbar
+  const variant = useRef('info');
+  const errors = useRef([]);
+  const content = useRef((key, message) => (
+    <Snackbar id={key} message={message} errors={errors.current}
+    variant={variant.current} />
+  ));
+  const actionText = useRef(t('modelPanels.gotIt', "Got it"));
   const action = useRef((key) => (
     <>
-      <Button color='inherit' variant='text' size='small' className={classes.notiErrorActionText} onClick={() => { closeSnackbar(key) }}>
+      <Button color='inherit' variant='text' size='small' 
+      onClick={() => { closeSnackbar(key) }}>
         {actionText.current}
       </Button>
     </> 
   ));
 
-  const lref = useRef(null);
-  const [lh, setLh] = useState(82);
+   /**
+    * Callbacks:
+    *  showMessage
+    *  getData
+    */
 
+   /**
+    * showMessage
+    * 
+    * Show the given message in a notistack snackbar.
+    * 
+    */
+   const showMessage = useCallback((message, withDetail) => {
+    enqueueSnackbar( message, {
+      variant: variant.current,
+      preventDuplicate: false,
+      persist: true,
+      action: !withDetail ? action.current : undefined,
+      content: withDetail ? content.current : undefined,
+    });
+  },[enqueueSnackbar]);
+
+<%
+  /**
+   * names
+   */
+  let methodName1 = 'getData()';
+  let queryName1 = 'readOne'+nameCp;
+  let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sortedAssociations[aindex].relationNameCp+'Filter' : 'api.'+nameLc+'.get'+sortedAssociations[aindex].relationNameCp+'Connection';
+-%>
   /**
    * getData
    * 
@@ -131,9 +167,10 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
     isOnApiRequestRef.current = true;
     setIsOnApiRequest(true);
     Boolean(dataTrigger); //avoid warning
+    errors.current = [];
 
     /*
-      API Request: <%- sortedAssociations[aindex].relationNameCp _%>Filter
+      API Request: <%- queryName1 %>
     */
     let label = '<%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='') ? `${sortedAssociations[aindex].label}` : '' _%>';
     let sublabel = '<%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='') ? `${sortedAssociations[aindex].sublabel}` : '' _%>';
@@ -169,149 +206,240 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
     cancelablePromises.current.push(cancelableApiReq);
     cancelableApiReq
       .promise
-      .then(response => {
+      .then(
+      //resolved
+      (response) => {
         //delete from cancelables
         cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
-        if (
-            response.data &&
-            response.data.data
-        ) {
-          //notify graphql errors
-          if(response.data.errors) {
-            actionText.current = t('modelPanels.gotIt', "Got it");
-            enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
-              variant: 'error',
-              preventDuplicate: false,
-              persist: true,
-              action: action.current,
-            });
-            console.log("Errors: ", response.data.errors);
-          }
-          //save response data
-<%_if( sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many' ){-%>
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
-          let newCount = response.data.data.readOne<%- nameCp _%>.countFiltered<%- sortedAssociations[aindex].relationNameCp _%>;
-          let its = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].relationNameLc _%>Filter;
+        
+        //check: response data
+        if(!response.data ||!response.data.data) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
+          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+          newError.path=['detail', `<%- internalId _%>:${item.<%- internalId _%>}`, '<%- sortedAssociations[aindex].relationName _%>'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
 
-          /*
-            Check: empty page
-          */
-         if( (newCount === (pageRef.current * rowsPerPage)) && (pageRef.current > 0) ) 
-         {
-           isOnApiRequestRef.current = false;
-           setIsOnApiRequest(false);
-           setPage(pageRef.current - 1);
-           return;
-         }
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
-          //save response data
-          let newCount = response.data.data.readOne<%- nameCp _%>.countFiltered<%- sortedAssociations[aindex].relationNameCp _%>;
-          let its = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].relationNameLc _%>Connection.edges.map(o => o.node);
-          let pi = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].relationNameLc _%>Connection.pageInfo;
-
-          /*
-            Check: empty page
-          */
-          if( its.length === 0 && pi&&pi.hasPreviousPage ) 
-          {
-            //configure
-            isOnApiRequestRef.current = false;
-            isCursorPaginating.current = false;
-            isForwardPagination.current = false;
-            setIsOnApiRequest(false);
-            
-            //reload
-            setDataTrigger(prevDataTrigger => !prevDataTrigger);
-            return;
-          }//else
-
-          //update pageInfo
-          pageInfo.current = pi;
-          setHasPreviousPage(pageInfo.current.hasPreviousPage);
-          setHasNextPage(pageInfo.current.hasNextPage);
-<%}-%>
-
-          //ok
-          setCount((newCount&&typeof newCount==='number') ? newCount : 0);
-          setItems((its&&Array.isArray(its)) ? its : []);
-          isOnApiRequestRef.current = false;
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
-          isCursorPaginating.current = false;
-          includeCursor.current = false;
-<%}-%>
-          setIsOnApiRequest(false);
-          return;
-<%} else {-%> 
-          let it = response.data.data.readOne<%- nameCp _%>.<%- sortedAssociations[aindex].relationName _%>;
-
-          //ok
-          setCount((it&&typeof it==='object') ? 1 : 0);
-          setItems((it&&typeof it==='object') ? [it] : []);
-          isOnApiRequestRef.current = false;
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
-          isCursorPaginating.current = false;
-          includeCursor.current = false;
-<%}-%>
-          setIsOnApiRequest(false);
-          return;
-<%}-%>
-
-        } else { //error: bad response on getAssociationFilter()
-          actionText.current = t('modelPanels.gotIt', "Got it");
-          enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
-            variant: 'error',
-            preventDuplicate: false,
-            persist: true,
-            action: action.current,
-          });
-          console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
-          //update pageInfo
-          pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-          setHasPreviousPage(pageInfo.current.hasPreviousPage);
-          setHasNextPage(pageInfo.current.hasNextPage);
-<%}-%>          
-          setCount(0);
-          setItems([]);
-          isOnApiRequestRef.current = false;
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
-          isCursorPaginating.current = false;
-          includeCursor.current = false;
-<%}-%>
-          setIsOnApiRequest(false);
+          showMessage(newError.message, withDetails);
+          clearRequestGetData();
           return;
         }
+
+        //check: <%- queryName1 %>
+        let <%- queryName1 %> = response.data.data.<%- queryName1 %>;
+        if(<%- queryName1 %> === null) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
+          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+          newError.path=['detail', `<%- internalId _%>:${item.<%- internalId _%>}`, '<%- sortedAssociations[aindex].relationName _%>'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestGetData();
+          return;
+        }
+<%_if( sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many' ){-%>
+<%# 
+/**
+ * Case: to_many
+ */ 
+-%>
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+        //check: <%- queryName1 %> type
+        if(typeof <%- queryName1 %> !== 'object'
+        || !Number.isInteger(<%- queryName1 %>.countFiltered<%- sortedAssociations[aindex].relationNameCp %>)
+        || !Array.isArray(<%- queryName1 %>.<%- sortedAssociations[aindex].relationNameLc _%>Filter)) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
+          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+          newError.path=['detail', `<%- internalId _%>:${item.<%- internalId _%>}`, '<%- sortedAssociations[aindex].relationName _%>'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestGetData();
+          return;
+        }
+        //get items
+        let newCount = <%- queryName1 %>.countFiltered<%- sortedAssociations[aindex].relationNameCp _%>;
+        let its = <%- queryName1 %>.<%- sortedAssociations[aindex].relationNameLc _%>Filter;
+
+        //check: graphql errors
+        if(response.data.errors) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='info';
+          newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
+          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+          newError.path=['detail', `<%- internalId _%>:${item.<%- internalId _%>}`, '<%- sortedAssociations[aindex].relationName _%>'];
+          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+        }
+        /*
+          Check: empty page
+        */
+        if( (newCount === (pageRef.current * rowsPerPage)) && (pageRef.current > 0) ) 
+        {
+          isOnApiRequestRef.current = false;
+          setIsOnApiRequest(false);
+          setPage(pageRef.current - 1);
+          return;
+        }
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+
+        //check: <%- queryName1 %> type
+        if(typeof <%- queryName1 %> !== 'object'
+        || !Number.isInteger(<%- queryName1 %>.countFiltered<%- sortedAssociations[aindex].relationNameCp %>)
+        || typeof <%- queryName1 %>.<%- sortedAssociations[aindex].relationNameLc _%>Connection !== 'object'
+        || <%- queryName1 %>.<%- sortedAssociations[aindex].relationNameLc _%>Connection === null
+        || !Array.isArray(<%- queryName1 %>.<%- sortedAssociations[aindex].relationNameLc _%>Connection.edges)
+        || typeof <%- queryName1 %>.<%- sortedAssociations[aindex].relationNameLc _%>Connection.pageInfo !== 'object'
+        || <%- queryName1 %>.<%- sortedAssociations[aindex].relationNameLc _%>Connection.pageInfo === null) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
+          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+          newError.path=['detail', `<%- internalId _%>:${item.<%- internalId _%>}`, '<%- sortedAssociations[aindex].relationName _%>'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestGetData();
+          return;
+        }
+        //get items
+        let newCount = <%- queryName1 %>.countFiltered<%- sortedAssociations[aindex].relationNameCp _%>;
+        let its = <%- queryName1 %>.<%- sortedAssociations[aindex].relationNameLc _%>Connection.edges.map(o => o.node);
+        let pi = <%- queryName1 %>.<%- sortedAssociations[aindex].relationNameLc _%>Connection.pageInfo;
+
+        //check: graphql errors
+        if(response.data.errors) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='info';
+          newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
+          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+          newError.path=['detail', `<%- internalId _%>:${item.<%- internalId _%>}`, '<%- sortedAssociations[aindex].relationName _%>'];
+          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+        }
+
+        /*
+          Check: empty page
+        */
+        if( its.length === 0 && pi&&pi.hasPreviousPage ) 
+        {
+          //configure
+          isOnApiRequestRef.current = false;
+          isCursorPaginating.current = false;
+          isForwardPagination.current = false;
+          setIsOnApiRequest(false);
+          
+          //reload
+          setDataTrigger(prevDataTrigger => !prevDataTrigger);
+          return;
+        }//else
+
+        //update pageInfo
+        pageInfo.current = pi;
+        setHasPreviousPage(pageInfo.current.hasPreviousPage);
+        setHasNextPage(pageInfo.current.hasNextPage);
+<%}-%>
+
+        //ok
+        setCount(newCount);
+        setItems([...its]);
+        isOnApiRequestRef.current = false;
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+        isCursorPaginating.current = false;
+        includeCursor.current = false;
+<%}-%>
+        setIsOnApiRequest(false);
+        return;
+<%} else {-%> 
+<%# 
+/**
+ * Case: to_one
+ */ 
+-%>
+        //check: <%- queryName1 %> type
+        if(typeof <%- queryName1 %> !== 'object'
+        || typeof <%- queryName1 %>.<%- sortedAssociations[aindex].relationName _%> !== 'object' //can be null
+        ) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
+          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+          newError.path=['detail', `<%- internalId _%>:${item.<%- internalId _%>}`, '<%- sortedAssociations[aindex].relationName _%>'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestGetData();
+          return;
+        }
+        //get item
+        let it = <%- queryName1 %>.<%- sortedAssociations[aindex].relationName _%>;
+
+        //ok
+        setCount((it) ? 1 : 0);
+        setItems((it) ? [it] : []);
+        isOnApiRequestRef.current = false;
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+        isCursorPaginating.current = false;
+        includeCursor.current = false;
+<%}-%>
+        setIsOnApiRequest(false);
+        return;
+<%}-%>
+      },
+      //rejected
+      (err) => {
+        throw err;
       })
-      .catch(({isCanceled, ...err}) => { //error: on getAssociationFilter()
-        if(isCanceled) {
+      //error
+      .catch((err) => { //error: on <%- requestName1 %>
+        if(err.isCanceled) {
           return;
         } else {
-          actionText.current = t('modelPanels.gotIt', "Got it");
-          enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
-            variant: 'error',
-            preventDuplicate: false,
-            persist: true,
-            action: action.current,
-          });
-          console.log("Error: ", err);
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
-          //update pageInfo
-          pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-          setHasPreviousPage(pageInfo.current.hasPreviousPage);
-          setHasNextPage(pageInfo.current.hasNextPage);
-<%}-%> 
-          setCount(0);
-          setItems([]);
-          isOnApiRequestRef.current = false;
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
-          isCursorPaginating.current = false;
-          includeCursor.current = false;
-<%}-%>
-          setIsOnApiRequest(false);
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
+          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+          newError.path=['detail', `<%- internalId _%>:${item.<%- internalId _%>}`, '<%- sortedAssociations[aindex].relationName _%>'];
+          newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestGetData();
           return;
         }
       });
-  }, [graphqlServerUrl, enqueueSnackbar, t, dataTrigger, item.<%- internalId _%>, search, rowsPerPage]);
+
+  }, [graphqlServerUrl, showMessage, t, dataTrigger, item.<%- internalId _%>, search, rowsPerPage]);
 
   useEffect(() => {
 
@@ -560,6 +688,26 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
       setIsCountReady(true);
     }
   }, [count]);
+
+  /**
+   * Utils
+   */
+  function clearRequestGetData() {
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+    //update pageInfo
+    pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+    setHasPreviousPage(pageInfo.current.hasPreviousPage);
+    setHasNextPage(pageInfo.current.hasNextPage);
+<%}-%>          
+    setCount(0);
+    setItems([]);
+    isOnApiRequestRef.current = false;
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+    isCursorPaginating.current = false;
+    includeCursor.current = false;
+<%}-%>
+    setIsOnApiRequest(false);
+  }
 
   function updateHeights() {
     if(lref.current) {

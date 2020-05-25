@@ -693,8 +693,14 @@ promises.push( funks.renderToFile(fpath, 'acl/acl_rules', modelsOpts) );
  * */
 // template 62: utils
 fpath = path.resolve(directory, `src/`, `utils.js`);
-promises.push( funks.renderToFile(fpath, 'utils/utils') );
-
+if (fs.existsSync(fpath)) {
+  //msg
+  console.log('@@@ File: ', colors.blue('src/utils.js'), "will not be generated, already exists:", colors.dim(fpath));
+} else {
+  //msg
+  if(verbose) console.log('@@ File: ', colors.blue('src/utils.js'), "will be generated, because does not exists.");
+  promises.push( funks.renderToFile(fpath, 'utils/utils') );
+}
 
 Promise.all(promises).then( (values) => {
   
@@ -715,6 +721,10 @@ Promise.all(promises).then( (values) => {
   console.log("@ Code generation: ", colors.green('done'));
 
 })
-.catch((error)=>{
-  console.log(error); console.log("SOMETHING WRONG");
+.catch((e)=>{
+  //err
+  console.log(colors.red("@@: Code generation", colors.red('canceled...')));
+  console.log(e);
+  //msg
+  console.log("@ Code generation: ", colors.red('done'));
 });

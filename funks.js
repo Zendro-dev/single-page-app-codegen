@@ -14,11 +14,13 @@ const colors = require('colors/safe');
  * @return {string}              String of created file with specified template
  */
 exports.renderTemplate = async function(templateName, options) {
+  let outFile = __dirname + '/views/pages/' + templateName + '.ejs';
   try {
-    return await ejsRenderFile(__dirname + '/views/pages/' + templateName +
-      '.ejs', options, {})
-  } catch (err) {
-    console.log(`ERROR rendering template ${templateName}:\n${err}`);
+    return await ejsRenderFile(outFile, options, {});
+  } catch(e) {
+    //msg
+    console.log(colors.red('@@@! Error:'), 'while rendering template: ', colors.dim(outFile));
+    throw new Error(e);
   }
 }
 
@@ -406,8 +408,6 @@ exports.fillOptionsForViews = function(fileData){
 exports.addPeerRelationName = function(opts) {
   //for each model
   opts.forEach( (opt) => {
-    let genericToOneTargets={};
-    let genericToManyTargets={};
     
     //for each association
     opt.sortedAssociations.forEach( (association) => {

@@ -28,7 +28,7 @@ export default function TablesSwitch(props) {
             /* acl check */
             (permissions&&permissions.<%- models[i].nameLc _%>&&Array.isArray(permissions.<%- models[i].nameLc _%>)
             &&(permissions.<%- models[i].nameLc _%>.includes('read') || permissions.<%- models[i].nameLc _%>.includes('*')))
-            ? ((props) => <<%- models[i].nameOnPascal _%>Table {...props} permissions={permissions}/>) : (NoPermissionSectionPage)
+            ? ((props) => <<%- models[i].nameOnPascal _%>Table {...props} permissions={permissions}/>) : ((props) => <NoPermissionSectionPage {...props}/>)
         } />
 <%}-%>
 
@@ -39,7 +39,7 @@ export default function TablesSwitch(props) {
             /* acl check */
             (permissions&&permissions.<%- adminModels[i].nameLc _%>&&Array.isArray(permissions.<%- adminModels[i].nameLc _%>)
             &&(permissions.<%- adminModels[i].nameLc _%>.includes('read') || permissions.<%- adminModels[i].nameLc _%>.includes('*')))
-            ? ((props) => <<%- adminModels[i].nameOnPascal _%>Table {...props} permissions={permissions}/>) : (NoPermissionSectionPage)
+            ? ((props) => <<%- adminModels[i].nameOnPascal _%>Table {...props} permissions={permissions}/>) : ((props) => <NoPermissionSectionPage {...props}/>)
         } />
 <%}-%>
 
