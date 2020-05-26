@@ -834,7 +834,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
         }
 
         //check: <%- queryName4 %> type
-        if(typeof <%- queryName4 %> !== 'string') {
+        if(!Array.isArray(<%- queryName4 %>)) {
           let newError = {};
           let withDetails=true;
           variant.current='error';
