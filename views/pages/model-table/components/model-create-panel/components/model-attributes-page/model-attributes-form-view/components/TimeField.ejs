@@ -7,6 +7,8 @@ import { MuiPickersUtilsProvider, KeyboardTimePicker } from '@material-ui/picker
 import { makeStyles } from '@material-ui/core/styles';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import CheckIcon from '@material-ui/icons/Check';
+import Typography from '@material-ui/core/Typography';
+import Grid from '@material-ui/core/Grid';
 import "moment/locale/es.js";
 import "moment/locale/de.js";
 
@@ -25,6 +27,7 @@ export default function TimeField(props) {
     label,
     text,
     valueOk,
+    valueAjv,
     autoFocus,
     handleSetValue,
   } = props;
@@ -75,57 +78,68 @@ export default function TimeField(props) {
   }, [i18n.language]);
 
   return (
-    <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils} locale={i18n.language}>
-        <KeyboardTimePicker
-          className={classes.input}
-          id={"time-field-"+itemKey+'-'+name}
-          label={label}
-          format="HH:mm:ss.SSS"
-          ampm={true}
-          value={selectedDate}
-          views={['hours', 'minutes', 'seconds']}
-          margin="normal"
-          inputVariant="filled"
-          autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
-          invalidDateMessage={ t('modelPanels.invalidDate', 'Invalid date format') }
-          InputProps={{
-            startAdornment:
-              <InputAdornment position="start">
-                {(valueOk!==undefined&&valueOk===1) ? <CheckIcon color="primary" fontSize="small" /> : ''}
-              </InputAdornment>
-          }}
-          onChange={(date, value) => {
-            setSelectedDate(date);
+    <Grid container justify='flex-start' alignItems='center' spacing={2}>
+      <Grid item>
+        <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils} locale={i18n.language}>
+            <KeyboardTimePicker
+              className={classes.input}
+              id={"time-field-"+itemKey+'-'+name}
+              label={label}
+              format="HH:mm:ss.SSS"
+              ampm={true}
+              value={selectedDate}
+              views={['hours', 'minutes', 'seconds']}
+              margin="normal"
+              inputVariant="filled"
+              autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
+              invalidDateMessage={ t('modelPanels.invalidDate', 'Invalid date format') }
+              InputProps={{
+                startAdornment:
+                  <InputAdornment position="start">
+                    {(valueOk!==undefined&&valueOk===1) ? <CheckIcon color="primary" fontSize="small" /> : ''}
+                  </InputAdornment>
+              }}
+              onChange={(date, value) => {
+                setSelectedDate(date);
 
-            if(date !== null) {
-              mdate.current = date;
+                if(date !== null) {
+                  mdate.current = date;
 
-              if(mdate.current.isValid()) {
-                handleSetValue(mdate.current.format("HH:mm:ss.SSSZ"), 1, itemKey);
-              } else {
-                handleSetValue(null, -1, itemKey);
-              }
-            } else {
-              mdate.current = moment.invalid();
-              handleSetValue(null, 0, itemKey);
-            }
-          }}
+                  if(mdate.current.isValid()) {
+                    handleSetValue(mdate.current.format("HH:mm:ss.SSSZ"), 1, itemKey);
+                  } else {
+                    handleSetValue(null, -1, itemKey);
+                  }
+                } else {
+                  mdate.current = moment.invalid();
+                  handleSetValue(null, 0, itemKey);
+                }
+              }}
 
-          onBlur={(event) => {
-            if(mdate.current.isValid()) {
-              handleSetValue(mdate.current.format("HH:mm:ss.SSSZ"), 1, itemKey);
-            }
-          }}
+              onBlur={(event) => {
+                if(mdate.current.isValid()) {
+                  handleSetValue(mdate.current.format("HH:mm:ss.SSSZ"), 1, itemKey);
+                }
+              }}
 
-          onKeyDown={(event) => {
-            if(event.key === 'Enter') {
-              if(mdate.current.isValid()) {
-                handleSetValue(mdate.current.format("HH:mm:ss.SSSZ"), 1, itemKey);
-              }
-            }
-          }}
-        />
-    </MuiPickersUtilsProvider>
+              onKeyDown={(event) => {
+                if(event.key === 'Enter') {
+                  if(mdate.current.isValid()) {
+                    handleSetValue(mdate.current.format("HH:mm:ss.SSSZ"), 1, itemKey);
+                  }
+                }
+              }}
+            />
+        </MuiPickersUtilsProvider>
+      </Grid>
+      {(valueAjv !== undefined && valueAjv.errors.length > 0) && (
+        <Grid item>
+          <Typography variant="caption" color='error'>
+            {valueAjv.errors.join()}
+          </Typography>
+        </Grid>
+      )}
+    </Grid>
   );
 }
 TimeField.propTypes = {
@@ -134,6 +148,7 @@ TimeField.propTypes = {
   label: PropTypes.string.isRequired,
   text: PropTypes.string,
   valueOk: PropTypes.number.isRequired,
+  valueAjv: PropTypes.object.isRequired,
   autoFocus: PropTypes.bool,
   handleSetValue: PropTypes.func.isRequired,
 };
