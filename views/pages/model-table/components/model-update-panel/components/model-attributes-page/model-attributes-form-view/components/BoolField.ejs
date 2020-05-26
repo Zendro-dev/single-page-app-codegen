@@ -5,6 +5,8 @@ import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
+import Typography from '@material-ui/core/Typography';
+import Grid from '@material-ui/core/Grid';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -23,6 +25,7 @@ export default function BoolField(props) {
     label,
     text,
     valueOk,
+    valueAjv,
     autoFocus,
     handleSetValue,
   } = props;
@@ -57,37 +60,48 @@ export default function BoolField(props) {
   }
 
   return (
-    <FormControl className={classes.root} component="fieldset">
-      <FormLabel component="legend">{label}</FormLabel>
-        <FormControlLabel
-          control={
-            <Checkbox
-              id={"bool-field-"+itemKey+'-'+name}
-              className={classes.checkbox}
-              checked={checked} 
-              color="primary"
-              indeterminate={(valueOk===0)}
-              autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
-              onChange={(event) => {
-                setChecked(event.target.checked);
-                
-                if(event.target.checked) {
-                  handleSetValue(true, 1, itemKey);
-                }
-                else {
-                  handleSetValue(false, 1, itemKey);
-                }
-              }}
-              onKeyDown={(event) => {
-                if(event.key === 'Delete') {
-                  handleSetValue(null, 0, itemKey);
-                  setChecked(false);
-                }
-              }}
+    <Grid container justify='flex-start' alignItems='center' spacing={2}>
+      <Grid item>
+        <FormControl className={classes.root} component="fieldset">
+          <FormLabel component="legend">{label}</FormLabel>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  id={"bool-field-"+itemKey+'-'+name}
+                  className={classes.checkbox}
+                  checked={checked} 
+                  color="primary"
+                  indeterminate={(valueOk===0)}
+                  autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
+                  onChange={(event) => {
+                    setChecked(event.target.checked);
+                    
+                    if(event.target.checked) {
+                      handleSetValue(true, 1, itemKey);
+                    }
+                    else {
+                      handleSetValue(false, 1, itemKey);
+                    }
+                  }}
+                  onKeyDown={(event) => {
+                    if(event.key === 'Delete') {
+                      handleSetValue(null, 0, itemKey);
+                      setChecked(false);
+                    }
+                  }}
+                />
+              }
             />
-          }
-        />
-    </FormControl>
+        </FormControl>
+      </Grid>
+      {(valueAjv !== undefined && valueAjv.errors.length > 0) && (
+        <Grid item>
+          <Typography variant="caption" color='error'>
+            {valueAjv.errors.join()}
+          </Typography>
+        </Grid>
+      )}
+    </Grid>
   );
 }
 BoolField.propTypes = {
@@ -99,6 +113,7 @@ BoolField.propTypes = {
     PropTypes.bool,
   ]),
   valueOk: PropTypes.number.isRequired,
+  valueAjv: PropTypes.object.isRequired,
   autoFocus: PropTypes.bool,
   handleSetValue: PropTypes.func.isRequired,
 };

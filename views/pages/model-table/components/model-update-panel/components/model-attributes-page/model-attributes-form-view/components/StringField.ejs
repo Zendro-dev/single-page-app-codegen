@@ -4,6 +4,8 @@ import { makeStyles } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import CheckIcon from '@material-ui/icons/Check';
+import Typography from '@material-ui/core/Typography';
+import Grid from '@material-ui/core/Grid';
 
 const useStyles = makeStyles(theme => ({
   textField: {
@@ -22,6 +24,7 @@ export default function StringField(props) {
     label,
     text,
     valueOk,
+    valueAjv,
     autoFocus,
     handleSetValue,
   } = props;
@@ -30,49 +33,60 @@ export default function StringField(props) {
   const textValue = useRef((text !== undefined && typeof text === 'string' ) ? text : null);
 
   return (
-    <TextField
-      id={"string-field-"+itemKey+'-'+name}
-      label={label}
-      multiline
-      rowsMax="4"
-      defaultValue={defaultValue.current}
-      className={classes.textField}
-      margin="normal"
-      variant="filled"
-      autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
-      InputProps={{
-        endAdornment:
-          <InputAdornment position="end">
-            {(valueOk!==undefined&&valueOk===1) ? <CheckIcon color="primary" fontSize="small" /> : ''}
-          </InputAdornment>
-      }}
-      onChange={(event) => {
-        textValue.current = event.target.value;
-        
-        if(!textValue.current || typeof textValue.current !== 'string') {
-          handleSetValue(null, 0, itemKey);
-        } else {
-          //status is set to 1 only on blur or ctrl+Enter
-          handleSetValue(textValue.current, 0, itemKey);
-        }
-      }}
-      onBlur={(event) => {
-        if(!textValue.current || typeof textValue.current !== 'string') {
-          handleSetValue(null, 0, itemKey);
-        } else {
-          handleSetValue(textValue.current, 1, itemKey);
-        }
-      }}
-      onKeyDown={(event) => {
-        if(event.ctrlKey && event.key === 'Enter') {
-          if(!textValue.current || typeof textValue.current !== 'string') {
-            handleSetValue(null, 0, itemKey);
-          } else {
-            handleSetValue(textValue.current, 1, itemKey);
-          }
-        }
-      }}
-    />
+    <Grid container justify='flex-start' alignItems='center' spacing={2}>
+      <Grid item>
+        <TextField
+          id={"string-field-"+itemKey+'-'+name}
+          label={label}
+          multiline
+          rowsMax="4"
+          defaultValue={defaultValue.current}
+          className={classes.textField}
+          margin="normal"
+          variant="filled"
+          autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
+          InputProps={{
+            endAdornment:
+              <InputAdornment position="end">
+                {(valueOk!==undefined&&valueOk===1) ? <CheckIcon color="primary" fontSize="small" /> : ''}
+              </InputAdornment>
+          }}
+          onChange={(event) => {
+            textValue.current = event.target.value;
+            
+            if(!textValue.current || typeof textValue.current !== 'string') {
+              handleSetValue(null, 0, itemKey);
+            } else {
+              //status is set to 1 only on blur or ctrl+Enter
+              handleSetValue(textValue.current, 0, itemKey);
+            }
+          }}
+          onBlur={(event) => {
+            if(!textValue.current || typeof textValue.current !== 'string') {
+              handleSetValue(null, 0, itemKey);
+            } else {
+              handleSetValue(textValue.current, 1, itemKey);
+            }
+          }}
+          onKeyDown={(event) => {
+            if(event.ctrlKey && event.key === 'Enter') {
+              if(!textValue.current || typeof textValue.current !== 'string') {
+                handleSetValue(null, 0, itemKey);
+              } else {
+                handleSetValue(textValue.current, 1, itemKey);
+              }
+            }
+          }}
+        />
+      </Grid>
+      {(valueAjv !== undefined && valueAjv.errors.length > 0) && (
+        <Grid item>
+          <Typography variant="caption" color='error'>
+            {valueAjv.errors.join()}
+          </Typography>
+        </Grid>
+      )}
+    </Grid>
   );
 }
 StringField.propTypes = {
@@ -81,6 +95,7 @@ StringField.propTypes = {
   label: PropTypes.string.isRequired,
   text: PropTypes.string,
   valueOk: PropTypes.number.isRequired,
+  valueAjv: PropTypes.object.isRequired,
   autoFocus: PropTypes.bool,
   handleSetValue: PropTypes.func.isRequired,
 };

@@ -368,6 +368,8 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
         //ok
         setCount(newCount);
         setItems([...its]);
+
+        //ends request
         isOnApiRequestRef.current = false;
 <%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
         isCursorPaginating.current = false;

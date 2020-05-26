@@ -79,6 +79,7 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
   const { t } = useTranslation();
   const { item, 
           valueOkStates,
+          valueAjvStates,
           handleSetValue,
         } = props;
 
@@ -141,6 +142,7 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
                 label='<%- label %>'
                 text={item.<%- a %>}
                 valueOk={valueOkStates.<%- a _%>}
+                valueAjv={valueAjvStates.<%- a _%>}
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
@@ -157,6 +159,7 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
                 label='<%- label %>'
                 text={item.<%- a %>}
                 valueOk={valueOkStates.<%- a _%>}
+                valueAjv={valueAjvStates.<%- a _%>}
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
@@ -173,6 +176,7 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
                 label='<%- label %>'
                 text={item.<%- a %>}
                 valueOk={valueOkStates.<%- a _%>}
+                valueAjv={valueAjvStates.<%- a _%>}
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
@@ -189,6 +193,7 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
                 label='<%- label %>'
                 text={item.<%- a %>}
                 valueOk={valueOkStates.<%- a _%>}
+                valueAjv={valueAjvStates.<%- a _%>}
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
@@ -205,6 +210,7 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
                 label='<%- label %>'
                 text={item.<%- a %>}
                 valueOk={valueOkStates.<%- a _%>}
+                valueAjv={valueAjvStates.<%- a _%>}
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
@@ -221,6 +227,7 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
                 label='<%- label %>'
                 text={item.<%- a %>}
                 valueOk={valueOkStates.<%- a _%>}
+                valueAjv={valueAjvStates.<%- a _%>}
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
@@ -237,6 +244,7 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
                 label='<%- label %>'
                 text={item.<%- a %>}
                 valueOk={valueOkStates.<%- a _%>}
+                valueAjv={valueAjvStates.<%- a _%>}
 <% if(i===0) {-%>
                 autoFocus={true}
 <%}-%>
@@ -255,6 +263,7 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
 <%- nameOnPascal _%>AttributesFormView.propTypes = {
   item: PropTypes.object.isRequired,
   valueOkStates: PropTypes.object.isRequired,
+  valueAjvStates: PropTypes.object.isRequired,
   handleSetValue: PropTypes.func.isRequired,
 };
 

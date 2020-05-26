@@ -26,6 +26,7 @@ export default function IntField(props) {
     label,
     text,
     valueOk,
+    valueAjv,
     autoFocus,
     foreignKey,
     handleSetValue,
@@ -267,6 +268,13 @@ export default function IntField(props) {
           </Typography>
       </Grid>
       )}
+      {(valueAjv !== undefined && valueAjv.errors.length > 0) && (
+        <Grid item>
+          <Typography variant="caption" color='error'>
+            {valueAjv.errors.join()}
+          </Typography>
+        </Grid>
+      )}
     </Grid>
   );
 }
@@ -279,6 +287,7 @@ IntField.propTypes = {
     PropTypes.number,
   ]),
   valueOk: PropTypes.number.isRequired,
+  valueAjv: PropTypes.object.isRequired,
   autoFocus: PropTypes.bool,
   foreignKey: PropTypes.bool,
   handleSetValue: PropTypes.func.isRequired,

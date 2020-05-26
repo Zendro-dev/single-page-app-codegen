@@ -16,6 +16,7 @@ export default function <%- nameOnPascal _%>AttributesPage(props) {
   const {
     item,
     valueOkStates,
+    valueAjvStates,
 <%if(hasOwnForeingKeys){-%>
     foreignKeys,
 <%}-%>
@@ -37,6 +38,7 @@ export default function <%- nameOnPascal _%>AttributesPage(props) {
             <<%- nameOnPascal _%>AttributesFormView
               item={item}
               valueOkStates={valueOkStates}
+              valueAjvStates={valueAjvStates}
 <%if(hasOwnForeingKeys){-%>
               foreignKeys={foreignKeys}
 <%}-%>
@@ -51,6 +53,7 @@ export default function <%- nameOnPascal _%>AttributesPage(props) {
 <%- nameOnPascal _%>AttributesPage.propTypes = {
   item: PropTypes.object.isRequired,
   valueOkStates: PropTypes.object.isRequired,
+  valueAjvStates: PropTypes.object.isRequired,
 <%if(hasOwnForeingKeys){-%>
   foreignKeys: PropTypes.object.isRequired,
 <%}-%>

@@ -6,6 +6,7 @@ import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import CheckIcon from '@material-ui/icons/Check';
+import Typography from '@material-ui/core/Typography';
 
 const useStyles = makeStyles(theme => ({
   textField: {
@@ -25,6 +26,7 @@ export default function FloatField(props) {
     label,
     text,
     valueOk,
+    valueAjv,
     autoFocus,
     handleSetValue,
   } = props;
@@ -245,6 +247,13 @@ export default function FloatField(props) {
           />
         )}
       </Grid>
+      {(valueAjv !== undefined && valueAjv.errors.length > 0) && (
+        <Grid item>
+          <Typography variant="caption" color='error'>
+            {valueAjv.errors.join()}
+          </Typography>
+        </Grid>
+      )}
     </Grid>
   );
 }
@@ -257,6 +266,7 @@ FloatField.propTypes = {
     PropTypes.number,
   ]),
   valueOk: PropTypes.number.isRequired,
+  valueAjv: PropTypes.object.isRequired,
   autoFocus: PropTypes.bool,
   handleSetValue: PropTypes.func.isRequired,
 };
