@@ -8,6 +8,10 @@ import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
 import Attributes from '@material-ui/icons/HdrWeakTwoTone';
+<%if(!isDefaultId){-%>
+import Key from '@material-ui/icons/VpnKey';
+import Tooltip from '@material-ui/core/Tooltip';
+<%}-%>
 <%
   let contString = 0;
   let contFloat = 0;
@@ -118,13 +122,73 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
             {/* 
               Fields 
             */}
+<%if(!isDefaultId){-%>
+            {/*
+              Internal ID
+            */}
+            {/* <%- internalId %> */}
+            <CardContent key='<%- internalId %>' className={classes.cardContent} >
+              <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
+                <Grid item>
+<% if(internalIdType === 'String') {%>
+                  <StringField
+                    itemKey='<%- internalId %>'
+                    name='<%- internalId %>'
+                    label='<%- internalId %>'
+                    valueOk={valueOkStates.<%- internalId _%>}
+                    valueAjv={valueAjvStates.<%- internalId _%>}
+                    autoFocus={true}
+                    handleSetValue={handleSetValue}
+                  />
+<%}-%>
+<% if(internalIdType === 'Float') {%>
+                  <FloatField
+                    itemKey='<%- internalId %>'
+                    name='<%- internalId %>'
+                    label='<%- label %>'
+                    valueOk={valueOkStates.<%- internalId _%>}
+                    valueAjv={valueAjvStates.<%- internalId _%>}
+                    autoFocus={true}
+                    handleSetValue={handleSetValue}
+                  />
+<%}-%>
+
+<% if(internalIdType === 'Int') {%>
+                  <IntField
+                    itemKey='<%- internalId %>'
+                    name='<%- internalId %>'
+                    label='<%- label %>'
+                    valueOk={valueOkStates.<%- internalId _%>}
+                    valueAjv={valueAjvStates.<%- internalId _%>}
+                    autoFocus={true}
+                    handleSetValue={handleSetValue}
+                  />
+<%}-%>
+                </Grid>
+
+                {/*Key icon*/}
+                <Grid item>
+                  <Tooltip title={ t('modelPanels.internalId', 'Unique Identifier') }>
+                    <Key fontSize="small" color="disabled" style={{ marginTop:8}} />
+                  </Tooltip>
+                </Grid>
+              </Grid>
+            </CardContent>
+<%}-%>
+
 <%for( let i=0; i<attributesArr.length; i++ ){
   let a = attributesArr[i][0];
   let label = a;
   let type = attributesArr[i][1];
+
+  //Skipp: foreign keys
   let isForeignKey = (hasOwnForeingKeys&&ownForeignKeysArr.includes(a));
+  if(isForeignKey) continue;
+
+  //Skipp: internalId (already rendered).
+  if(a===internalId) continue;
 -%>
-<% if(type === 'String' && !isForeignKey) {%>
+<% if(type === 'String') {%>
             {/* <%- label %> */}
             <CardContent key='<%- a %>' className={classes.cardContent} >
               <StringField
@@ -133,14 +197,11 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
                 label='<%- label %>'
                 valueOk={valueOkStates.<%- a _%>}
                 valueAjv={valueAjvStates.<%- a _%>}
-<% if(i===0) {-%>
-                autoFocus={true}
-<%}-%>
                 handleSetValue={handleSetValue}
               />
             </CardContent>
 <%}-%>
-<% if(type === 'Float' && !isForeignKey) {%>
+<% if(type === 'Float') {%>
             {/* <%- label %> */}
             <CardContent key='<%- a %>' className={classes.cardContent} >
               <FloatField
@@ -149,14 +210,11 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
                 label='<%- label %>'
                 valueOk={valueOkStates.<%- a _%>}
                 valueAjv={valueAjvStates.<%- a _%>}
-<% if(i===0) {-%>
-                autoFocus={true}
-<%}-%>
                 handleSetValue={handleSetValue}
               />
             </CardContent>
 <%}-%>
-<% if(type === 'Int' && !isForeignKey) {%>
+<% if(type === 'Int') {%>
             {/* <%- label %> */}
             <CardContent key='<%- a %>' className={classes.cardContent} >
               <IntField
@@ -165,9 +223,6 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
                 label='<%- label %>'
                 valueOk={valueOkStates.<%- a _%>}
                 valueAjv={valueAjvStates.<%- a _%>}
-<% if(i===0) {-%>
-                autoFocus={true}
-<%}-%>
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -181,9 +236,6 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
                 label='<%- label %>'
                 valueOk={valueOkStates.<%- a _%>}
                 valueAjv={valueAjvStates.<%- a _%>}
-<% if(i===0) {-%>
-                autoFocus={true}
-<%}-%>
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -197,9 +249,6 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
                 label='<%- label %>'
                 valueOk={valueOkStates.<%- a _%>}
                 valueAjv={valueAjvStates.<%- a _%>}
-<% if(i===0) {-%>
-                autoFocus={true}
-<%}-%>
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -213,9 +262,6 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
                 label='<%- label %>'
                 valueOk={valueOkStates.<%- a _%>}
                 valueAjv={valueAjvStates.<%- a _%>}
-<% if(i===0) {-%>
-                autoFocus={true}
-<%}-%>
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -229,9 +275,6 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
                 label='<%- label %>'
                 valueOk={valueOkStates.<%- a _%>}
                 valueAjv={valueAjvStates.<%- a _%>}
-<% if(i===0) {-%>
-                autoFocus={true}
-<%}-%>
                 handleSetValue={handleSetValue}
               />
             </CardContent>

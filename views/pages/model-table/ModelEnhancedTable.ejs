@@ -1492,7 +1492,6 @@ function resetReloadData() {
                                 }
 
                                 {/* Item fields */}
-<%if(isDefaultId){-%>
                                 {/* <%- internalId _%> */}
                                 <TableCell
                                   key='<%- internalId _%>'
@@ -1503,12 +1502,14 @@ function resetReloadData() {
                                     <Typography variant='body2' color='textSecondary' display='block' noWrap={true}>{item.<%- internalId _%>}</Typography>
                                   </Tooltip>
                                 </TableCell>
-<%}-%>
 
 <%for( let i=0; i<attributesArr.length; i++ ){
     let a = attributesArr[i][0];
-    let label = a[0].toUpperCase() + a.slice(1);
+    let label = a;
     let type = attributesArr[i][1];
+
+    //Skipp: internalId (already rendered).
+    if(a===internalId) continue;
 -%>
                                 {/* <%- label %> */}
                                 <TableCell

@@ -471,6 +471,10 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
         if(err.isCanceled) {
           return
         } else {
+          //set ajv errors
+          setAjvErrors(err);
+
+          //show error
           let newError = {};
           let withDetails=true;
           variant.current='error';
