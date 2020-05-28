@@ -213,7 +213,7 @@ opts.forEach((ejbOpts) => {
   var tablePath = 'src/components/main-panel/table-panel/models-tables';
   
   // collect models and attributes
-  if(ejbOpts.nameLc === 'role' || ejbOpts.nameLc === 'user' || ejbOpts.nameLc === 'userInfo') {
+  if(ejbOpts.nameLc === 'role' || ejbOpts.nameLc === 'user' || ejbOpts.nameLc === 'role_to_user') {
     tablePath = 'src/components/main-panel/table-panel/admin-tables';
     modelsOpts.adminModels.push(ejbOpts);
   } else {

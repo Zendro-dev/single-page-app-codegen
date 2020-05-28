@@ -261,7 +261,7 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
    */
 
   function clearRequestDoDelete() {
-    //nothing to do.
+    delayedCloseDeleteConfirmationAccept(null, 500);
   }
 
 <%
@@ -285,10 +285,8 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
     
     //variables
     let variables = {};
-<%if(isDefaultId){-%>
-    //<%- internalId _%>
-    variables.<%- internalId _%> = item.<%- internalId _%>;
-<%}-%>
+    //<%- internalId %>
+    variables.<%- internalId %> = item.<%- internalId _%>;
 
     /*
       API Request: <%- queryName1 %>

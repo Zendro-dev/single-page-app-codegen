@@ -11,7 +11,6 @@ import Fade from '@material-ui/core/Fade';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import InputAdornment from '@material-ui/core/InputAdornment';
-import Divider from '@material-ui/core/Divider';
 import ClearInactive from '@material-ui/icons/BackspaceOutlined';
 import ClearActive from '@material-ui/icons/Backspace';
 import Search from '@material-ui/icons/Search';
@@ -215,34 +214,8 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal %>To
                     </IconButton>
                   </Tooltip>
                 </Grid>
-
               </Grid>
             </Grid>
-
-            {/* Headers */}
-            <Grid item xs={12} className={classes.headers}>
-              <Grid container justify='flex-start' alignItems='center' wrap='nowrap'>
-
-                {/* <%- internalId _%> */}
-                <Grid item>
-                  <Typography className={classes.id} variant="caption" display="block" noWrap={true}><b><%- sortedAssociations[aindex].internalId _%></b></Typography>
-                </Grid>
-                
-                {/* Label */}
-                <Grid item xs={8}>
-                  <Typography className={classes.label} variant="caption" display="block" noWrap={true}><b>&nbsp;&nbsp;&nbsp;<%- sortedAssociations[aindex].label _%></b></Typography>
-                </Grid>
-              
-              </Grid>
-            </Grid>
-
-            <Grid container justify='center' alignItems='center' wrap='wrap'>
-              <Grid item xs={12}>
-              {/* Divider */}
-              <Divider orientation="horizontal" />
-              </Grid>
-            </Grid>
-
           </Grid>
         </Grid>
       </Grid>

@@ -512,8 +512,8 @@ function setAjvErrors(err) {
     let variables = {};
 
 <%if(isDefaultId){-%>
-    //<%- internalId _%>
-    variables.<%- internalId _%> = item.<%- internalId _%>;
+    //<%- internalId %>
+    variables.<%- internalId %> = item.<%- internalId _%>;
 <%}-%>
 
     //attributes

@@ -918,7 +918,9 @@ function resetReloadData() {
                             }}
                           >
                             <ListItemAvatar>
-                              <Avatar>{"<%- sortedAssociations[aindex].targetModelLc%>".slice(0,1)}</Avatar>
+                              <Tooltip title={ '<%- sortedAssociations[aindex].targetModel %>' }>
+                                <Avatar>{"<%- sortedAssociations[aindex].targetModelLc%>".slice(0,1)}</Avatar>
+                              </Tooltip>
                             </ListItemAvatar>
 
                             <ListItemText
@@ -928,7 +930,7 @@ function resetReloadData() {
                                   <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
                                     <Grid item>
                                       <Tooltip title={ '<%- sortedAssociations[aindex].internalId %>' }>
-                                        <Typography variant="h6" display="block" noWrap={true}>{it.<%- sortedAssociations[aindex].internalId _%>}</Typography>
+                                        <Typography variant="body1" display="block" noWrap={true}>{it.<%- sortedAssociations[aindex].internalId _%>}</Typography>
                                       </Tooltip>
                                     </Grid>
                                     {/*Key icon*/}
