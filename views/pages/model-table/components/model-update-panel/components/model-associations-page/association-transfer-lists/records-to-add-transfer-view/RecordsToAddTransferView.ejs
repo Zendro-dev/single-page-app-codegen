@@ -2157,7 +2157,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                           >
 <%if(sortedAssociations[aindex].type === 'to_one' || sortedAssociations[aindex].type === 'generic_to_one') {-%>
                             <ListItemAvatar>
-                              <Tooltip title={ (associatedItem.<%- sortedAssociations[aindex].internalId %>===it.<%- sortedAssociations[aindex].internalId%>) ? '<%- sortedAssociations[aindex].targetModel %> — ' + t('modelPanels.associated', 'Associated') : '<%- sortedAssociations[aindex].targetModel %> '}>
+                              <Tooltip title={ (associatedItem.<%- sortedAssociations[aindex].internalId %>===it.<%- sortedAssociations[aindex].internalId%>) ? '<%- sortedAssociations[aindex].targetModel %> — ' + t('modelPanels.associatedRecord', 'Associated record') : '<%- sortedAssociations[aindex].targetModel %> '}>
                                 <Avatar>
                                   {"<%- sortedAssociations[aindex].targetModelLc%>".slice(0,1)}
                                 </Avatar>
@@ -2184,7 +2184,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                                     {/*Key icon*/}
                                     <Grid item>
 <%if(sortedAssociations[aindex].type === 'to_one' || sortedAssociations[aindex].type === 'generic_to_one') {-%>
-                                      <Tooltip title={ (associatedItem.<%- sortedAssociations[aindex].internalId %>===it.<%- sortedAssociations[aindex].internalId%>) ? t('modelPanels.internalId', 'Unique Identifier') + ' — ' + t('modelPanels.associated', 'Associated') : t('modelPanels.internalId', 'Unique Identifier')}>
+                                      <Tooltip title={ (associatedItem.<%- sortedAssociations[aindex].internalId %>===it.<%- sortedAssociations[aindex].internalId%>) ? t('modelPanels.internalId', 'Unique Identifier') + ' — ' + t('modelPanels.associatedRecord', 'Associated record') : t('modelPanels.internalId', 'Unique Identifier')}>
                                         <Key fontSize="small" style={{ marginTop:8, color: (associatedItem.<%- sortedAssociations[aindex].internalId %>===it.<%- sortedAssociations[aindex].internalId%>) ? green[500] : grey[400]}} />
                                       </Tooltip>
 <%} else{-%>
@@ -2435,7 +2435,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                           >
 <%if(sortedAssociations[aindex].type === 'to_one' || sortedAssociations[aindex].type === 'generic_to_one') {-%>
                             <ListItemAvatar>
-                              <Tooltip title={ (associatedItem.<%- sortedAssociations[aindex].internalId %>===it.<%- sortedAssociations[aindex].internalId%>) ? '<%- sortedAssociations[aindex].targetModel %> — ' + t('modelPanels.associated', 'Associated') : '<%- sortedAssociations[aindex].targetModel %> '}>
+                              <Tooltip title={ (associatedItem.<%- sortedAssociations[aindex].internalId %>===it.<%- sortedAssociations[aindex].internalId%>) ? '<%- sortedAssociations[aindex].targetModel %> — ' + t('modelPanels.associatedRecord', 'Associated record') : '<%- sortedAssociations[aindex].targetModel %> '}>
                                 <Avatar>
                                   {"<%- sortedAssociations[aindex].targetModelLc%>".slice(0,1)}
                                 </Avatar>
@@ -2462,7 +2462,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                                     {/*Key icon*/}
                                     <Grid item>
 <%if(sortedAssociations[aindex].type === 'to_one' || sortedAssociations[aindex].type === 'generic_to_one') {-%>
-                                      <Tooltip title={ (associatedItem.<%- sortedAssociations[aindex].internalId %>===it.<%- sortedAssociations[aindex].internalId%>) ? t('modelPanels.internalId', 'Unique Identifier') + ' — ' + t('modelPanels.associated', 'Associated') : t('modelPanels.internalId', 'Unique Identifier')}>
+                                      <Tooltip title={ (associatedItem.<%- sortedAssociations[aindex].internalId %>===it.<%- sortedAssociations[aindex].internalId%>) ? t('modelPanels.internalId', 'Unique Identifier') + ' — ' + t('modelPanels.associatedRecord', 'Associated record') : t('modelPanels.internalId', 'Unique Identifier')}>
                                         <Key fontSize="small" style={{ marginTop:8, color: (associatedItem.<%- sortedAssociations[aindex].internalId %>===it.<%- sortedAssociations[aindex].internalId%>) ? green[500] : grey[400]}} />
                                       </Tooltip>
 <%} else{-%>
