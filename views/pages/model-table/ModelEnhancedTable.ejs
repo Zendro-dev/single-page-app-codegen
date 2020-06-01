@@ -272,16 +272,12 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
         //check: graphql errors
         if(response.data.errors) {
           let newError = {};
-          let withDetails=true;
-          variant.current='info';
           newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
           newError.locations=[{model: '<%- name -%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
           newError.path=['<%- namePlCp %>'];
           newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
         }
 
         //ok
@@ -399,16 +395,12 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
               //check: graphql errors
               if(response.data.errors) {
                 let newError = {};
-                let withDetails=true;
-                variant.current='info';
                 newError.message = '<%- queryName2 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
                 newError.locations=[{model: '<%- name -%>', query: '<%- queryName2 %>', method: '<%- methodName1 %>', request: '<%- requestName2 %>'}];
                 newError.path=['<%- namePlCp %>'];
                 newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
                 errors.current.push(newError);
                 console.log("Error: ", newError);
-
-                showMessage(newError.message, withDetails);
               }
 <%} else if(paginationType === 'cursorBased') {-%>
               //check: <%- queryName2 %> type
@@ -481,6 +473,24 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
               includeCursor.current = false;
 <%}-%>
               setIsOnApiRequest(false);
+
+              /**
+               * Display graphql errors
+               */
+              if(errors.current.length > 0) {
+                let newError = {};
+                let withDetails=true;
+                variant.current='info';
+                newError.message = '<%- methodName1 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.') + ' ('+errors.current.length+')';
+                newError.locations=[{model: '<%- name -%>', method: '<%- methodName1 %>'}];
+                newError.path=['<%- namePlCp %>'];
+                newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+                errors.current.push(newError);
+                console.log("Error: ", newError);
+
+                showMessage(newError.message, withDetails);
+              }
+
               return;
             },
             //rejected
@@ -933,7 +943,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   }
 
   function clearRequestDoDelete() {
-    reloadData();
+    //nothing to do.
   }
 
   function clearRequestGetCsvTemplate() {
@@ -1320,7 +1330,7 @@ function resetReloadData() {
         &&(permissions.<%- nameLc -%>.includes('read') || permissions.<%- nameLc -%>.includes('*')))
         &&(
           <Grid container justify='center'>
-            <Grid item xs={12} md={11}>
+            <Grid item xs={12}>
               <Paper className={classes.paper}>
 
                 {/* Toolbar */}

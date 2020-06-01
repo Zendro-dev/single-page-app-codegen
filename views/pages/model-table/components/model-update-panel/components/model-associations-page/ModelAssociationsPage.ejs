@@ -112,7 +112,7 @@ export default function <%- nameOnPascal _%>AssociationsPage(props) {
         > 
 
           {/* Menu Tabs: Associations */}
-          <Grid item xs={12} sm={10} md={9} className={classes.menu}>
+          <Grid item xs={12} sm={11} className={classes.menu}>
             <<%- nameOnPascal _%>AssociationsMenuTabs
               associationSelected={associationSelected}
               handleClick={handleAssociationClick}
@@ -122,7 +122,7 @@ export default function <%- nameOnPascal _%>AssociationsPage(props) {
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
           {/* <%- sortedAssociations[i].relationNameCp %> Transfer Lists */}
           {(associationSelected === '<%- sortedAssociations[i].relationNameLc _%>') && (
-            <Grid item xs={12} sm={10} md={9}>
+            <Grid item xs={12} sm={11}>
               <<%- sortedAssociations[i].relationNameOnPascal _%>TransferLists
                 item={item}
                 idsToAdd={<%- sortedAssociations[i].relationNameLc _%>IdsToAdd}

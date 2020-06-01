@@ -235,6 +235,10 @@ export default function FloatField(props) {
                 return;
               }
 
+              if(event.ctrlKey) {
+                return;
+              }
+
               if(/^[+\-.e]{1}$/.test(event.key)) {
                 return;
               }
