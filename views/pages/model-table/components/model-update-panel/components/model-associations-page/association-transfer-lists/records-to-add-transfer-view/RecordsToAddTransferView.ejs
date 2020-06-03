@@ -77,7 +77,13 @@ const useStyles = makeStyles(theme => ({
     maxHeight: '33vh',
   },
   arrowsBox: {
-    marginTop: theme.spacing(3),
+    [theme.breakpoints.down('xs')]: {
+      marginTop: theme.spacing(0),
+    
+    },
+    [theme.breakpoints.up('sm')]: {
+      marginTop: theme.spacing(3),
+    },
   },
   arrowsV: {
     transform: "rotate(90deg)",
