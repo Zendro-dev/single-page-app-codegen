@@ -817,10 +817,9 @@ function getSearchArgument(filterName, searchText, ops) {
             for(let k = 0; k < vkeys.length; k++) {
               let va = v[vkeys[k]]; //values array
 
-              //for each value
-              for(let kv = 0; kv < va.length; kv++) {
-                onlyOrs += `{field:${vkeys[k]}, value:{value:"${String(va[kv])}"}, operator:eq},`
-              }//end: for earch value
+              //in
+              onlyOrs += `{field:${vkeys[k]}, value:{type: "Array", value:"${va.join()}"}, operator:in},`
+
             }//end: for earch key
           }//end: if type 'Int
         }//end: for earch only object
@@ -875,10 +874,9 @@ function getSearchArgument(filterName, searchText, ops) {
             for(let k = 0; k < vkeys.length; k++) {
               let va = v[vkeys[k]]; //values array
 
-              //for each value
-              for(let kv = 0; kv < va.length; kv++) {
-                ands += `{field:${vkeys[k]}, value:{value:"${String(va[kv])}"}, operator:ne},`
-              }//end: for earch value
+              //notIn
+              ands += `{field:${vkeys[k]}, value:{type: "Array", value:"${va.join()}"}, operator:notIn},`
+
             }//end: for earch key
           }//end: if type 'Int
         }//end: for earch exclude object
@@ -943,10 +941,9 @@ function getSearchArgument(filterName, searchText, ops) {
             for(let k = 0; k < vkeys.length; k++) {
               let va = v[vkeys[k]]; //values array
 
-              //for each value
-              for(let kv = 0; kv < va.length; kv++) {
-                onlyOrs += `{field:${vkeys[k]}, value:{value:"${String(va[kv])}"}, operator:eq},`
-              }//end: for earch value
+              //in
+              onlyOrs += `{field:${vkeys[k]}, value:{type: "Array", value:"${va.join()}"}, operator:in},`
+
             }//end: for earch key
           }//end: if type 'Int
         }//end: for earch only object
@@ -1001,10 +998,9 @@ function getSearchArgument(filterName, searchText, ops) {
             for(let k = 0; k < vkeys.length; k++) {
               let va = v[vkeys[k]]; //values array
 
-              //for each value
-              for(let kv = 0; kv < va.length; kv++) {
-                ands += `{field:${vkeys[k]}, value:{value:"${String(va[kv])}"}, operator:ne},`
-              }//end: for earch value
+              //notIn
+              ands += `{field:${vkeys[k]}, value:{type: "Array", value:"${va.join()}"}, operator:notIn},`
+
             }//end: for earch key
           }//end: if type 'Int
         }//end: for earch exclude object
