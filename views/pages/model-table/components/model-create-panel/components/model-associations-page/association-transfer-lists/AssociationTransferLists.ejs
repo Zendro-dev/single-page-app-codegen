@@ -51,11 +51,11 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
               </Typography>
 <%if(sortedAssociations[aindex].type === 'to_one' || sortedAssociations[aindex].type === 'generic_to_one') {-%>
               <Typography variant="body2" display='inline'>
-                <b>{  t('modelPanels.theRecord', "the record ") }</b>
+                {  t('modelPanels.theRecord', "the record ") }
               </Typography>
 <%} else {-%>
               <Typography variant="body2" display='inline'>
-                <b>{  t('modelPanels.theRecords', "the records ") }</b>
+                {  t('modelPanels.theRecords', "the records ") }
               </Typography>
 <%}-%>
               <Typography variant="body2" display='inline'>
