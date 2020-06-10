@@ -225,7 +225,6 @@ exports.checkJsonDataFile = function(jsonModel){
         //models
         case 'sql':
         case 'distributed-data-model':
-        case 'webservice':
         case 'cenz-server':
         case 'generic':
         //adapters
@@ -239,7 +238,7 @@ exports.checkJsonDataFile = function(jsonModel){
         default:
           //not ok
           result.pass = false;
-          result.errors.push(`ERROR: The attribute 'storageType' has an invalid value. One of the following types is expected: [sql, webservice, cenz-server, distributed-data-model, generic]. But '${jsonModel.storageType}' was obtained.`);
+          result.errors.push(`ERROR: The attribute 'storageType' has an invalid value. One of the following types is expected: [sql, cenz-server, distributed-data-model, generic]. But '${jsonModel.storageType}' was obtained.`);
           break;
       }
     }
