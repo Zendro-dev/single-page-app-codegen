@@ -9,35 +9,134 @@ program = require('commander');
 const colors = require('colors/safe');
 
 /*
- * Parse & set command-line-arguments
+ * Program options
  */
 program
-  .description('Code generator for SPA')
-  .option('-f, --jsonFiles <filesFolder>', 'Folder containing one json file for each model')
-  .option('-o, --outputDirectory <directory>', 'Directory where generated code will be written')
-  .option('-D, --createBaseDirs', 'Try to create base directories if they do not exist')
-  .option('-v, --verbose', 'Show details about the results of running code generation process')
-  .parse(process.argv);
+  .description('Code generator for SPA.')
+  .option('-f, --jsonFiles <filesFolder>', 'Folder containing one json file for each model.')
+  .option('-o, --outputDir <directory>', 'Directory where generated code will be written.')
+  .option('-D, --createBaseDirs', 'Try to create base directories if they do not exist.')
+  .option('-P, --genPlotlyForAll', 'Generates a Plotly JS React component for all the json model files given as input.'+
+    'Plotly components will be part of the SPA being generated.')
+  .option('-V, --verbose', 'Show details about the results of running code generation process.');
 
-//check input JSON files
+/**
+ * Sub-Command: genPlotly
+ */
+let genPlotly = null;
+let modelsWithPlotly = [];
+let plotlyOutputDir = null;
+let standalonePlotlyBaseDir = null;
+let spaPlotlyDir = null;
+program
+  .command('genPlotly <jsonModelFile> [moreJsonModelFiles...]')
+  .description('Generates a Plotly JS React component for the json models files given as arguments.'+
+    'If neither -f nor -A options are given, then -s option will be taken as default.')
+  .option('-A, --spaDir <spaDirectory>', 'Plotly components will be generated as part of the SPA located in the given directory.'+
+    'This option will be ignored if -f option is given, and the Plotly components will be part of the SPA being generated.')
+  .option('-s, --standalonePlotly [plotlyOutputDir]', 
+    'Plotly components will be generated in standalone mode in the given output directory, or in ./ if no output directory is given.'+
+    'This option will be ignored if either -f option or -A option are given.')
+  .action((jsonModelFile, moreJsonModelFiles, cmdObj) => {
+    //flag
+    genPlotly = true;
+    
+    //arg: <jsonModelFile>
+    modelsWithPlotly.push(jsonModelFile);
+    
+    //args: [moreJsonModelFiles...]
+    if(moreJsonModelFiles) {
+      moreJsonModelFiles.forEach((jFile) => {
+        if(!modelsWithPlotly.includes(jFile)) {
+          modelsWithPlotly.push(jFile);
+        }
+      });
+    }
+    
+    //op: spaDir
+    if(cmdObj.spaDir) {
+      spaPlotlyDir = path.resolve(path.join(cmdObj.plotlyOutputDir, 'plots'));
+    } else {
+      
+      //op: standalonePlotly
+      if(cmdObj.standalonePlotly) {
+        if(typeof cmdObj.standalonePlotly === 'string') {
+          standalonePlotlyBaseDir = path.resolve(cmdObj.standalonePlotly);
+        } else {
+          standalonePlotlyBaseDir = path.resolve('./');
+        }
+      } else {
+        standalonePlotlyBaseDir = path.resolve('./');
+      }
+    }
+
+  });
+
+/**
+ * Parse command line arguments
+ */
+program.parse(process.argv);
+
+/**
+ * Case: No SPA.
+ */
 if(!program.jsonFiles){
+
+  /**
+   * Do: sub-command: genPlotly 
+   */
+  if(genPlotly) {
+
+    if(spaPlotlyDir) { //case: Plotly as part of an existent SPA.
+      funks.genPlotlyInExistentSpa({
+        spaPlotlyDir,
+        modelsWithPlotly,
+      });
+    } else { //case: standalone Plotly.
+      funks.genStandalonePlotly({
+        standalonePlotlyBaseDir,
+        modelsWithPlotly,
+      });
+    }
+
+    //msg
+    console.log("@ Code generation: ", colors.green('done'));
+    return;
+
+  }//end: genPloty
+
+  /**
+   * No sub-commands neither.
+   */
   //msg
-  console.log(colors.red('! Error: '), 'You must indicate the json files in order to generate the code.');
+  console.log(colors.red('! Error: '), 'You must indicate the json files in order to generate the SPA code, or one of the sub-commands.');
   process.exit(1);
 }
 
+/**
+ * Case: Generate SPA
+ */
+
+/**
+ * Set options
+ */
 //ops: output/input directories
 let json_dir = program.jsonFiles;
-let directory = program.outputDirectory || __dirname;
-//msg
-console.log('Input directory: ', colors.dim(path.resolve(json_dir)));
-console.log('Output directory: ', colors.dim(path.resolve(directory)));
+let directory = program.outputDir || __dirname;
 
 //op: verbose
 let verbose = program.verbose !== undefined ? true : false;
 
 //op: createBaseDirs
 let createBaseDirs = program.createBaseDirs !== undefined ? true : false;
+
+//op: genPlotlyForAll
+let genPlotlyForAll = program.genPlotlyForAll !== undefined ? true : false;
+
+//msgs
+console.log('Input directory:', colors.dim(path.resolve(json_dir)));
+console.log('Output directory:', colors.dim(path.resolve(directory)));
+console.log('Generate Plotly components:', (genPlotlyForAll) ? colors.green(genPlotlyForAll) : colors.dim('No'));
 
 /*
  * Check: required directories
@@ -113,7 +212,7 @@ try {
   exit(1);
 }
 
-//for each file
+//for each json model file
 for(let i=0; i<json_files.length; i++) {
   let json_file = json_files[i];
   let fileData = null;
@@ -139,6 +238,7 @@ for(let i=0; i<json_files.length; i++) {
   
   //msg
   if(verbose) console.log("@@ Processing model in: ", colors.blue(json_file));
+  console.log("@@ Processing model in: ", colors.blue(json_file));
   
   //do semantic validation
   let check_json_model = funks.checkJsonDataFile(fileData);
@@ -159,8 +259,9 @@ for(let i=0; i<json_files.length; i++) {
 
   } else { //first phase of semantic validations: ok
     
-    //get ops
+    //get options
     let opt = null;
+    
     try {
       opt = funks.fillOptionsForViews(fileData);
     }catch(e) {
