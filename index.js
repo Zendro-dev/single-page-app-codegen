@@ -7,6 +7,7 @@ jsb = require('js-beautify').js_beautify;
 funks = require(path.resolve(__dirname, 'funks.js'));
 program = require('commander');
 const colors = require('colors/safe');
+const { stringify } = require('querystring');
 
 /*
  * Program options
@@ -23,9 +24,8 @@ program
 /**
  * Sub-Command: genPlotly
  */
-let genPlotly = null;
+let genPlotly = false;
 let modelsWithPlotly = [];
-let plotlyOutputDir = null;
 let standalonePlotlyBaseDir = null;
 let spaPlotlyDir = null;
 program
@@ -55,7 +55,7 @@ program
     
     //op: spaDir
     if(cmdObj.spaDir) {
-      spaPlotlyDir = path.resolve(path.join(cmdObj.plotlyOutputDir, 'plots'));
+      spaPlotlyDir = path.resolve(cmdObj.spaDir);
     } else {
       
       //op: standalonePlotly
@@ -63,9 +63,11 @@ program
         if(typeof cmdObj.standalonePlotly === 'string') {
           standalonePlotlyBaseDir = path.resolve(cmdObj.standalonePlotly);
         } else {
+          //default
           standalonePlotlyBaseDir = path.resolve('./');
         }
       } else {
+        //default
         standalonePlotlyBaseDir = path.resolve('./');
       }
     }
@@ -78,30 +80,57 @@ program
 program.parse(process.argv);
 
 /**
- * Case: No SPA.
+ * Case: No SPA (no input json files for SPA).
  */
 if(!program.jsonFiles){
+  
+  //op: verbose
+  let verbose = program.verbose !== undefined ? true : false;
 
   /**
-   * Do: sub-command: genPlotly 
+   * Check: sub-command: genPlotly 
    */
   if(genPlotly) {
-
-    if(spaPlotlyDir) { //case: Plotly as part of an existent SPA.
-      funks.genPlotlyInExistentSpa({
+  
+    if(spaPlotlyDir) {
+      
+      /**
+       * Case: Generate Plotly as part of an existent SPA.
+       */
+      return funks.genPlotlyInExistentSpa({
         spaPlotlyDir,
         modelsWithPlotly,
-      });
-    } else { //case: standalone Plotly.
-      funks.genStandalonePlotly({
+      }, verbose)
+      .then((res) => {
+        //msg
+        console.log("@ Code generation: ", colors.green('done'));
+      })
+      .catch((err) => {
+        //err
+        console.log(colors.red('!'), err);
+        console.log("@ Code generation: ", colors.red('done'));
+      })
+    
+    } else {
+
+      /**
+       * Case: Generate standalone Plotly components.
+       */
+      return funks.genStandalonePlotly({
         standalonePlotlyBaseDir,
         modelsWithPlotly,
-      });
+      }, verbose)
+      .then((res) => {
+        //msg
+        console.log("@ Code generation: ", colors.green('done'));
+      })
+      .catch((err) => {
+        //err
+        console.log(colors.red('!'), err);
+        console.log("@ Code generation: ", colors.red('done'));
+      })
+    
     }
-
-    //msg
-    console.log("@ Code generation: ", colors.green('done'));
-    return;
 
   }//end: genPloty
 
@@ -133,10 +162,17 @@ let createBaseDirs = program.createBaseDirs !== undefined ? true : false;
 //op: genPlotlyForAll
 let genPlotlyForAll = program.genPlotlyForAll !== undefined ? true : false;
 
+//set: all Plotly options
+let plotlyOptions = {
+  genPlotlyForAll,
+  genPlotly,
+  modelsWithPlotly
+}
+
 //msgs
 console.log('Input directory:', colors.dim(path.resolve(json_dir)));
 console.log('Output directory:', colors.dim(path.resolve(directory)));
-console.log('Generate Plotly components:', (genPlotlyForAll) ? colors.green(genPlotlyForAll) : colors.dim('No'));
+console.log('Plotly options:', colors.dim(JSON.stringify(plotlyOptions, null, 4)));
 
 /*
  * Check: required directories
@@ -209,18 +245,32 @@ try {
   //msg
   console.log(colors.red('Error:'),'could not read directory:', colors.blue(json_dir));
   console.log(e);
-  exit(1);
+  process.exit(1);
 }
+//do semantic validations
+let check_json_files = funks.checkJsonFiles(json_dir, json_files, {plotlyOptions});
+if(!check_json_files.pass) {//no-valid
+  //err
+  console.log(colors.red("@@: Proccess", colors.red('canceled...')));
+  //errors
+  check_json_files.errors.forEach( (error) =>{
+    console.log("@@@", colors.red(error));
+  });
+  //msg
+  console.log("@ ", colors.red('done'));
+  process.exit(1);
+} 
 
 //for each json model file
 for(let i=0; i<json_files.length; i++) {
   let json_file = json_files[i];
   let fileData = null;
+  let json_file_path = json_dir+'/'+json_file;
   totalFiles++;
   
   //Parse JSON file
   try {
-    fileData = funks.parseFile(json_dir + '/'+json_file );
+    fileData = funks.parseFile(json_file_path);
     //check
     if(fileData === null) {
       totalExcludedFiles++;
@@ -238,13 +288,10 @@ for(let i=0; i<json_files.length; i++) {
   
   //msg
   if(verbose) console.log("@@ Processing model in: ", colors.blue(json_file));
-  console.log("@@ Processing model in: ", colors.blue(json_file));
   
-  //do semantic validation
+  //do semantic validations
   let check_json_model = funks.checkJsonDataFile(fileData);
-  
-  //if no-valid
-  if(!check_json_model.pass) {
+  if(!check_json_model.pass) {//no-valid
     totalWrongFiles++;
     totalExcludedFiles++;
 
@@ -263,7 +310,7 @@ for(let i=0; i<json_files.length; i++) {
     let opt = null;
     
     try {
-      opt = funks.fillOptionsForViews(fileData);
+      opt = funks.fillOptionsForViews(fileData, json_file_path, {plotlyOptions});
     }catch(e) {
       totalWrongFiles++;
       totalExcludedFiles++;
@@ -311,7 +358,7 @@ console.log(colors.white('\n@ Starting code generation in: \n', colors.dim(path.
 opts.forEach((ejbOpts) => {
 
   // set table path
-  var tablePath = 'src/components/main-panel/table-panel/models-tables';
+  let tablePath = 'src/components/main-panel/table-panel/models-tables';
   
   // collect models and attributes
   if(ejbOpts.nameLc === 'role' || ejbOpts.nameLc === 'user' || ejbOpts.nameLc === 'role_to_user') {
@@ -349,6 +396,9 @@ opts.forEach((ejbOpts) => {
   }
   //routes
   modelTableDirs.push(path.resolve(directory, 'src/routes'));
+  //plots
+  let plotlyPath = 'src/components/plots';
+  modelTableDirs.push(path.resolve(directory, plotlyPath));
 
   //create dirs
   for(var i=0; i<modelTableDirs.length; i++) {
@@ -387,9 +437,8 @@ opts.forEach((ejbOpts) => {
    * modelTable
    * 
    * */
-
   // template 1: ModelEnhancedTable
-  var fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/`, `${ejbOpts.nameCp}EnhancedTable.js`);
+  let fpath = path.resolve(directory, `${tablePath}/${ejbOpts.nameLc}-table/`, `${ejbOpts.nameCp}EnhancedTable.js`);
   promises.push( funks.renderToFile(fpath, 'model-table/ModelEnhancedTable', ejbOpts) );
 
   // template 2: ModelUploadFileDialog
@@ -691,6 +740,14 @@ opts.forEach((ejbOpts) => {
     promises.push( funks.renderToFile(fpath, 'model-table/components/model-detail-panel/components/model-associations-page/association-compact-view/components/AssociationCompactViewCursorPagination', ejbOpts) );
 
   }
+
+  /**
+   * modelPlotly
+   * 
+   * */
+  // template 63: ModelPlotly
+  fpath = path.resolve(directory, `${plotlyPath}/`, `${ejbOpts.nameCp}Plotly.js`);
+  promises.push( funks.renderToFile(fpath, 'plots/ModelPlotly', ejbOpts) );
 
   //msg
   console.log(colors.white('@@ Generating code for model: '), colors.blue(ejbOpts.name), '... ', colors.green('done'));

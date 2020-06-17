@@ -1,10 +1,11 @@
-var unique = require('array-unique');
-var exports = module.exports = {};
-var fs = require('fs-extra');
-var inflection = require('inflection')
+exports = module.exports = {};
+const fs = require('fs-extra');
+const path = require('path');
+const inflection = require('inflection')
 const {promisify} = require('util');
 const ejsRenderFile = promisify( ejs.renderFile )
 const colors = require('colors/safe');
+const { first } = require('lodash');
 
 /**
  * renderTemplate - Generate the Javascript code as string using EJS templates views
@@ -19,10 +20,11 @@ exports.renderTemplate = async function(templateName, options) {
     return await ejsRenderFile(outFile, options, {});
   } catch(e) {
     //msg
-    console.log(colors.red('@@@! Error:'), 'while rendering template: ', colors.dim(outFile));
-    throw new Error(e);
+    console.log(colors.red('@@@ Error:'), 'trying to rendering template: ', colors.dim(outFile));
+    throw e;
   }
 }
+
 
 /**
  * renderToFile - Given a template view it generates the code as string
@@ -49,6 +51,32 @@ exports.renderToFile = async function(outFile, templateName, options) {
 
   return p;
 }
+
+/**
+ * renderToFileSync - Given a template view it generates the code as string
+ * and writes the code in a output file.
+ *
+ * @param  {string} outFile      path to output file where code will be written
+ * @param  {string} templateName template view name to use for generating code
+ * @param  {object} options      Options to fill the template
+ * @return {promise}              Promise will be resolved with success message if the file is written successfully, rejected with error otherwise.
+ */
+exports.renderToFileSync = async function(outFile, templateName, options) {
+  //generate
+  let genFile = await exports.renderTemplate(templateName, options);
+  
+  //write
+  try {
+    fs.writeFileSync(outFile, genFile);
+    //success
+    console.log('@@@ File:', colors.dim(outFile), colors.green('written successfully!'));
+  } catch(e) {
+    //error
+    console.log('@@@ File:', colors.dim(outFile), colors.red('error trying to write.'));
+    throw e;
+  }
+}
+
 
 /**
  * exports - Parse input 'attributes' argument into array of arrays:
@@ -184,12 +212,59 @@ exports.parseFile = function(jFile){
 }
 
 /**
+ * checkJsonFiles - Semantic validations related to json files.
+ *
+ * @param  {string} jsonDir       Input directory with json files.
+ * @param  {array}  jsonFiles     Array of jsonFiles paths readed from input directory.
+ * @param  {object} options       Object with extra options used to generate output.
+ * @return {object}               Object containing a boolean status of the validaton process (pass) and an array of errors (errors).
+ */
+exports.checkJsonFiles = function(jsonDir, jsonFiles, options){
+  let result = {
+    pass : true,
+    errors: []
+  }
+
+  /**
+   * General checks:
+   */
+  //'jsonFiles'
+  if(jsonFiles.length <= 0) {
+    result.pass = false;
+    result.errors.push(`ERROR: There are no JSON files on input directory. You should specify some JSON files in order to generate the Cenzontle SPA.`);
+  } else {
+    
+    /**
+     * Plotly checks
+     */
+    let plotlyOptions = options.plotlyOptions;
+    let jsonFilesPaths = jsonFiles.map((file) => path.resolve(path.join(jsonDir, file)));
+
+    //genPlotly + modelsWithPlotly
+    if(plotlyOptions.genPlotly) {
+      /**
+       * All models should be one of those in jsonDir
+       */
+      plotlyOptions.modelsWithPlotly.forEach((file) => {
+        if(!jsonFilesPaths.includes(path.resolve(file))) {
+          result.pass = false;
+          result.errors.push(`ERROR: json model file '${file}' is not in the json input directory.`);
+        } 
+      });
+    }
+  }
+
+  return result;
+}
+
+/**
  * checkJsonDataFile - Semantic validations are carried out on the definition of the JSON model.
  *
- * @param  {object} jsonModel Javascript object parsed from JSON model file.
- * @return {object}                Object containing a boolean status of the validaton process (pass) and an array of errors (errors).
+ * @param  {object} jsonModel     Javascript object parsed from JSON model file.
+ * @param  {object} options       Object with extra options used to generate output.
+ * @return {object}               Object containing a boolean status of the validaton process (pass) and an array of errors (errors).
  */
-exports.checkJsonDataFile = function(jsonModel){
+exports.checkJsonDataFile = function(jsonModel, options){
   let result = {
     pass : true,
     errors: []
@@ -210,6 +285,7 @@ exports.checkJsonDataFile = function(jsonModel){
       result.errors.push(`ERROR: 'model' field must be a string.`);
     }
   }
+  
   //'storageType'
   if(!jsonModel.hasOwnProperty('storageType')) {
     result.pass = false;
@@ -243,6 +319,7 @@ exports.checkJsonDataFile = function(jsonModel){
       }
     }
   }
+  
   //'attributes'
   if(!jsonModel.hasOwnProperty('attributes')) {
     result.pass = false;
@@ -282,6 +359,7 @@ exports.checkJsonDataFile = function(jsonModel){
       }
     }
   }
+  
   //'associations'
   if(jsonModel.hasOwnProperty('associations')) {
     //check 'associations' type
@@ -362,10 +440,12 @@ exports.checkJsonDataFile = function(jsonModel){
 /**
  * fillOptionsForViews - Creates object with all the information about data model that templates will use.
  *
- * @param  {object} fileData object originally created from a json file containing data model info.
- * @return {object}          Object with all extra data model info that will be needed to create files with templates.
+ * @param  {object} fileData  Object originally created from a json file containing data model info.
+ * @param  {string} filePath  JSON model file path.
+ * @param  {object} options   Object with extra options used to generate output.
+ * @return {object}           Object with all data model info that will be used to create files with templates.
  */
-exports.fillOptionsForViews = function(fileData){
+exports.fillOptionsForViews = function(fileData, filePath, options){
 
   //get associations options
   let associations = parseAssociationsFromFile(fileData);
@@ -394,6 +474,10 @@ exports.fillOptionsForViews = function(fileData){
     isDefaultId: (fileData.internalId) ? false : true,
     paginationType: getPaginationType(fileData),
     storageType: fileData.storageType,
+    
+    //Plotly
+    withPlotly: getWithPlotly(options.plotlyOptions, filePath),
+
   }
 
   return opts;
@@ -789,4 +873,337 @@ getSqlType = function(association, name){
     console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "has inconsistent key attributes.");
     throw new Error("Required attributes not found");
   }
+}
+
+/**
+ * getWithPlotly - Calculates the value for withPlotly option.
+ *
+ * @param  {object} plotlyOptions Plotly related options.
+ * @param  {string} filePath JSON model file path.
+ */
+getWithPlotly = function(plotlyOptions, filePath) {
+  //check
+  if(!plotlyOptions) return false;
+
+  //check: genPlotlyForAll
+  if(plotlyOptions.genPlotlyForAll) return true;
+
+  //check: genPlotly
+  if(plotlyOptions.genPlotly) {
+    //get resolved paths
+    let modelsWithPlotlyPaths = plotlyOptions.modelsWithPlotly.map((file) => path.resolve(file));
+
+    if(modelsWithPlotlyPaths.includes(path.resolve(filePath))) {
+      return true;
+    } else {
+      return false;
+    }
+  } else {
+    return false;
+  }
+}
+
+/**
+ * genPlotlyInExistentSpa - Generate Plotly JS React components on an existent 
+ * Cenzontle SPA project.
+ *
+ * @param  {object} plotlyOptions Plotly related options.
+ * @param  {boolean} verbose Verbose option.
+ */
+exports.genPlotlyInExistentSpa = async function(plotlyOptions, verbose) {
+  let spaPlotlyDir = plotlyOptions.spaPlotlyDir;
+  let modelsWithPlotly = plotlyOptions.modelsWithPlotly;
+  let outputDir = path.resolve(path.join(spaPlotlyDir, 'src/components/plots'));
+
+  //msgs
+  console.log('Output directory:', colors.dim(path.resolve(outputDir)));
+  console.log('Plotly options:', colors.dim(JSON.stringify(plotlyOptions, null, 4)));
+
+  /**
+   * Check: required directories
+   */
+  let requiredDirs=
+    [
+      path.resolve(spaPlotlyDir),
+      path.join(spaPlotlyDir, 'src'),
+      path.join(spaPlotlyDir, 'src/components'),
+      path.join(spaPlotlyDir, 'src/components/plots'),
+    ];
+  let status = checkRequiredDirs(requiredDirs, false, null, true);
+  //check
+  if(status.allRequiredDirsExists || status.allRequiredDirsCreated) {
+    //msg
+    console.log(colors.white('@ ', colors.green('done')));
+  } else {
+    //msg
+    console.log(colors.red('! Error: '), 'Some required directories does not exists.');
+    console.log(colors.white('@ ', colors.red('done')));
+    process.exit(1);
+  }
+
+  /**
+   * Parse JSON model files
+   */
+  //set: parse Plotly options
+  let parsePlotlyOptions = {
+    genPlotlyForAll: false,
+    genPlotly: true,
+    modelsWithPlotly,
+  }
+  status = parseJsonModels(modelsWithPlotly, null, {plotlyOptions: parsePlotlyOptions}, verbose);
+  //check
+  let opts = status.opts;
+  if(opts.length === 0) {
+    //msg
+    console.log(colors.red('! Error: '), 'No JSON files could be processed.');
+    console.log(colors.white('@ ', colors.red('done')));
+    process.exit(1);
+  } else {
+    //msg
+    console.log("@ ", colors.green('done'));
+  }
+
+  /*
+   * Code generation
+   */
+  //msg
+  console.log(colors.white('\n@ Starting code generation in: \n', colors.dim(path.resolve(outputDir))), "\n");
+  
+  for(let i=0; i<opts.length; i++) {
+    let ejbOpts = opts[i];
+
+    /**
+     * modelPlotly
+     * 
+     * */
+    // template 63: ModelPlotly
+    fpath = path.resolve(outputDir, `${ejbOpts.nameCp}Plotly.js`);
+    await exports.renderToFileSync(fpath, 'plots/ModelPlotly', ejbOpts);
+
+    //msg
+    console.log(colors.white('@@ Generating code for model: '), colors.blue(ejbOpts.name), '... ', colors.green('done'));
+  }
+}
+
+exports.genStandalonePlotly = async function(plotlyOptions, verbose) {
+  let standalonePlotlyBaseDir = plotlyOptions.standalonePlotlyBaseDir;
+  let modelsWithPlotly = plotlyOptions.modelsWithPlotly;
+  let outputDir = path.resolve(path.join(standalonePlotlyBaseDir, 'src/components/plots'));
+
+  //msgs
+  console.log('Output directory:', colors.dim(path.resolve(outputDir)));
+  console.log('Plotly options:', colors.dim(JSON.stringify(plotlyOptions, null, 4)));
+
+  /**
+   * Check: required directories
+   */
+  let requiredDirs=
+    [
+      path.resolve(standalonePlotlyBaseDir),
+      path.join(standalonePlotlyBaseDir, 'src'),
+      path.join(standalonePlotlyBaseDir, 'src/components'),
+      path.join(standalonePlotlyBaseDir, 'src/components/plots'),
+    ];
+  let status = checkRequiredDirs(requiredDirs, true, null, true);
+  //check
+  if(status.allRequiredDirsExists || status.allRequiredDirsCreated) {
+    //msg
+    console.log(colors.white('@ ', colors.green('done')));
+  } else {
+    //msg
+    console.log(colors.red('! Error: '), 'Some required directories does not exists.');
+    console.log(colors.white('@ ', colors.red('done')));
+    process.exit(1);
+  }
+
+  /**
+   * Parse JSON model files
+   */
+  //set: parse Plotly options
+  let parsePlotlyOptions = {
+    genPlotlyForAll: false,
+    genPlotly: true,
+    modelsWithPlotly,
+  }
+  status = parseJsonModels(modelsWithPlotly, null, {plotlyOptions: parsePlotlyOptions}, verbose);
+  //check
+  let opts = status.opts;
+  if(opts.length === 0) {
+    //msg
+    console.log(colors.red('! Error: '), 'No JSON files could be processed.');
+    console.log(colors.white('@ ', colors.red('done')));
+    process.exit(1);
+  } else {
+    //msg
+    console.log("@ ", colors.green('done'));
+  }
+
+  /*
+   * Code generation
+   */
+  //msg
+  console.log(colors.white('\n@ Starting code generation in: \n', colors.dim(path.resolve(outputDir))), "\n");
+  
+  for(let i=0; i<opts.length; i++) {
+    let ejbOpts = opts[i];
+
+    /**
+     * modelPlotly
+     * 
+     * */
+    // template 63: ModelPlotly
+    fpath = path.resolve(outputDir, `${ejbOpts.nameCp}Plotly.js`);
+    await exports.renderToFileSync(fpath, 'plots/ModelPlotly', ejbOpts);
+
+    //msg
+    console.log(colors.white('@@ Generating code for model: '), colors.blue(ejbOpts.name), '... ', colors.green('done'));
+  }
+}
+
+
+checkRequiredDirs = function(requiredDirs, createDirs, baseDir, verbose) {
+  /*
+   * Check: required directories
+   */
+  let allRequiredDirsExists = true;
+  let allRequiredDirsCreated = true;
+  
+  //msg
+  console.log(colors.white('\n@ Checking required directories...'));
+  
+  let baseDirectory = (baseDir) ? baseDir : "";
+  for(var i=0; i<requiredDirs.length; ++i) {
+    let dir = path.resolve(path.join(baseDirectory, requiredDirs[i]));
+    if (fs.existsSync(dir)) {
+      //msg
+      if(verbose) console.log('@@ dir: ', colors.dim(dir), "... ", colors.green('ok') );
+    } else {
+      allRequiredDirsExists = false;
+      //msg
+      console.log('@@ dir: ', colors.dim(dir), "... ", colors.red('does not exist') );
+
+      //create dir
+      if(createDirs) {
+        try {
+          fs.mkdirSync(dir, {recursive: true});
+          //msg
+          if(verbose) console.log("@@@ dir created: ", colors.dim(dir), "... ", colors.green('ok') );
+        } catch(e) {
+          allRequiredDirsCreated = false;
+          //err
+          console.log(colors.red("! mkdir.error: "), "A problem occured while trying to create a required directory, please ensure you have the sufficient privileges to create directories and that you have a recent version of NodeJS");
+          console.log(colors.red("!@ mkdir.error: "), e);
+        }
+      } else {
+        allRequiredDirsCreated = false;
+      }
+
+    }
+  }
+
+  return {
+    allRequiredDirsExists,
+    allRequiredDirsCreated,
+  };
+}
+
+parseJsonModels = function(jsonFiles, baseDir, {plotlyOptions}, verbose) {
+  let opts = [];
+  let totalFiles = 0;         //files readed from input dir
+  let totalExcludedFiles = 0; //files excluded: either by JSON error parsing or by semantic errors.
+  let totalWrongFiles = 0;    //files with semantic errors.
+
+  //msg
+  console.log(colors.white('\n@ Processing JSON files...'));
+
+  //for each json model file
+  for(let i=0; i<jsonFiles.length; i++) {
+    let jsonFile = jsonFiles[i];
+    let fileData = null;
+    let jsonFilePath = baseDir ? path.resolve(path.join(baseDir,jsonFile)) : path.resolve(jsonFile);
+    totalFiles++;
+
+    //check: file
+    if(fs.existsSync(jsonFilePath)) {
+      //msg
+      if(verbose) console.log('@@ file: ', colors.dim(jsonFilePath), "... ", colors.green('ok') );
+    } else {
+      totalExcludedFiles++;
+      //msg
+      console.log('@@ file: ', colors.dim(jsonFilePath), "... ", colors.red('does not exist') );
+      continue;
+    }
+
+    //Parse JSON file
+    try {
+      fileData = funks.parseFile(jsonFilePath);
+      //check
+      if(fileData === null) {
+        totalExcludedFiles++;
+        //msg
+        console.log('@@@ File:', colors.blue(jsonFile), colors.yellow('excluded'));
+        continue;
+      }
+    } catch(e) {
+      totalExcludedFiles++;
+      //msg
+      console.log(e);
+      console.log('@@@ File:', colors.blue(jsonFile), colors.yellow('excluded'));
+      continue;
+    }
+    
+    //msg
+    if(verbose) console.log("@@ Processing model in: ", colors.blue(jsonFile));
+    
+    //do semantic validations
+    let check_json_model = funks.checkJsonDataFile(fileData);
+    if(!check_json_model.pass) {//no-valid
+      totalWrongFiles++;
+      totalExcludedFiles++;
+
+      //errors
+      console.log("@@@ Error on model: ", colors.blue(jsonFile));
+      check_json_model.errors.forEach( (error) =>{
+        console.log("@@@", colors.red(error));
+      });
+      //msg
+      console.log('@@@ File:', colors.blue(jsonFile), colors.yellow('excluded'));
+      continue;
+
+    } else { //first phase of semantic validations: ok
+      
+      //get options
+      let opt = null;
+      try {
+        opt = funks.fillOptionsForViews(fileData, jsonFilePath, {plotlyOptions});
+      }catch(e) {
+        totalWrongFiles++;
+        totalExcludedFiles++;
+        //err
+        console.log(colors.red("@@@ Error on model:"), colors.blue(fileData.model));
+        console.log(e);
+        //msg
+        console.log('@@@ File:', colors.blue(jsonFile), colors.yellow('excluded'));
+        continue;
+      }
+
+      //msg
+      if(verbose) console.log("@@ ", colors.green('done'));
+      opts.push(opt);
+    }
+  }
+
+  //msg
+  console.log("@@ Total JSON files processed: ", colors.blue(totalFiles));
+  //msg
+  console.log("@@ Total JSON files excluded: ", (totalExcludedFiles>0) ? colors.yellow(totalExcludedFiles) : colors.green(totalExcludedFiles));
+  //msg
+  console.log("@@ Total models with errors: ", (totalWrongFiles>0) ? colors.red(totalWrongFiles) : colors.green(totalWrongFiles));
+
+  return {
+    opts,
+    totalFiles,
+    totalWrongFiles,
+    totalExcludedFiles,
+  };
 }

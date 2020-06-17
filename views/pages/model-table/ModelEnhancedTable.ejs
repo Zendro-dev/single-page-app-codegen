@@ -27,6 +27,7 @@ import TableCell from '@material-ui/core/TableCell';
 <%if(paginationType === 'limitOffset') {-%>
 import TablePagination from '@material-ui/core/TablePagination';
 <%}-%>
+import SwipeableViews from 'react-swipeable-views';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import Button from '@material-ui/core/Button';
@@ -40,6 +41,8 @@ import Typography from '@material-ui/core/Typography';
 import Delete from '@material-ui/icons/DeleteOutline';
 import Edit from '@material-ui/icons/Edit';
 import SeeInfo from '@material-ui/icons/VisibilityTwoTone';
+//Plotly
+import <%- nameOnPascal -%>Plotly from '../../../../plots/<%- nameCp -%>Plotly';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -147,6 +150,9 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
       </Button>
     </> 
   ));
+
+  //toggle buttons
+  const [toggleButtonValue, setToggleButtonValue] = useState('table');
 
   //table w&h
   const tref = useRef(null);
@@ -1055,6 +1061,19 @@ function resetReloadData() {
     }
   }
 
+  function getSwipeIndex() {
+    switch(toggleButtonValue) {
+      case 'table':
+        return 0;
+      
+      case 'plot':
+        return 1;
+
+      default:
+        return 0;
+    }
+  }
+
   /**
    * Handlers
    */
@@ -1322,6 +1341,13 @@ function resetReloadData() {
     getCsvTemplate();
   }
 
+  /*
+   * Toggle buttons handlers
+   */
+  const handleToggleButtonValueChange = (event, newValue) => {
+    setToggleButtonValue(newValue);
+  }
+
   return (
     <div className={classes.root}>
       {
@@ -1337,181 +1363,189 @@ function resetReloadData() {
                 <<%- nameOnPascal -%>EnhancedTableToolbar
                   permissions={permissions}
                   search={search}
+                  showToggleButtons={Boolean(<%- nameOnPascal -%>Plotly)}
+                  toggleButtonValue={toggleButtonValue}
                   onSearchEnter={handleSearchEnter}
                   onReloadClick={handleReloadClick}
                   handleAddClicked={handleCreateClicked}
                   handleBulkImportClicked={handleBulkImportClicked}
                   handleCsvTemplateClicked={handleCsvTemplateClicked}
+                  handleToggleButtonValueChange={handleToggleButtonValueChange}
                 />
 
-                {/* Table components*/}
-                <div className={classes.tableWrapper} ref={twref}>
+                <SwipeableViews index={getSwipeIndex()} disabled={true}>
+                  {/*
+                    Swipe page 1: Table
+                  */}
+                  <div>
+                    {/* Table components*/}
+                    <div className={classes.tableWrapper} ref={twref}>
 
-                  {/* Table backdrop */}
-                  <Fade in={(isOnApiRequest)}>
-                    <Box
-                      className={classes.tableBackdrop}
-                      bgcolor='rgba(255, 255, 255, 0.4)'
-                      width={isOnApiRequest?tw:0}
-                      height={isOnApiRequest?th:0}
-                      p={0}
-                      position="absolute"
-                      top={0}
-                      left={0}
-                      zIndex="modal"
-                    />
-                  </Fade>
+                      {/* Table backdrop */}
+                      <Fade in={(isOnApiRequest)}>
+                        <Box
+                          className={classes.tableBackdrop}
+                          bgcolor='rgba(255, 255, 255, 0.4)'
+                          width={isOnApiRequest?tw:0}
+                          height={isOnApiRequest?th:0}
+                          p={0}
+                          position="absolute"
+                          top={0}
+                          left={0}
+                          zIndex="modal"
+                        />
+                      </Fade>
 
-                  {/* Progress indicator */}
-                  <Fade
-                    in={(isOnApiRequest)}
-                  >
-                    <Box
-                      className={classes.tableBackdrop}
-                      bgcolor='rgba(255, 255, 255, 0.0)'
-                      width={isOnApiRequest?'100%':0}
-                      height={isOnApiRequest?'100%':0}
-                      p={0}
-                      position="absolute"
-                      top={0}
-                      left={tscl}
-                      zIndex="modal"
-                    >
-                      <Grid container className={classes.tableBackdropContent} justify='center' alignContent='center' alignItems='center'>
-                        <Grid item>
-                          <CircularProgress color="primary" disableShrink={true} />
-                        </Grid>
-                      </Grid>
-                    </Box>
-                  </Fade>
+                      {/* Progress indicator */}
+                      <Fade
+                        in={(isOnApiRequest)}
+                      >
+                        <Box
+                          className={classes.tableBackdrop}
+                          bgcolor='rgba(255, 255, 255, 0.0)'
+                          width={isOnApiRequest?'100%':0}
+                          height={isOnApiRequest?'100%':0}
+                          p={0}
+                          position="absolute"
+                          top={0}
+                          left={tscl}
+                          zIndex="modal"
+                        >
+                          <Grid container className={classes.tableBackdropContent} justify='center' alignContent='center' alignItems='center'>
+                            <Grid item>
+                              <CircularProgress color="primary" disableShrink={true} />
+                            </Grid>
+                          </Grid>
+                        </Box>
+                      </Fade>
 
-                  {/* No-data message */}
-                  <Fade
-                    in={(!isOnApiRequest && count === 0)}
-                  >
-                    <Box
-                      className={classes.tableBackdrop}
-                      bgcolor='rgba(255, 255, 255, 0.0)'
-                      width={(!isOnApiRequest && count === 0)?'100%':0}
-                      height={(!isOnApiRequest && count === 0)?'100%':0}
-                      p={0}
-                      position="absolute"
-                      top={0}
-                      left={tscl}
-                      zIndex="modal"
-                    >
-                      <Grid container className={classes.tableBackdropContent} justify='center' alignContent='center' alignItems='center'>
-                        <Grid item>
-                          <Typography variant="body1" >{ t('modelPanels.noData') }</Typography>
-                        </Grid>
-                      </Grid>
-                    </Box>
-                  </Fade>
+                      {/* No-data message */}
+                      <Fade
+                        in={(!isOnApiRequest && count === 0)}
+                      >
+                        <Box
+                          className={classes.tableBackdrop}
+                          bgcolor='rgba(255, 255, 255, 0.0)'
+                          width={(!isOnApiRequest && count === 0)?'100%':0}
+                          height={(!isOnApiRequest && count === 0)?'100%':0}
+                          p={0}
+                          position="absolute"
+                          top={0}
+                          left={tscl}
+                          zIndex="modal"
+                        >
+                          <Grid container className={classes.tableBackdropContent} justify='center' alignContent='center' alignItems='center'>
+                            <Grid item>
+                              <Typography variant="body1" >{ t('modelPanels.noData') }</Typography>
+                            </Grid>
+                          </Grid>
+                        </Box>
+                      </Fade>
 
-                  {/* Table */}
-                  <Table stickyHeader size='small' ref={tref}>
+                      {/* Table */}
+                      <Table stickyHeader size='small' ref={tref}>
 
-                    {/* Table Head */}
-                    <<%- nameOnPascal -%>EnhancedTableHead
-                      permissions={permissions}
-                      order={order}
-                      orderBy={orderBy}
-                      rowCount={count}
-                      onRequestSort={handleRequestSort}
-                    />
+                        {/* Table Head */}
+                        <<%- nameOnPascal -%>EnhancedTableHead
+                          permissions={permissions}
+                          order={order}
+                          orderBy={orderBy}
+                          rowCount={count}
+                          onRequestSort={handleRequestSort}
+                        />
 
-                    {/* Table Body */}
-                    <Fade
-                      in={(!isOnApiRequest && count > 0)}
-                    >
-                      <TableBody>
-                        {
-                          items.map((item, index) => {
-                            return ([
-                              /*
-                                Table Row
-                              */
-                              <TableRow
-                                hover
-                                onClick={event => handleClickOnRow(event, item)}
-                                role="checkbox"
-                                tabIndex={-1}
-                                key={item.<%- internalId _%>}
-                              >
+                        {/* Table Body */}
+                        <Fade
+                          in={(!isOnApiRequest && count > 0)}
+                        >
+                          <TableBody>
+                            {
+                              items.map((item, index) => {
+                                return ([
+                                  /*
+                                    Table Row
+                                  */
+                                  <TableRow
+                                    hover
+                                    onClick={event => handleClickOnRow(event, item)}
+                                    role="checkbox"
+                                    tabIndex={-1}
+                                    key={item.<%- internalId _%>}
+                                  >
 
-                                {/* SeeInfo icon */}
-                                <TableCell padding="checkbox">
-                                  <Tooltip title={ t('modelPanels.viewDetails') }>
-                                    <IconButton
-                                      color="default"
-                                      onClick={event => {
-                                        event.stopPropagation();
-                                        handleClickOnRow(event, item);
-                                      }}
+                                    {/* SeeInfo icon */}
+                                    <TableCell padding="checkbox">
+                                      <Tooltip title={ t('modelPanels.viewDetails') }>
+                                        <IconButton
+                                          color="default"
+                                          onClick={event => {
+                                            event.stopPropagation();
+                                            handleClickOnRow(event, item);
+                                          }}
+                                        >
+                                          <SeeInfo fontSize="small" className={classes.iconSee}/>
+                                        </IconButton>
+                                      </Tooltip>
+                                    </TableCell>
+
+                                    {/*
+                                      Actions:
+                                      - Edit
+                                      - Delete
+                                    */}
+                                    {
+                                      /* acl check */
+                                      (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
+                                      &&(permissions.<%- nameLc -%>.includes('update') || permissions.<%- nameLc -%>.includes('*')))
+                                      &&(
+                                        <TableCell padding='checkbox' align='center'>
+                                          <Tooltip title={ t('modelPanels.edit') }>
+                                            <IconButton
+                                              color="default"
+                                              onClick={(event) => {
+                                                event.stopPropagation();
+                                                handleUpdateClicked(event, item);
+                                              }}
+                                            >
+                                              <Edit fontSize="small" className={classes.iconEdit} />
+                                            </IconButton>
+                                          </Tooltip>
+                                        </TableCell>
+                                      )
+                                    }
+
+                                    {
+                                      /* acl check */
+                                      (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
+                                      &&(permissions.<%- nameLc -%>.includes('delete') || permissions.<%- nameLc -%>.includes('*')))
+                                      &&(
+                                        <TableCell padding='checkbox' align='center'>
+                                          <Tooltip title={ t('modelPanels.delete') }>
+                                            <IconButton
+                                              color="default"
+                                              onClick={(event) => {
+                                                event.stopPropagation();
+                                                handleDeleteClicked(event, item);
+                                              }}
+                                            >
+                                              <Delete fontSize="small" className={classes.iconDelete} />
+                                            </IconButton>
+                                          </Tooltip>
+                                        </TableCell>
+                                      )
+                                    }
+
+                                    {/* Item fields */}
+                                    {/* <%- internalId _%> */}
+                                    <TableCell
+                                      key='<%- internalId _%>'
+                                      align='left'
+                                      padding="checkbox"
                                     >
-                                      <SeeInfo fontSize="small" className={classes.iconSee}/>
-                                    </IconButton>
-                                  </Tooltip>
-                                </TableCell>
-
-                                {/*
-                                  Actions:
-                                  - Edit
-                                  - Delete
-                                */}
-                                {
-                                  /* acl check */
-                                  (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
-                                  &&(permissions.<%- nameLc -%>.includes('update') || permissions.<%- nameLc -%>.includes('*')))
-                                  &&(
-                                    <TableCell padding='checkbox' align='center'>
-                                      <Tooltip title={ t('modelPanels.edit') }>
-                                        <IconButton
-                                          color="default"
-                                          onClick={(event) => {
-                                            event.stopPropagation();
-                                            handleUpdateClicked(event, item);
-                                          }}
-                                        >
-                                          <Edit fontSize="small" className={classes.iconEdit} />
-                                        </IconButton>
+                                      <Tooltip title={ '<%- internalId _%>: ' + item.<%- internalId _%> }>
+                                        <Typography variant='body2' color='textSecondary' display='block' noWrap={true}>{item.<%- internalId _%>}</Typography>
                                       </Tooltip>
                                     </TableCell>
-                                  )
-                                }
-
-                                {
-                                  /* acl check */
-                                  (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
-                                  &&(permissions.<%- nameLc -%>.includes('delete') || permissions.<%- nameLc -%>.includes('*')))
-                                  &&(
-                                    <TableCell padding='checkbox' align='center'>
-                                      <Tooltip title={ t('modelPanels.delete') }>
-                                        <IconButton
-                                          color="default"
-                                          onClick={(event) => {
-                                            event.stopPropagation();
-                                            handleDeleteClicked(event, item);
-                                          }}
-                                        >
-                                          <Delete fontSize="small" className={classes.iconDelete} />
-                                        </IconButton>
-                                      </Tooltip>
-                                    </TableCell>
-                                  )
-                                }
-
-                                {/* Item fields */}
-                                {/* <%- internalId _%> */}
-                                <TableCell
-                                  key='<%- internalId _%>'
-                                  align='left'
-                                  padding="checkbox"
-                                >
-                                  <Tooltip title={ '<%- internalId _%>: ' + item.<%- internalId _%> }>
-                                    <Typography variant='body2' color='textSecondary' display='block' noWrap={true}>{item.<%- internalId _%>}</Typography>
-                                  </Tooltip>
-                                </TableCell>
 
 <%for( let i=0; i<attributesArr.length; i++ ){
     let a = attributesArr[i][0];
@@ -1521,63 +1555,75 @@ function resetReloadData() {
     //Skipp: internalId (already rendered).
     if(a===internalId) continue;
 -%>
-                                {/* <%- label %> */}
-                                <TableCell
-                                  key='<%- a -%>'
-                                  align='<%- (type==='Int' || type === 'Float') ? 'right' : 'left' _%>'
-                                  padding="default"
-                                >
+                                    {/* <%- label %> */}
+                                    <TableCell
+                                      key='<%- a -%>'
+                                      align='<%- (type==='Int' || type === 'Float') ? 'right' : 'left' _%>'
+                                      padding="default"
+                                    >
 <%if(type==='Date'){-%>
-                                  {String((item.<%- a _%>!==null)?moment(item.<%- a _%>, "YYYY-MM-DD").format("YYYY-MM-DD"):'')}
+                                      {String((item.<%- a _%>!==null)?moment(item.<%- a _%>, "YYYY-MM-DD").format("YYYY-MM-DD"):'')}
 <%}else if(type==='Time'){-%>
-                                  {String((item.<%- a _%>!==null)?moment(item.<%- a _%>, "HH:mm:ss.SSSZ").format("HH:mm:ss.SSSZ"):'')}
+                                      {String((item.<%- a _%>!==null)?moment(item.<%- a _%>, "HH:mm:ss.SSSZ").format("HH:mm:ss.SSSZ"):'')}
 <%}else if(type==='DateTime'){-%>
-                                  {String((item.<%- a _%>!==null)?moment(item.<%- a _%>, "YYYY-MM-DDTHH:mm:ss.SSSZ").format("YYYY-MM-DDTHH:mm:ss.SSSZ"):'')}
+                                      {String((item.<%- a _%>!==null)?moment(item.<%- a _%>, "YYYY-MM-DDTHH:mm:ss.SSSZ").format("YYYY-MM-DDTHH:mm:ss.SSSZ"):'')}
 <%}else{-%>
-                                  {String((item.<%- a _%>!==null)?item.<%- a _%>:'')}
+                                      {String((item.<%- a _%>!==null)?item.<%- a _%>:'')}
 <%}-%>
-                                </TableCell>
+                                    </TableCell>
 
 <%}-%>
-                              </TableRow>,
-                            ]);
-                          })
-                        }
-                      </TableBody>
-                    </Fade>
-                  </Table>
-                </div>
+                                  </TableRow>,
+                                ]);
+                              })
+                            }
+                          </TableBody>
+                        </Fade>
+                      </Table>
+                    </div>
 
-                {/*
-                  Pagination
-                */}
+                    {/*
+                      Pagination
+                    */}
 <%if(paginationType === 'limitOffset') {-%>
-                <TablePagination
-                  rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
-                  component="div"
-                  count={count}
-                  rowsPerPage={rowsPerPage}
-                  page={page}
-                  labelRowsPerPage = { t('modelPanels.rowsPerPage') }
-                  labelDisplayedRows = {({ from, to, count }) => `${from}-${to === -1 ? count : to} ${t('modelPanels.of')} ${count}`}
-                  onChangePage={handleChangePage}
-                  onChangeRowsPerPage={handleChangeRowsPerPage}
-                />
+                    <TablePagination
+                      rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
+                      component="div"
+                      count={count}
+                      rowsPerPage={rowsPerPage}
+                      page={page}
+                      labelRowsPerPage = { t('modelPanels.rowsPerPage') }
+                      labelDisplayedRows = {({ from, to, count }) => `${from}-${to === -1 ? count : to} ${t('modelPanels.of')} ${count}`}
+                      onChangePage={handleChangePage}
+                      onChangeRowsPerPage={handleChangeRowsPerPage}
+                    />
 <%} else if(paginationType === 'cursorBased') {-%>
-                <<%- nameOnPascal _%>CursorPagination
-                  count={count}
-                  rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
-                  rowsPerPage={rowsPerPage}
-                  labelRowsPerPage = { t('modelPanels.rows') }
-                  hasNextPage={hasNextPage}
-                  hasPreviousPage={hasPreviousPage}
-                  handleFirstPageButtonClick={handleFirstPageButtonClick}
-                  handleLastPageButtonClick={handleLastPageButtonClick}
-                  handleNextButtonClick={handleNextButtonClick}
-                  handleBackButtonClick={handleBackButtonClick}
-                  handleChangeRowsPerPage={handleChangeRowsPerPage}
-                />
+                    <<%- nameOnPascal _%>CursorPagination
+                      count={count}
+                      rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
+                      rowsPerPage={rowsPerPage}
+                      labelRowsPerPage = { t('modelPanels.rows') }
+                      hasNextPage={hasNextPage}
+                      hasPreviousPage={hasPreviousPage}
+                      handleFirstPageButtonClick={handleFirstPageButtonClick}
+                      handleLastPageButtonClick={handleLastPageButtonClick}
+                      handleNextButtonClick={handleNextButtonClick}
+                      handleBackButtonClick={handleBackButtonClick}
+                      handleChangeRowsPerPage={handleChangeRowsPerPage}
+                    />
 <%}-%>
+                  </div>
+
+                  {/*
+                    Swipe page 2: Plot
+                    Conditional rendered
+                  */}
+                  <div>
+                    {(Boolean(<%- nameOnPascal -%>Plotly)) && (
+                      <<%- nameOnPascal -%>Plotly />
+                    )}
+                  </div>
+                </SwipeableViews>
               </Paper>
             </Grid>
           </Grid>

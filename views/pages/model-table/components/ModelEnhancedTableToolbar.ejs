@@ -20,6 +20,10 @@ import Reload from '@material-ui/icons/Replay';
 import Menu from '@material-ui/core/Menu';
 import Button from '@material-ui/core/Button';
 import ButtonBase from '@material-ui/core/ButtonBase';
+import ToggleButton from '@material-ui/lab/ToggleButton';
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
+import TableIcon from '@material-ui/icons/ViewComfyTwoTone';
+import ChartIcon from '@material-ui/icons/InsertChartTwoTone';
 import { grey } from '@material-ui/core/colors';
 
 const useToolbarStyles = makeStyles(theme => ({
@@ -58,11 +62,14 @@ export default function <%- nameOnPascal -%>EnhancedTableToolbar(props) {
   const {
     permissions,
     search,
+    showToggleButtons,
+    toggleButtonValue,
     onSearchEnter,
+    onReloadClick,
     handleAddClicked,
     handleBulkImportClicked,
     handleCsvTemplateClicked,
-    onReloadClick,
+    handleToggleButtonValueChange,
   } = props;
 
   const [displayedSearch, setDisplayedSearch] = useState('');
@@ -88,11 +95,37 @@ export default function <%- nameOnPascal -%>EnhancedTableToolbar(props) {
         <Grid item xs={12}>
           <Grid container justify='space-between' alignItems='center' wrap='wrap'>
 
-            {/* Title */}
+            {/* Title + ToggleButtons */}
             <Grid item>
-              <Typography variant="h6">
-                <%- namePlCp %>
-              </Typography>
+              <Grid container justify="flex-start" spacing={2} alignItems='center' wrap='wrap'>
+
+                {/* Title */}
+                <Grid item>
+                  <Typography variant="h6">
+                    <%- namePlCp %>
+                  </Typography>
+                </Grid>
+
+                {/* 
+                  Conditional rendering: ToggleButtons
+                */}
+                {(showToggleButtons) && (
+                  <Grid item>
+                    <ToggleButtonGroup size="small"
+                      value={toggleButtonValue}
+                      exclusive
+                      onChange={handleToggleButtonValueChange}
+                    >
+                      <ToggleButton value="table">
+                        <TableIcon fontSize="small" />
+                      </ToggleButton>
+                      <ToggleButton value="plot">
+                        <ChartIcon fontSize="small" />
+                      </ToggleButton>
+                    </ToggleButtonGroup>
+                  </Grid>
+                )}
+              </Grid>
             </Grid>
 
             {/* Actions */}
@@ -327,9 +360,12 @@ export default function <%- nameOnPascal -%>EnhancedTableToolbar(props) {
 };
 <%- nameOnPascal -%>EnhancedTableToolbar.propTypes = {
   search: PropTypes.string.isRequired,
+  showToggleButtons: PropTypes.bool.isRequired,
+  toggleButtonValue: PropTypes.string.isRequired,
   onSearchEnter: PropTypes.func.isRequired,
   onReloadClick: PropTypes.func.isRequired,
   handleAddClicked: PropTypes.func.isRequired,
   handleBulkImportClicked: PropTypes.func.isRequired,
   handleCsvTemplateClicked: PropTypes.func.isRequired,
+  handleToggleButtonValueChange: PropTypes.func.isRequired,
 };
