@@ -665,7 +665,36 @@ export default {
   },
 <%}-%>
 <%}-%>
-}
+
+/**
+   * getItemsAttribute
+   * 
+   * Get all items from GraphQL Server using a cursor-based-connection. Get only the indicated 
+   * attribute. No search, order or pagination are specified in this function, so 
+   * all items will be retrieved without a particular order or search filter.
+   * 
+   * @param {String} url GraphQL Server url
+   * @param {String} attribute Name of the attribute to be retrieved.
+   */
+  getItemsAttribute(url, attribute) {
+    let query =
+      `query
+          { <%- namePlLc _%>Connection {
+            edges {
+              node {
+                ${attribute}
+              }
+            }
+          }}`;
+    /**
+     * Debug
+     */
+    console.log("getItemsAttribute.query: gql:\n", query);
+    
+    return requestGraphql({ url, query });
+
+  },
+}//end: export default
 
 /**
  * Utils

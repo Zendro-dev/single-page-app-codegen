@@ -477,7 +477,7 @@ exports.fillOptionsForViews = function(fileData, filePath, options){
     
     //Plotly
     withPlotly: getWithPlotly(options.plotlyOptions, filePath),
-
+    standalonePlotly: options.plotlyOptions.standalonePlotly,
   }
 
   return opts;
@@ -1024,6 +1024,7 @@ exports.genStandalonePlotly = async function(plotlyOptions, verbose) {
     genPlotlyForAll: false,
     genPlotly: true,
     modelsWithPlotly,
+    standalonePlotly: true,
   }
   status = parseJsonModels(modelsWithPlotly, null, {plotlyOptions: parsePlotlyOptions}, verbose);
   //check

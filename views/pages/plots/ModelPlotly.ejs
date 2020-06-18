@@ -4,26 +4,197 @@
  */
 -%>
 <%if(withPlotly) {-%>
-import React from 'react';
+import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
 import Plot from 'react-plotly.js';
+import { makeStyles } from '@material-ui/core/styles';
+import MenuItem from '@material-ui/core/MenuItem';
+import FormControl from '@material-ui/core/FormControl';
+import Grid from '@material-ui/core/Grid';
+import Card from '@material-ui/core/Card';
+import CardActions from '@material-ui/core/CardActions';
+import CardContent from '@material-ui/core/CardContent';
+import Button from '@material-ui/core/Button';
+import Typography from '@material-ui/core/Typography';
+import TextField from '@material-ui/core/TextField';
+<%if(!standalonePlotly) {-%>
 import api from '../../requests/requests.index'
-Boolean(api); //to avoid unused warning.
+<%}-%>
+
+const useStyles = makeStyles((theme) => ({
+  root: {
+    margin: theme.spacing(2),
+  },
+  card: {
+    maxWidth: 345,
+    paddingTop: theme.spacing(4),
+    paddingBottom: theme.spacing(8),
+  },
+  formControl: {
+    width: '100%'
+  },
+  plotDiv: {
+    minWidth: 454,
+  },
+  plot: {
+    width: "100%",
+    height: "100%",
+  },
+}));
 
 export default function <%- nameOnPascal -%>Plotly(props) {
+  const classes = useStyles();
+
+  //state
+  const [data, setData] = useState([ {x: [], y: [], type: 'bar',} ]);
+  const [layout, setLayout] = useState({title: '', autosize: true});
+  const [frames, setFrames] = useState([]);
+  const [config, setConfig] = useState({
+    responsive: true, 
+    displaylogo: false
+  }); 
+  const [selectedAttribute, setSelectedAttribute] = useState("");
+
+  //model attributes
+  const modelAttributes = getModelAttributes();
+
+  //server url
+  const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl);
+
+  /**
+    * Handlers
+    */
+  const handleChangeSelectedAttribute = (event) => {
+    setSelectedAttribute(event.target.value);
+  }
+
+  const handleClickOnGeneratePlot = (event) => {
+    getItemsAttribute(selectedAttribute);
+  }
+
+  /**
+    * Utils functions
+    */
+  async function getItemsAttribute(attribute) {
+    /**
+      * API Request
+      */
+      api.<%- nameLc -%>.getItemsAttribute(graphqlServerUrl, attribute)
+    .then((response) => {
+      
+      //reduce to {x1:y1, x2:y2, ...} 
+      let result = response.data.data.<%- namePlLc _%>Connection.edges.reduce((acc, item) => {
+        let key = item.node[attribute];
+        if(!acc[key]) acc[key] = 1; //first ocurrence
+        else acc[key]++;
+        return acc;
+      }, {});
+
+      //update title
+      setLayout((current) => ({...current[0], title: attribute}));
+
+      //update plot data
+      setData((current) => ([{...current[0], x: [...Object.keys(result)], y: [...Object.values(result)]}]));
+    })
+    .catch((error) => {
+      console.log("@@ error: ", error);
+    });
+  }
+
+  function getModelAttributes() {
+    return [
+<%for( let i=0; i<attributesArr.length; i++ ){-%>
+      "<%- attributesArr[i][0] _%>",
+<%}-%>
+    ];
+  }
+
   return (
-    <Plot
-      data={[
-        {
-          x: [1, 2, 3],
-          y: [2, 6, 3],
-          type: 'scatter',
-          mode: 'lines+markers',
-          marker: {color: 'red'},
-        },
-        {type: 'bar', x: [1, 2, 3], y: [2, 5, 3]},
-      ]}
-      layout={ {width: '100%', height: '80%', title: 'A Fancy Plot'} }
-    />
+    <div className={classes.root}>
+      <Grid container>
+        {/*
+          Selector 
+        */}
+        <Grid item xs={12}>
+          <Grid container spacing={1}>
+            <Grid item>
+              <Card className={classes.card}>
+                <CardContent>
+                  <Typography gutterBottom variant="h4">
+                    Distribution chart
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary" component="p">
+                    Select a model attribute and click on button 'generate plot' to generate
+                    a distribution bar-chart of the selected attribute.
+                  </Typography>
+                </CardContent>
+                <CardContent>
+                  <FormControl className={classes.formControl}>
+                    <TextField 
+                      id="select" 
+                      label="Attributes" 
+                      value={selectedAttribute}
+                      variant="outlined" 
+                      select
+                      onChange={handleChangeSelectedAttribute}
+                    >
+                      <MenuItem value="">
+                        <em>None</em>
+                      </MenuItem>
+
+                      {modelAttributes.map((item, index) => {
+                        return (
+                          <MenuItem key={index} value={item}>
+                            {item}
+                          </MenuItem>
+                        );
+                      })}
+                    </TextField>
+                  </FormControl>
+                </CardContent>
+                <CardActions>
+                  <Button 
+                    color="primary"
+                    disabled={(selectedAttribute==="") ? true : false}
+                    onClick={handleClickOnGeneratePlot}
+                  >
+                    Generate plot
+                  </Button>
+                </CardActions>
+              </Card>
+            </Grid>
+            {/*
+              Plot 
+            */}
+            <Grid item xs>
+              <div className={classes.plotDiv}>
+                <Plot
+                  data={data}
+                  layout={layout}
+                  frames={frames}
+                  config={config}
+                  useResizeHandler={true}
+                  className={classes.plot}
+
+                  onInitialized={(figure) => {
+                    setData(figure.data);
+                    setLayout(figure.layout);
+                    setFrames(figure.frames);
+                    setConfig(figure.config);
+                  }}
+                  onUpdate={(figure) => {
+                    setData(figure.data);
+                    setLayout(figure.layout);
+                    setFrames(figure.frames);
+                    setConfig(figure.config);
+                  }}
+                />
+              </div>
+            </Grid>
+          </Grid>
+        </Grid>
+      </Grid>
+    </div>
   );
 }
 <%} else{-%>

@@ -10,6 +10,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import InputAdornment from '@material-ui/core/InputAdornment';
+import Fade from '@material-ui/core/Fade';
 import Add from '@material-ui/icons/AddBox';
 import Import from '@material-ui/icons/UnarchiveOutlined';
 import Export from '@material-ui/icons/SaveAlt';
@@ -131,226 +132,228 @@ export default function <%- nameOnPascal -%>EnhancedTableToolbar(props) {
             {/* Actions */}
             <Grid item>
 
-              {/* Container: Search field + Actions */}
-              <Grid container>
-                <Grid item xs={12}>
-                  <Grid container justify="flex-end" alignItems='center' wrap='wrap'>
+              <Fade in={(toggleButtonValue==="table")}>
+                {/* Container: Search field + Actions */}
+                <Grid container>
+                  <Grid item xs={12}>
+                    <Grid container justify="flex-end" alignItems='center' wrap='wrap'>
 
-                    {/* Reload Icon */}
-                    <Grid item>
-                      <Tooltip title={ t('modelPanels.reloadList', "Reload list") }>
-                        <IconButton
-                          color='inherit'
-                          onClick={(event) => {
-                            onReloadClick();
-                          }}
-                        >
-                          <Reload color="inherit" fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </Grid>
+                      {/* Reload Icon */}
+                      <Grid item>
+                        <Tooltip title={ t('modelPanels.reloadList', "Reload list") }>
+                          <IconButton
+                            color='inherit'
+                            onClick={(event) => {
+                              onReloadClick();
+                            }}
+                          >
+                            <Reload color="inherit" fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Grid>
 
-                    <Grid item>
+                      <Grid item>
 
-                      {/* Search field */}
-                      <TextField
-                        id="search-field"
-                        value={displayedSearch}
-                        placeholder={ t('modelPanels.search') }
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <Tooltip title={ t('modelPanels.search') }>
-                                <IconButton
-                                    color='inherit'
-                                    onClick={() => {
-                                      onSearchEnter(displayedSearch);
-                                    }}
-                                  >
-                                  <Search color="inherit" fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            </InputAdornment>
-                          ),
-                          endAdornment: (
-                            <InputAdornment position="end">
-                              <Tooltip title={ t('modelPanels.clearSearch') }>
-                                <span>
-                                  {(!search) && (
-                                    <IconButton
-                                      disabled={true}
-                                    >
-                                      <ClearInactive color="inherit" fontSize="small" />
-                                    </IconButton>
-                                  )}
-                                  {(search) && (
-                                    <IconButton
+                        {/* Search field */}
+                        <TextField
+                          id="search-field"
+                          value={displayedSearch}
+                          placeholder={ t('modelPanels.search') }
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <Tooltip title={ t('modelPanels.search') }>
+                                  <IconButton
+                                      color='inherit'
                                       onClick={() => {
-                                        onSearchEnter('');
-                                        setDisplayedSearch('');
+                                        onSearchEnter(displayedSearch);
                                       }}
                                     >
-                                      <ClearActive color="secondary" fontSize="small" />
-                                    </IconButton>
-                                  )}
-                                </span>
-                              </Tooltip>
-                            </InputAdornment>
-                          ),
-                        }}
-                        onKeyPress={event => {
-                          if (event.key === 'Enter') {
-                            onSearchEnter(displayedSearch);
-                          }
-                        }}
-                        onChange={event => setDisplayedSearch(event.target.value)}
-                      />
-                    </Grid>
-                    <Grid item>
-                      {/*
-                        Actions
-                        - Add
-                        - Import
-                        - Export
-                      */}
-                      <Grid container>
-                        <Grid item xs={12}>
-                          <Grid container justify="center">
-                            {/* Add */}
-                            {
-                              /* acl check */
-                              (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
-                              &&(permissions.<%- nameLc -%>.includes('create') || permissions.<%- nameLc -%>.includes('*')))
-                              &&(
-                                <Grid item>
-                                  <Tooltip title={t('modelPanels.addNew') + " <%- nameLc _%>"}>
-                                    <IconButton
-                                      color="primary"
-                                      onClick={(event) => { handleAddClicked(event) }}
-                                    >
-                                      <Add />
-                                    </IconButton>
-                                  </Tooltip>
-                                </Grid>
-                              )
+                                    <Search color="inherit" fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              </InputAdornment>
+                            ),
+                            endAdornment: (
+                              <InputAdornment position="end">
+                                <Tooltip title={ t('modelPanels.clearSearch') }>
+                                  <span>
+                                    {(!search) && (
+                                      <IconButton
+                                        disabled={true}
+                                      >
+                                        <ClearInactive color="inherit" fontSize="small" />
+                                      </IconButton>
+                                    )}
+                                    {(search) && (
+                                      <IconButton
+                                        onClick={() => {
+                                          onSearchEnter('');
+                                          setDisplayedSearch('');
+                                        }}
+                                      >
+                                        <ClearActive color="secondary" fontSize="small" />
+                                      </IconButton>
+                                    )}
+                                  </span>
+                                </Tooltip>
+                              </InputAdornment>
+                            ),
+                          }}
+                          onKeyPress={event => {
+                            if (event.key === 'Enter') {
+                              onSearchEnter(displayedSearch);
                             }
-                            {/* Upload */}
-                            {
-                              /* acl check */
-                              (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
-                              &&(permissions.<%- nameLc -%>.includes('update') || permissions.<%- nameLc -%>.includes('*')))
-                              &&(
-                                <Grid item>
-                                  <Tooltip title={ t('modelPanels.importCSV') }>
-                                    <IconButton
-                                      color="primary"
-                                      onClick={(event) => { handleBulkImportClicked(event) }}
-                                    >
-                                      <Import />
-                                    </IconButton>
-                                  </Tooltip>
-                                </Grid>
-                              )
-                            }
-                            {/* Download.menu */}
-                            {
-                              /* acl check */
-                              (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
-                              &&(permissions.<%- nameLc -%>.includes('read') || permissions.<%- nameLc -%>.includes('*')))
-                              &&(
-                                <div>
-                                  {/* Downloads.icon */}
+                          }}
+                          onChange={event => setDisplayedSearch(event.target.value)}
+                        />
+                      </Grid>
+                      <Grid item>
+                        {/*
+                          Actions
+                          - Add
+                          - Import
+                          - Export
+                        */}
+                        <Grid container>
+                          <Grid item xs={12}>
+                            <Grid container justify="center">
+                              {/* Add */}
+                              {
+                                /* acl check */
+                                (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
+                                &&(permissions.<%- nameLc -%>.includes('create') || permissions.<%- nameLc -%>.includes('*')))
+                                &&(
                                   <Grid item>
-                                    <Tooltip title={ t('modelPanels.downloadsOptions', 'Download options') }>
+                                    <Tooltip title={t('modelPanels.addNew') + " <%- nameLc _%>"}>
                                       <IconButton
                                         color="primary"
-                                        onClick={handleDownloadsIconClick}
+                                        onClick={(event) => { handleAddClicked(event) }}
                                       >
-                                        <Export />
+                                        <Add />
                                       </IconButton>
                                     </Tooltip>
                                   </Grid>
-                                  {/* Downloads.menu */}
-                                  <Menu
-                                    className={classes.downloadsMenu}
-                                    anchorEl={downloadsAnchorEl}
-                                    keepMounted
-                                    open={Boolean(downloadsAnchorEl)}
-                                    onClose={handleDownloadsMenuClose}
-                                  >
-                                    {/* Downloads.op1 - Export data to CSV file */}
-                                    <Grid item xs={12}>
-                                      <Grid container justify='flex-start'>
-                                        <form className={classes.formButton} action={exportServerUrl}>
-                                        <input type="hidden" name="model" value='<%- nameLc -%>' />
+                                )
+                              }
+                              {/* Upload */}
+                              {
+                                /* acl check */
+                                (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
+                                &&(permissions.<%- nameLc -%>.includes('update') || permissions.<%- nameLc -%>.includes('*')))
+                                &&(
+                                  <Grid item>
+                                    <Tooltip title={ t('modelPanels.importCSV') }>
+                                      <IconButton
+                                        color="primary"
+                                        onClick={(event) => { handleBulkImportClicked(event) }}
+                                      >
+                                        <Import />
+                                      </IconButton>
+                                    </Tooltip>
+                                  </Grid>
+                                )
+                              }
+                              {/* Download.menu */}
+                              {
+                                /* acl check */
+                                (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
+                                &&(permissions.<%- nameLc -%>.includes('read') || permissions.<%- nameLc -%>.includes('*')))
+                                &&(
+                                  <div>
+                                    {/* Downloads.icon */}
+                                    <Grid item>
+                                      <Tooltip title={ t('modelPanels.downloadsOptions', 'Download options') }>
+                                        <IconButton
+                                          color="primary"
+                                          onClick={handleDownloadsIconClick}
+                                        >
+                                          <Export />
+                                        </IconButton>
+                                      </Tooltip>
+                                    </Grid>
+                                    {/* Downloads.menu */}
+                                    <Menu
+                                      className={classes.downloadsMenu}
+                                      anchorEl={downloadsAnchorEl}
+                                      keepMounted
+                                      open={Boolean(downloadsAnchorEl)}
+                                      onClose={handleDownloadsMenuClose}
+                                    >
+                                      {/* Downloads.op1 - Export data to CSV file */}
+                                      <Grid item xs={12}>
+                                        <Grid container justify='flex-start'>
+                                          <form className={classes.formButton} action={exportServerUrl}>
+                                          <input type="hidden" name="model" value='<%- nameLc -%>' />
+                                            <ButtonBase
+                                              className={classes.textButton} 
+                                              color="default"
+                                              type="submit"
+                                              onClick={(event)=>{
+                                                if(!isDownloading.current) {
+                                                  isDownloading.current = true;
+                                                  handleDownloadsMenuClose();
+                                                } else {
+                                                  event.preventDefault();
+                                                }
+                                              }}
+                                            >
+                                              <span>
+                                                <Typography component="span" variant="subtitle1" display='block' noWrap={true}>
+                                                  {t('modelPanels.downloadsOp1', 'Export data to CSV file')}
+                                                </Typography>
+                                              </span>
+                                            </ButtonBase>
+                                          </form>
+                                        </Grid>
+                                      </Grid>
+
+                                      {/* Downloads.op2 - Download table template to CSV file */}
+                                      <Grid item xs={12}>
+                                        <Grid container justify='flex-start'>
                                           <ButtonBase
                                             className={classes.textButton} 
                                             color="default"
-                                            type="submit"
-                                            onClick={(event)=>{
+                                            onClick={()=>{
                                               if(!isDownloading.current) {
                                                 isDownloading.current = true;
+                                                handleCsvTemplateClicked();
                                                 handleDownloadsMenuClose();
-                                              } else {
-                                                event.preventDefault();
                                               }
                                             }}
                                           >
                                             <span>
                                               <Typography component="span" variant="subtitle1" display='block' noWrap={true}>
-                                                {t('modelPanels.downloadsOp1', 'Export data to CSV file')}
+                                                {t('modelPanels.downloadsOp2', 'Download table template to CSV file')}
                                               </Typography>
                                             </span>
                                           </ButtonBase>
-                                        </form>
+                                        </Grid>
                                       </Grid>
-                                    </Grid>
 
-                                    {/* Downloads.op2 - Download table template to CSV file */}
-                                    <Grid item xs={12}>
-                                      <Grid container justify='flex-start'>
-                                        <ButtonBase
-                                          className={classes.textButton} 
-                                          color="default"
-                                          onClick={()=>{
-                                            if(!isDownloading.current) {
-                                              isDownloading.current = true;
-                                              handleCsvTemplateClicked();
-                                              handleDownloadsMenuClose();
-                                            }
-                                          }}
-                                        >
-                                          <span>
-                                            <Typography component="span" variant="subtitle1" display='block' noWrap={true}>
-                                              {t('modelPanels.downloadsOp2', 'Download table template to CSV file')}
-                                            </Typography>
-                                          </span>
-                                        </ButtonBase>
+                                      {/* Close.button */}
+                                      <Grid item xs={12}>
+                                        <Grid container justify='flex-end'>
+                                          <Button 
+                                            className={classes.actionButton} 
+                                            color="primary"
+                                            onClick={handleDownloadsMenuClose}
+                                          >
+                                            {t('modelPanels.close', 'Close')}
+                                          </Button>
+                                        </Grid>
                                       </Grid>
-                                    </Grid>
-
-                                    {/* Close.button */}
-                                    <Grid item xs={12}>
-                                      <Grid container justify='flex-end'>
-                                        <Button 
-                                          className={classes.actionButton} 
-                                          color="primary"
-                                          onClick={handleDownloadsMenuClose}
-                                        >
-                                          {t('modelPanels.close', 'Close')}
-                                        </Button>
-                                      </Grid>
-                                    </Grid>
-                                  </Menu>
-                                </div>
-                            )}
+                                    </Menu>
+                                  </div>
+                              )}
+                            </Grid>
                           </Grid>
                         </Grid>
                       </Grid>
                     </Grid>
                   </Grid>
                 </Grid>
-              </Grid>
+              </Fade>
             </Grid>
           </Grid>
         </Grid>
