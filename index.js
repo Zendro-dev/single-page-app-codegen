@@ -328,8 +328,17 @@ for(let i=0; i<json_files.length; i++) {
   }
 }
 //add extra attributes
-funks.addPeerRelationName(opts);
-funks.addExtraAttributesAssociations(opts);
+try {
+  funks.addPeerRelationName(opts);
+  funks.addExtraAttributesAssociations(opts);
+}catch(e) {
+  //err
+  console.log(colors.red("@@: Code generation", colors.red('canceled...')));
+  console.log(e);
+  //msg
+  console.log("@ Code generation: ", colors.red('done'));
+  process.exit(1);
+}
 
 //msg
 console.log("\n@@ Total JSON files processed: ", colors.blue(totalFiles));

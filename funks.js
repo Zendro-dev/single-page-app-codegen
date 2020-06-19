@@ -489,6 +489,9 @@ exports.fillOptionsForViews = function(fileData, filePath, options){
  * @param  {array} opts Array of already calculated EJS options.
  */
 exports.addPeerRelationName = function(opts) {
+  let errorsA = []; //target model not found
+  let errorsB = []; //peer association not found
+  
   //for each model
   opts.forEach( (opt) => {
     
@@ -555,12 +558,35 @@ exports.addPeerRelationName = function(opts) {
                   }
               }
             }
+            //check
+            if(!foundB) {
+              errorsB.push({model: opt.name, association: association.relationName, targetKey: association.targetKey, targetModel: association.targetModel});
+            }
           }
         }
+      }
+      //check
+      if(!found) {
+        errorsA.push({model: opt.name, association: association.relationName, targetModel: association.targetModel});
       }
     })
   });
 
+  /**
+   * Report errors if any && throws
+   */
+  //target model not found
+  errorsA.forEach((e) => {
+    console.log(colors.red('@@Error:'), 'on model:', colors.blue(e.model), 'on associaton:', colors.blue(e.association), '- Association target model:', colors.yellow(e.targetModel), 'not found.');
+  });
+  //peer association not found
+  errorsB.forEach((e) => {
+    console.log(colors.red('@@Error:'), 'on model:', colors.blue(e.model), 'on associaton:', colors.blue(e.association), '- Peer association on target key:', colors.yellow(e.targetKey), 'not found on target model:', colors.yellow(e.targetModel));
+  });
+  //throws if there is any error
+  if(errorsA.length > 0 || errorsB.length > 0) {
+    throw new Error("Inconsistent association definition");
+  }
 }
 
 /**
