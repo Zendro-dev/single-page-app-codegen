@@ -674,6 +674,10 @@ parseAssociationsFromFile = function(fileData){
         case "hasOne":
           baa.foreignKey = association.targetKey;
           baa.targetKey = association.targetKey;
+          if(association.keyIn === fileData.model) {
+            assoc.hasOwnForeingKeys = true;
+            assoc.ownForeignKeysArr.push(association.targetKey);
+          }
           break;
 
         case "belongsToMany":
