@@ -4,9 +4,12 @@
  */
 -%>
 <%if(withPlotly) {-%>
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import Plot from 'react-plotly.js';
+import { useTranslation } from 'react-i18next';
+import { useSnackbar } from 'notistack';
+import Snackbar from '../snackbar/Snackbar';
 import { makeStyles } from '@material-ui/core/styles';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
@@ -44,6 +47,8 @@ const useStyles = makeStyles((theme) => ({
 
 export default function <%- nameOnPascal -%>Plotly(props) {
   const classes = useStyles();
+  const { t } = useTranslation();
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
   //state
   const [data, setData] = useState([ {x: [], y: [], type: 'bar',} ]);
@@ -61,6 +66,43 @@ export default function <%- nameOnPascal -%>Plotly(props) {
   //server url
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl);
 
+  //snackbar
+  const variant = useRef('info');
+  const errors = useRef([]);
+  const content = useRef((key, message) => (
+    <Snackbar id={key} message={message} errors={errors.current}
+    variant={variant.current} />
+  ));
+  const actionText = useRef(t('modelPanels.gotIt', "Got it"));
+  const action = useRef((key) => (
+    <>
+      <Button color='inherit' variant='text' size='small' 
+      onClick={() => { closeSnackbar(key) }}>
+        {actionText.current}
+      </Button>
+    </> 
+  ));
+
+  /**
+   * Callbacks:
+   */
+
+   /**
+    * showMessage
+    * 
+    * Show the given message in a notistack snackbar.
+    * 
+    */
+   const showMessage = useCallback((message, withDetail) => {
+    enqueueSnackbar( message, {
+      variant: variant.current,
+      preventDuplicate: false,
+      persist: true,
+      action: !withDetail ? action.current : undefined,
+      content: withDetail ? content.current : undefined,
+    });
+  },[enqueueSnackbar]);
+
   /**
     * Handlers
     */
@@ -76,28 +118,65 @@ export default function <%- nameOnPascal -%>Plotly(props) {
     * Utils functions
     */
   async function getItemsAttribute(attribute) {
+<%
+  /**
+   * names
+   */
+  let methodName1 = 'getItemsAttribute()';
+  let queryName1 = namePlLc+'Connection';
+  let requestName1 = 'api.'+nameLc+'.getItemsAttribute';
+-%>
     /**
       * API Request
       */
       api.<%- nameLc -%>.getItemsAttribute(graphqlServerUrl, attribute)
     .then((response) => {
       
-      //reduce to {x1:y1, x2:y2, ...} 
-      let result = response.data.data.<%- namePlLc _%>Connection.edges.reduce((acc, item) => {
-        let key = item.node[attribute];
-        if(!acc[key]) acc[key] = 1; //first ocurrence
-        else acc[key]++;
-        return acc;
-      }, {});
+      //check data
+      if(response.data.data.<%- namePlLc _%>Connection) {
+        //reduce to {x1:y1, x2:y2, ...}
+        let result = response.data.data.<%- namePlLc _%>Connection.edges.reduce((acc, item) => {
+          let key = item.node[attribute];
+          if(!acc[key]) acc[key] = 1; //first ocurrence
+          else acc[key]++;
+          return acc;
+        }, {});
 
-      //update title
-      setLayout((current) => ({...current[0], title: attribute}));
+        //update title
+        setLayout((current) => ({...current[0], title: attribute}));
 
-      //update plot data
-      setData((current) => ([{...current[0], x: [...Object.keys(result)], y: [...Object.values(result)]}]));
+        //update plot data
+        setData((current) => ([{...current[0], x: [...Object.keys(result)], y: [...Object.values(result)]}]));
+      }
+
+      //check: graphql errors
+      if(response.data.errors) {
+        let newError = {};
+        let withDetails=true;
+        variant.current='info';
+        newError.message = '<%- queryName1 %>: ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
+        newError.locations=[{model: '<%- name -%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+        newError.path=['<%- namePlCp %>', 'csvTemplate'];
+        newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+        errors.current.push(newError);
+        console.log("Error: ", newError);
+
+        showMessage(newError.message, withDetails);
+      }
     })
     .catch((error) => {
-      console.log("@@ error: ", error);
+      let newError = {};
+      let withDetails=true;
+      variant.current='error';
+      newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
+      newError.locations=[{model: '<%- name -%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+      newError.path=['<%- namePlCp %>', 'Plot'];
+      newError.extensions = {error};
+      errors.current.push(newError);      
+      console.log("Error: ", newError);
+      console.log("@@: error: ", error);
+      
+      showMessage(newError.message, withDetails);
     });
   }
 
@@ -121,25 +200,24 @@ export default function <%- nameOnPascal -%>Plotly(props) {
               <Card className={classes.card}>
                 <CardContent>
                   <Typography gutterBottom variant="h4">
-                    Distribution chart
+                    { t('modelPanels.plot1.title', 'Bar chart') }
                   </Typography>
                   <Typography variant="body2" color="textSecondary" component="p">
-                    Select a model attribute and click on button 'generate plot' to generate
-                    a distribution bar-chart of the selected attribute.
+                    { t('modelPanels.plot1.description', "Select a model attribute and click on button 'generate plot' to generate a frequency distribution bar chart of the selected attribute.") }
                   </Typography>
                 </CardContent>
                 <CardContent>
                   <FormControl className={classes.formControl}>
                     <TextField 
                       id="select" 
-                      label="Attributes" 
+                      label={t('modelPanels.plot1.label', 'Attributes')}
                       value={selectedAttribute}
                       variant="outlined" 
                       select
                       onChange={handleChangeSelectedAttribute}
                     >
                       <MenuItem value="">
-                        <em>None</em>
+                        <em>{t('modelPanels.plot1.none', 'None')}</em>
                       </MenuItem>
 
                       {modelAttributes.map((item, index) => {
@@ -158,7 +236,7 @@ export default function <%- nameOnPascal -%>Plotly(props) {
                     disabled={(selectedAttribute==="") ? true : false}
                     onClick={handleClickOnGeneratePlot}
                   >
-                    Generate plot
+                    {t('modelPanels.plot1.button', 'Generate plot')}
                   </Button>
                 </CardActions>
               </Card>

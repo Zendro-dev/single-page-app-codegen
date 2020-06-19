@@ -117,12 +117,16 @@ export default function <%- nameOnPascal -%>EnhancedTableToolbar(props) {
                       exclusive
                       onChange={handleToggleButtonValueChange}
                     >
-                      <ToggleButton value="table">
-                        <TableIcon fontSize="small" />
-                      </ToggleButton>
-                      <ToggleButton value="plot">
-                        <ChartIcon fontSize="small" />
-                      </ToggleButton>
+                      <Tooltip title={ t('modelPanels.table', "Table") }>
+                        <ToggleButton value="table">
+                          <TableIcon fontSize="small" />
+                        </ToggleButton>    
+                      </Tooltip>
+                      <Tooltip title={ t('modelPanels.plot', "Plot") }>
+                        <ToggleButton value="plot">
+                          <ChartIcon fontSize="small" />
+                        </ToggleButton>
+                      </Tooltip>
                     </ToggleButtonGroup>
                   </Grid>
                 )}
