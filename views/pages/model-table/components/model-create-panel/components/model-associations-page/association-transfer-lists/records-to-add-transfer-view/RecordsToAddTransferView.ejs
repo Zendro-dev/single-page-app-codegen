@@ -1819,7 +1819,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
               rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
               component="div"
               count={count}
-              rowsPerPage={rowsPerPage}
+              rowsPerPage={(count <=10) ? '' : rowsPerPage}
               page={page}
               labelRowsPerPage = { t('modelPanels.rows') }
               labelDisplayedRows = {({ from, to, count }) => `${from}-${to === -1 ? count : to} ${t('modelPanels.of')} ${count}`}
@@ -1830,7 +1830,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
             <<%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferViewCursorPagination
               count={count}
               rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
-              rowsPerPage={rowsPerPage}
+              rowsPerPage={(count <=10) ? '' : rowsPerPage}
               labelRowsPerPage = { t('modelPanels.rows') }
               hasNextPage={hasNextPage}
               hasPreviousPage={hasPreviousPage}
