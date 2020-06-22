@@ -113,7 +113,7 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
                     { t('modelPanels.model') + ': <%- nameCp %>' }
                 </Typography>
               }
-              subheader={getItemsOk()+' / <%- attributesArr.length %> ' + t('modelPanels.completed')}
+              subheader={getItemsOk()+' / <%- attributesArrWithoutTargetKeys.length %> ' + t('modelPanels.completed')}
             >
             </CardHeader>
           </Card>

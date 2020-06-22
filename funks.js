@@ -461,6 +461,7 @@ exports.fillOptionsForViews = function(fileData, filePath, options){
     nameCp: exports.capitalizeString(fileData.model),
     nameOnPascal: exports.toPascalCase(fileData.model),
     attributesArr: attributesArrayFromFile(fileData.attributes),
+    attributesArrWithoutTargetKeys: attributesWithoutTargetKeysArrayFromFile(fileData.attributes, associations.ownForeignKeysArr),
     typeAttributes: exports.typeAttributes(attributesArrayFromFile(fileData.attributes)),
     belongsTosArr: associations.belongsTos,
     hasManysArr: associations.hasManys,
@@ -637,6 +638,29 @@ attributesArrayFromFile = function(attributes){
     attArray.push([ attr, attributes[attr] ]);
   }
 
+  return attArray;
+}
+
+/**
+ * attributesWithoutTargetKeysArrayFromFile - Given a object containing attributes description, 
+ * this function will convert it to an array of arrays, where each item is as array with field 
+ * name and its type (example [ [ 'name','string' ], [ 'is_human','boolean' ] ]).
+ * Own target keys given on @ownTargetKeys will be excluded.
+ *
+ * @param  {object} attributes Object with keys the name of the field and value its type.
+ * @param  {object} attrownTargetKeysibutes Object with keys the name of the field and value its type.
+ * @return {array}  Array of arrays, where each item is as array with field name and its type 
+ * (example [ [ 'name','string' ], [ 'is_human','boolean' ] ]).
+ */
+attributesWithoutTargetKeysArrayFromFile = function(attributes, ownTargetKeys){
+  let attArray = []
+
+  for(attr in attributes){
+    if(!ownTargetKeys.includes(attr))
+    {
+      attArray.push([ attr, attributes[attr] ]);
+    }
+  }
   return attArray;
 }
 
