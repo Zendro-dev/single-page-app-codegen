@@ -76,7 +76,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
   const [count, setCount] = useState(0);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(50);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [isOnApiRequest, setIsOnApiRequest] = useState(false);
   const [isCountReady, setIsCountReady] = useState(false);
   const [areItemsReady, setAreItemsReady] = useState(false);
@@ -998,7 +998,7 @@ function resetReloadData() {
                   rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
                   component="div"
                   count={count}
-                  rowsPerPage={rowsPerPage}
+                  rowsPerPage={(count <=10) ? '' : rowsPerPage}
                   page={page}
                   labelRowsPerPage = { t('modelPanels.rows') }
                   labelDisplayedRows = {({ from, to, count }) => `${from}-${to === -1 ? count : to} ${t('modelPanels.of')} ${count}`}
@@ -1012,7 +1012,7 @@ function resetReloadData() {
                 <<%- sortedAssociations[aindex].relationNameOnPascal _%>CompactViewCursorPagination
                   count={count}
                   rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
-                  rowsPerPage={rowsPerPage}
+                  rowsPerPage={(count <=10) ? '' : rowsPerPage}
                   labelRowsPerPage = { t('modelPanels.rows') }
                   hasNextPage={hasNextPage}
                   hasPreviousPage={hasPreviousPage}

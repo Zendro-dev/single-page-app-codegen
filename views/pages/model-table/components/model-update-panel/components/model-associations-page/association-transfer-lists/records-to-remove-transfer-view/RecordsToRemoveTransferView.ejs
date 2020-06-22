@@ -108,7 +108,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   const [count, setCount] = useState(0);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(50);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [isOnApiRequest, setIsOnApiRequest] = useState(false);
   const [isCountReady, setIsCountReady] = useState(false);
   const [areItemsReady, setAreItemsReady] = useState(false);
@@ -134,7 +134,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   const [countB, setCountB] = useState(0);
   const [searchB, setSearchB] = useState('');
   const [pageB, setPageB] = useState(0);
-  const [rowsPerPageB, setRowsPerPageB] = useState(50);
+  const [rowsPerPageB, setRowsPerPageB] = useState(10);
   const [isOnApiRequestB, setIsOnApiRequestB] = useState(false);
   const [isCountReadyB, setIsCountReadyB] = useState(false);
   const [areItemsReadyB, setAreItemsReadyB] = useState(false);
@@ -1901,7 +1901,7 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
                 rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
                 component="div"
                 count={count}
-                rowsPerPage={rowsPerPage}
+                rowsPerPage={(count <=10) ? '' : rowsPerPage}
                 page={page}
                 labelRowsPerPage = { t('modelPanels.rows') }
                 labelDisplayedRows = {({ from, to, count }) => `${from}-${to === -1 ? count : to} ${t('modelPanels.of')} ${count}`}
@@ -1912,7 +1912,7 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
               <<%- sortedAssociations[aindex].relationNameOnPascal _%>ToRemoveTransferViewCursorPagination
                 count={count}
                 rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
-                rowsPerPage={rowsPerPage}
+                rowsPerPage={(count <=10) ? '' : rowsPerPage}
                 labelRowsPerPage = { t('modelPanels.rows') }
                 hasNextPage={hasNextPage}
                 hasPreviousPage={hasPreviousPage}
@@ -2159,7 +2159,7 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
                   rowsPerPageOptions={(countB <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
                   component="div"
                   count={countB}
-                  rowsPerPage={rowsPerPageB}
+                  rowsPerPage={(countB <=10) ? '' : rowsPerPageB}
                   page={pageB}
                   labelRowsPerPage = { t('modelPanels.rows') }
                   labelDisplayedRows = {({ from, to, count }) => `${from}-${to === -1 ? count : to} ${t('modelPanels.of')} ${count}`}
@@ -2173,7 +2173,7 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
                 <<%- sortedAssociations[aindex].relationNameOnPascal _%>ToRemoveTransferViewCursorPagination
                   count={countB}
                   rowsPerPageOptions={(countB <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
-                  rowsPerPage={rowsPerPageB}
+                  rowsPerPage={(countB <=10) ? '' : rowsPerPageB}
                   labelRowsPerPage = { t('modelPanels.rows') }
                   hasNextPage={hasNextPageB}
                   hasPreviousPage={hasPreviousPageB}

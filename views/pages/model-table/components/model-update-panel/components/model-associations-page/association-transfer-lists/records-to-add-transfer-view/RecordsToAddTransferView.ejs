@@ -138,7 +138,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   const [countB, setCountB] = useState(0);
   const [searchB, setSearchB] = useState('');
   const [pageB, setPageB] = useState(0);
-  const [rowsPerPageB, setRowsPerPageB] = useState(50);
+  const [rowsPerPageB, setRowsPerPageB] = useState(10);
   const [isOnApiRequestB, setIsOnApiRequestB] = useState(false);
   const [isCountReadyB, setIsCountReadyB] = useState(false);
   const [areItemsReadyB, setAreItemsReadyB] = useState(false);
@@ -2280,7 +2280,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                 rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
                 component="div"
                 count={count}
-                rowsPerPage={rowsPerPage}
+                rowsPerPage={(count <=10) ? '' : rowsPerPage}
                 page={page}
                 labelRowsPerPage = { t('modelPanels.rows') }
                 labelDisplayedRows = {({ from, to, count }) => `${from}-${to === -1 ? count : to} ${t('modelPanels.of')} ${count}`}
@@ -2291,7 +2291,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
               <<%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferViewCursorPagination
                 count={count}
                 rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
-                rowsPerPage={rowsPerPage}
+                rowsPerPage={(count <=10) ? '' : rowsPerPage}
                 labelRowsPerPage = { t('modelPanels.rows') }
                 hasNextPage={hasNextPage}
                 hasPreviousPage={hasPreviousPage}
@@ -2558,7 +2558,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                   rowsPerPageOptions={(countB <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
                   component="div"
                   count={countB}
-                  rowsPerPage={rowsPerPageB}
+                  rowsPerPage={(countB <=10) ? '' : rowsPerPageB}
                   page={pageB}
                   labelRowsPerPage = { t('modelPanels.rows') }
                   labelDisplayedRows = {({ from, to, count }) => `${from}-${to === -1 ? count : to} ${t('modelPanels.of')} ${count}`}
@@ -2572,7 +2572,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                 <<%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferViewCursorPagination
                   count={countB}
                   rowsPerPageOptions={(countB <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
-                  rowsPerPage={rowsPerPageB}
+                  rowsPerPage={(countB <=10) ? '' : rowsPerPageB}
                   labelRowsPerPage = { t('modelPanels.rows') }
                   hasNextPage={hasNextPageB}
                   hasPreviousPage={hasPreviousPageB}
