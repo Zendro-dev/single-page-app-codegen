@@ -427,6 +427,10 @@ exports.checkJsonDataFile = function(jsonModel, options){
   //check for label field in each association
   if(jsonModel.associations !== undefined){
     Object.entries(jsonModel.associations).forEach( ([name, association], index) =>{
+      //skip generic associations
+      if(association.type === 'generic_to_one' || association.type === 'generic_to_many') return;
+
+      //check
       if(association.label === undefined || association.label === ''){
         result.pass = false;
         result.errors.push(`ERROR IN MODEL ${jsonModel.model}: 'label' is mandatory field. It should be defined in association ${name}`);
