@@ -1,34 +1,46 @@
 # Single Page App generator
 
-Code generator for VueJs implementing basic CRUD use cases.
+Code generator for ReactJS SPA that implements basic CRUD operations on a GraphQL API.
 
 ## Usage
 
-From the command line prompt
+From the command line prompt:
 
 ````
- gui-generator -h
+$ node index.js -h
+Usage: index [options] [command]
 
-  Usage: gui-generator [options]
+Code generator for SPA.
 
-  Code generator for SPA
+Options:
+  -f, --jsonFiles <filesFolder>                                Folder containing one json file for each model.
+  -o, --outputDir <directory>                                  Directory where generated code will be written.
+  -D, --createBaseDirs                                         Try to create base directories if they do not exist.
+  -P, --genPlotlyForAll                                        Generates a Plotly JS React component for all the json model files given as input.Plotly components will be part of the SPA being generated.
+  -V, --verbose                                                Show details about the results of running code generation process.
+  -h, --help                                                   output usage information
 
-  Options:
-    -f, --jsonFiles <filesFolder>      Folder containing one json file for each model
-    -o, --outputDirectory <directory>  Directory where generated code will be written
-    -h, --help                         output usage information
+Commands:
+  genPlotly [options] <jsonModelFile> [moreJsonModelFiles...]  Generates a Plotly JS React component for the json models files given as arguments.If neither -f nor -A options are given, then -s option will be taken as default.
+````
+
+And also:
 
 ````
+$ node index.js genPlotly -h
+Usage: genPlotly [options] <jsonModelFile> [moreJsonModelFiles...]
+
+Generates a Plotly JS React component for the json models files given as arguments.If neither -f nor -A options are given, then -s option will be taken as default.
+
+Options:
+  -A, --spaDir <spaDirectory>               Plotly components will be generated as part of the SPA located in the given directory.This option will be ignored if -f option is given, and the Plotly components will be part of the SPA being generated.
+  -s, --standalonePlotly [plotlyOutputDir]  Plotly components will be generated in standalone mode in the given output directory, or in ./ if no output directory is given.This option will be ignored if either -f option or -A option are given.
+  -h, --help                                output usage information
+````
+
 `<directory>` should contain a skeleton of the GUI, for download the skeleton and more details in how to run the GUI see [THIS](https://github.com/ScienceDb/single-page-app).
 
-Note: intergation-test case creates a docker-compose ambient with three servers `spa_postgres`,
-`spa_science_db_graphql_server` and `spa_ncbi_sim_srv`. By default, after the test run, all
-corresponding images will be completely removed from the docker. However, to speed-up the
-development process it is possible to not remove the selected images. Each of the images that
-wou prefer to keep alive shell be preceeded with the `-k` or `--keep-image` key. For example:
-```
-$ npm run test-integration -- -k spa_ncbi_sim_srv -k spa_science_db_graphql_server
-```
+Note: Currently, integration tests are under development.
 
 ## JSON files Spec
 
@@ -39,7 +51,7 @@ For each model we need to specify the following fields in the json file:
 Name | Type | Description
 ------- | ------- | --------------
 *model* | String | Name of the model (it is recommended uppercase for the initial character).
-*storageType* | String | Type of storage where the model is stored. So far can be one of __sql__ or __Webservice__
+*storageType* | String | Type of storage where the model is stored. So far can be one of: __sql__, __distributed-data-model__, __cenz-server__, __generic__, __sql-adapter__, __ddm-adapter__, __cenzontle-webservice-adapter__, __generic-adapter__.
 *attributes* | Object | The key of each entry is the name of the attribute and theres two options for the value . Either can be a string indicating the type of the attribute or an object where the user can indicates the type of the attribute(in the _type_ field) but also can indicates an attribute's description (in the _description_ field). See the [table](#types-spec) below for allowed types. Example of option one: ```{ "attribute1" : "String", "attribute2: "Int" }``` Example of option two: ``` { "attribute1" : {"type" :"String", "description": "Some description"}, "attribute2: "Int ```
 *associations* | Object | The key of each entry is the name of the association and the value should be an object describing the associations. See [Associations Spec](associations-spec) section below for the specifications of the associations.
 
@@ -73,7 +85,7 @@ EXAMPLES OF VALID JSON FILES
 //Publisher.json
 {
   "model" : "Publisher",
-  "storageType" : "webservice",
+  "storageType" : "generic",
   "attributes" : {
     "name" : "String",
     "phone" : "String"
@@ -89,8 +101,6 @@ EXAMPLES OF VALID JSON FILES
   }
 }
 ```
-
-
 
 ### Types Spec
 The following types are allowed for the attributes field
@@ -123,11 +133,11 @@ For both type of association, the necessary arguments would be:
 
 name | Type | Description
 ------- | ------- | --------------
-*type* | String | Type of association (like belongsTo, etc.)
+*type* | String | Type of association. So far can be one of: __to_one__, __to_many__, __to_many_through_sql_cross_table__, __generic_to_one__, __generic_to_many__.
 *target* | String | Name of model to which the current model will be associated with.
 *targetKey* | String | A unique identifier of the association for the case where there appear more than one association with the same model.
 *keyIn* | String | Name of the model where the targetKey is stored.
-*targetStorageType* | String | Type of storage where the target model is stored. So far can be one of __sql__ or __Webservice__.
+*targetStorageType* | String | Type of storage where the target model is stored. So far can be one of: __sql__, __distributed-data-model__, __cenz-server__, __generic__, __sql-adapter__, __ddm-adapter__, __cenzontle-webservice-adapter__, __generic-adapter__.
 *label* | String | Name of the column in the target model to be used as a display name in the GUI.
 *sublabel* | String | Optional name of the column in the target model to be used as a sub-label in the GUI.
 
@@ -152,7 +162,7 @@ Be aware that in the case of this type of association the user is required to de
   },
   "associations" :{
     "roles" : {
-      "type" : "to_many",
+      "type" : "to_many_through_sql_cross_table",
       "target" : "Role",
       "targetKey" : "role_Id",
       "sourceKey" : "user_Id",
@@ -176,7 +186,7 @@ Be aware that in the case of this type of association the user is required to de
   },
   "associations" : {
     "users" : {
-      "type" : "to_many",
+      "type" : "to_many_through_sql_cross_table",
       "target" : "User",
       "targetKey" : "user_Id",
       "sourceKey" : "role_Id",
@@ -219,7 +229,7 @@ Example:
         "target" : "publisher", // Model's name is `publisher`
         "targetKey" : "publisher_id", // Local alias for this association
         "keyIn": "book", // FK to publisher will be stored in the Book model
-        "targetStorageType" : Webservice", //  It's a remote database
+        "targetStorageType" : generic", //  It's a remote database
         "label" : "name" // Show in GUI the name of the publisher taken from external DB
         }
   }
