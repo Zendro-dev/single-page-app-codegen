@@ -125,22 +125,45 @@ set -e
 #
 # Constants
 #
-DOCKER_SERVICES=(spa_postgres \
-                 spa_science_db_graphql_server 
-                 spa_science_db_app_server)
-DOCKER_POSTGRES_SERVER=spa_postgres                 
-DOCKER_GRAPHQL_SERVER=spa_science_db_graphql_server                 
-TEST_MODELS="./test/integration-test-input/"
+TEST_MODELS_INSTANCE1="./test/integration_test_models_instance1"
+TEST_MODELS_INSTANCE2="./test/integration_test_models_instance2"
 TARGET_DIR="./docker/integration_test_run"
-CODEGEN_DIRS=("./docker/integration_test_run/src/components" \
-              "./docker/integration_test_run/src/router" \
-              "./docker/integration_test_run/src/requests"\
-              "./docker/integration_test_run/src/integration-test-input")
-CODEGEN_DIRS_SPA=("./docker/integration_test_run/src/components" \
-                  "./docker/integration_test_run/src/router" \
-                  "./docker/integration_test_run/src/requests")
-CODEGEN_DIRS_GRAPHQL=("./docker/integration_test_run/src/integration-test-input")
-INPUT_BASEDIR_TO_GRAPHQL="./docker/integration_test_run/src/"
+GQL_CODEGEN_DIR="./docker/graphql-server-model-codegen"
+GQL_CODEGEN_URL="https://github.com/ScienceDb/graphql-server-model-codegen.git"
+GQL_CODEGEN_BRANCH_TAG="latest-stable"
+TARGET_DIR="./docker/integration_test_run"
+TARGET_DIR_GQL_INSTANCE1=$TARGET_DIR"/gql-instance1"
+TARGET_DIR_GQL_INSTANCE2=$TARGET_DIR"/gql-instance2"
+TARGET_DIR_SPA_INSTANCE1=$TARGET_DIR"/spa-instance1"
+TARGET_DIR_SPA_INSTANCE2=$TARGET_DIR"/spa-instance2"
+CODEGEN_DIRS=($TARGET_DIR_GQL_INSTANCE1"/models/adapters" \
+              $TARGET_DIR_GQL_INSTANCE1"/models/sql" \
+              $TARGET_DIR_GQL_INSTANCE1"/models/distributed" \
+              $TARGET_DIR_GQL_INSTANCE1"/models/generic" \
+              $TARGET_DIR_GQL_INSTANCE1"/models/cenz-server"
+              $TARGET_DIR_GQL_INSTANCE1"/migrations" \
+              $TARGET_DIR_GQL_INSTANCE1"/schemas" \
+              $TARGET_DIR_GQL_INSTANCE1"/resolvers" \
+              $TARGET_DIR_GQL_INSTANCE1"/validations" \
+              $TARGET_DIR_GQL_INSTANCE1"/patches" \
+              $TARGET_DIR_GQL_INSTANCE2"/models/adapters" \
+              $TARGET_DIR_GQL_INSTANCE2"/models/sql" \
+              $TARGET_DIR_GQL_INSTANCE2"/models/distributed" \
+              $TARGET_DIR_GQL_INSTANCE2"/models/generic" \
+              $TARGET_DIR_GQL_INSTANCE2"/models/cenz-server"
+              $TARGET_DIR_GQL_INSTANCE2"/migrations" \
+              $TARGET_DIR_GQL_INSTANCE2"/schemas" \
+              $TARGET_DIR_GQL_INSTANCE2"/resolvers" \
+              $TARGET_DIR_GQL_INSTANCE2"/validations" \
+              $TARGET_DIR_GQL_INSTANCE2"/patches" \
+              $TARGET_DIR_SPA_INSTANCE1"/src/components/main-panel/table-panel" \
+              $TARGET_DIR_SPA_INSTANCE1"/src/components/plots" \
+              $TARGET_DIR_SPA_INSTANCE1"/src/requests" \
+              $TARGET_DIR_SPA_INSTANCE1"/src/routes" \
+              $TARGET_DIR_SPA_INSTANCE2"/src/components/main-panel/table-panel" \
+              $TARGET_DIR_SPA_INSTANCE2"/src/components/plots" \
+              $TARGET_DIR_SPA_INSTANCE2"/src/requests" \
+              $TARGET_DIR_SPA_INSTANCE2"/src/routes")
 MANPAGE="./man/integration_test_run.man"
 T1=180
 DO_DEFAULT=true
@@ -169,12 +192,12 @@ deleteGenCode() {
   # Remove generated code.
   for i in "${CODEGEN_DIRS[@]}"
   do
-    if [ -d $i ]; then
-      rm -rf $i
+    if [ -d ${i} ]; then
+      rm -rf ${i}
       if [ $? -eq 0 ]; then
-          echo -e "@ Removed: $i ... ${LGREEN}done${NC}"
+          echo -e "@ Removed: ${i} ... ${LGREEN}done${NC}"
       else
-          echo -e "!!${RED}ERROR${NC}: trying to remove: ${RED}$i${NC} fails ... ${YEL}exit${NC}"
+          echo -e "!!${RED}ERROR${NC}: trying to remove: ${RED}${i}${NC} fails ... ${YEL}exit${NC}"
           exit 0
       fi
     fi
@@ -195,22 +218,20 @@ checkCode() {
   echo -e "\n${LGRAY}@@ ----------------------------${NC}"
   echo -e "${LGRAY}@@ Check generated code...${NC}"
 
-  # Remove generated code.
+  # For each generated dir.
   for i in "${CODEGEN_DIRS[@]}"
   do
     # Check if directory exists
-    if [ -d $i ]; then
+    if [ -d ${i} ]; then
 
       # Check if directory is empty
       if [ -n "$(ls -A ${i} 2>/dev/null)" ]; then
-        echo -e "@@ Code at: $i ... ${LGREEN}ok${NC}"
+        echo -e "@@ Code at: ${i} ... ${LGREEN}ok${NC}"
       else
-        echo -e "!!${RED}ERROR${NC}: Code directory: ${RED}$i${NC} exists but is empty!, please try -T option ... ${YEL}exit${NC}"
-        echo -e "${LGRAY}---------------------------- @@${NC}\n"
-        exit 0
+        echo -e "!!${YEL}WARNING${NC}: Code directory: ${LGRAY}${i}${NC} exists but is empty."
       fi
     else
-      echo -e "!!${RED}ERROR${NC}: Code directory: ${RED}$i${NC} does not exists!, please try -T option ... ${YEL}exit${NC}"
+      echo -e "!!${RED}ERROR${NC}: Code directory: ${RED}${i}${NC} does not exists!, please try -T option ... ${YEL}exit${NC}"
       echo -e "${LGRAY}---------------------------- @@${NC}\n"
       exit 0
     fi
@@ -271,6 +292,9 @@ cleanup() {
   
   # Delete code
   deleteGenCode
+
+  #Delete gql-codegen
+  rm -rf ${GQL_CODEGEN_DIR}
   
   # Msg
   echo -e "@@ Cleanup ... ${LGREEN}done${NC}"
@@ -310,7 +334,7 @@ waitForGql() {
   # Msg
   echo -e "\n${LGRAY}@@ ----------------------------${NC}"
   echo -e "${LGRAY}@@ Waiting for GraphQL server to start...${NC}"
-  
+
   # Wait until the Science-DB GraphQL web-server is up and running
   waited=0
   until curl 'localhost:3000/graphql' > /dev/null 2>&1
@@ -326,8 +350,59 @@ waitForGql() {
   done
 
   # Msg
-  echo -e "@@ GraphQL server is up! ... ${LGREEN}done${NC}"
+  echo -e "@@ First GraphQL server is up! ... ${LGREEN}done${NC}"
   echo -e "${LGRAY}---------------------------- @@${NC}\n"
+
+  until curl 'localhost:3030/graphql' > /dev/null 2>&1
+  do
+    if [ $waited == $T1 ]; then
+      # Msg: error
+      echo -e "!!${RED}ERROR${NC}: science-db graphql web server does not start, the wait time limit was reached ($T1).\n"
+      echo -e "${LGRAY}---------------------------- @@${NC}\n"
+      exit 0
+    fi
+    sleep 2
+    waited=$(expr $waited + 2)
+  done
+
+  # Msg
+  echo -e "@@ Second GraphQL server is up! ... ${LGREEN}done${NC}"
+  echo -e "${LGRAY}---------------------------- @@${NC}\n"
+}
+
+#
+# Function: gqlCodegenSetup()
+#
+# Check the GraphQL Server codegen, clone it if necessary & install it.
+#
+gqlCodegenSetup() {
+  #
+  # GraphQL server codegen setup
+  #
+  # Msg
+  echo -e "${LGRAY}@@ Checking GraphQL Server codegen...${NC}"
+  # Check if gql-codegen exists, otherwise clone it.
+  if [ -d ${GQL_CODEGEN_DIR} ]; then
+
+    # Check if directory is empty
+    if [ -n "$(ls -A ${GQL_CODEGEN_DIR} 2>/dev/null)" ]; then
+      echo -e "@@ GraphQL Server already exists at: ${GQL_CODEGEN_DIR} ... ${LGREEN}ok${NC}"
+    else
+      #Clone
+      git clone --branch ${GQL_CODEGEN_BRANCH_TAG} ${GQL_CODEGEN_URL} ${GQL_CODEGEN_DIR}
+      # Msg
+      echo -e "@@ GraphQL Server codegen cloned at ${GQL_CODEGEN_DIR} ... ${LGREEN}done${NC}"
+    fi
+  else
+    #Clone
+    git clone --branch ${GQL_CODEGEN_BRANCH_TAG} ${GQL_CODEGEN_URL} ${GQL_CODEGEN_DIR}
+    # Msg
+    echo -e "@@ GraphQL Server codegen cloned at ${GQL_CODEGEN_DIR} ... ${LGREEN}done${NC}"
+  fi
+  # Install gql-codegen
+  npm install --prefix ${GQL_CODEGEN_DIR}
+  # Msg
+  echo -e "@@ Installing GraphQL Server codegen... ${LGREEN}done${NC}"
 }
 
 #
@@ -340,54 +415,39 @@ genCode() {
   echo -e "\n${LGRAY}@@ ----------------------------${NC}"
   echo -e "${LGRAY}@@ Generating code...${NC}"
 
-  # Install
+  # Install SPA codegen
   npm install
   # Msg
   echo -e "@@ Installing ... ${LGREEN}done${NC}"
+
+  # Install GQL codegen
+  gqlCodegenSetup
 
   #
   # Generate SPA code
   #
   # Msg
-  echo -e "${LGRAY}@@ Generating code for SPA server...${NC}"
-  # Create folders required by SPA code generator
-  for i in "${CODEGEN_DIRS_SPA[@]}"
-  do
-    mkdir -p $i
-    if [ $? -eq 0 ]; then
-        echo -e "@ Dir created: $i ... ${LGREEN}done${NC}"
-    else
-        echo -e "!!${RED}ERROR${NC}: trying to create dir: ${RED}$i${NC} fails ... ${YEL}exit${NC}"
-        exit 0
-    fi
-  done
-  # Generate SPA code for the integration test models
-  node ./index.js -f ${TEST_MODELS} -o ${TARGET_DIR}
+  echo -e "${LGRAY}@@ Generating SPA code...${NC}"
+  #Generate
+  node ./index.js -f ${TEST_MODELS_INSTANCE1} -o ${TARGET_DIR_SPA_INSTANCE1} -P -D
+  node ./index.js -f ${TEST_MODELS_INSTANCE2} -o ${TARGET_DIR_SPA_INSTANCE2} -P -D
   # Msg
-  echo -e "@@ Code for SPA generated on ${LGRAY}${TARGET_DIR}${NC}: ... ${LGREEN}done${NC}"
+  echo -e "@@ Code for SPA generated on ${LGRAY}${TARGET_DIR_SPA_INSTANCE1}${NC}: ... ${LGREEN}done${NC}"
+  # Msg
+  echo -e "@@ Code for SPA generated on ${LGRAY}${TARGET_DIR_SPA_INSTANCE2}${NC}: ... ${LGREEN}done${NC}"
 
   #
   # Generate GraphQL server code
   #
   # Msg
-  echo -e "${LGRAY}@@ Generating code for GraphQL server...${NC}"
-  # Prepare input to generate code on the GraphQL server
-  cp -r ${TEST_MODELS} ${INPUT_BASEDIR_TO_GRAPHQL}
-  if [ $? -eq 0 ]; then
-    # Msg
-    echo -e "@ Dir ${LGRAY}$INTEGRATION_TEST_INPUT${NC} copied to ${LGRAY}$INPUT_BASEDIR_TO_GRAPHQL${NC} ... ${LGREEN}done${NC}"
-  else
-     # Msg
-    echo -e "!!${RED}ERROR${NC}: trying to copy dir ${RED}$INTEGRATION_TEST_INPUT${NC} to ${RED}$INPUT_BASEDIR_TO_GRAPHQL${NC} fails ... ${YEL}exit${NC}"
-    exit 0
-  fi
-
-  # Generate code by removing GraphQL Docker container
-  # Code will be generated when invoking docker-compose up (by 'command' specification).
-  # Remove
-  docker-compose -f ./docker/docker-compose-test.yml rm -f ${DOCKER_GRAPHQL_SERVER}
+  echo -e "${LGRAY}@@ Generating GraphQL Server code...${NC}"
+  #Generate
+  node ${GQL_CODEGEN_DIR}/index.js -f ${TEST_MODELS_INSTANCE1} -o ${TARGET_DIR_GQL_INSTANCE1}
+  node ${GQL_CODEGEN_DIR}/index.js -f ${TEST_MODELS_INSTANCE2} -o ${TARGET_DIR_GQL_INSTANCE2}
   # Msg
-  echo -e "@@ Code for GraphQL prepared on ${LGRAY}${TARGET_DIR}${NC}: ... ${LGREEN}done${NC}"
+  echo -e "@@ Code for GraphQL Server generated on ${LGRAY}${TARGET_DIR_GQL_INSTANCE1}${NC}: ... ${LGREEN}done${NC}"
+  # Msg
+  echo -e "@@ Code for GraphQL Server generated on ${LGRAY}${TARGET_DIR_GQL_INSTANCE2}${NC}: ... ${LGREEN}done${NC}"
   
   # Msg
   echo -e "@@ Code generated ... ${LGREEN}done${NC}"
@@ -410,7 +470,7 @@ upContainers() {
   echo -e "@@ Installing ... ${LGREEN}done${NC}"
   
   # Up
-  docker-compose -f ./docker/docker-compose-test.yml up -d
+  docker-compose -f ./docker/docker-compose-test.yml up -d --no-recreate
   # Msg
   echo -e "@@ Containers up ... ${LGREEN}done${NC}"
   
@@ -434,12 +494,6 @@ doTests() {
 
   # Wait for graphql server
   waitForGql
-
-  #Add tests-specific data to the database
-  docker-compose -f ./docker/docker-compose-test.yml exec ${DOCKER_POSTGRES_SERVER} \
-  bash -c "psql -U sciencedb -d sciencedb_development -P pager=off --single-transaction -f /usr/src/app/integration-test.sql"
-  # Msg
-  echo -e "@@ Tests-specific data written to db ... ${LGREEN}done${NC}"
 
   # Do tests
   mocha ./test/integration-tests-mocha.js
@@ -545,8 +599,8 @@ if [ $# -gt 0 ]; then
             -t|--run-tests-only)
               # Check code
               checkCode
-              # Restart containers
-              restartContainers
+              # Up containers
+              upContainers
               # Do the tests
               doTests
 

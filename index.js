@@ -181,8 +181,7 @@ let allRequiredDirsExists = true;
 let allRequiredDirsCreated = true;
 let requiredDirs=
   ['src',
-    'src/components',
-    'src/requests',
+    'src/components'
   ];
 //msg
 console.log(colors.white('\n@ Checking required directories on output base-directory...'));
@@ -405,6 +404,8 @@ opts.forEach((ejbOpts) => {
   }
   //routes
   modelTableDirs.push(path.resolve(directory, 'src/routes'));
+  //requests
+  modelTableDirs.push(path.resolve(directory, 'src/requests'));
   //plots
   let plotlyPath = 'src/components/plots';
   modelTableDirs.push(path.resolve(directory, plotlyPath));

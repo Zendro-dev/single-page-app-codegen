@@ -432,8 +432,8 @@ exports.checkJsonDataFile = function(jsonModel, options){
 
       //check
       if(association.label === undefined || association.label === ''){
-        result.pass = false;
-        result.errors.push(`ERROR IN MODEL ${jsonModel.model}: 'label' is mandatory field. It should be defined in association ${name}`);
+        //warning
+        console.log(colors.yellow('@@Warning:'), 'on model:', colors.blue(jsonModel.model), 'on associaton:', colors.blue(name), " - 'label' is not defined.");
       }
    })
   }
