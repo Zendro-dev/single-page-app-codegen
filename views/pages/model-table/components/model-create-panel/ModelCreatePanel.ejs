@@ -618,7 +618,7 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
           <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
           <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.push(itemId);
           set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current);
-<%if(sortedAssociations[i].foreignKey){-%>
+<%if(hasOwnForeingKeys && sortedAssociations[i].foreignKey){-%>
           handleSetValue(itemId, -2, '<%- sortedAssociations[i].foreignKey _%>');
           setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: itemId});
 <%}-%>
@@ -628,7 +628,7 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
           <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
           <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.push(itemId);
           set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current);
-<%if(sortedAssociations[i].foreignKey){-%>
+<%if(hasOwnForeingKeys && sortedAssociations[i].foreignKey){-%>
           handleSetValue(itemId, -2, '<%- sortedAssociations[i].foreignKey _%>');
           setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: itemId});
 <%}-%>
@@ -654,7 +654,7 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
       if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.length > 0) {
         <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
         set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState([]);
-<%if(sortedAssociations[i].foreignKey){-%>
+<%if(hasOwnForeingKeys && sortedAssociations[i].foreignKey){-%>
         handleSetValue(null, -2, '<%- sortedAssociations[i].foreignKey _%>');
         setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: null});
 <%}-%>
@@ -662,7 +662,7 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
 <%} else if((sortedAssociations[i].sqlType === 'hasOne')){-%>
       <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
       set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState([]);
-<%if(sortedAssociations[i].foreignKey){-%>
+<%if(hasOwnForeingKeys && sortedAssociations[i].foreignKey){-%>
       handleSetValue(null, -2, '<%- sortedAssociations[i].foreignKey _%>');
       setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: null});
 <%}-%>

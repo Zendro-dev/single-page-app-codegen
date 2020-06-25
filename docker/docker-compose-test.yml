@@ -23,6 +23,8 @@ services:
       dockerfile: Dockerfile.postgres
     ports:
      - 1234:5432
+    volumes:
+      - ../test/integration-test.sql:/usr/src/app/integration-test.sql
     networks:
      - instance1
 #
@@ -113,13 +115,14 @@ services:
       - ./integration_test_run/spa-instance1/src/components/plots:/usr/src/app/src/components/plots
       - ./integration_test_run/spa-instance1/src/requests:/usr/src/app/src/requests
       - ./integration_test_run/spa-instance1/src/routes:/usr/src/app/src/routes
+      - ./integration_test_run/spa-instance1/src/acl_rules.js:/usr/src/app/src/acl_rules.js
     ports:
      - 8080:8080
     environment:
      - PORT=8080
-     - REACT_APP_CENZ_GRAPHQL_SERVER_URL=http://server1:3000/graphql
-     - REACT_APP_CENZ_LOGIN_URL=http://server1:3000/login
-     - REACT_APP_CENZ_EXPORT_URL=http://server1:3000/export
+     - REACT_APP_CENZ_GRAPHQL_SERVER_URL=http://localhost:3000/graphql
+     - REACT_APP_CENZ_LOGIN_URL=http://localhost:3000/login
+     - REACT_APP_CENZ_EXPORT_URL=http://localhost:3000/export
      - REACT_APP_CENZ_MAX_UPLOAD_SIZE=500
     networks:
     - integrationtest
@@ -139,6 +142,8 @@ services:
       dockerfile: Dockerfile.postgres
     ports:
      - 1235:5431
+    volumes:
+      - ../test/integration-test.sql:/usr/src/app/integration-test.sql
     networks:
       - instance2
 #
@@ -198,13 +203,14 @@ services:
       - ./integration_test_run/spa-instance2/src/components/plots:/usr/src/app/src/components/plots
       - ./integration_test_run/spa-instance2/src/requests:/usr/src/app/src/requests
       - ./integration_test_run/spa-instance2/src/routes:/usr/src/app/src/routes
+      - ./integration_test_run/spa-instance2/src/acl_rules.js:/usr/src/app/src/acl_rules.js
     ports:
      - 8081:8081
     environment:
      - PORT=8081
-     - REACT_APP_CENZ_GRAPHQL_SERVER_URL=http://server2:3030/graphql
-     - REACT_APP_CENZ_LOGIN_URL=http://server2:3030/login
-     - REACT_APP_CENZ_EXPORT_URL=http://server2:3030/export
+     - REACT_APP_CENZ_GRAPHQL_SERVER_URL=http://localhost:3030/graphql
+     - REACT_APP_CENZ_LOGIN_URL=http://localhost:3030/login
+     - REACT_APP_CENZ_EXPORT_URL=http://localhost:3030/export
      - REACT_APP_CENZ_MAX_UPLOAD_SIZE=500
     networks:
     - integrationtest

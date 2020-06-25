@@ -855,20 +855,6 @@ promises.push( funks.renderToFile(fpath, 'routes/TablesSwitch', modelsOpts) );
 fpath = path.resolve(directory, `src/`, `acl_rules.js`);
 promises.push( funks.renderToFile(fpath, 'acl/acl_rules', modelsOpts) );
 
-/**
- * utils
- * 
- * */
-// template 62: utils
-fpath = path.resolve(directory, `src/`, `utils.js`);
-if (fs.existsSync(fpath)) {
-  //msg
-  console.log('@@@ File: ', colors.blue('src/utils.js'), "will not be generated, already exists:", colors.dim(fpath));
-} else {
-  //msg
-  if(verbose) console.log('@@ File: ', colors.blue('src/utils.js'), "will be generated, because does not exists.");
-  promises.push( funks.renderToFile(fpath, 'utils/utils') );
-}
 
 Promise.all(promises).then( (values) => {
   

@@ -125,6 +125,8 @@ set -e
 #
 # Constants
 #
+DOCKER_POSTGRES_SERVER1=gql_postgres1 
+DOCKER_POSTGRES_SERVER2=gql_postgres2 
 TEST_MODELS_INSTANCE1="./test/integration_test_models_instance1"
 TEST_MODELS_INSTANCE2="./test/integration_test_models_instance2"
 TARGET_DIR="./docker/integration_test_run"
@@ -164,8 +166,11 @@ CODEGEN_DIRS=($TARGET_DIR_GQL_INSTANCE1"/models/adapters" \
               $TARGET_DIR_SPA_INSTANCE2"/src/components/plots" \
               $TARGET_DIR_SPA_INSTANCE2"/src/requests" \
               $TARGET_DIR_SPA_INSTANCE2"/src/routes")
+CODEGEN_FILES=($TARGET_DIR_SPA_INSTANCE1"/src/acl_rules.js" \
+              $TARGET_DIR_SPA_INSTANCE2"/src/acl_rules.js")
 MANPAGE="./man/integration_test_run.man"
 T1=180
+T2=300
 DO_DEFAULT=true
 KEEP_RUNNING=false
 NUM_ARGS=$#
@@ -189,11 +194,25 @@ deleteGenCode() {
   echo -e "\n${LGRAY}@@ ----------------------------${NC}"
   echo -e "${LGRAY}@@ Removing generated code...${NC}"
 
-  # Remove generated code.
+  # Remove generated code dirs.
   for i in "${CODEGEN_DIRS[@]}"
   do
     if [ -d ${i} ]; then
       rm -rf ${i}
+      if [ $? -eq 0 ]; then
+          echo -e "@ Removed: ${i} ... ${LGREEN}done${NC}"
+      else
+          echo -e "!!${RED}ERROR${NC}: trying to remove: ${RED}${i}${NC} fails ... ${YEL}exit${NC}"
+          exit 0
+      fi
+    fi
+  done
+
+  # Remove generated code files.
+  for i in "${CODEGEN_FILES[@]}"
+  do
+    if [ -f ${i} ]; then
+      rm -f ${i}
       if [ $? -eq 0 ]; then
           echo -e "@ Removed: ${i} ... ${LGREEN}done${NC}"
       else
@@ -232,6 +251,19 @@ checkCode() {
       fi
     else
       echo -e "!!${RED}ERROR${NC}: Code directory: ${RED}${i}${NC} does not exists!, please try -T option ... ${YEL}exit${NC}"
+      echo -e "${LGRAY}---------------------------- @@${NC}\n"
+      exit 0
+    fi
+  done
+
+  # For each generated file.
+  for i in "${CODEGEN_FILES[@]}"
+  do
+    # Check if file exists
+    if [ -f ${i} ]; then
+      echo -e "@@ Code at: ${i} ... ${LGREEN}ok${NC}"
+    else
+      echo -e "!!${RED}ERROR${NC}: Code file: ${RED}${i}${NC} does not exists!, please try -T option ... ${YEL}exit${NC}"
       echo -e "${LGRAY}---------------------------- @@${NC}\n"
       exit 0
     fi
@@ -341,7 +373,7 @@ waitForGql() {
   do
     if [ $waited == $T1 ]; then
       # Msg: error
-      echo -e "!!${RED}ERROR${NC}: science-db graphql web server does not start, the wait time limit was reached ($T1).\n"
+      echo -e "!!${RED}ERROR${NC}: science-db graphql web server 1 does not start, the wait time limit was reached ($T1).\n"
       echo -e "${LGRAY}---------------------------- @@${NC}\n"
       exit 0
     fi
@@ -357,7 +389,7 @@ waitForGql() {
   do
     if [ $waited == $T1 ]; then
       # Msg: error
-      echo -e "!!${RED}ERROR${NC}: science-db graphql web server does not start, the wait time limit was reached ($T1).\n"
+      echo -e "!!${RED}ERROR${NC}: science-db graphql web server 2 does not start, the wait time limit was reached ($T1).\n"
       echo -e "${LGRAY}---------------------------- @@${NC}\n"
       exit 0
     fi
@@ -367,6 +399,51 @@ waitForGql() {
 
   # Msg
   echo -e "@@ Second GraphQL server is up! ... ${LGREEN}done${NC}"
+  echo -e "${LGRAY}---------------------------- @@${NC}\n"
+}
+
+#
+# Function: waitForSpa()
+#
+# Waits for SPA Server to start, for a maximum amount of T1 seconds.
+#
+waitForSpa() {
+  # Msg
+  echo -e "\n${LGRAY}@@ ----------------------------${NC}"
+  echo -e "${LGRAY}@@ Waiting for SPA server to start...${NC}"
+
+  # Wait until the Science-DB GraphQL web-server is up and running
+  waited=0
+  until curl 'localhost:8080' > /dev/null 2>&1
+  do
+    if [ $waited == $T2 ]; then
+      # Msg: error
+      echo -e "!!${RED}ERROR${NC}: science-db spa server 1 does not start, the wait time limit was reached ($T2).\n"
+      echo -e "${LGRAY}---------------------------- @@${NC}\n"
+      exit 0
+    fi
+    sleep 2
+    waited=$(expr $waited + 2)
+  done
+
+  # Msg
+  echo -e "@@ First SPA server is up! ... ${LGREEN}done${NC}"
+  echo -e "${LGRAY}---------------------------- @@${NC}\n"
+
+  until curl 'localhost:8081/graphql' > /dev/null 2>&1
+  do
+    if [ $waited == $T2 ]; then
+      # Msg: error
+      echo -e "!!${RED}ERROR${NC}: science-db spa server 2 does not start, the wait time limit was reached ($T2).\n"
+      echo -e "${LGRAY}---------------------------- @@${NC}\n"
+      exit 0
+    fi
+    sleep 2
+    waited=$(expr $waited + 2)
+  done
+
+  # Msg
+  echo -e "@@ Second SPA server is up! ... ${LGREEN}done${NC}"
   echo -e "${LGRAY}---------------------------- @@${NC}\n"
 }
 
@@ -494,6 +571,22 @@ doTests() {
 
   # Wait for graphql server
   waitForGql
+
+  #Add tests-specific data to the database
+  # Instance 1
+  docker-compose -f ./docker/docker-compose-test.yml exec ${DOCKER_POSTGRES_SERVER1} \
+  bash -c "psql -U sciencedb -d sciencedb_development -P pager=off --single-transaction -f /usr/src/app/integration-test.sql"
+  # Msg
+  echo -e "@@ Tests-specific data written to db1 ... ${LGREEN}done${NC}"
+  
+  # Instance 2
+  docker-compose -f ./docker/docker-compose-test.yml exec ${DOCKER_POSTGRES_SERVER2} \
+  bash -c "psql -U sciencedb -d sciencedb_development -P pager=off --single-transaction -f /usr/src/app/integration-test.sql"
+  # Msg
+  echo -e "@@ Tests-specific data written to db2 ... ${LGREEN}done${NC}"
+
+  # Wait for spa server
+  waitForSpa
 
   # Do tests
   mocha ./test/integration-tests-mocha.js
