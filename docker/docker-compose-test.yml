@@ -18,13 +18,15 @@ services:
 # Postgres 1
 #
   gql_postgres1:
+    container_name: postgres1
     build:
       context: .
       dockerfile: Dockerfile.postgres
     ports:
      - 1234:5432
     volumes:
-      - ../test/integration-test.sql:/usr/src/app/integration-test.sql
+     - sdb_db_data1:/var/lib/postgresql/data
+     - ../test/integration-test.sql:/usr/src/app/integration-test.sql
     networks:
      - instance1
 #
@@ -137,13 +139,15 @@ services:
 # Postgres 2
 #
   gql_postgres2:
+    container_name: postgres2
     build:
       context: .
       dockerfile: Dockerfile.postgres
     ports:
      - 1235:5431
     volumes:
-      - ../test/integration-test.sql:/usr/src/app/integration-test.sql
+     - sdb_db_data2:/var/lib/postgresql/data
+     - ../test/integration-test.sql:/usr/src/app/integration-test.sql
     networks:
       - instance2
 #
@@ -220,6 +224,10 @@ services:
       - |
         npm install
         npm start
+
+volumes:
+  sdb_db_data1:
+  sdb_db_data2:
 
 networks:
   instance1:

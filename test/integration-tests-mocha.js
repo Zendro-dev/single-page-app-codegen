@@ -42,134 +42,259 @@ describe('Basic functionality', function () {
   this.timeout(tt);
 
   it('01. Server OK', async function () {
+    await delay(500);
+
+    /**
+     * Evaluate
+     */
     expect(await page.title()).to.eql('Cenzontle');
   });
 
   it('02. Login', async function () {
+    //add data
     await page.click("input[id=LoginPage-textField-email]");
     await page.type("input[id=LoginPage-textField-email]", 'admin@cenz.on');
-
+    //add data
     await page.click("input[id=LoginPage-textField-password]");
     await page.type("input[id=LoginPage-textField-password]", 'admin');
     
-    const [response] = await Promise.all([
-        page.waitForNavigation({ waitUntil: 'load' }),
-        browser.waitForTarget(target => target.url() === 'http://localhost:8080/main/home'),      
-        page.click("button[id=LoginPage-button-login]"),
+    await Promise.all([
+      //wait for events
+      page.waitForNavigation({ waitUntil: 'load' }),
+      browser.waitForTarget(target => target.url() === 'http://localhost:8080/main/home'),
+      
+      //click
+      page.click("button[id=LoginPage-button-login]"),
     ]);
     
+    await delay(500);
+
+    /**
+     * Evaluate
+     */
     expect(await page.title()).to.eql('Cenzontle');
   });
 
   it('03. Individual table is empty', async function () {
 
-    const [response] = await Promise.all([
+    let apiResponse = null;
+    await Promise.all([
+      //wait for events
       page.waitForNavigation({ waitUntil: 'load' }),
-      browser.waitForTarget(target => target.url() === 'http://localhost:8080/main/model/individual'),      
+      browser.waitForTarget(target => target.url() === 'http://localhost:8080/main/model/individual'),
+      apiResponse = page.waitForResponse('http://localhost:3000/graphql').then((res) => res.json().then((data) => data.data)),
+      page.waitForSelector('table[id=IndividualEnhancedTable-tableBody]', { hidden: true }),
+      page.waitForSelector('div[id=IndividualEnhancedTable-box-noData]', { visible: true }),
+
+      //click
       page.click("div[id=MainPanel-listItem-button-individual]"),
     ]);
+    await delay(500);
 
-    //expect(await page.$('td.vuetable-empty-result') !== null).to.eql(true);
+    /**
+     * Evaluate
+     */
+    let data = await apiResponse;    
 
+    expect(await data.countIndividuals === 0).to.eql(true);
+    expect(await page.title()).to.eql('Cenzontle');
   });
 
 
-  // it('04. Add individual', async function () {
+  it('04. Add individual', async function () {
 
-  //     const SELECTOR = 'a[href="/individual"] > button';
-  //     await page.waitFor(SELECTOR);
+    await Promise.all([
+      //wait for events
+      page.waitForSelector('div[id=IndividualAttributesFormView-div-root]', { visible: true }),
 
-  //     await Promise.all([
-  //         page.click(SELECTOR),
-  //         page.waitForNavigation({ waitUntil: 'domcontentloaded' })
-  //     ]);
+      //click
+      page.click("button[id=IndividualEnhancedTableToolbar-button-add]"),
+    ]);
 
-  //     await delay(500);
+    //add data
+    await page.click("textarea[id=StringField-Individual-name]");
+    await page.type("textarea[id=StringField-Individual-name]", 'individual-1');
 
-  //     await page.type('#individual-name-div > input', 'First Individual');
-  //     await page.type('#individual-transcript_counts-div > div > div > div > input', '5');
-  //     await page.click('button[type="submit"]');
-  //     await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
+    let apiResponse = null;
+    await Promise.all([
+      //wait for events
+      page.waitForSelector('div[id=IndividualAttributesFormView-div-root]', { hidden: true }),
+      apiResponse = page.waitForResponse('http://localhost:3000/graphql').then((res) => res.json().then((data) => data.data)),
 
-  //     await delay(500);
-
-  //     expect(await page.$('td.right.aligned') !== null).to.eql(true);
-
-  // });
-
-
-  // it('05. Update individual', async function () {
-
-  //     let SELECTOR = 'div.custom-actions > a > button';
-  //     await page.waitFor(SELECTOR);
-
-  //     await Promise.all([
-  //         page.click(SELECTOR),
-  //         page.waitForNavigation({ waitUntil: 'domcontentloaded' })
-  //     ]);
-  //     await delay(500);
-
-  //     SELECTOR = '#individual-name-div > input';
-  //     await page.click(SELECTOR, {clickCount: 3});
-  //     await page.type(SELECTOR, 'First Updated', {delay: 20});
-
-  //     await Promise.all([
-  //         page.click('button[type="submit"]'),
-  //         page.waitForNavigation({ waitUntil: 'domcontentloaded' })
-  //     ]);
-  //     await delay(500);
-
-  //     const cell = await page.$('tbody > tr > td:nth-child(0n+2)');
-  //     const text = await page.evaluate(cell => cell.textContent, cell);
-
-  //     expect(text).to.eql('First Updated');
-
-  // });
-
-  // it('06. Add one more and find both', async function () {
-
-  //     const SELECTOR = 'a[href="/individual"] > button';
-  //     await page.waitFor(SELECTOR);
-
-  //     await Promise.all([
-  //         page.click(SELECTOR),
-  //         page.waitForNavigation({ waitUntil: 'domcontentloaded' })
-  //     ]);
-
-  //     await delay(500);
-
-  //     await page.type('#individual-name-div > input', 'First Individual');
-  //     await page.type('#individual-transcript_counts-div > div > div > div > input', '5');
+      //click
+      page.click("button[id=IndividualCreatePanel-fabButton-save]"),
+    ]);
+    await delay(500);
 
 
-  //     await Promise.all([
-  //         page.click('button[type="submit"]'),
-  //         page.waitForNavigation({ waitUntil: 'domcontentloaded' })
-  //     ]);
-  //     await delay(500);
+    /**
+     * Evaluate
+     */
+    let data = await apiResponse;
 
-  //     await page.type('input', 'First');
-  //     await page.click('div.inline.field > button');
-  //     await delay(500);
+    expect(await data.addIndividual.name === 'individual-1').to.eql(true);
+    expect(await page.title()).to.eql('Cenzontle');
+  });
 
-  //     console.log("check array");
 
-  //     let rows = await page.$$eval('tbody > tr', row => row);
-  //     expect(rows.length).to.eql(2);
-  // });
+  it('05. Update individual', async function () {
 
-  // it('07. Delete all', async function () {
+    await Promise.all([
+      //wait for events
+      page.waitForSelector('div[id=IndividualAttributesFormView-div-root]', { visible: true }),
 
-  //     let rows = await page.$$eval('tbody > tr', row => row);
+      //click
+      page.click("button[id=IndividualEnhancedTable-row-iconButton-edit-1]"),
+    ]);
 
-  //     for(let i = 0; i < rows.length; i = i+1){
-  //         await page.click('div.custom-actions > button:nth-child(0n+3)');
-  //     }
+    //add data
+    await page.click("textarea[id=StringField-Individual-name]", {clickCount: 3});
+    await page.type("textarea[id=StringField-Individual-name]", 'individual-1-edited');
 
-  //     rows = await page.$$eval('tbody > tr', row => row);
+    let apiResponse = null;
+    await Promise.all([
+      //wait for events
+      page.waitForSelector('div[id=IndividualAttributesFormView-div-root]', { hidden: true }),
+      apiResponse = page.waitForResponse('http://localhost:3000/graphql').then((res) => res.json().then((data) => data.data)),
 
-  //     expect(rows.length).to.eql(1);
-  // });
+      //click
+      page.click("button[id=IndividualUpdatePanel-fabButton-save]"),
+    ]);
+    await delay(500);
+
+
+    /**
+     * Evaluate
+     */
+    let data = await apiResponse;
+    let cell = await page.$('tbody > tr > td:nth-child(0n+5)');
+    let text = await page.evaluate(cell => cell.textContent, cell);
+
+    expect(text).to.eql('individual-1-edited');
+    expect(await data.updateIndividual.name === 'individual-1-edited').to.eql(true);
+    expect(await page.title()).to.eql('Cenzontle');
+  });
+
+  it('06. Add one more and find both', async function () {
+    
+    /**
+     * Add record
+     */
+    await Promise.all([
+      //wait for events
+      page.waitForSelector('div[id=IndividualAttributesFormView-div-root]', { visible: true }),
+
+      //click
+      page.click("button[id=IndividualEnhancedTableToolbar-button-add]"),
+    ]);
+
+    //add data
+    await page.click("textarea[id=StringField-Individual-name]");
+    await page.type("textarea[id=StringField-Individual-name]", 'individual-2');
+
+    let apiResponse1 = null;
+    await Promise.all([
+      //wait for events
+      page.waitForSelector('div[id=IndividualAttributesFormView-div-root]', { hidden: true }),
+      apiResponse1 = page.waitForResponse('http://localhost:3000/graphql').then((res) => res.json().then((data) => data.data)),
+
+      //click
+      page.click("button[id=IndividualCreatePanel-fabButton-save]"),
+    ]);
+    await delay(500);
+
+    /**
+     * Search
+     */
+    //add input
+    await page.click("input[id=IndividualEnhancedTableToolbar-textField-search]");
+    await page.type("input[id=IndividualEnhancedTableToolbar-textField-search]", 'individual-');
+
+    let apiResponse2 = null;
+    let selCell1 = null;
+    let selCell2 = null;
+    await Promise.all([
+      //wait for events
+      selCell1 = page.waitForSelector('tr[id=IndividualEnhancedTable-row-1] > td:nth-child(0n+5)', { visible: true }),
+      selCell2 = page.waitForSelector('tr[id=IndividualEnhancedTable-row-2] > td:nth-child(0n+5)', { visible: true }),
+      apiResponse2 = page.waitForResponse('http://localhost:3000/graphql').then((res) => res.json().then((data) => data.data)),
+
+      //click
+      page.click("button[id=IndividualEnhancedTableToolbar-iconButton-search]"),
+    ]);
+    await delay(500);
+
+
+    /**
+     * Evaluate
+     */
+    let data1 = await apiResponse1;
+    let data2 = await apiResponse2;
+    let cell1 = await selCell1;
+    let cell2 = await selCell2;
+    let text1 = await page.evaluate(cell => cell.textContent, cell1);
+    let text2 = await page.evaluate(cell => cell.textContent, cell2);
+    let rowsCount = await page.$$eval('tbody > tr', rows => rows.length);
+
+    expect(await data1.addIndividual.name === 'individual-2').to.eql(true);
+    expect(await data2.countIndividuals === 2).to.eql(true);
+    expect(rowsCount).to.eql(2);
+    expect(text1).to.eql('individual-1-edited');
+    expect(text2).to.eql('individual-2');
+    expect(await page.title()).to.eql('Cenzontle');
+
+  });
+
+  it('07. Delete all', async function () {
+
+      let rowsCount = await page.$$eval('tbody > tr', rows => rows.length);
+      for(let i = 0; i < rowsCount; i = i+1){
+        //last events
+        let lastEvents = [];
+        if(i+1 === rowsCount) {
+          lastEvents = [
+            page.waitForSelector('table[id=IndividualEnhancedTable-tableBody]', { hidden: true }),
+            page.waitForSelector('div[id=IndividualEnhancedTable-box-noData]', { visible: true }),
+          ];
+        }
+
+        await Promise.all([
+          //wait for events
+          page.waitForSelector('div[id=IndividualAttributesFormView-div-root]', { visible: true }),
+    
+          //click
+          page.click(`button[id=IndividualEnhancedTable-row-iconButton-delete-${i+1}]`),
+        ]);
+        await delay(500);
+
+        let apiResponse = null;
+        await Promise.all(lastEvents.concat([
+          //wait for events
+          page.waitForSelector('div[id=IndividualAttributesFormView-div-root]', { hidden: true }),
+          apiResponse = page.waitForResponse('http://localhost:3000/graphql').then((res) => res.json().then((data) => data.data)),
+    
+          //click
+          page.click('button[id=IndividualDeleteConfirmationDialog-button-accept]'),
+        ]));
+        await delay(1000);
+
+
+        /**
+         * Evaluate
+         */
+        let data = await apiResponse;
+
+        expect(await data.deleteIndividual === 'Item successfully deleted').to.eql(true);
+      }
+
+      /**
+       * Evaluate
+       */
+      rowsCount = await page.$$eval('tbody > tr', rows => rows.length);
+
+      expect(rowsCount).to.eql(0);
+      expect(await page.title()).to.eql('Cenzontle');
+  });
 
   // it('08. Check Cas_number works', async function () {
 

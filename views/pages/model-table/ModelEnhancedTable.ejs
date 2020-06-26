@@ -1426,6 +1426,7 @@ function resetReloadData() {
                         in={(!isOnApiRequest && count === 0)}
                       >
                         <Box
+                          id='<%- nameOnPascal -%>EnhancedTable-box-noData'
                           className={classes.tableBackdrop}
                           bgcolor='rgba(255, 255, 255, 0.0)'
                           width={(!isOnApiRequest && count === 0)?'100%':0}
@@ -1438,14 +1439,14 @@ function resetReloadData() {
                         >
                           <Grid container className={classes.tableBackdropContent} justify='center' alignContent='center' alignItems='center'>
                             <Grid item>
-                              <Typography variant="body1" >{ t('modelPanels.noData') }</Typography>
+                              <Typography variant="body1" >{ t('modelPanels.noData', 'No data to display') }</Typography>
                             </Grid>
                           </Grid>
                         </Box>
                       </Fade>
 
                       {/* Table */}
-                      <Table stickyHeader size='small' ref={tref}>
+                      <Table id='<%- nameOnPascal -%>EnhancedTable-table' stickyHeader size='small' ref={tref}>
 
                         {/* Table Head */}
                         <<%- nameOnPascal -%>EnhancedTableHead
@@ -1460,7 +1461,7 @@ function resetReloadData() {
                         <Fade
                           in={(!isOnApiRequest && count > 0)}
                         >
-                          <TableBody>
+                          <TableBody id='<%- nameOnPascal -%>EnhancedTable-tableBody'>
                             {
                               items.map((item, index) => {
                                 return ([
@@ -1468,6 +1469,7 @@ function resetReloadData() {
                                     Table Row
                                   */
                                   <TableRow
+                                    id={'<%- nameOnPascal -%>EnhancedTable-row-'+item.<%- internalId _%>}
                                     hover
                                     onClick={event => handleClickOnRow(event, item)}
                                     role="checkbox"
@@ -1479,6 +1481,7 @@ function resetReloadData() {
                                     <TableCell padding="checkbox">
                                       <Tooltip title={ t('modelPanels.viewDetails') }>
                                         <IconButton
+                                          id={'<%- nameOnPascal -%>EnhancedTable-row-iconButton-detail-'+item.<%- internalId _%>}
                                           color="default"
                                           onClick={event => {
                                             event.stopPropagation();
@@ -1503,6 +1506,7 @@ function resetReloadData() {
                                         <TableCell padding='checkbox' align='center'>
                                           <Tooltip title={ t('modelPanels.edit') }>
                                             <IconButton
+                                              id={'<%- nameOnPascal -%>EnhancedTable-row-iconButton-edit-'+item.<%- internalId _%>}
                                               color="default"
                                               onClick={(event) => {
                                                 event.stopPropagation();
@@ -1524,6 +1528,7 @@ function resetReloadData() {
                                         <TableCell padding='checkbox' align='center'>
                                           <Tooltip title={ t('modelPanels.delete') }>
                                             <IconButton
+                                              id={'<%- nameOnPascal -%>EnhancedTable-row-iconButton-delete-'+item.<%- internalId _%>}
                                               color="default"
                                               onClick={(event) => {
                                                 event.stopPropagation();

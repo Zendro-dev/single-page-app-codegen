@@ -126,7 +126,13 @@ set -e
 # Constants
 #
 DOCKER_POSTGRES_SERVER1=gql_postgres1 
-DOCKER_POSTGRES_SERVER2=gql_postgres2 
+DOCKER_POSTGRES_SERVER2=gql_postgres2
+DOCKER_POSTGRES_CONTAINER1=postgres1 
+DOCKER_POSTGRES_CONTAINER2=postgres2 
+DOCKER_POSTGRES_VOLUME1=docker_sdb_db_data1
+DOCKER_POSTGRES_VOLUME2=docker_sdb_db_data2
+DOCKER_GQL_SERVER1=gql_science_db_graphql_server1 
+DOCKER_GQL_SERVER2=gql_science_db_graphql_server2
 TEST_MODELS_INSTANCE1="./test/integration_test_models_instance1"
 TEST_MODELS_INSTANCE2="./test/integration_test_models_instance2"
 TARGET_DIR="./docker/integration_test_run"
@@ -289,6 +295,9 @@ restartContainers() {
   # Msg
   echo -e "@@ Containers down ... ${LGREEN}done${NC}"
 
+  # Remove postgres volumes
+  docker volume rm ${DOCKER_POSTGRES_VOLUME1} ${DOCKER_POSTGRES_VOLUME2} -f
+
   # Install
   npm install
   # Msg
@@ -349,11 +358,56 @@ softCleanup() {
   # Msg
   echo -e "@@ Containers down ... ${LGREEN}done${NC}"
 
+  # Remove db volumes
+  docker volume rm ${DOCKER_POSTGRES_VOLUME1} ${DOCKER_POSTGRES_VOLUME2} -f
+
   # Delete code
   deleteGenCode
 
   # Msg
   echo -e "@@ Soft cleanup ... ${LGREEN}done${NC}"
+  echo -e "${LGRAY}---------------------------- @@${NC}\n"
+}
+
+#
+# Function: stopContainers()
+#
+# stop all containers.
+#
+stopContainers() {
+  # Msg
+  echo -e "\n${LGRAY}@@ ----------------------------${NC}"
+  echo -e "${LGRAY}@@ Stopping Containers ...${NC}"
+
+  # Stop
+  docker-compose -f ./docker/docker-compose-test.yml stop
+  
+  # Msg
+  echo -e "@@ Containers restart ... ${LGREEN}done${NC}"
+  echo -e "${LGRAY}---------------------------- @@${NC}\n"
+}
+
+#
+# Function: removeVolumes()
+#
+# remove named volumes.
+#
+removeVolumes() {
+  # Msg
+  echo -e "\n${LGRAY}@@ ----------------------------${NC}"
+  echo -e "${LGRAY}@@ Removing volumes ...${NC}"
+
+  # Stop
+  docker-compose -f ./docker/docker-compose-test.yml stop ${DOCKER_POSTGRES_SERVER1} ${DOCKER_POSTGRES_SERVER2} ${DOCKER_GQL_SERVER1} ${DOCKER_GQL_SERVER2}
+
+  # Remove db containers
+  docker rm ${DOCKER_POSTGRES_CONTAINER1} ${DOCKER_POSTGRES_CONTAINER2}
+
+  # Remove db volumes
+  docker volume rm ${DOCKER_POSTGRES_VOLUME1} ${DOCKER_POSTGRES_VOLUME2} -f
+  
+  # Msg
+  echo -e "@@ Volumes removed ... ${LGREEN}done${NC}"
   echo -e "${LGRAY}---------------------------- @@${NC}\n"
 }
 
@@ -497,7 +551,7 @@ genCode() {
   # Msg
   echo -e "@@ Installing ... ${LGREEN}done${NC}"
 
-  # Install GQL codegen
+  # Get GQL codegen ready
   gqlCodegenSetup
 
   #
@@ -678,8 +732,10 @@ if [ $# -gt 0 ]; then
             ;;
 
             -g|--generate-code)
-              # Light cleanup
-              softCleanup
+              # Stop containers
+              stopContainers
+              # Delete code
+              deleteGenCode
               # Generate code
               genCode
               # Ups containers
@@ -692,6 +748,8 @@ if [ $# -gt 0 ]; then
             -t|--run-tests-only)
               # Check code
               checkCode
+              # Remove volumes
+              removeVolumes
               # Up containers
               upContainers
               # Do the tests
@@ -709,8 +767,12 @@ if [ $# -gt 0 ]; then
             ;;
 
             -T|--generate-code-and-run-tests)
-              # Light cleanup
-              softCleanup
+              # Stop containers
+              stopContainers
+              # Remove volumes
+              removeVolumes
+              # Delete code
+              deleteGenCode
               # Generate code
               genCode
               # Up containers

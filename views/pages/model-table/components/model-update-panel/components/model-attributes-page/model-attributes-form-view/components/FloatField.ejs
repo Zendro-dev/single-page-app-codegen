@@ -108,7 +108,7 @@ export default function FloatField(props) {
       <Grid item>
         {(!refresh) && (
           <TextField
-            id={"float-field-"+itemKey+'-'+name}
+            id={'FloatField-<%- nameOnPascal -%>'+'-'+name}
             value={value}
             label={label}
             type="number"

@@ -942,7 +942,8 @@ function setAjvErrors(err) {
       <AppBar>
         <Toolbar>
           <Tooltip title={ t('modelPanels.cancel') }>
-            <IconButton 
+            <IconButton
+              id='<%- nameOnPascal -%>UpdatePanel-button-cancel'
               edge="start" 
               color="inherit" 
               onClick={(event) => {
@@ -961,7 +962,8 @@ function setAjvErrors(err) {
           
           {(!deleted)&&(
             <Tooltip title={ t('modelPanels.save') + " <%- nameLc _%>" }>
-              <Fab 
+              <Fab
+                id='<%- nameOnPascal -%>UpdatePanel-fabButton-save' 
                 color="secondary" 
                 className={classes.fabButton}
                 onClick={(event) => {

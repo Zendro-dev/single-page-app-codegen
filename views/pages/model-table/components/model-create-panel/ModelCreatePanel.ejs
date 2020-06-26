@@ -719,7 +719,8 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
       <AppBar>
         <Toolbar>
           <Tooltip title={ t('modelPanels.cancel') }>
-            <IconButton 
+            <IconButton
+              id='<%- nameOnPascal -%>CreatePanel-button-cancel'
               edge="start" 
               color="inherit"
               onClick={(event) => {
@@ -736,7 +737,8 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
             {t('modelPanels.new') + ' <%- nameCp _%>'}
           </Typography>
           <Tooltip title={ t('modelPanels.save') + " <%- nameLc _%>" }>
-            <Fab 
+            <Fab
+              id='<%- nameOnPascal -%>CreatePanel-fabButton-save' 
               color="secondary" 
               className={classes.fabButton}
               onClick={(event) => {

@@ -146,6 +146,7 @@ export default function <%- nameOnPascal -%>EnhancedTableToolbar(props) {
                       <Grid item>
                         <Tooltip title={ t('modelPanels.reloadList', "Reload list") }>
                           <IconButton
+                            id='<%- nameOnPascal -%>EnhancedTableToolbar-iconButton-reloadTable'
                             color='inherit'
                             onClick={(event) => {
                               onReloadClick();
@@ -160,7 +161,7 @@ export default function <%- nameOnPascal -%>EnhancedTableToolbar(props) {
 
                         {/* Search field */}
                         <TextField
-                          id="search-field"
+                          id='<%- nameOnPascal -%>EnhancedTableToolbar-textField-search'
                           value={displayedSearch}
                           placeholder={ t('modelPanels.search') }
                           InputProps={{
@@ -168,11 +169,12 @@ export default function <%- nameOnPascal -%>EnhancedTableToolbar(props) {
                               <InputAdornment position="start">
                                 <Tooltip title={ t('modelPanels.search') }>
                                   <IconButton
-                                      color='inherit'
-                                      onClick={() => {
-                                        onSearchEnter(displayedSearch);
-                                      }}
-                                    >
+                                    id='<%- nameOnPascal -%>EnhancedTableToolbar-iconButton-search'
+                                    color='inherit'
+                                    onClick={() => {
+                                      onSearchEnter(displayedSearch);
+                                    }}
+                                  >
                                     <Search color="inherit" fontSize="small" />
                                   </IconButton>
                                 </Tooltip>
@@ -191,6 +193,7 @@ export default function <%- nameOnPascal -%>EnhancedTableToolbar(props) {
                                     )}
                                     {(search) && (
                                       <IconButton
+                                        id='<%- nameOnPascal -%>EnhancedTableToolbar-iconButton-clearSearch'
                                         onClick={() => {
                                           onSearchEnter('');
                                           setDisplayedSearch('');
@@ -231,6 +234,7 @@ export default function <%- nameOnPascal -%>EnhancedTableToolbar(props) {
                                   <Grid item>
                                     <Tooltip title={t('modelPanels.addNew') + " <%- nameLc _%>"}>
                                       <IconButton
+                                        id='<%- nameOnPascal -%>EnhancedTableToolbar-button-add'
                                         color="primary"
                                         onClick={(event) => { handleAddClicked(event) }}
                                       >
@@ -249,6 +253,7 @@ export default function <%- nameOnPascal -%>EnhancedTableToolbar(props) {
                                   <Grid item>
                                     <Tooltip title={ t('modelPanels.importCSV') }>
                                       <IconButton
+                                        id='<%- nameOnPascal -%>EnhancedTableToolbar-button-import'
                                         color="primary"
                                         onClick={(event) => { handleBulkImportClicked(event) }}
                                       >
@@ -269,6 +274,7 @@ export default function <%- nameOnPascal -%>EnhancedTableToolbar(props) {
                                     <Grid item>
                                       <Tooltip title={ t('modelPanels.downloadsOptions', 'Download options') }>
                                         <IconButton
+                                          id='<%- nameOnPascal -%>EnhancedTableToolbar-button-downloadOptions'
                                           color="primary"
                                           onClick={handleDownloadsIconClick}
                                         >
@@ -290,6 +296,7 @@ export default function <%- nameOnPascal -%>EnhancedTableToolbar(props) {
                                           <form className={classes.formButton} action={exportServerUrl}>
                                           <input type="hidden" name="model" value='<%- nameLc -%>' />
                                             <ButtonBase
+                                              id='<%- nameOnPascal -%>EnhancedTableToolbar-button-exportData'
                                               className={classes.textButton} 
                                               color="default"
                                               type="submit"
@@ -316,6 +323,7 @@ export default function <%- nameOnPascal -%>EnhancedTableToolbar(props) {
                                       <Grid item xs={12}>
                                         <Grid container justify='flex-start'>
                                           <ButtonBase
+                                            id='<%- nameOnPascal -%>EnhancedTableToolbar-button-exportTemplate'
                                             className={classes.textButton} 
                                             color="default"
                                             onClick={()=>{
@@ -338,7 +346,8 @@ export default function <%- nameOnPascal -%>EnhancedTableToolbar(props) {
                                       {/* Close.button */}
                                       <Grid item xs={12}>
                                         <Grid container justify='flex-end'>
-                                          <Button 
+                                          <Button
+                                            id='<%- nameOnPascal -%>EnhancedTableToolbar-button-closeDownloadOptions'
                                             className={classes.actionButton} 
                                             color="primary"
                                             onClick={handleDownloadsMenuClose}
