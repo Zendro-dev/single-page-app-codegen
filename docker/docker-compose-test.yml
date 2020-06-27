@@ -5,7 +5,7 @@ version: "3.2"
 #
 # gql_postgres1                   (db)
 # gql_science_db_graphql_server1  (gql server)
-# gql_ncbi_sim_srv1               (external web database simulator)
+# gql_ncbi_sim_srv1               (external web database simulator) //inactive
 # spa_science_db_app_server1      (spa)
 #
 # gql_postgres2                   (db)
@@ -74,33 +74,33 @@ services:
 #
 # NCBI Simulated Server 1
 #
-  gql_ncbi_sim_srv1:
-    container_name: gql_ncbi_sim_srv
-    depends_on:
-      - gql_postgres1
-      - gql_science_db_graphql_server1
-    build:
-      context: .
-      dockerfile: Dockerfile.ncbi_sim_srv
+  # gql_ncbi_sim_srv1:
+  #   container_name: gql_ncbi_sim_srv
+  #   depends_on:
+  #     - gql_postgres1
+  #     - gql_science_db_graphql_server1
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.ncbi_sim_srv
 
-    volumes:
-      - ./ncbi_sim_srv:/usr/src/app
+  #   volumes:
+  #     - ./ncbi_sim_srv:/usr/src/app
 
-    ports:
-      - "3344:3344"
-    environment:
-        PORT: 3344
-        BASE_URL: /aminoAcidSequence
+  #   ports:
+  #     - "3344:3344"
+  #   environment:
+  #       PORT: 3344
+  #       BASE_URL: /aminoAcidSequence
 
-    networks:
-      - instance1
+  #   networks:
+  #     - instance1
 
-    command:
-      - /bin/sh
-      - -c
-      - |
-        npm install
-        npm start
+  #   command:
+  #     - /bin/sh
+  #     - -c
+  #     - |
+  #       npm install
+  #       npm start
 #
 # SPA 1
 #

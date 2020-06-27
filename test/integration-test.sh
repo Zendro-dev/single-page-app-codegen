@@ -144,6 +144,10 @@ TARGET_DIR_GQL_INSTANCE1=$TARGET_DIR"/gql-instance1"
 TARGET_DIR_GQL_INSTANCE2=$TARGET_DIR"/gql-instance2"
 TARGET_DIR_SPA_INSTANCE1=$TARGET_DIR"/spa-instance1"
 TARGET_DIR_SPA_INSTANCE2=$TARGET_DIR"/spa-instance2"
+CODEGEN_BASE_DIRS=( $TARGET_DIR_GQL_INSTANCE1 \
+                    $TARGET_DIR_GQL_INSTANCE2 \
+                    $TARGET_DIR_SPA_INSTANCE1 \
+                    $TARGET_DIR_SPA_INSTANCE2)
 CODEGEN_DIRS=($TARGET_DIR_GQL_INSTANCE1"/models/adapters" \
               $TARGET_DIR_GQL_INSTANCE1"/models/sql" \
               $TARGET_DIR_GQL_INSTANCE1"/models/distributed" \
@@ -201,35 +205,42 @@ deleteGenCode() {
   echo -e "${LGRAY}@@ Removing generated code...${NC}"
 
   # Remove generated code dirs.
-  for i in "${CODEGEN_DIRS[@]}"
+  for i in "${CODEGEN_BASE_DIRS[@]}"
   do
     if [ -d ${i} ]; then
-      rm -rf ${i}
+      rm -rf ${i}/*
       if [ $? -eq 0 ]; then
-          echo -e "@ Removed: ${i} ... ${LGREEN}done${NC}"
+          echo -e "@ Removed content in: ${i} ... ${LGREEN}done${NC}"
       else
-          echo -e "!!${RED}ERROR${NC}: trying to remove: ${RED}${i}${NC} fails ... ${YEL}exit${NC}"
+          echo -e "!!${RED}ERROR${NC}: trying to remove content in: ${RED}${i}${NC} fails ... ${YEL}exit${NC}"
           exit 0
       fi
-    fi
-  done
-
-  # Remove generated code files.
-  for i in "${CODEGEN_FILES[@]}"
-  do
-    if [ -f ${i} ]; then
-      rm -f ${i}
-      if [ $? -eq 0 ]; then
-          echo -e "@ Removed: ${i} ... ${LGREEN}done${NC}"
-      else
-          echo -e "!!${RED}ERROR${NC}: trying to remove: ${RED}${i}${NC} fails ... ${YEL}exit${NC}"
-          exit 0
-      fi
+    else
+      echo -e "!!${RED}ERROR${NC}: the required directory ${LGRAY}${i}${NC} does not exist ... ${YEL}exit${NC}"
+      exit 0
     fi
   done
 
   # Msg
   echo -e "@@ All code removed ... ${LGREEN}done${NC}"
+  echo -e "${LGRAY}---------------------------- @@${NC}\n"
+}
+
+#
+# Function: deleteGqlCodegen()
+#
+# Delete gql codegen dir.
+#
+deleteGqlCodegen() {
+  # Msg
+  echo -e "\n${LGRAY}@@ ----------------------------${NC}"
+  echo -e "${LGRAY}@@ Removing GraphQL codegen...${NC}"
+
+  #Delete gql-codegen
+  rm -rf ${GQL_CODEGEN_DIR}
+  echo -e "@@ Removed codegen dir: ${GQL_CODEGEN_DIR} ... ${LGREEN}done${NC}"
+
+  # Msg
   echo -e "${LGRAY}---------------------------- @@${NC}\n"
 }
 
@@ -335,38 +346,12 @@ cleanup() {
   deleteGenCode
 
   #Delete gql-codegen
-  rm -rf ${GQL_CODEGEN_DIR}
+  deleteGqlCodegen
   
   # Msg
   echo -e "@@ Cleanup ... ${LGREEN}done${NC}"
   echo -e "${LGRAY}---------------------------- @@${NC}\n"
   
-}
-
-#
-# Function: softCleanup()
-#
-# restart & removeCodeGen
-#
-softCleanup() {
-  # Msg
-  echo -e "\n${LGRAY}@@ ----------------------------${NC}"
-  echo -e "${LGRAY}@@ Starting soft cleanup...${NC}"
-
-  # Down
-  docker-compose -f ./docker/docker-compose-test.yml down
-  # Msg
-  echo -e "@@ Containers down ... ${LGREEN}done${NC}"
-
-  # Remove db volumes
-  docker volume rm ${DOCKER_POSTGRES_VOLUME1} ${DOCKER_POSTGRES_VOLUME2} -f
-
-  # Delete code
-  deleteGenCode
-
-  # Msg
-  echo -e "@@ Soft cleanup ... ${LGREEN}done${NC}"
-  echo -e "${LGRAY}---------------------------- @@${NC}\n"
 }
 
 #
@@ -400,8 +385,13 @@ removeVolumes() {
   # Stop
   docker-compose -f ./docker/docker-compose-test.yml stop ${DOCKER_POSTGRES_SERVER1} ${DOCKER_POSTGRES_SERVER2} ${DOCKER_GQL_SERVER1} ${DOCKER_GQL_SERVER2}
 
-  # Remove db containers
-  docker rm ${DOCKER_POSTGRES_CONTAINER1} ${DOCKER_POSTGRES_CONTAINER2}
+  # Remove db containers (checks existence)
+  if [ "$(docker ps -a -f "name=^${DOCKER_POSTGRES_CONTAINER1}$" --format "{{.Names}}")" ];
+    then docker rm ${DOCKER_POSTGRES_CONTAINER1};
+  fi
+  if [ "$(docker ps -a -f "name=^${DOCKER_POSTGRES_CONTAINER2}$" --format "{{.Names}}")" ];
+    then docker rm ${DOCKER_POSTGRES_CONTAINER2};
+  fi
 
   # Remove db volumes
   docker volume rm ${DOCKER_POSTGRES_VOLUME1} ${DOCKER_POSTGRES_VOLUME2} -f
@@ -614,6 +604,34 @@ upContainers() {
 }
 
 #
+# Function: buildAll()
+#
+# Build images, containers and anon-volumes.
+#
+buildAll() {
+  # Msg
+  echo -e "\n${LGRAY}@@ ----------------------------${NC}"
+  echo -e "${LGRAY}@@ Starting up containers...${NC}"
+  
+  # Install
+  npm install
+  # Msg
+  echo -e "@@ Installing ... ${LGREEN}done${NC}"
+  
+  # Up
+  docker-compose -f ./docker/docker-compose-test.yml up -d --build --force-recreate --renew-anon-volumes
+  # Msg
+  echo -e "@@ Containers built ... ${LGREEN}done${NC}"
+  
+  # List
+  docker-compose -f ./docker/docker-compose-test.yml ps
+
+  # Msg
+  echo -e "@@ Containers up ... ${LGREEN}done${NC}"
+  echo -e "${LGRAY}---------------------------- @@${NC}\n"
+}
+
+#
 # Function: doTests()
 #
 # Do the mocha integration tests.
@@ -626,18 +644,18 @@ doTests() {
   # Wait for graphql server
   waitForGql
 
-  #Add tests-specific data to the database
+  #Init dbs
   # Instance 1
   docker-compose -f ./docker/docker-compose-test.yml exec ${DOCKER_POSTGRES_SERVER1} \
   bash -c "psql -U sciencedb -d sciencedb_development -P pager=off --single-transaction -f /usr/src/app/integration-test.sql"
   # Msg
-  echo -e "@@ Tests-specific data written to db1 ... ${LGREEN}done${NC}"
+  echo -e "@@ db1 init ... ${LGREEN}done${NC}"
   
   # Instance 2
   docker-compose -f ./docker/docker-compose-test.yml exec ${DOCKER_POSTGRES_SERVER2} \
   bash -c "psql -U sciencedb -d sciencedb_development -P pager=off --single-transaction -f /usr/src/app/integration-test.sql"
   # Msg
-  echo -e "@@ Tests-specific data written to db2 ... ${LGREEN}done${NC}"
+  echo -e "@@ db2 init ... ${LGREEN}done${NC}"
 
   # Wait for spa server
   waitForSpa
@@ -676,7 +694,7 @@ consumeArgs() {
         
         *)
           # Msg
-          echo -e "@@ Discarting option: ${RED}$a${NC}"
+          echo -e "@@ Discarting unknown option: ${RED}$a${NC}"
           # Past argument
           shift
           let "NUM_ARGS--"
@@ -817,8 +835,8 @@ if [ $DO_DEFAULT = true ]; then
     cleanup
     # Generate code
     genCode
-    # Ups containers
-    upContainers
+    # Build images & containers & anon-volumes
+    buildAll
     # Do the tests
     doTests
 fi

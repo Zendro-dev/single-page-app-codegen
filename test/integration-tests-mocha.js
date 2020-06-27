@@ -6,8 +6,8 @@ const delay = require('delay');
 // open page in browser
 let browser = {}, page = {};
 //test timeouts
-const tt = 5000;
-const ttmax = 10000;
+const tt = 10000;
+const ttmax = 20000;
 
 before(async function () {
   this.timeout(ttmax);
@@ -32,8 +32,8 @@ before(async function () {
 
 // close all
 after(async function () {
-  //await page.close();
-  //browser.close();
+  await page.close();
+  browser.close();
 });
 
 // tests
