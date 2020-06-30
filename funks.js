@@ -188,7 +188,7 @@ exports.parseFile = function(jFile){
         //adapters
         case 'sql-adapter':
         case 'ddm-adapter':
-        case 'cenzontle-webservice-adapter':
+        case 'vocen-webservice-adapter':
         case 'generic-adapter':
         //msg
         console.log(colors.white('@@ Adapter: '), colors.blue(words.model+'.'+words.adapterName), ` [${words.storageType}]... `, colors.yellow('excluded'), '');
@@ -231,7 +231,7 @@ exports.checkJsonFiles = function(jsonDir, jsonFiles, options){
   //'jsonFiles'
   if(jsonFiles.length <= 0) {
     result.pass = false;
-    result.errors.push(`ERROR: There are no JSON files on input directory. You should specify some JSON files in order to generate the Cenzontle SPA.`);
+    result.errors.push(`ERROR: There are no JSON files on input directory. You should specify some JSON files in order to generate the Vocen SPA.`);
   } else {
     
     /**
@@ -301,12 +301,12 @@ exports.checkJsonDataFile = function(jsonModel, options){
         //models
         case 'sql':
         case 'distributed-data-model':
-        case 'cenz-server':
+        case 'vocen-server':
         case 'generic':
         //adapters
         case 'sql-adapter':
         case 'ddm-adapter':
-        case 'cenzontle-webservice-adapter':
+        case 'vocen-webservice-adapter':
         case 'generic-adapter':
         //ok
         break;
@@ -314,7 +314,7 @@ exports.checkJsonDataFile = function(jsonModel, options){
         default:
           //not ok
           result.pass = false;
-          result.errors.push(`ERROR: The attribute 'storageType' has an invalid value. One of the following types is expected: [sql, cenz-server, distributed-data-model, generic]. But '${jsonModel.storageType}' was obtained.`);
+          result.errors.push(`ERROR: The attribute 'storageType' has an invalid value. One of the following types is expected: [sql, vocen-server, distributed-data-model, generic]. But '${jsonModel.storageType}' was obtained.`);
           break;
       }
     }
@@ -1198,7 +1198,7 @@ getWithPlotly = function(plotlyOptions, filePath) {
 
 /**
  * genPlotlyInExistentSpa - Generate Plotly JS React components on an existent 
- * Cenzontle SPA project.
+ * Vocen SPA project.
  *
  * @param  {object} plotlyOptions Plotly related options.
  * @param  {boolean} verbose Verbose option.

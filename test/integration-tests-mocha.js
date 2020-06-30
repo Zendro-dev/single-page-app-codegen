@@ -47,13 +47,13 @@ describe('Basic functionality', function () {
     /**
      * Evaluate
      */
-    expect(await page.title()).to.eql('Cenzontle');
+    expect(await page.title()).to.eql('Vocen');
   });
 
   it('02. Login', async function () {
     //add data
     await page.click("input[id=LoginPage-textField-email]");
-    await page.type("input[id=LoginPage-textField-email]", 'admin@cenz.on');
+    await page.type("input[id=LoginPage-textField-email]", 'admin@vocen.on');
     //add data
     await page.click("input[id=LoginPage-textField-password]");
     await page.type("input[id=LoginPage-textField-password]", 'admin');
@@ -72,7 +72,7 @@ describe('Basic functionality', function () {
     /**
      * Evaluate
      */
-    expect(await page.title()).to.eql('Cenzontle');
+    expect(await page.title()).to.eql('Vocen');
   });
 
   it('03. Individual table is empty', async function () {
@@ -97,7 +97,7 @@ describe('Basic functionality', function () {
     let data = await apiResponse;    
 
     expect(await data.countIndividuals === 0).to.eql(true);
-    expect(await page.title()).to.eql('Cenzontle');
+    expect(await page.title()).to.eql('Vocen');
   });
 
 
@@ -133,7 +133,7 @@ describe('Basic functionality', function () {
     let data = await apiResponse;
 
     expect(await data.addIndividual.name === 'individual-1').to.eql(true);
-    expect(await page.title()).to.eql('Cenzontle');
+    expect(await page.title()).to.eql('Vocen');
   });
 
 
@@ -172,7 +172,7 @@ describe('Basic functionality', function () {
 
     expect(text).to.eql('individual-1-edited');
     expect(await data.updateIndividual.name === 'individual-1-edited').to.eql(true);
-    expect(await page.title()).to.eql('Cenzontle');
+    expect(await page.title()).to.eql('Vocen');
   });
 
   it('06. Add one more and find both', async function () {
@@ -241,7 +241,7 @@ describe('Basic functionality', function () {
     expect(rowsCount).to.eql(2);
     expect(text1).to.eql('individual-1-edited');
     expect(text2).to.eql('individual-2');
-    expect(await page.title()).to.eql('Cenzontle');
+    expect(await page.title()).to.eql('Vocen');
 
   });
 
@@ -293,7 +293,7 @@ describe('Basic functionality', function () {
       rowsCount = await page.$$eval('tbody > tr', rows => rows.length);
 
       expect(rowsCount).to.eql(0);
-      expect(await page.title()).to.eql('Cenzontle');
+      expect(await page.title()).to.eql('Vocen');
   });
 
   // it('08. Check Cas_number works', async function () {
