@@ -489,108 +489,213 @@ exports.fillOptionsForViews = function(fileData, filePath, options){
 }
 
 /**
- * addPeerRelationName - Adds 'peerRelation' name-attributes to each association defined on each model.
+ * addKeyRelationName - Adds 'keyRelationName' name-attributes to each association defined on each model.
+ * This key name is a unique name that identifies a relation between two models and is composed as follows:
+ * 
+ * Case: to_many || to_one:
+ *      <keyIn>_<targetKey>
+ * 
+ * Case: to_many_through_sql_cross_table:
+ *      <keysIn>
+ * 
+ * Case: generic_to_one || generic_to_many
+ *      <modelName>_<relationName>
  *
- * @param  {array} opts Array of already calculated EJS options.
+ * @param  {array} opts Array of already calculated EJS model options.
  */
-exports.addPeerRelationName = function(opts) {
-  let errorsA = []; //target model not found
-  let errorsB = []; //peer association not found
+exports.addKeyRelationName = function(opts) {
+  let warningsA = []; //target model not found
+  let warningsB = []; //peer association not found
+  let errorsA = []; //check A: keyIn should be the same in both peers
+  let errorsB = []; //check B: association type: should be to_one || to_many
+  let errorsC = []; //check C: peerA.model should be = peerB.targetModel
+  let errorsD = []; //check D: peerA.targetKey should be = peerB.sourceKey
+  let errorsE = []; //check E: peerA.sourceKey should be = peerB.targetKey
   
   //for each model
   opts.forEach( (opt) => {
     
     //for each association
     opt.sortedAssociations.forEach( (association) => {
-      //if already has peer-relation name
-      if(association.hasOwnProperty('peerRelationName')) {
-        //done
-        return;
-      }
 
+      /**
+       * Set keyRelationName attribute.
+       */
+      if(association.type === 'to_one' || association.type === 'to_many') {
+        association.keyRelationName = association.keyIn+'_'+association.targetKey;
+      } else if(association.type === 'to_many_through_sql_cross_table') {
+        association.keyRelationName = association.keysIn;
+      } else if(association.type === 'generic_to_one' || association.type === 'generic_to_many') {
+        association.keyRelationName = opt.name+'_'+association.relationName+'_'+association.type+'_'+opts[i].name;
+      }       
+
+      /**
+       * Checks
+       * - Target model
+       * - Peer relation
+       * - Unique <keyIn> + <targetKey>
+       * - Unique <keysIn>
+       */
       //find target model
-      let found = false;
-      for(let i=0; !found && i<opts.length; i++) {
+      let foundTargetModel = false;
+      for(let i=0; i<opts.length && !foundTargetModel; i++) {
+        
+        /**
+         * Case: target model found
+         */
         if(association.targetModel === opts[i].name) {
-          found = true;
+          foundTargetModel = true;
 
-          /**
-           * Generic associations
-           * 
-           * Peer name will be the targe model name (as no targetKey exists).
-           */
-          if(association.type === 'generic_to_one' || association.type === 'generic_to_many') {
-            //set peer relation names
-            association.peerRelationName = association.peerRelationName+'_'+association.type+'_'+opts[i].name;
-            association.peerRelationNameCp = association.peerRelationNameCp+'_'+association.type+'_'+opts[i].nameCp;
-            association.peerRelationNameLc = association.peerRelationNameLc+'_'+association.type+'_'+opts[i].nameLc;
-            association.peerRelationNameOnPascal = association.peerRelationNameOnPascal+'_'+association.type+'_'+opts[i].nameOnPascal;
+          //find peer association
+          let foundPeerAssociation = false;
+          for(let j=0; j<opts[i].sortedAssociations.length && !foundPeerAssociation; j++) {
+            
+            if(association.type === 'to_one' || association.type === 'to_many') {
+              
+              /**
+               * Case: same targetKey found
+               */
+              if(opts[i].sortedAssociations[j].targetKey === association.targetKey) {
+                foundPeerAssociation = true;
 
-          } else {
-            //find peer association
-            let foundB = false;
-            for(let j=0; !foundB && j<opts[i].sortedAssociations.length; j++) {
-              //case: 'to_one' or 'hasMany'
-              if(opts[i].sortedAssociations[j].type === 'to_one' || opts[i].sortedAssociations[j].sqlType === 'hasMany') {
-                if(opts[i].sortedAssociations[j].targetKey === association.targetKey) {
-                  foundB = true;
-
-                  //set peer relation names
-                  association.peerRelationName = opts[i].sortedAssociations[j].relationName;
-                  association.peerRelationNameCp = opts[i].sortedAssociations[j].relationNameCp;
-                  association.peerRelationNameLc = opts[i].sortedAssociations[j].relationNameLc;
-                  association.peerRelationNameOnPascal = opts[i].sortedAssociations[j].relationNameOnPascal;
-
-                  opts[i].sortedAssociations[j].peerRelationName = association.relationName;
-                  opts[i].sortedAssociations[j].peerRelationNameCp = association.relationNameCp;
-                  opts[i].sortedAssociations[j].peerRelationNameLc = association.relationNameLc;
-                  opts[i].sortedAssociations[j].peerRelationNameOnPascal = association.relationNameOnPascal;
+                //check A: keyIn should be the same in both peers
+                if(opts[i].sortedAssociations[j].keyIn !== association.keyIn) {
+                  //error
+                  errorsA.push({
+                    model: opt.name, 
+                    association: association.relationName, 
+                    targetKey: association.targetKey, 
+                    keyIn: association.keyIn, 
+                    targetModel: association.targetModel, 
+                    peerAssociationName: opts[i].sortedAssociations[j].relationName,
+                    peerAssociationKeyIn: opts[i].sortedAssociations[j].keyIn,
+                  });
                 }
-              } else if(opts[i].sortedAssociations[j].sqlType === 'belongsToMany') {
-                  if(opts[i].sortedAssociations[j].keysIn === association.keysIn) {
-                    foundB = true;
 
-                    //set peer relation names
-                    association.peerRelationName = opts[i].sortedAssociations[j].relationName;
-                    association.peerRelationNameCp = opts[i].sortedAssociations[j].relationNameCp;
-                    association.peerRelationNameLc = opts[i].sortedAssociations[j].relationNameLc;
-                    association.peerRelationNameOnPascal = opts[i].sortedAssociations[j].relationNameOnPascal;
+                //check B: association type: should be to_one || to_many
+                if(opts[i].sortedAssociations[j].type !== 'to_one' && opts[i].sortedAssociations[j].type !== 'to_many') {
+                  //error
+                  errorsB.push({
+                    model: opt.name, 
+                    association: association.relationName, 
+                    targetKey: association.targetKey,
+                    type: association.type, 
+                    targetModel: association.targetModel, 
+                    peerAssociationName: opts[i].sortedAssociations[j].relationName,
+                    peerAssociationType: opts[i].sortedAssociations[j].type,
+                  });
+                }
+              }//else: nothing to check
 
-                    opts[i].sortedAssociations[j].peerRelationName = association.relationName;
-                    opts[i].sortedAssociations[j].peerRelationNameCp = association.relationNameCp;
-                    opts[i].sortedAssociations[j].peerRelationNameLc = association.relationNameLc;
-                    opts[i].sortedAssociations[j].peerRelationNameOnPascal = association.relationNameOnPascal;
-                  }
-              }
+            } else if(association.type === 'to_many_through_sql_cross_table') {
+              
+              /**
+               * Case: same keysIn found
+               */
+              if(opts[i].sortedAssociations[j].keysIn === association.keysIn) {
+                foundPeerAssociation = true;
+
+                /**
+                 * Check: crossed attributes
+                 * 
+                 * (C) peerA.model        should be = peerB.targetModel
+                 * (D) peerA.targetKey    should be = peerB.sourceKey
+                 * (E) peerA.sourceKey    should be = peerB.targetKey
+                 */
+                if(opts[i].sortedAssociations[j].targetModel !== opt.name) {
+                  //error: on check: (C)
+                  errorsC.push({
+                    model: opt.name, 
+                    association: association.relationName, 
+                    targetKey: association.targetKey, 
+                    keysIn: association.keysIn, 
+                    targetModel: association.targetModel, 
+                    peerAssociationName: opts[i].sortedAssociations[j].relationName,
+                    peerAssociationTargetModel: opts[i].sortedAssociations[j].targetModel,
+                  });
+                }
+                if(opts[i].sortedAssociations[j].sourceKey !== association.targetKey) {
+                  //error: on check: (D)
+                  errorsD.push({
+                    model: opt.name, 
+                    association: association.relationName, 
+                    targetKey: association.targetKey, 
+                    keysIn: association.keysIn, 
+                    targetModel: association.targetModel, 
+                    peerAssociationName: opts[i].sortedAssociations[j].relationName,
+                    peerAssociationSourceKey: opts[i].sortedAssociations[j].sourceKey,
+                  });
+                }
+                if(opts[i].sortedAssociations[j].targetKey !== association.sourceKey) {
+                  //error: on check: (E)
+                  errorsE.push({
+                    model: opt.name, 
+                    association: association.relationName, 
+                    sourceKey: association.sourceKey, 
+                    keysIn: association.keysIn, 
+                    targetModel: association.targetModel, 
+                    peerAssociationName: opts[i].sortedAssociations[j].relationName,
+                    peerAssociationTargetKey: opts[i].sortedAssociations[j].targetKey,
+                  });
+                }
+              }//end: Case: same keysIn found
             }
-            //check
-            if(!foundB) {
-              errorsB.push({model: opt.name, association: association.relationName, targetKey: association.targetKey, targetModel: association.targetModel});
-            }
+          }//end: for each association on target model: find peer
+
+          //check
+          if(!foundPeerAssociation) {
+            warningsB.push({model: opt.name, association: association.relationName, targetKey: association.targetKey, targetModel: association.targetModel});
           }
-        }
-      }
+
+        }//end: Case: target model found
+
+      }//end: for each model: find target model
       //check
-      if(!found) {
-        errorsA.push({model: opt.name, association: association.relationName, targetModel: association.targetModel});
+      if(!foundTargetModel) {
+        warningsA.push({model: opt.name, association: association.relationName, targetModel: association.targetModel});
       }
-    })
-  });
+    }); //end: for each association: add keyRelationName & do checks.
+  }); //end: for each model: add keyRelationName & do checks on each association.
 
   /**
-   * Report errors if any && throws
+   * Report warnings.
+   * Report & throw errors.
    */
   //target model not found
-  errorsA.forEach((e) => {
-    console.log(colors.red('@@Error:'), 'on model:', colors.blue(e.model), 'on associaton:', colors.blue(e.association), '- Association target model:', colors.yellow(e.targetModel), 'not found.');
+  warningsA.forEach((e) => {
+    console.log(colors.yellow('@@Warning: Incomplete association definition'), 'on model:', colors.blue(e.model), 'on associaton:', colors.blue(e.association), '- Association target model:', colors.yellow(e.targetModel), 'not found.');
   });
   //peer association not found
-  errorsB.forEach((e) => {
-    console.log(colors.red('@@Error:'), 'on model:', colors.blue(e.model), 'on associaton:', colors.blue(e.association), '- Peer association on target key:', colors.yellow(e.targetKey), 'not found on target model:', colors.yellow(e.targetModel));
+  warningsB.forEach((e) => {
+    console.log(colors.yellow('@@Warning: Incomplete association definition'), 'on model:', colors.blue(e.model), 'on associaton:', colors.blue(e.association), '- Peer association on target key:', colors.yellow(e.targetKey), 'not found on target model:', colors.yellow(e.targetModel));
   });
+  //errorsA: keyIn should be the same in both peers
+  errorsA.forEach((e) => {
+    console.log(colors.yellow('@@Error: Incorrect association definitions peer'), 'on model:', colors.blue(e.model), 'on associaton:', colors.blue(e.association), '- <keyIn> attribute should be the same in an associaton definitions peer, but got: <keyIn>:', colors.blue(e.keyIn), 'with: <keyIn>:', colors.yellow(e.peerAssociationKeyIn), 'in peer:', colors.yellow(e.targetModel+'-'+e.peerAssociationName));
+  });
+  //errorsB: association type: should be to_one || to_many
+  errorsB.forEach((e) => {
+    console.log(colors.yellow('@@Error: Incorrect association definitions peer'), 'on model:', colors.blue(e.model), 'on associaton:', colors.blue(e.association), '- <association.type> should be <to_one> || <to_many> in peer associaton definition, but got: <type>:', colors.blue(e.type), 'with: <type>:', colors.yellow(e.peerAssociationType), 'in peer:', colors.yellow(e.targetModel+'-'+e.peerAssociationName));
+  });
+
+  //errorsC: peerA.model should be = peerB.targetModel
+  errorsC.forEach((e) => {
+    console.log(colors.yellow('@@Error: Incorrect association definitions peer'), 'on model:', colors.blue(e.model), 'on associaton:', colors.blue(e.association), '- <targetModel> in peer association should be equal to this <modelName>, but got: <targetModel>:', colors.yellow(e.peerAssociationTargetModel), 'in peer:', colors.yellow(e.targetModel+'-'+e.peerAssociationName));
+  });
+
+  //errorsD: peerA.targetKey should be = peerB.sourceKey
+  errorsD.forEach((e) => {
+    console.log(colors.yellow('@@Error: Incorrect association definitions peer'), 'on model:', colors.blue(e.model), 'on associaton:', colors.blue(e.association), 'with <targetKey>:', colors.blue(e.targetKey), '- <sourceKey> in peer association should be equal to <targetKey> in this association, but got: <sourceKey>:', colors.yellow(e.peerAssociationSourceKey), 'in peer:', colors.yellow(e.targetModel+'-'+e.peerAssociationName));
+  });
+
+  //errorsE: peerA.sourceKey should be = peerB.targetKey
+  errorsE.forEach((e) => {
+    console.log(colors.yellow('@@Error: Incorrect association definitions peer'), 'on model:', colors.blue(e.model), 'on associaton:', colors.blue(e.association), 'with <sourceKey>:', colors.blue(e.sourceKey), '- <targetKey> in peer association should be equal to <sourceKey> in this association, but got: <targetKey>:', colors.yellow(e.peerAssociationTargetKey), 'in peer:', colors.yellow(e.targetModel+'-'+e.peerAssociationName));
+  });
+ 
   //throws if there is any error
-  if(errorsA.length > 0 || errorsB.length > 0) {
-    throw new Error("Inconsistent association definition");
+  if(errorsA.length > 0 || errorsB.length > 0 || errorsC.length > 0 || errorsD.length > 0 || errorsE.length > 0) {
+    throw new Error("Incorrect association definition");
   }
 }
 
@@ -841,6 +946,10 @@ getPaginationType = function(jsonModel){
  */
 checkAssociations = function(fileData){
   let associations = fileData.associations;
+  let attributes = fileData.attributes;
+  let modelName = fileData.model;
+  let ownTargetKeys = {};
+  let ownCrossTables = {};
 
   //check: undefined
   if(associations === undefined) return;
@@ -857,7 +966,6 @@ checkAssociations = function(fileData){
     /**
      * Attribute: association.type
      */
-
     //check: typeof
     if(typeof association.type !== 'string') {
       //error: invalid type
@@ -882,29 +990,150 @@ checkAssociations = function(fileData){
         throw new Error("Invalid attributes found");
     }
 
-    //case: to_many_through_sql_cross_table
-    if(association.type === 'to_many_through_sql_cross_table'){
+    /**
+     * Case:
+     * <to_one> || <to_many> 
+     */
+    if(association.type === 'to_one' || association.type === 'to_many') {
 
-      //check: only sql
-      if(fileData.storageType.toLowerCase() !== 'sql' || association.targetStorageType !== 'sql') {
+      //check: required attribute: target
+      if(association.target === undefined || typeof association.target !== 'string') {
         //error
-        console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "only allowed for relational database (sql) types with well defined cross-table");
-        throw new Error("Inconsistent attributes found");
+        console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("target"), "and should be a string.");
+        throw new Error("Required attributes not found");
       }
 
-      //check: required attribute
+      //check: required attribute: targetKey
+      if(association.targetKey === undefined || typeof association.targetKey !== 'string') {
+        //error
+        console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("targetKey"), "and should be a string.");
+        throw new Error("Required attributes not found");
+      }
+
+      //check: required attribute: targetStorageType
+      if(association.targetStorageType === undefined || typeof association.targetStorageType !== 'string') {
+        //error
+        console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("targetStorageType"), "and should be a string.");
+        throw new Error("Required attributes not found");
+      }
+      
+      //check: required attribute: keyIn
+      if(association.keyIn === undefined || typeof association.keyIn !== 'string') {
+        //error
+        console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("keyIn"), "and should be a string.");
+        throw new Error("Required attributes not found");
+      }
+
+      //if has targetKey
+      if(association.keyIn === modelName) {
+
+        //update targetKey count
+        if(!ownTargetKeys[association.targetKey]) ownTargetKeys[association.targetKey] = 1;
+        else ownTargetKeys[association.targetKey]++;
+
+        //check: consistency definition: targetKey
+        if(!attributes.hasOwnProperty(association.targetKey)) {
+        //error
+        console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined the value of", colors.dim("targetKey"), "as an attribute of this model, but", colors.yellow(association.targetKey), "is not declared as an attribute.");
+        throw new Error("Inconsistent attributes found");
+        }
+      }
+    }
+
+    /**
+     * Case:
+     * <to_many_through_sql_cross_table> 
+     */
+    if(association.type === 'to_many_through_sql_cross_table'){
+
+      //check: required attribute: target
+      if(association.target === undefined || typeof association.target !== 'string') {
+        //error
+        console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("target"), "and should be a string.");
+        throw new Error("Required attributes not found");
+      }
+
+      //check: required attribute: targetKey
+      if(association.targetKey === undefined || typeof association.targetKey !== 'string') {
+        //error
+        console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("targetKey"), "and should be a string.");
+        throw new Error("Required attributes not found");
+      }
+
+      //check: required attribute: sourceKey
       if(association.sourceKey === undefined || typeof association.sourceKey !== 'string') {
         //error
         console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("sourceKey"), "and should be a string.");
         throw new Error("Required attributes not found");
       }
 
-      //check: required attribute
+      //check: required attribute: targetStorageType
+      if(association.targetStorageType === undefined || typeof association.targetStorageType !== 'string') {
+        //error
+        console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("targetStorageType"), "and should be a string.");
+        throw new Error("Required attributes not found");
+      }
+
+      //check: required attribute: keysIn
       if(association.keysIn === undefined || typeof association.keysIn !== 'string') {
         //error
         console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("keysIn"), "and should be a string.");
         throw new Error("Required attributes not found");
       }
+
+      //check: only sql
+      if(fileData.storageType.toLowerCase() !== 'sql') {
+        //error
+        console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "only allowed for relational database (sql) types with well defined cross-table, but got 'storageType':", colors.red(fileData.storageType.toLowerCase()));
+        throw new Error("Inconsistent attributes found");
+      }
+
+      if(association.targetStorageType.toLowerCase() !== 'sql') {
+        //error
+        console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "only allowed for relational database (sql) types with well defined cross-table, but got 'targetStorageType':", colors.red(association.targetStorageType.toLowerCase()));
+        throw new Error("Inconsistent attributes found");
+      }
+
+      //update targetKey count
+      if(!ownCrossTables[association.keysIn]) ownCrossTables[association.keysIn] = 1;
+      else ownCrossTables[association.keysIn]++;
+    }
+
+    /**
+     * Case:
+     * <generic_to_one> || <generic_to_many> 
+     */
+    if(association.type === 'generic_to_one' || association.type === 'generic_to_many'){
+
+      //check: required attribute: target
+      if(association.target === undefined || typeof association.target !== 'string') {
+        //error
+        console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("target"), "and should be a string.");
+        throw new Error("Required attributes not found");
+      }
+    }
+  });
+  
+
+  /**
+   * Check: unique target keys
+   */
+  Object.entries(ownTargetKeys).forEach((entry) => {
+    if(entry[1] > 1) {
+      //error
+      console.log(colors.red('@@@@Error on model:'), colors.blue(modelName), "- target keys should be unique for each association, but", colors.dim(entry[0]), "is used in",entry[1], "different associations as target key.");
+      throw new Error("Inconsistent attributes found");
+    }
+  });
+
+  /**
+   * Check: cross tables
+   */
+  Object.entries(ownCrossTables).forEach((entry) => {
+    if(entry[1] > 1) {
+      //error
+      console.log(colors.red('@@@@Error on model:'), colors.blue(modelName), "- cross tables should be unique for each many-to-many association, but", colors.dim(entry[0]), "is used in",entry[1], "different associations, as the value of 'keysIn' attribute.");
+      throw new Error("Inconsistent attributes found");
     }
   });
 }

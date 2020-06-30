@@ -328,7 +328,7 @@ for(let i=0; i<json_files.length; i++) {
 }
 //add extra attributes
 try {
-  funks.addPeerRelationName(opts);
+  funks.addKeyRelationName(opts);
   funks.addExtraAttributesAssociations(opts);
 }catch(e) {
   //err

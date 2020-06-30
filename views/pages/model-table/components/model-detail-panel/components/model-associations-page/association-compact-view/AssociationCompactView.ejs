@@ -482,10 +482,10 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
     lastFetchTime.current = Date.now();
 
     /*
-     * Case 1: 
-     * The peer relation '<%- sortedAssociations[aindex].peerRelationName _%>' for this item was updated.
+     * Case 1:
+     * The relation '<%- sortedAssociations[aindex].relationName _%>' for this item was updated from the target model (in the peer relation).
      * That is to say that this current item was associated or dis-associated with some '<%- sortedAssociations[aindex].targetModel _%>',
-     * but this action happened on the peer relation '<%- sortedAssociations[aindex].peerRelationName _%>'.
+     * but this action happened on the peer relation, identified by '<%- sortedAssociations[aindex].keyRelationName _%>'.
      * 
      * Conditions:
      * A: the current item 'internalId' attribute is in the removedIds of the updated '<%- sortedAssociations[aindex].targetModel _%>'.
@@ -504,11 +504,11 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
       let oens = Object.entries(lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>);
       oens.forEach( (entry) => {
         if(entry[1].changedAssociations&&
-          entry[1].changedAssociations.<%- sortedAssociations[aindex].peerRelationName _%>) {
+          entry[1].changedAssociations.<%- sortedAssociations[aindex].keyRelationName _%>) {
 
             //case A: this item was removed from peer relation.
-            if(entry[1].changedAssociations.<%- sortedAssociations[aindex].peerRelationName _%>.removed) {
-              let idsRemoved = entry[1].changedAssociations.<%- sortedAssociations[aindex].peerRelationName _%>.idsRemoved;
+            if(entry[1].changedAssociations.<%- sortedAssociations[aindex].keyRelationName _%>.removed) {
+              let idsRemoved = entry[1].changedAssociations.<%- sortedAssociations[aindex].keyRelationName _%>.idsRemoved;
               if(idsRemoved) {
                 let iof = idsRemoved.indexOf(item.<%- internalId _%>);
                 if(iof !== -1) {
@@ -535,8 +535,8 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
             }//end: case A
 
             //case B: this item was added on peer relation.
-            if(entry[1].changedAssociations.<%- sortedAssociations[aindex].peerRelationName _%>.added) {
-              let idsAdded = entry[1].changedAssociations.<%- sortedAssociations[aindex].peerRelationName _%>.idsAdded;
+            if(entry[1].changedAssociations.<%- sortedAssociations[aindex].keyRelationName _%>.added) {
+              let idsAdded = entry[1].changedAssociations.<%- sortedAssociations[aindex].keyRelationName _%>.idsAdded;
               if(idsAdded) {
                 let iof = idsAdded.indexOf(item.<%- internalId _%>);
                 if(iof !== -1) {
