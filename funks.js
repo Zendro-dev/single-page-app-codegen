@@ -526,7 +526,7 @@ exports.addKeyRelationName = function(opts) {
       } else if(association.type === 'to_many_through_sql_cross_table') {
         association.keyRelationName = association.keysIn;
       } else if(association.type === 'generic_to_one' || association.type === 'generic_to_many') {
-        association.keyRelationName = opt.name+'_'+association.relationName+'_'+association.type+'_'+opts[i].name;
+        association.keyRelationName = opt.name+'_'+association.relationName;
       }       
 
       /**
@@ -553,9 +553,10 @@ exports.addKeyRelationName = function(opts) {
             if(association.type === 'to_one' || association.type === 'to_many') {
               
               /**
-               * Case: same targetKey found
+               * Case: peer association found
                */
-              if(opts[i].sortedAssociations[j].targetKey === association.targetKey) {
+              if(opts[i].sortedAssociations[j].targetModel === opt.name
+              && opts[i].sortedAssociations[j].targetKey === association.targetKey) {
                 foundPeerAssociation = true;
 
                 //check A: keyIn should be the same in both peers
@@ -828,11 +829,13 @@ parseAssociationsFromFile = function(fileData){
           assoc.ownForeignKeysArr.push(association.targetKey);
           baa.foreignKey = association.targetKey;
           baa.targetKey = association.targetKey;
+          baa.keyIn = association.keyIn;
           break;
 
         case "hasOne":
           baa.foreignKey = association.targetKey;
           baa.targetKey = association.targetKey;
+          baa.keyIn = association.keyIn;
           if(association.keyIn === fileData.model) {
             assoc.hasOwnForeingKeys = true;
             assoc.ownForeignKeysArr.push(association.targetKey);
@@ -841,11 +844,14 @@ parseAssociationsFromFile = function(fileData){
 
         case "belongsToMany":
           baa.keysIn = association.keysIn;
+          baa.sourceKey = association.sourceKey;
+          baa.targetKey = association.targetKey;
           break;
 
         case "hasMany":
           baa.foreignKey = association.targetKey;
           baa.targetKey = association.targetKey;
+          baa.keyIn = association.keyIn;
           break;
 
         case "generic":

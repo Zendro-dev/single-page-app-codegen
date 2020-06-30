@@ -330,6 +330,7 @@ for(let i=0; i<json_files.length; i++) {
 try {
   funks.addKeyRelationName(opts);
   funks.addExtraAttributesAssociations(opts);
+
 }catch(e) {
   //err
   console.log(colors.red("@@: Code generation", colors.red('canceled...')));
