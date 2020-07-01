@@ -122,10 +122,10 @@ services:
      - 8080:8080
     environment:
      - PORT=8080
-     - REACT_APP_CENZ_GRAPHQL_SERVER_URL=http://localhost:3000/graphql
-     - REACT_APP_CENZ_LOGIN_URL=http://localhost:3000/login
-     - REACT_APP_CENZ_EXPORT_URL=http://localhost:3000/export
-     - REACT_APP_CENZ_MAX_UPLOAD_SIZE=500
+     - REACT_APP_ZENDRO_GRAPHQL_SERVER_URL=http://localhost:3000/graphql
+     - REACT_APP_ZENDRO_LOGIN_URL=http://localhost:3000/login
+     - REACT_APP_ZENDRO_EXPORT_URL=http://localhost:3000/export
+     - REACT_APP_ZENDRO_MAX_UPLOAD_SIZE=500
     networks:
     - integrationtest
     command:
@@ -212,10 +212,10 @@ services:
      - 8081:8081
     environment:
      - PORT=8081
-     - REACT_APP_CENZ_GRAPHQL_SERVER_URL=http://localhost:3030/graphql
-     - REACT_APP_CENZ_LOGIN_URL=http://localhost:3030/login
-     - REACT_APP_CENZ_EXPORT_URL=http://localhost:3030/export
-     - REACT_APP_CENZ_MAX_UPLOAD_SIZE=500
+     - REACT_APP_ZENDRO_GRAPHQL_SERVER_URL=http://localhost:3030/graphql
+     - REACT_APP_ZENDRO_LOGIN_URL=http://localhost:3030/login
+     - REACT_APP_ZENDRO_EXPORT_URL=http://localhost:3030/export
+     - REACT_APP_ZENDRO_MAX_UPLOAD_SIZE=500
     networks:
     - integrationtest
     command:
