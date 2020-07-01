@@ -29,8 +29,8 @@ export default function <%- nameOnPascal _%>TabsA(props) {
             handleChange(event, newValue);
           }
         }}>
-        <Tab value={0} label={ t('modelPanels.attributes') } />
-        <Tab value={1} label={ t('modelPanels.associations') } />
+        <Tab id='<%- nameOnPascal -%>UpdatePanel-tabsA-button-attributes' value={0} label={ t('modelPanels.attributes') } />
+        <Tab id='<%- nameOnPascal -%>UpdatePanel-tabsA-button-associations' value={1} label={ t('modelPanels.associations') } />
       </Tabs>
       
       {/* Divider */}

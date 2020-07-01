@@ -1062,27 +1062,33 @@ function setAjvErrors(err) {
             />
           </Grid>
 
-          <Grid item xs={12}>
-            {/* Associations Page [1] */}
-            <<%- nameOnPascal _%>AssociationsPage
-              hidden={tabsValue !== 1 || deleted}
-              item={item}
+          {/*
+            * Conditional rendering:
+            * Associations Page [1] 
+            */}
+          {(tabsValue === 1 && !deleted) && (
+            <Grid item xs={12}>
+              {/* Associations Page [1] */}
+              <<%- nameOnPascal _%>AssociationsPage
+                hidden={tabsValue !== 1 || deleted}
+                item={item}
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
-              <%- sortedAssociations[i].relationNameLc _%>IdsToAdd={<%- sortedAssociations[i].relationNameLc _%>IdsToAddState}
+                <%- sortedAssociations[i].relationNameLc _%>IdsToAdd={<%- sortedAssociations[i].relationNameLc _%>IdsToAddState}
 <%if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many'){-%>
-              <%- sortedAssociations[i].relationNameLc _%>IdsToRemove={<%- sortedAssociations[i].relationNameLc _%>IdsToRemoveState}
+                <%- sortedAssociations[i].relationNameLc _%>IdsToRemove={<%- sortedAssociations[i].relationNameLc _%>IdsToRemoveState}
 <%}}-%>
-              handleTransferToAdd={handleTransferToAdd}
-              handleUntransferFromAdd={handleUntransferFromAdd}
+                handleTransferToAdd={handleTransferToAdd}
+                handleUntransferFromAdd={handleUntransferFromAdd}
 <%if(hasToManyAssociations) {-%>
-              handleTransferToRemove={handleTransferToRemove}
-              handleUntransferFromRemove={handleUntransferFromRemove}
+                handleTransferToRemove={handleTransferToRemove}
+                handleUntransferFromRemove={handleUntransferFromRemove}
 <%}-%>
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
-              handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row}
+                handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row}
 <%}-%>
-            />
-          </Grid>
+              />
+            </Grid>
+          )}
         </Grid>
 
         {/* Confirmation Dialog */}

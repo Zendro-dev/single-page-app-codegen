@@ -902,14 +902,17 @@ function resetReloadData() {
                   unmountOnExit
                 >
                   <Box className={classes.listBox} ref={lref}>
-                    <List dense component="div" role="list" >
+                    <List id='<%- sortedAssociations[aindex].relationNameOnPascal -%>CompactView-list-listA'
+                    dense component="div" role="list" >
                       {items.map(it => {
                         let key = it.<%- sortedAssociations[aindex].internalId _%>;
                         let label = <%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='' && sortedAssociations[aindex].label !==  sortedAssociations[aindex].internalId) ? `it.${sortedAssociations[aindex].label}` : 'undefined' _%>;
                         let sublabel = <%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='' && sortedAssociations[aindex].sublabel !==  sortedAssociations[aindex].label && sortedAssociations[aindex].sublabel !==  sortedAssociations[aindex].internalId) ? `it.${sortedAssociations[aindex].sublabel}` : 'undefined' _%>;
        
                         return (
-                          <ListItem key={key} 
+                          <ListItem 
+                            id={'<%- sortedAssociations[aindex].relationNameOnPascal -%>CompactView-listA-listItem-'+it.<%- sortedAssociations[aindex].internalId _%>}
+                            key={key} 
                             role="listitem" 
                             button 
                             className={classes.row}

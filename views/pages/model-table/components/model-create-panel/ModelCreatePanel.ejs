@@ -780,20 +780,26 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
             />
           </Grid>
 
-          <Grid item xs={12}>
-            {/* Associations Page [1] */}
-            <<%- nameOnPascal _%>AssociationsPage
-              hidden={tabsValue !== 1}
+          {/*
+            * Conditional rendering:
+            * Associations Page [1] 
+            */}
+          {(tabsValue === 1) && (
+            <Grid item xs={12}>
+              {/* Associations Page [1] */}
+              <<%- nameOnPascal _%>AssociationsPage
+                hidden={tabsValue !== 1}
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
-              <%- sortedAssociations[i].relationNameLc _%>IdsToAdd={<%- sortedAssociations[i].relationNameLc _%>IdsToAddState}
+                <%- sortedAssociations[i].relationNameLc _%>IdsToAdd={<%- sortedAssociations[i].relationNameLc _%>IdsToAddState}
 <%}-%>
-              handleTransferToAdd={handleTransferToAdd}
-              handleUntransferFromAdd={handleUntransferFromAdd}
+                handleTransferToAdd={handleTransferToAdd}
+                handleUntransferFromAdd={handleUntransferFromAdd}
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
-              handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row}
+                handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row}
 <%}-%>
-            />
-          </Grid>
+              />
+            </Grid>
+          )}
         </Grid>
 
         {/* Confirmation Dialog */}
