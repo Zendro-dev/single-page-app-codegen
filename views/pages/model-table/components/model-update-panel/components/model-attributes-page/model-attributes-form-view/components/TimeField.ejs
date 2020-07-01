@@ -82,7 +82,7 @@ export default function TimeField(props) {
       <Grid item>
         <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils} locale={i18n.language}>
             <KeyboardTimePicker
-              id={'TimeField-<%- nameOnPascal -%>'+'-'+name}
+              id={'TimeField-<%- nameOnPascal -%>-'+name}
               className={classes.input}
               label={label}
               format="HH:mm:ss.SSS"

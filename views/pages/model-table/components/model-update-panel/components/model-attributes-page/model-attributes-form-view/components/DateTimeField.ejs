@@ -81,7 +81,7 @@ export default function DateTimeField(props) {
       <Grid item>
         <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils} locale={i18n.language}>
             <KeyboardDateTimePicker
-              id={'DateTimeField-<%- nameOnPascal -%>'+'-'+name}
+              id={'DateTimeField-<%- nameOnPascal -%>-'+name}
               className={classes.input}
               label={label}
               format="YYYY-MM-DD HH:mm:ss.SSS"
