@@ -52,13 +52,13 @@ describe('1. Basic functionality', function () {
     /**
      * Evaluate
      */
-    expect(await page.title()).to.eql('Vocen');
+    expect(await page.title()).to.eql('Zendro');
   });
 
   it('02. Login', async function () {
     //add data
     await page.click("input[id=LoginPage-textField-email]");
-    await page.type("input[id=LoginPage-textField-email]", 'admin@vocen.on');
+    await page.type("input[id=LoginPage-textField-email]", 'admin@zen.dro');
     //add data
     await page.click("input[id=LoginPage-textField-password]");
     await page.type("input[id=LoginPage-textField-password]", 'admin');
@@ -76,7 +76,7 @@ describe('1. Basic functionality', function () {
     /**
      * Evaluate
      */
-    expect(await page.title()).to.eql('Vocen');
+    expect(await page.title()).to.eql('Zendro');
   });
 
   it('03. <individual> table is empty', async function () {
@@ -101,7 +101,7 @@ describe('1. Basic functionality', function () {
     let data = await apiResponse;
 
     expect(await data.countIndividuals === 0).to.eql(true);
-    expect(await page.title()).to.eql('Vocen');
+    expect(await page.title()).to.eql('Zendro');
   });
 
   it('04. Add <individual>', async function () {
@@ -135,7 +135,7 @@ describe('1. Basic functionality', function () {
     let data = await apiResponse;
 
     expect(await data.addIndividual.name === 'individual-1').to.eql(true);
-    expect(await page.title()).to.eql('Vocen');
+    expect(await page.title()).to.eql('Zendro');
   });
 
   it('05. Update <individual>', async function () {
@@ -173,7 +173,7 @@ describe('1. Basic functionality', function () {
 
     expect(text).to.eql('individual-1-edited');
     expect(await data.updateIndividual.name === 'individual-1-edited').to.eql(true);
-    expect(await page.title()).to.eql('Vocen');
+    expect(await page.title()).to.eql('Zendro');
   });
 
   it('06. Add one more and find both', async function () {
@@ -241,7 +241,7 @@ describe('1. Basic functionality', function () {
     expect(rowsCount).to.eql(2);
     expect(text1).to.eql('individual-1-edited');
     expect(text2).to.eql('individual-2');
-    expect(await page.title()).to.eql('Vocen');
+    expect(await page.title()).to.eql('Zendro');
 
   });
 
@@ -292,7 +292,7 @@ describe('1. Basic functionality', function () {
     rowsCount = await page.$$eval('tbody > tr', rows => rows.length);
 
     expect(rowsCount).to.eql(0);
-    expect(await page.title()).to.eql('Vocen');
+    expect(await page.title()).to.eql('Zendro');
   });
 });
 
@@ -334,7 +334,7 @@ describe('2. Associations - one_to_many - Add associations in the create-panel.'
     let data = await apiResponse;
 
     expect(data.countTranscript_counts === 0).to.eql(true);
-    expect(await page.title()).to.eql('Vocen');
+    expect(await page.title()).to.eql('Zendro');
   });
 
   it(`02. Add ${recordsCount_d2_it02} <transcript_count> records `, async function () {
@@ -396,7 +396,7 @@ describe('2. Associations - one_to_many - Add associations in the create-panel.'
       let data = await responses[i];
       expect(await data.addTranscript_count.gene === `gene-${i+1}`).to.eql(true);
     }
-    expect(await page.title()).to.eql('Vocen');
+    expect(await page.title()).to.eql('Zendro');
   }).timeout(30000); //30s.
 
   it('03. Create <individual> record with <transcript_count> associations.', async function () {
@@ -422,7 +422,7 @@ describe('2. Associations - one_to_many - Add associations in the create-panel.'
     let data = await apiResponse;
 
     expect(await data.countIndividuals).to.eql(0);
-    expect(await page.title()).to.eql('Vocen');
+    expect(await page.title()).to.eql('Zendro');
 
     //click on: add <individual>
     await Promise.all([
@@ -457,7 +457,7 @@ describe('2. Associations - one_to_many - Add associations in the create-panel.'
 
     expect(data.countTranscript_counts).to.eql(recordsCount_d2_it02);
     expect(rowsCount).to.eql(recordsCount_d2_it02);
-    expect(await page.title()).to.eql('Vocen');
+    expect(await page.title()).to.eql('Zendro');
 
     /*
      * add associations
@@ -489,7 +489,7 @@ describe('2. Associations - one_to_many - Add associations in the create-panel.'
       { countTranscript_counts: 1 }]);
     expect(rowsCountA).to.eql(recordsCount_d2_it02-1);
     expect(rowsCountB).to.eql(1);
-    expect(await page.title()).to.eql('Vocen');
+    expect(await page.title()).to.eql('Zendro');
 
     //click on: add item 2
     apiResponses = [];
@@ -596,7 +596,7 @@ describe('2. Associations - one_to_many - Add associations in the create-panel.'
 
     expect(text).to.eql('individual-1');
     expect(await data.addIndividual.name === 'individual-1').to.eql(true);
-    expect(await page.title()).to.eql('Vocen');
+    expect(await page.title()).to.eql('Zendro');
 
     //click on: record detail view
     apiResponse = null;
@@ -618,7 +618,7 @@ describe('2. Associations - one_to_many - Add associations in the create-panel.'
 
     expect(data.readOneIndividual.countFilteredTranscript_counts).to.eql(2);
     expect(rowsCountA).to.eql(2);
-    expect(await page.title()).to.eql('Vocen');
+    expect(await page.title()).to.eql('Zendro');
 
     //click on: close detail panel
     await Promise.all([
@@ -633,6 +633,6 @@ describe('2. Associations - one_to_many - Add associations in the create-panel.'
     /**
      * Evaluate
      */
-    expect(await page.title()).to.eql('Vocen');
+    expect(await page.title()).to.eql('Zendro');
   }).timeout(30000); //30s.
 });

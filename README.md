@@ -51,7 +51,7 @@ For each model we need to specify the following fields in the json file:
 Name | Type | Description
 ------- | ------- | --------------
 *model* | String | Name of the model (it is recommended uppercase for the initial character).
-*storageType* | String | Type of storage where the model is stored. So far can be one of: __sql__, __distributed-data-model__, __cenz-server__, __generic__, __sql-adapter__, __ddm-adapter__, __cenzontle-webservice-adapter__, __generic-adapter__.
+*storageType* | String | Type of storage where the model is stored. So far can be one of: __sql__, __distributed-data-model__, __zendro-server__, __generic__, __sql-adapter__, __ddm-adapter__, __zendro-webservice-adapter__, __generic-adapter__.
 *attributes* | Object | The key of each entry is the name of the attribute and theres two options for the value . Either can be a string indicating the type of the attribute or an object where the user can indicates the type of the attribute(in the _type_ field) but also can indicates an attribute's description (in the _description_ field). See the [table](#types-spec) below for allowed types. Example of option one: ```{ "attribute1" : "String", "attribute2: "Int" }``` Example of option two: ``` { "attribute1" : {"type" :"String", "description": "Some description"}, "attribute2: "Int ```
 *associations* | Object | The key of each entry is the name of the association and the value should be an object describing the associations. See [Associations Spec](associations-spec) section below for the specifications of the associations.
 
@@ -137,7 +137,7 @@ name | Type | Description
 *target* | String | Name of model to which the current model will be associated with.
 *targetKey* | String | A unique identifier of the association for the case where there appear more than one association with the same model.
 *keyIn* | String | Name of the model where the targetKey is stored.
-*targetStorageType* | String | Type of storage where the target model is stored. So far can be one of: __sql__, __distributed-data-model__, __cenz-server__, __generic__, __sql-adapter__, __ddm-adapter__, __cenzontle-webservice-adapter__, __generic-adapter__.
+*targetStorageType* | String | Type of storage where the target model is stored. So far can be one of: __sql__, __distributed-data-model__, __zendro-server__, __generic__, __sql-adapter__, __ddm-adapter__, __zendro-webservice-adapter__, __generic-adapter__.
 *label* | String | Name of the column in the target model to be used as a display name in the GUI.
 *sublabel* | String | Optional name of the column in the target model to be used as a sub-label in the GUI.
 
