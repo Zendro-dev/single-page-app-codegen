@@ -661,7 +661,7 @@ doTests() {
   waitForSpa
 
   # Do tests
-  mocha ./test/integration-tests-mocha.js
+  mocha --trace-warnings ./test/integration-tests-mocha.js
   
   # Msg
   echo -e "@@ Mocha tests ... ${LGREEN}done${NC}"

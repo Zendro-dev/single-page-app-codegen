@@ -8,8 +8,9 @@ let browser = {}, page = {};
 //test timeouts
 const tt = 10000;
 const ttmax = 20000;
-
-//number of records to add
+//delays
+const ttdelay = 500;
+//test specific settings
 const recordsCount_d2_it02 = 3;
 
 before(async function () {
@@ -35,8 +36,8 @@ before(async function () {
 
 // close all
 after(async function () {
-  await page.close();
-  browser.close();
+  //await page.close();
+  //browser.close();
 });
 
 /**
@@ -47,7 +48,7 @@ describe('1. Basic functionality', function () {
   this.timeout(tt);
 
   it('01. Server OK', async function () {
-    await delay(500);
+    await delay(ttdelay);
 
     /**
      * Evaluate
@@ -71,7 +72,7 @@ describe('1. Basic functionality', function () {
       //click
       page.click("button[id=LoginPage-button-login]"),
     ]);
-    await delay(500);
+    await delay(ttdelay);
 
     /**
      * Evaluate
@@ -93,7 +94,7 @@ describe('1. Basic functionality', function () {
       //click
       page.click("div[id=MainPanel-listItem-button-individual]"),
     ]);
-    await delay(500);
+    await delay(ttdelay);
 
     /**
      * Evaluate
@@ -127,7 +128,7 @@ describe('1. Basic functionality', function () {
       //click
       page.click("button[id=IndividualCreatePanel-fabButton-save]"),
     ]);
-    await delay(500);
+    await delay(ttdelay);
 
     /**
      * Evaluate
@@ -147,7 +148,7 @@ describe('1. Basic functionality', function () {
       //click
       page.click("button[id=IndividualEnhancedTable-row-iconButton-edit-1]"),
     ]);
-    await delay(1000);
+    await delay(ttdelay*2);
 
     //add data
     await page.click("textarea[id=StringField-Individual-name]", { clickCount: 3 });
@@ -162,7 +163,7 @@ describe('1. Basic functionality', function () {
       //click
       page.click("button[id=IndividualUpdatePanel-fabButton-save]"),
     ]);
-    await delay(500);
+    await delay(ttdelay);
 
     /**
      * Evaluate
@@ -202,7 +203,7 @@ describe('1. Basic functionality', function () {
       //click
       page.click("button[id=IndividualCreatePanel-fabButton-save]"),
     ]);
-    await delay(500);
+    await delay(ttdelay);
 
     /**
      * Search
@@ -223,7 +224,7 @@ describe('1. Basic functionality', function () {
       //click
       page.click("button[id=IndividualEnhancedTableToolbar-iconButton-search]"),
     ]);
-    await delay(500);
+    await delay(ttdelay);
 
     /**
      * Evaluate
@@ -265,7 +266,7 @@ describe('1. Basic functionality', function () {
         //click
         page.click(`button[id=IndividualEnhancedTable-row-iconButton-delete-${i + 1}]`),
       ]);
-      await delay(500);
+      await delay(ttdelay);
 
       let apiResponse = null;
       await Promise.all(lastEvents.concat([
@@ -276,7 +277,7 @@ describe('1. Basic functionality', function () {
         //click
         page.click('button[id=IndividualDeleteConfirmationDialog-button-accept]'),
       ]));
-      await delay(1000);
+      await delay(ttdelay*2);
 
       /**
        * Evaluate
@@ -326,7 +327,7 @@ describe('2. Associations - one_to_many - Add associations in the create-panel.'
       //click
       page.click("div[id=MainPanel-listItem-button-transcript_count]"),
     ]);
-    await delay(500);
+    await delay(ttdelay);
 
     /**
      * Evaluate
@@ -386,7 +387,7 @@ describe('2. Associations - one_to_many - Add associations in the create-panel.'
       ]));
 
       responses.push(apiResponse);
-      await delay(500);
+      await delay(ttdelay);
     }
 
     /**
@@ -400,8 +401,9 @@ describe('2. Associations - one_to_many - Add associations in the create-panel.'
   }).timeout(30000); //30s.
 
   it('03. Create <individual> record with <transcript_count> associations.', async function () {
-
-    //go to: <individual> table
+    /**
+     * #1: go to <individual> table
+     */
     let apiResponse = null;
     await Promise.all([
       //wait for events
@@ -410,59 +412,62 @@ describe('2. Associations - one_to_many - Add associations in the create-panel.'
       apiResponse = page.waitForResponse('http://localhost:3000/graphql').then((res) => res.json().then((data) => data.data)),
       page.waitForSelector('tbody[id=IndividualEnhancedTable-tableBody]', { hidden: true }),
       page.waitForSelector('div[id=IndividualEnhancedTable-box-noData]', { visible: true }),
-
       //click
       page.click("div[id=MainPanel-listItem-button-individual]"),
     ]);
-    await delay(500);
-
+    await delay(ttdelay);
     /**
      * Evaluate
      */
     let data = await apiResponse;
-
     expect(await data.countIndividuals).to.eql(0);
     expect(await page.title()).to.eql('Zendro');
 
-    //click on: add <individual>
+    /**
+     * #2: click on: add <individual>
+     */
     await Promise.all([
       //wait for events
       page.waitForSelector('div[id=IndividualAttributesFormView-div-root]', { visible: true }),
-
       //click
       page.click("button[id=IndividualEnhancedTableToolbar-button-add]"),
     ]);
+    await delay(ttdelay);
 
-    //add input
+    /**
+     * #3: type input on <individual> attributes form
+     */
     await page.click("textarea[id=StringField-Individual-name]");
     await page.type("textarea[id=StringField-Individual-name]", 'individual-1');
 
-    //click on: associations tab
+    /**
+     * #4: click on: <individual> associations tab
+     */
     apiResponse = null;
     await Promise.all([
       //wait for events
       page.waitForSelector('div[id=TranscriptCountsTransferLists-div-root]', { visible: true }),
       apiResponse = page.waitForResponse('http://localhost:3000/graphql').then((res) => res.json().then((data) => data.data)),
-
       //click
       await page.click("button[id=IndividualCreatePanel-tabsA-button-associations]"),
     ]);
-    await delay(500);
-
+    await delay(ttdelay);
     /**
      * Evaluate
      */
     data = await apiResponse;
     let rowsCount = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listA] > li', rows => rows.length);
-
     expect(data.countTranscript_counts).to.eql(recordsCount_d2_it02);
     expect(rowsCount).to.eql(recordsCount_d2_it02);
     expect(await page.title()).to.eql('Zendro');
 
     /*
-     * add associations
+     * Add associations
      */
-    //click on: add item 1
+
+    /**
+     * #5: click on: add button - item 1
+     */
     let apiResponses = [];
     let expectedResponses = 4;
     await Promise.all([
@@ -476,14 +481,13 @@ describe('2. Associations - one_to_many - Add associations in the create-panel.'
       //click
       page.click("button[id=TranscriptCountsToAddTransferView-listA-listItem-1-button-add]"),
     ]);
-    await delay(500);
+    await delay(ttdelay);
     /**
      * Evaluate
      */
     let datas = await Promise.all(apiResponses);
     let rowsCountA = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listA] > li', rows => rows.length);
     let rowsCountB = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listB] > li', rows => rows.length);
-
     expect(datas).to.include.deep.members([
       { countTranscript_counts: recordsCount_d2_it02-1 },
       { countTranscript_counts: 1 }]);
@@ -491,7 +495,9 @@ describe('2. Associations - one_to_many - Add associations in the create-panel.'
     expect(rowsCountB).to.eql(1);
     expect(await page.title()).to.eql('Zendro');
 
-    //click on: add item 2
+    /**
+     * #6: click on: add button - item 2
+     */
     apiResponses = [];
     expectedResponses = 4;
     await Promise.all([
@@ -505,21 +511,22 @@ describe('2. Associations - one_to_many - Add associations in the create-panel.'
       //click
       page.click("button[id=TranscriptCountsToAddTransferView-listA-listItem-2-button-add]"),
     ]);
-    await delay(500);
+    await delay(ttdelay);
     /**
      * Evaluate
      */
     datas = await Promise.all(apiResponses);
     rowsCountA = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listA] > li', rows => rows.length);
     rowsCountB = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listB] > li', rows => rows.length);
-
     expect(datas).to.include.deep.members([
       { countTranscript_counts: recordsCount_d2_it02-2 },
       { countTranscript_counts: 2 }]);
     expect(rowsCountA).to.eql(recordsCount_d2_it02-2);
     expect(rowsCountB).to.eql(2);
 
-    //click on: add item 3
+    /**
+     * #7: click on: add button - item 3
+     */
     apiResponses = [];
     expectedResponses = 4;
     await Promise.all([
@@ -533,21 +540,22 @@ describe('2. Associations - one_to_many - Add associations in the create-panel.'
       //click
       page.click("button[id=TranscriptCountsToAddTransferView-listA-listItem-3-button-add]"),
     ]);
-    await delay(500);
+    await delay(ttdelay);
     /**
      * Evaluate
      */
     datas = await Promise.all(apiResponses);
     rowsCountA = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listA] > li', rows => rows.length);
     rowsCountB = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listB] > li', rows => rows.length);
-
     expect(datas).to.include.deep.members([
       { countTranscript_counts: recordsCount_d2_it02-3 },
       { countTranscript_counts: 3 }]);
     expect(rowsCountA).to.eql(recordsCount_d2_it02-3);
     expect(rowsCountB).to.eql(3);
 
-    //click on: remove item 2
+    /**
+     * #8: click on: remove button - item 2
+     */
     apiResponses = [];
     expectedResponses = 4;
     await Promise.all([
@@ -561,63 +569,68 @@ describe('2. Associations - one_to_many - Add associations in the create-panel.'
       //click
       page.click("button[id=TranscriptCountsToAddTransferView-listB-listItem-2-button-remove]"),
     ]);
-    await delay(500);
+    await delay(ttdelay);
     /**
      * Evaluate
      */
     datas = await Promise.all(apiResponses);
     rowsCountA = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listA] > li', rows => rows.length);
     rowsCountB = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listB] > li', rows => rows.length);
-
     expect(datas).to.include.deep.members([
       { countTranscript_counts: recordsCount_d2_it02-2 },
       { countTranscript_counts: 2 }]);
     expect(rowsCountA).to.eql(recordsCount_d2_it02-2);
     expect(rowsCountB).to.eql(2);
 
-    //click on: save record
+    /**
+     * #9: click on: save <individual>
+     */
     apiResponse = null;
     await Promise.all([
       //wait for events
       page.waitForSelector('div[id=TranscriptCountAttributesFormView-div-root]', { hidden: true }),
       page.waitForSelector('tbody[id=IndividualEnhancedTable-tableBody]', { visible: true }),
       apiResponse = page.waitForResponse('http://localhost:3000/graphql').then((res) => res.json().then((data) => data.data)),
-
       //click
       page.click("button[id=IndividualCreatePanel-fabButton-save]"),
     ]);
-    await delay(1000);
+    await delay(ttdelay*2);
     /**
      * Evaluate
      */
     data = await apiResponse;
-    let cell = await page.$('tr[id=IndividualEnhancedTable-row-3] > td:nth-child(0n+5)');
+    let newId = (data&&data.addIndividual) ? data.addIndividual.id : 0;
+    let cell = await page.$(`tr[id=IndividualEnhancedTable-row-${newId}] > td:nth-child(5)`); 
     let text = await page.evaluate(cell => cell.textContent, cell);
-
+    
     expect(text).to.eql('individual-1');
     expect(await data.addIndividual.name === 'individual-1').to.eql(true);
     expect(await page.title()).to.eql('Zendro');
 
-    //click on: record detail view
+    /**
+     * #10: click on: <individual> detail view - on new record
+     */
     apiResponse = null;
     await Promise.all([
       //wait for events
       page.waitForSelector('div[id=IndividualAssociationsPage-div-root]', { visible: true }),
       apiResponse = page.waitForResponse('http://localhost:3000/graphql').then((res) => res.json().then((data) => data.data)),
-
       //click
-      page.click("button[id=IndividualEnhancedTable-row-iconButton-detail-3]"),
+      page.click(`button[id=IndividualEnhancedTable-row-iconButton-detail-${newId}]`),
     ]);
-    await delay(500);
-
+    await delay(ttdelay);
     /**
      * Evaluate
      */
     data = await apiResponse;
-    rowsCountA = await page.$$eval('div[id=TranscriptCountsCompactView-list-listA] > div[role=listitem]', rows => rows.length);
-
+    rowsCountA = await page.$$eval('div[id=TranscriptCountsCompactView-list-listA] > div[role=listitem]', rows => rows.length).catch((e) => null);
+    let assocId1 = await page.$eval('p[id=TranscriptCountsCompactView-listA-listItem-id-1]', cell => cell.textContent).catch((e) => null);
+    let assocId3 = await page.$eval('p[id=TranscriptCountsCompactView-listA-listItem-id-3]', cell => cell.textContent).catch((e) => null);
+    
     expect(data.readOneIndividual.countFilteredTranscript_counts).to.eql(2);
     expect(rowsCountA).to.eql(2);
+    expect(assocId1).to.eql('1');
+    expect(assocId3).to.eql('3');
     expect(await page.title()).to.eql('Zendro');
 
     //click on: close detail panel
@@ -629,7 +642,7 @@ describe('2. Associations - one_to_many - Add associations in the create-panel.'
       //click
       page.click("button[id=IndividualDetailPanel-button-close]"),
     ]);
-    await delay(500);
+    await delay(ttdelay);
     /**
      * Evaluate
      */

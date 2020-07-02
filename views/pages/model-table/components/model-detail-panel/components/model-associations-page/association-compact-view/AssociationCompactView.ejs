@@ -933,7 +933,9 @@ function resetReloadData() {
                                   <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
                                     <Grid item>
                                       <Tooltip title={ '<%- sortedAssociations[aindex].internalId %>' }>
-                                        <Typography variant="body1" display="block" noWrap={true}>{it.<%- sortedAssociations[aindex].internalId _%>}</Typography>
+                                        <Typography
+                                        id={'<%- sortedAssociations[aindex].relationNameOnPascal -%>CompactView-listA-listItem-id-'+it.<%- sortedAssociations[aindex].internalId _%>}
+                                        variant="body1" display="block" noWrap={true}>{it.<%- sortedAssociations[aindex].internalId _%>}</Typography>
                                       </Tooltip>
                                     </Grid>
                                     {/*Key icon*/}
@@ -950,14 +952,18 @@ function resetReloadData() {
                                   {/* Label */}
                                   {(label) && (
                                     <Tooltip title={ '<%- sortedAssociations[aindex].label %>' }>
-                                      <Typography component="span" variant="body1" display="inline" color="textPrimary">{label}</Typography>
+                                      <Typography
+                                      id={'<%- sortedAssociations[aindex].relationNameOnPascal -%>CompactView-listA-listItem-label-'+it.<%- sortedAssociations[aindex].internalId _%>}
+                                      component="span" variant="body1" display="inline" color="textPrimary">{label}</Typography>
                                     </Tooltip>
                                   )}
                                   
                                   {/* Sublabel */}
                                   {(sublabel) && (
                                     <Tooltip title={ '<%- sortedAssociations[aindex].sublabel %>' }>
-                                      <Typography component="span" variant="body2" display="inline" color='textSecondary'>{" — "+sublabel} </Typography>
+                                      <Typography
+                                      id={'<%- sortedAssociations[aindex].relationNameOnPascal -%>CompactView-listA-listItem-sublabel-'+it.<%- sortedAssociations[aindex].internalId _%>}
+                                      component="span" variant="body2" display="inline" color='textSecondary'>{" — "+sublabel} </Typography>
                                     </Tooltip>
                                   )}
                                 </React.Fragment>
