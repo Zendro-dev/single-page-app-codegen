@@ -152,7 +152,7 @@ CODEGEN_DIRS=($TARGET_DIR_GQL_INSTANCE1"/models/adapters" \
               $TARGET_DIR_GQL_INSTANCE1"/models/sql" \
               $TARGET_DIR_GQL_INSTANCE1"/models/distributed" \
               $TARGET_DIR_GQL_INSTANCE1"/models/generic" \
-              $TARGET_DIR_GQL_INSTANCE1"/models/cenz-server"
+              $TARGET_DIR_GQL_INSTANCE1"/models/zendro-server"
               $TARGET_DIR_GQL_INSTANCE1"/migrations" \
               $TARGET_DIR_GQL_INSTANCE1"/schemas" \
               $TARGET_DIR_GQL_INSTANCE1"/resolvers" \
@@ -162,7 +162,7 @@ CODEGEN_DIRS=($TARGET_DIR_GQL_INSTANCE1"/models/adapters" \
               $TARGET_DIR_GQL_INSTANCE2"/models/sql" \
               $TARGET_DIR_GQL_INSTANCE2"/models/distributed" \
               $TARGET_DIR_GQL_INSTANCE2"/models/generic" \
-              $TARGET_DIR_GQL_INSTANCE2"/models/cenz-server"
+              $TARGET_DIR_GQL_INSTANCE2"/models/zendro-server"
               $TARGET_DIR_GQL_INSTANCE2"/migrations" \
               $TARGET_DIR_GQL_INSTANCE2"/schemas" \
               $TARGET_DIR_GQL_INSTANCE2"/resolvers" \
@@ -532,6 +532,7 @@ gqlCodegenSetup() {
 # Generate code.
 #
 genCode() {
+
   # Msg
   echo -e "\n${LGRAY}@@ ----------------------------${NC}"
   echo -e "${LGRAY}@@ Generating code...${NC}"
@@ -551,11 +552,9 @@ genCode() {
   echo -e "${LGRAY}@@ Generating SPA code...${NC}"
   #Generate
   node ./index.js -f ${TEST_MODELS_INSTANCE1} -o ${TARGET_DIR_SPA_INSTANCE1} -P -D
+  local spa1_status=$?
   node ./index.js -f ${TEST_MODELS_INSTANCE2} -o ${TARGET_DIR_SPA_INSTANCE2} -P -D
-  # Msg
-  echo -e "@@ Code for SPA generated on ${LGRAY}${TARGET_DIR_SPA_INSTANCE1}${NC}: ... ${LGREEN}done${NC}"
-  # Msg
-  echo -e "@@ Code for SPA generated on ${LGRAY}${TARGET_DIR_SPA_INSTANCE2}${NC}: ... ${LGREEN}done${NC}"
+  local spa2_status=$?
 
   #
   # Generate GraphQL server code
@@ -564,13 +563,36 @@ genCode() {
   echo -e "${LGRAY}@@ Generating GraphQL Server code...${NC}"
   #Generate
   node ${GQL_CODEGEN_DIR}/index.js -f ${TEST_MODELS_INSTANCE1} -o ${TARGET_DIR_GQL_INSTANCE1}
+  local gql1_status=$?
   node ${GQL_CODEGEN_DIR}/index.js -f ${TEST_MODELS_INSTANCE2} -o ${TARGET_DIR_GQL_INSTANCE2}
-  # Msg
+  local gql2_status=$?
+  
+  # Print summary
+  echo ""
+  echo ""
+  if [ $spa1_status -eq 0 ]; then
+  echo -e "@@ Code for SPA generated on ${LGRAY}${TARGET_DIR_SPA_INSTANCE1}${NC}: ... ${LGREEN}done${NC}"
+  else
+  echo -e "@@ Code for SPA generated on ${LGRAY}${TARGET_DIR_SPA_INSTANCE1}${NC}: ... ${RED}done (with errors)${NC}"
+  fi
+  if [ $spa2_status -eq 0 ]; then
+  echo -e "@@ Code for SPA generated on ${LGRAY}${TARGET_DIR_SPA_INSTANCE2}${NC}: ... ${LGREEN}done${NC}"
+  else
+  echo -e "@@ Code for SPA generated on ${LGRAY}${TARGET_DIR_SPA_INSTANCE2}${NC}: ... ${RED}done (with errors)${NC}"
+  fi
+  if [ $gql1_status -eq 0 ]; then
   echo -e "@@ Code for GraphQL Server generated on ${LGRAY}${TARGET_DIR_GQL_INSTANCE1}${NC}: ... ${LGREEN}done${NC}"
-  # Msg
+  else
+  echo -e "@@ Code for GraphQL Server generated on ${LGRAY}${TARGET_DIR_GQL_INSTANCE1}${NC}: ... ${RED}done (with errors)${NC}"
+  fi
+  if [ $gql2_status -eq 0 ]; then
   echo -e "@@ Code for GraphQL Server generated on ${LGRAY}${TARGET_DIR_GQL_INSTANCE2}${NC}: ... ${LGREEN}done${NC}"
+  else
+  echo -e "@@ Code for GraphQL Server generated on ${LGRAY}${TARGET_DIR_GQL_INSTANCE2}${NC}: ... ${RED}done (with errors)${NC}"
+  fi
   
   # Msg
+  echo ""
   echo -e "@@ Code generated ... ${LGREEN}done${NC}"
   echo -e "${LGRAY}---------------------------- @@${NC}\n"
 }

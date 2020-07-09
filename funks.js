@@ -5,7 +5,7 @@ const inflection = require('inflection')
 const {promisify} = require('util');
 const ejsRenderFile = promisify( ejs.renderFile )
 const colors = require('colors/safe');
-const { first } = require('lodash');
+const { first, template } = require('lodash');
 
 /**
  * renderTemplate - Generate the Javascript code as string using EJS templates views
@@ -59,21 +59,54 @@ exports.renderToFile = async function(outFile, templateName, options) {
  * @param  {string} outFile      path to output file where code will be written
  * @param  {string} templateName template view name to use for generating code
  * @param  {object} options      Options to fill the template
- * @return {promise}              Promise will be resolved with success message if the file is written successfully, rejected with error otherwise.
+ * @param  {object} status       Object with status properties. This function will set status properties on this object.
+ * @param  {boolean} verbose     Verbose option.
+ * @return {promise}             Promise will be resolved with success message if the file is written successfully, rejected with error otherwise.
  */
-exports.renderToFileSync = async function(outFile, templateName, options) {
+exports.renderToFileSync = async function(outFile, templateName, options, status, verbose) {
+  let errorOnRender = false;
+  
   //generate
-  let genFile = await exports.renderTemplate(templateName, options);
+  let genFile = await exports.renderTemplate(templateName, options)
+  .catch((e) => {
+    //flag
+    errorOnRender = true;
+    //error msg
+    console.log('@@@ Template:', colors.dim(templateName), 'with error.');
+    console.log(e);
+  });
   
   //write
-  try {
-    fs.writeFileSync(outFile, genFile);
-    //success
-    console.log('@@@ File:', colors.dim(outFile), colors.green('written successfully!'));
-  } catch(e) {
-    //error
-    console.log('@@@ File:', colors.dim(outFile), colors.red('error trying to write.'));
-    throw e;
+  if(!errorOnRender) {
+    try {
+      fs.writeFileSync(outFile, genFile);
+      //success
+      if(verbose) console.log('@@@ File:', colors.dim(outFile), colors.green('written successfully!'));
+    } catch(e) {
+      errorOnRender = true;
+      //error msg
+      console.log('@@@ File:', colors.dim(outFile), ', error trying to write in file.');
+      console.log(e);
+    }
+  }
+
+  //check
+  if(errorOnRender && status && typeof status === 'object') {
+    //set status
+    status.errorOnRender = true;
+    if(typeof status.totalCodeGenerationErrors === 'number'){
+      status.totalCodeGenerationErrors++;
+    }
+    if(status.templatesWithErrors 
+    && Array.isArray(status.templatesWithErrors)
+    && !status.templatesWithErrors.includes(templateName)) {
+      status.templatesWithErrors.push(templateName);
+    }
+
+  } else {
+    if(typeof status.totalFilesGenerated === 'number'){
+      status.totalFilesGenerated++;
+    }
   }
 }
 
@@ -301,7 +334,7 @@ exports.checkJsonDataFile = function(jsonModel, options){
         //models
         case 'sql':
         case 'distributed-data-model':
-        case 'cenz-server':
+        case 'zendro-server':
         case 'generic':
         //adapters
         case 'sql-adapter':
@@ -314,7 +347,7 @@ exports.checkJsonDataFile = function(jsonModel, options){
         default:
           //not ok
           result.pass = false;
-          result.errors.push(`ERROR: The attribute 'storageType' has an invalid value. One of the following types is expected: [sql, cenz-server, distributed-data-model, generic]. But '${jsonModel.storageType}' was obtained.`);
+          result.errors.push(`ERROR: The attribute 'storageType' has an invalid value. One of the following types is expected: [sql, zendro-server, distributed-data-model, generic]. But '${jsonModel.storageType}' was obtained.`);
           break;
       }
     }
@@ -337,7 +370,7 @@ exports.checkJsonDataFile = function(jsonModel, options){
         result.errors.push(`ERROR: 'attributes' object can not be empty`);
       } else {
         //check for correct attributes types
-        for(var i=0; i<keys.length; ++i) {
+        for(let i=0; i<keys.length; ++i) {
           switch(jsonModel.attributes[keys[i]]) {
             case 'String':
             case 'Int':
@@ -1247,13 +1280,20 @@ exports.genPlotlyInExistentSpa = async function(plotlyOptions, verbose) {
   //check
   let opts = status.opts;
   if(opts.length === 0) {
+    //print summary
+    exports.printSummary(status);
     //msg
     console.log(colors.red('! Error: '), 'No JSON files could be processed.');
     console.log(colors.white('@ ', colors.red('done')));
     process.exit(1);
   } else {
-    //msg
-    console.log("@ ", colors.green('done'));
+    if(status.totalWrongFiles > 0){
+      //msg
+      console.log("@ ", colors.red('done'));
+    } else {
+      //msg
+      console.log("@ ", colors.green('done'));
+    }
   }
 
   /*
@@ -1262,8 +1302,13 @@ exports.genPlotlyInExistentSpa = async function(plotlyOptions, verbose) {
   //msg
   console.log(colors.white('\n@ Starting code generation in: \n', colors.dim(path.resolve(outputDir))), "\n");
   
+  status.totalFilesGenerated = 0;
+  status.totalCodeGenerationErrors = 0;
+  status.templatesWithErrors = [];
+
   for(let i=0; i<opts.length; i++) {
     let ejbOpts = opts[i];
+    status.errorOnRender = false;
 
     /**
      * modelPlotly
@@ -1271,11 +1316,17 @@ exports.genPlotlyInExistentSpa = async function(plotlyOptions, verbose) {
      * */
     // template 63: ModelPlotly
     fpath = path.resolve(outputDir, `${ejbOpts.nameCp}Plotly.js`);
-    await exports.renderToFileSync(fpath, 'plots/ModelPlotly', ejbOpts);
+    await exports.renderToFileSync(fpath, 'plots/ModelPlotly', ejbOpts, status, verbose);
 
-    //msg
-    console.log(colors.white('@@ Generating code for model: '), colors.blue(ejbOpts.name), '... ', colors.green('done'));
+    if(status.errorOnRender) {
+      //msg
+      console.log(colors.white('@@ Generating code for model: '), colors.blue(ejbOpts.name), '... ', colors.red('done'));
+    } else {
+      //msg
+      console.log(colors.white('@@ Generating code for model: '), colors.blue(ejbOpts.name), '... ', colors.green('done'));
+    }
   }
+  return status;
 }
 
 exports.genStandalonePlotly = async function(plotlyOptions, verbose) {
@@ -1323,13 +1374,20 @@ exports.genStandalonePlotly = async function(plotlyOptions, verbose) {
   //check
   let opts = status.opts;
   if(opts.length === 0) {
+    //print summary
+    exports.printSummary(status);
     //msg
     console.log(colors.red('! Error: '), 'No JSON files could be processed.');
     console.log(colors.white('@ ', colors.red('done')));
     process.exit(1);
   } else {
-    //msg
-    console.log("@ ", colors.green('done'));
+    if(status.totalWrongFiles > 0){
+      //msg
+      console.log("@ ", colors.red('done'));
+    } else {
+      //msg
+      console.log("@ ", colors.green('done'));
+    }
   }
 
   /*
@@ -1338,8 +1396,13 @@ exports.genStandalonePlotly = async function(plotlyOptions, verbose) {
   //msg
   console.log(colors.white('\n@ Starting code generation in: \n', colors.dim(path.resolve(outputDir))), "\n");
   
+  status.totalFilesGenerated = 0;
+  status.totalCodeGenerationErrors = 0;
+  status.templatesWithErrors = [];
+  
   for(let i=0; i<opts.length; i++) {
     let ejbOpts = opts[i];
+    status.errorOnRender = false;
 
     /**
      * modelPlotly
@@ -1347,11 +1410,17 @@ exports.genStandalonePlotly = async function(plotlyOptions, verbose) {
      * */
     // template 63: ModelPlotly
     fpath = path.resolve(outputDir, `${ejbOpts.nameCp}Plotly.js`);
-    await exports.renderToFileSync(fpath, 'plots/ModelPlotly', ejbOpts);
-
-    //msg
-    console.log(colors.white('@@ Generating code for model: '), colors.blue(ejbOpts.name), '... ', colors.green('done'));
+    await exports.renderToFileSync(fpath, 'plots/ModelPlotly', ejbOpts, status, verbose);
+    if(status.errorOnRender) {
+      //msg
+      console.log(colors.white('@@ Generating code for model: '), colors.blue(ejbOpts.name), '... ', colors.red('done'));
+    } else {
+      //msg
+      console.log(colors.white('@@ Generating code for model: '), colors.blue(ejbOpts.name), '... ', colors.green('done'));
+    }
   }
+
+  return status;
 }
 
 
@@ -1366,7 +1435,7 @@ checkRequiredDirs = function(requiredDirs, createDirs, baseDir, verbose) {
   console.log(colors.white('\n@ Checking required directories...'));
   
   let baseDirectory = (baseDir) ? baseDir : "";
-  for(var i=0; i<requiredDirs.length; ++i) {
+  for(let i=0; i<requiredDirs.length; ++i) {
     let dir = path.resolve(path.join(baseDirectory, requiredDirs[i]));
     if (fs.existsSync(dir)) {
       //msg
@@ -1487,17 +1556,668 @@ parseJsonModels = function(jsonFiles, baseDir, {plotlyOptions}, verbose) {
     }
   }
 
-  //msg
-  console.log("@@ Total JSON files processed: ", colors.blue(totalFiles));
-  //msg
-  console.log("@@ Total JSON files excluded: ", (totalExcludedFiles>0) ? colors.yellow(totalExcludedFiles) : colors.green(totalExcludedFiles));
-  //msg
-  console.log("@@ Total models with errors: ", (totalWrongFiles>0) ? colors.red(totalWrongFiles) : colors.green(totalWrongFiles));
-
   return {
     opts,
     totalFiles,
     totalWrongFiles,
     totalExcludedFiles,
   };
+}
+
+exports.printSummary = function(status) {
+
+  //msg
+  if(status.totalFiles !== undefined) console.log("\n@@ Total JSON files processed: ", colors.blue(status.totalFiles));
+  //msg
+  if(status.totalExcludedFiles !== undefined) console.log("@@ Total JSON files excluded: ", (status.totalExcludedFiles>0) ? colors.yellow(status.totalExcludedFiles) : colors.green(status.totalExcludedFiles));
+  //msg
+  if(status.totalWrongFiles !== undefined) console.log("@@ Total models with errors: ", (status.totalWrongFiles>0) ? colors.red(status.totalWrongFiles) : colors.green(status.totalWrongFiles));
+  //msg
+  if(status.totalFilesGenerated !== undefined) console.log("@@ Total files generated: ", (status.totalFilesGenerated>0) ? colors.green(status.totalFilesGenerated) : colors.yellow(status.totalFilesGenerated));
+  //msg
+  if(status.totalCodeGenerationErrors !== undefined) console.log("@@ Total code generation errors: ", (status.totalCodeGenerationErrors>0) ? colors.red(status.totalCodeGenerationErrors) : colors.green(status.totalCodeGenerationErrors));
+  //msg
+  if(status.templatesWithErrors !== undefined && Array.isArray(status.templatesWithErrors) && status.templatesWithErrors.length > 0){
+    console.log("@@ Total templates with errors: ", colors.red(status.templatesWithErrors.length));
+    console.log(colors.dim.red(status.templatesWithErrors));
+  }
+  console.log("\n@@", colors.dim('spa'));
+}
+
+/**
+ * genSpa - Generate SPA JS React components. This is the main generation function.
+ *
+ * @param  {object} program Object with comand line options.
+ */
+exports.genSpa = async function(program, {plotlyOptions}) {
+  /**
+   * Set options
+   */
+  //ops: output/input directories
+  let inputModelsDir = program.jsonFiles;
+  let spaBaseDir = program.outputDir || __dirname;
+
+  //op: verbose
+  let verbose = program.verbose !== undefined ? true : false;
+
+  //op: createBaseDirs
+  let createBaseDirs = program.createBaseDirs !== undefined ? true : false;
+
+  //op: genPlotlyForAll
+  let genPlotlyForAll = program.genPlotlyForAll !== undefined ? true : false;
+
+  //set: all Plotly options
+  if(plotlyOptions && typeof plotlyOptions === 'object') {
+    plotlyOptions.genPlotlyForAll = genPlotlyForAll;
+  } else {
+    plotlyOptions = {
+      genPlotlyForAll,
+      genPlotly: false,
+      modelsWithPlotly: [],
+    }
+  }
+
+  //msgs
+  console.log('Input directory:', colors.dim(path.resolve(inputModelsDir)));
+  console.log('Output directory:', colors.dim(path.resolve(spaBaseDir)));
+  console.log('Plotly options:', colors.dim(JSON.stringify(plotlyOptions, null, 4)));
+
+  /**
+   * Check: required directories
+   */
+  let requiredDirs=
+    [
+      path.resolve(spaBaseDir),
+      path.join(spaBaseDir, 'src'),
+      path.join(spaBaseDir, 'src/components'),
+    ];
+  let status = checkRequiredDirs(requiredDirs, createBaseDirs, null, verbose);
+  //check
+  if(status.allRequiredDirsExists || status.allRequiredDirsCreated) {
+    //msg
+    console.log(colors.white('@ ', colors.green('done')));
+  } else {
+    //msg
+    console.log(colors.red('! Error: '), 'Some required directories does not exists. Please use the option --createBaseDirs if you want them to be created.');
+    console.log(colors.white('@ ', colors.red('done')));
+    process.exit(1);
+  }
+
+  /**
+   * Read input models dir
+   */
+  let jsonModelsfiles = null;
+  try {
+    jsonModelsfiles = fs.readdirSync(inputModelsDir);
+  } catch(e) {
+    //msg
+    console.log(colors.red('Error:'),'could not read directory:', colors.blue(inputModelsDir));
+    console.log(e);
+    process.exit(1);
+  }
+
+  /**
+   * Semantic validations
+   */
+  let check_json_files = exports.checkJsonFiles(inputModelsDir, jsonModelsfiles, {plotlyOptions});
+  if(!check_json_files.pass) {//no-valid
+    //err
+    console.log(colors.red("@@: Proccess", colors.red('canceled...')));
+    //errors
+    check_json_files.errors.forEach( (error) =>{
+      console.log("@@@", colors.red(error));
+    });
+    //msg
+    console.log("@ ", colors.red('done'));
+    process.exit(1);
+  } 
+
+  /**
+   * Parse JSON model files
+   */
+  status = parseJsonModels(jsonModelsfiles, inputModelsDir, {plotlyOptions}, verbose);
+  //check
+  let opts = status.opts;
+  if(opts.length === 0) {
+    //print summary
+    exports.printSummary(status);
+    //msg
+    console.log(colors.red('! Error: '), 'No JSON files could be processed.');
+    console.log(colors.white('@ ', colors.red('done')));
+    process.exit(1);
+  } else {
+    if(status.totalWrongFiles > 0){
+      //msg
+      console.log("@ ", colors.red('done'));
+    } else {
+      //msg
+      console.log("@ ", colors.green('done'));
+    }
+  }
+
+  //add extra attributes
+  try {
+    exports.addKeyRelationName(opts);
+    exports.addExtraAttributesAssociations(opts);
+
+  }catch(e) {
+    //err
+    console.log(colors.red("@@: Code generation", colors.red('canceled...')));
+    console.log(e);
+    //msg
+    console.log("@ Code generation: ", colors.red('done'));
+    process.exit(1);
+  }
+
+  /*
+   * Code generation
+   */
+  //msg
+  console.log(colors.white('\n@ Starting code generation in: \n', colors.dim(path.resolve(spaBaseDir))), "\n");
+  
+  status.totalFilesGenerated = 0;
+  status.totalCodeGenerationErrors = 0;
+  status.templatesWithErrors = [];
+  let modelsOpts = {models: [], adminModels: []};
+  let modelAtts = {};
+  let adminModels = ['role', 'user', 'role_to_user'];
+
+  /**
+   * For each model in opts
+   */
+  for(let i=0; i<opts.length; i++) {
+    let ejbOpts = opts[i];
+
+    // set table path & collect models
+    let tablePath = null;
+    if(adminModels.includes(ejbOpts.nameLc)) {
+      tablePath = 'src/components/main-panel/table-panel/admin-tables';
+      modelsOpts.adminModels.push(ejbOpts);
+    } else {
+      tablePath = 'src/components/main-panel/table-panel/models-tables';
+      modelsOpts.models.push(ejbOpts);
+    }
+    //collect attributes
+    modelAtts[ejbOpts.name] = ejbOpts.attributesArr;
+
+    /*
+     * Create required directories
+     */
+    //msg
+    if(verbose) console.log(colors.white('\n@@ Creating required directories...'));
+    //table
+    let modelTableDirs = [
+      path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/`),
+      path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components`),
+      path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/`),
+      path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components`),
+      path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-associations-page/`),
+      path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components`),
+    ]
+    //associations
+    for(let i=0; i<ejbOpts.sortedAssociations.length; i++)
+    {
+      let assocLc = ejbOpts.sortedAssociations[i].relationNameLc;
+      modelTableDirs.push(path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/${assocLc}-transfer-lists/${assocLc}-to-add-transfer-view/components`));
+      modelTableDirs.push(path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${assocLc}-transfer-lists/${assocLc}-to-add-transfer-view/components`));
+      if(ejbOpts.sortedAssociations[i].type === 'to_many' || ejbOpts.sortedAssociations[i].type === 'to_many_through_sql_cross_table' || ejbOpts.sortedAssociations[i].type === 'generic_to_many') {
+        modelTableDirs.push(path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${assocLc}-transfer-lists/${assocLc}-to-remove-transfer-view/components`));
+      }
+      modelTableDirs.push(path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-associations-page/${assocLc}-compact-view/components`));
+    }
+    //routes
+    modelTableDirs.push(path.resolve(spaBaseDir, 'src/routes'));
+    //requests
+    modelTableDirs.push(path.resolve(spaBaseDir, 'src/requests'));
+    //plots
+    let plotlyPath = 'src/components/plots';
+    modelTableDirs.push(path.resolve(spaBaseDir, plotlyPath));
+
+    //create dirs
+    for(let i=0; i<modelTableDirs.length; i++) {
+      let dir = modelTableDirs[i];
+      if(!fs.existsSync(dir)) {
+        try {
+          fs.mkdirSync(dir, {recursive: true});
+          //msg
+          if(verbose) console.log("@@@ dir created: ", colors.dim(dir));
+        } catch(e) {
+          //err
+          console.log(colors.red("! mkdir.error: "), "A problem occured while trying to create a required directory, please ensure you have the sufficient privileges to create directories and that you have a recent version of NodeJS");
+          console.log(colors.red("!@ mkdir.error: "), e);
+          console.log("@ ", colors.red('done'));
+          process.exit(1);
+        }
+      } else {
+        //msg
+        if(verbose) console.log("@@@ dir exists: ", colors.dim(dir));
+      }
+    }
+    //msg
+    if(verbose)console.log("@@ ", colors.green('done'));
+
+    /*
+     * Generate code
+     */
+    status.errorOnRender = false;
+
+    /**
+     * modelTable
+     * 
+     * */
+    // template 1: ModelEnhancedTable
+    let fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/`, `${ejbOpts.nameCp}EnhancedTable.js`);
+    await exports.renderToFileSync(fpath, 'model-table/ModelEnhancedTable', ejbOpts, status, verbose);
+
+    // template 2: ModelUploadFileDialog
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/`, `${ejbOpts.nameCp}UploadFileDialog.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/ModelUploadFileDialog', ejbOpts, status, verbose);
+
+    // template 3: ModelEnhancedTableToolbar
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/`, `${ejbOpts.nameCp}EnhancedTableToolbar.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/ModelEnhancedTableToolbar', ejbOpts, status, verbose);
+
+    // template 4: ModelEnhancedTableHead
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/`, `${ejbOpts.nameCp}EnhancedTableHead.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/ModelEnhancedTableHead', ejbOpts, status, verbose);
+
+    // template 5: ModelDeleteConfirmationDialog
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/`, `${ejbOpts.nameCp}DeleteConfirmationDialog.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/ModelDeleteConfirmationDialog', ejbOpts, status, verbose);
+
+    // template 5_b: ModelCursorPagination
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/`, `${ejbOpts.nameCp}CursorPagination.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/ModelCursorPagination', ejbOpts, status, verbose);
+
+    /**
+     * modelTable - modelCreatePanel 
+     * 
+     * */
+
+    // template 6: ModelCreatePanel
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/`, `${ejbOpts.nameCp}CreatePanel.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-create-panel/ModelCreatePanel', ejbOpts, status, verbose);
+
+    // template 7: ModelTabsA
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/`, `${ejbOpts.nameCp}TabsA.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-create-panel/components/ModelTabsA', ejbOpts, status, verbose);
+
+    // template 8: ModelConfirmationDialog
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/`, `${ejbOpts.nameCp}ConfirmationDialog.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-create-panel/components/ModelConfirmationDialog', ejbOpts, status, verbose);
+
+    /**
+     * modelTable - modelCreatePanel - modelAttributes 
+     * 
+     * */
+
+    // template 9: ModelAttributesPage
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-attributes-page/`, `${ejbOpts.nameCp}AttributesPage.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-create-panel/components/model-attributes-page/ModelAttributesPage', ejbOpts, status, verbose);
+
+    // template 10: ModelAttributesFormView
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/`, `${ejbOpts.nameCp}AttributesFormView.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-create-panel/components/model-attributes-page/model-attributes-form-view/ModelAttributesFormView', ejbOpts, status, verbose);
+
+    // template 11: BoolField
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `BoolField.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-create-panel/components/model-attributes-page/model-attributes-form-view/components/BoolField', ejbOpts, status, verbose);
+
+    // template 12: DateField
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `DateField.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-create-panel/components/model-attributes-page/model-attributes-form-view/components/DateField', ejbOpts, status, verbose);
+
+    // template 13: DateTimeField
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `DateTimeField.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-create-panel/components/model-attributes-page/model-attributes-form-view/components/DateTimeField', ejbOpts, status, verbose);
+
+    // template 14: FloatField
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `FloatField.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-create-panel/components/model-attributes-page/model-attributes-form-view/components/FloatField', ejbOpts, status, verbose);
+
+    // template 15: IntField
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `IntField.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-create-panel/components/model-attributes-page/model-attributes-form-view/components/IntField', ejbOpts, status, verbose);
+
+    // template 16: StringField
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `StringField.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-create-panel/components/model-attributes-page/model-attributes-form-view/components/StringField', ejbOpts, status, verbose);
+
+    // template 17: TimeField
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `TimeField.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-create-panel/components/model-attributes-page/model-attributes-form-view/components/TimeField', ejbOpts, status, verbose);
+
+    /**
+     * modelTable - modelCreatePanel - modelAssociations
+     * 
+     * */
+
+    // template 18: ModelAssociationsPage
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/`, `${ejbOpts.nameCp}AssociationsPage.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-create-panel/components/model-associations-page/ModelAssociationsPage', ejbOpts, status, verbose);
+
+    // template 19: ModelAssociationsMenuTabs
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/`, `${ejbOpts.nameCp}AssociationsMenuTabs.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-create-panel/components/model-associations-page/ModelAssociationsMenuTabs', ejbOpts, status, verbose);
+
+    for(let i=0; i<ejbOpts.sortedAssociations.length; i++)
+    {
+      ejbOpts.aindex = i;
+
+      // template 20: AssociationTransferLists
+      fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-transfer-lists/`, `${ejbOpts.sortedAssociations[i].relationNameCp}TransferLists.js`);
+      await exports.renderToFileSync(fpath, 'model-table/components/model-create-panel/components/model-associations-page/association-transfer-lists/AssociationTransferLists', ejbOpts, status, verbose);
+
+      // template 21: RecordsToAddTransferView
+      fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-transfer-lists/${ejbOpts.sortedAssociations[i].relationNameLc}-to-add-transfer-view/`, `${ejbOpts.sortedAssociations[i].relationNameCp}ToAddTransferView.js`);
+      await exports.renderToFileSync(fpath, 'model-table/components/model-create-panel/components/model-associations-page/association-transfer-lists/records-to-add-transfer-view/RecordsToAddTransferView', ejbOpts, status, verbose);
+
+      // template 22: RecordsToAddTransferViewToolbar
+      fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-transfer-lists/${ejbOpts.sortedAssociations[i].relationNameLc}-to-add-transfer-view/components/`, `${ejbOpts.sortedAssociations[i].relationNameCp}ToAddTransferViewToolbar.js`);
+      await exports.renderToFileSync(fpath, 'model-table/components/model-create-panel/components/model-associations-page/association-transfer-lists/records-to-add-transfer-view/components/RecordsToAddTransferViewToolbar', ejbOpts, status, verbose);
+    
+      // template 22_b: RecordsToAddTransferViewCursorPagination
+      fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-transfer-lists/${ejbOpts.sortedAssociations[i].relationNameLc}-to-add-transfer-view/components/`, `${ejbOpts.sortedAssociations[i].relationNameCp}ToAddTransferViewCursorPagination.js`);
+      await exports.renderToFileSync(fpath, 'model-table/components/model-create-panel/components/model-associations-page/association-transfer-lists/records-to-add-transfer-view/components/RecordsToAddTransferViewCursorPagination', ejbOpts, status, verbose);
+    }
+
+    /**
+     * modelTable - modelUpdatePanel 
+     * 
+     * */
+
+    // template 23: ModelUpdatePanel
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/`, `${ejbOpts.nameCp}UpdatePanel.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-update-panel/ModelUpdatePanel', ejbOpts, status, verbose);
+
+    // template 24: ModelTabsA
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/`, `${ejbOpts.nameCp}TabsA.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-update-panel/components/ModelTabsA', ejbOpts, status, verbose);
+
+    // template 25: ModelConfirmationDialog
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/`, `${ejbOpts.nameCp}ConfirmationDialog.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-update-panel/components/ModelConfirmationDialog', ejbOpts, status, verbose);
+
+    /**
+     * modelTable - modelUpdatePanel - modelAttributes 
+     * 
+     * */
+
+    // template 26: ModelAttributesPage
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-attributes-page/`, `${ejbOpts.nameCp}AttributesPage.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-update-panel/components/model-attributes-page/ModelAttributesPage', ejbOpts, status, verbose);
+
+    // template 27: ModelAttributesFormView
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/`, `${ejbOpts.nameCp}AttributesFormView.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-update-panel/components/model-attributes-page/model-attributes-form-view/ModelAttributesFormView', ejbOpts, status, verbose);
+
+    // template 28: BoolField
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `BoolField.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-update-panel/components/model-attributes-page/model-attributes-form-view/components/BoolField', ejbOpts, status, verbose);
+
+    // template 29: DateField
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `DateField.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-update-panel/components/model-attributes-page/model-attributes-form-view/components/DateField', ejbOpts, status, verbose);
+
+    // template 30: DateTimeField
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `DateTimeField.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-update-panel/components/model-attributes-page/model-attributes-form-view/components/DateTimeField', ejbOpts, status, verbose);
+
+    // template 31: FloatField
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `FloatField.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-update-panel/components/model-attributes-page/model-attributes-form-view/components/FloatField', ejbOpts, status, verbose);
+
+    // template 32: IntField
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `IntField.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-update-panel/components/model-attributes-page/model-attributes-form-view/components/IntField', ejbOpts, status, verbose);
+
+    // template 33: StringField
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `StringField.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-update-panel/components/model-attributes-page/model-attributes-form-view/components/StringField', ejbOpts, status, verbose);
+
+    // template 34: TimeField
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `TimeField.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-update-panel/components/model-attributes-page/model-attributes-form-view/components/TimeField', ejbOpts, status, verbose);
+
+    /**
+     * modelTable - modelUpdatePanel - modelAssociations
+     * 
+     * */
+
+    // template 35: ModelAssociationsPage
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/`, `${ejbOpts.nameCp}AssociationsPage.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-update-panel/components/model-associations-page/ModelAssociationsPage', ejbOpts, status, verbose);
+
+    // template 36: ModelAssociationsMenuTabs
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/`, `${ejbOpts.nameCp}AssociationsMenuTabs.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-update-panel/components/model-associations-page/ModelAssociationsMenuTabs', ejbOpts, status, verbose);
+
+    for(let i=0; i<ejbOpts.sortedAssociations.length; i++)
+    {
+      ejbOpts.aindex = i;
+
+      // template 37: AssociationTransferLists
+      fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-transfer-lists/`, `${ejbOpts.sortedAssociations[i].relationNameCp}TransferLists.js`);
+      await exports.renderToFileSync(fpath, 'model-table/components/model-update-panel/components/model-associations-page/association-transfer-lists/AssociationTransferLists', ejbOpts, status, verbose);
+
+      // template 38: RecordsToAddTransferView
+      fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-transfer-lists/${ejbOpts.sortedAssociations[i].relationNameLc}-to-add-transfer-view/`, `${ejbOpts.sortedAssociations[i].relationNameCp}ToAddTransferView.js`);
+      await exports.renderToFileSync(fpath, 'model-table/components/model-update-panel/components/model-associations-page/association-transfer-lists/records-to-add-transfer-view/RecordsToAddTransferView', ejbOpts, status, verbose);
+
+      // template 39: RecordsToAddTransferViewToolbar
+      fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-transfer-lists/${ejbOpts.sortedAssociations[i].relationNameLc}-to-add-transfer-view/components/`, `${ejbOpts.sortedAssociations[i].relationNameCp}ToAddTransferViewToolbar.js`);
+      await exports.renderToFileSync(fpath, 'model-table/components/model-update-panel/components/model-associations-page/association-transfer-lists/records-to-add-transfer-view/components/RecordsToAddTransferViewToolbar', ejbOpts, status, verbose);
+
+      // template 39_b: RecordsToAddTransferViewCursorPagination
+      fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-transfer-lists/${ejbOpts.sortedAssociations[i].relationNameLc}-to-add-transfer-view/components/`, `${ejbOpts.sortedAssociations[i].relationNameCp}ToAddTransferViewCursorPagination.js`);
+      await exports.renderToFileSync(fpath, 'model-table/components/model-update-panel/components/model-associations-page/association-transfer-lists/records-to-add-transfer-view/components/RecordsToAddTransferViewCursorPagination', ejbOpts, status, verbose);
+
+      if(ejbOpts.sortedAssociations[i].type === 'to_many' || ejbOpts.sortedAssociations[i].type === 'to_many_through_sql_cross_table' || ejbOpts.sortedAssociations[i].type === 'generic_to_many') {
+        // template 40: RecordsToRemoveTransferView
+        fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-transfer-lists/${ejbOpts.sortedAssociations[i].relationNameLc}-to-remove-transfer-view/`, `${ejbOpts.sortedAssociations[i].relationNameCp}ToRemoveTransferView.js`);
+        await exports.renderToFileSync(fpath, 'model-table/components/model-update-panel/components/model-associations-page/association-transfer-lists/records-to-remove-transfer-view/RecordsToRemoveTransferView', ejbOpts, status, verbose);
+
+        // template 41: RecordsToRemoveTransferViewToolbar
+        fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-transfer-lists/${ejbOpts.sortedAssociations[i].relationNameLc}-to-remove-transfer-view/components/`, `${ejbOpts.sortedAssociations[i].relationNameCp}ToRemoveTransferViewToolbar.js`);
+        await exports.renderToFileSync(fpath, 'model-table/components/model-update-panel/components/model-associations-page/association-transfer-lists/records-to-remove-transfer-view/components/RecordsToRemoveTransferViewToolbar', ejbOpts, status, verbose);
+
+        // template 41_b: RecordsToRemoveTransferViewCursorPagination
+        fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-transfer-lists/${ejbOpts.sortedAssociations[i].relationNameLc}-to-remove-transfer-view/components/`, `${ejbOpts.sortedAssociations[i].relationNameCp}ToRemoveTransferViewCursorPagination.js`);
+        await exports.renderToFileSync(fpath, 'model-table/components/model-update-panel/components/model-associations-page/association-transfer-lists/records-to-remove-transfer-view/components/RecordsToRemoveTransferViewCursorPagination', ejbOpts, status, verbose);
+      }
+
+    }
+
+    /**
+     * modelTable - modelDetailPanel 
+     * 
+     * */
+
+    // template 42: ModelDetailPanel
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/`, `${ejbOpts.nameCp}DetailPanel.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-detail-panel/ModelDetailPanel', ejbOpts, status, verbose);
+
+    /**
+     * modelTable - modelDetailPanel - modelAttributes 
+     * 
+     * */
+
+    // template 43: ModelAttributesPage
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-attributes-page/`, `${ejbOpts.nameCp}AttributesPage.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-detail-panel/components/model-attributes-page/ModelAttributesPage', ejbOpts, status, verbose);
+
+    // template 44: ModelAttributesFormView
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/`, `${ejbOpts.nameCp}AttributesFormView.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-detail-panel/components/model-attributes-page/model-attributes-form-view/ModelAttributesFormView', ejbOpts, status, verbose);
+
+    // template 45: BoolField
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `BoolField.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-detail-panel/components/model-attributes-page/model-attributes-form-view/components/BoolField', ejbOpts, status, verbose);
+
+    // template 46: DateField
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `DateField.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-detail-panel/components/model-attributes-page/model-attributes-form-view/components/DateField', ejbOpts, status, verbose);
+
+    // template 47: DateTimeField
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `DateTimeField.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-detail-panel/components/model-attributes-page/model-attributes-form-view/components/DateTimeField', ejbOpts, status, verbose);
+
+    // template 48: FloatField
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `FloatField.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-detail-panel/components/model-attributes-page/model-attributes-form-view/components/FloatField', ejbOpts, status, verbose);
+
+    // template 49: IntField
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `IntField.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-detail-panel/components/model-attributes-page/model-attributes-form-view/components/IntField', ejbOpts, status, verbose);
+
+    // template 50: StringField
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `StringField.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-detail-panel/components/model-attributes-page/model-attributes-form-view/components/StringField', ejbOpts, status, verbose);
+
+    // template 51: TimeField
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `TimeField.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-detail-panel/components/model-attributes-page/model-attributes-form-view/components/TimeField', ejbOpts, status, verbose);
+
+    /**
+     * modelTable - modelDetailPanel - modelAssociations
+     * 
+     * */
+
+    // template 52: ModelAssociationsPage
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-associations-page/`, `${ejbOpts.nameCp}AssociationsPage.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-detail-panel/components/model-associations-page/ModelAssociationsPage', ejbOpts, status, verbose);
+
+    // template 53: ModelAssociationsMenuTabs
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-associations-page/`, `${ejbOpts.nameCp}AssociationsMenuTabs.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-detail-panel/components/model-associations-page/ModelAssociationsMenuTabs', ejbOpts, status, verbose);
+
+    for(let i=0; i<ejbOpts.sortedAssociations.length; i++)
+    {
+      ejbOpts.aindex = i;
+
+      // template 54: AssociationCompactView
+      fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-compact-view/`, `${ejbOpts.sortedAssociations[i].relationNameCp}CompactView.js`);
+      await exports.renderToFileSync(fpath, 'model-table/components/model-detail-panel/components/model-associations-page/association-compact-view/AssociationCompactView', ejbOpts, status, verbose);
+
+      // template 55: AssociationCompactViewToolbar
+      fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-compact-view/components/`, `${ejbOpts.sortedAssociations[i].relationNameCp}CompactViewToolbar.js`);
+      await exports.renderToFileSync(fpath, 'model-table/components/model-detail-panel/components/model-associations-page/association-compact-view/components/AssociationCompactViewToolbar', ejbOpts, status, verbose);
+
+      // template 55_b: AssociationCompactViewCursorPagination
+      fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-compact-view/components/`, `${ejbOpts.sortedAssociations[i].relationNameCp}CompactViewCursorPagination.js`);
+      await exports.renderToFileSync(fpath, 'model-table/components/model-detail-panel/components/model-associations-page/association-compact-view/components/AssociationCompactViewCursorPagination', ejbOpts, status, verbose);
+
+    }
+
+    /**
+     * modelPlotly
+     * 
+     * */
+    // template 63: ModelPlotly
+    fpath = path.resolve(spaBaseDir, `${plotlyPath}/`, `${ejbOpts.nameCp}Plotly.js`);
+    await exports.renderToFileSync(fpath, 'plots/ModelPlotly', ejbOpts, status, verbose);
+
+
+    if(status.errorOnRender) {
+      //msg
+      console.log(colors.white('@@ Generating code for model: '), colors.blue(ejbOpts.name), '... ', colors.red('done'));
+    } else {
+      //msg
+      console.log(colors.white('@@ Generating code for model: '), colors.blue(ejbOpts.name), '... ', colors.green('done'));
+    }
+  }//end: for each model in opts
+  opts = null;
+
+  //sort models
+  modelsOpts.models.sort(function (a, b) {
+    if (a.nameCp > b.nameCp) {
+      return 1;
+    }
+    if (a.nameCp < b.nameCp) {
+      return -1;
+    }
+    return 0;
+  });
+  //sort admin models
+  modelsOpts.adminModels.sort(function (a, b) {
+    if (a.nameCp > b.nameCp) {
+      return 1;
+    }
+    if (a.nameCp < b.nameCp) {
+      return -1;
+    }
+    return 0;
+  });
+
+  /**
+   * Debug
+   */
+  //console.log("modelsOpts.models: ", modelsOpts.models);
+  //console.log("modelAtts: ", modelAtts);
+
+  /**
+   * requests - model
+   * 
+   * */
+  // template 56: model
+  for(let i=0; i<modelsOpts.models.length; i++)
+  {
+    let m = modelsOpts.models[i];
+    m.modelsAtts = modelAtts;
+
+    /**
+     * Debug
+     */
+    //console.log("MODEL_OPTS: ", m);
+
+    fpath = path.resolve(spaBaseDir, `src/requests/`, `${m.nameLc}.js`);
+    await exports.renderToFileSync(fpath, 'requests/model', m, status, verbose);
+  }
+  for(let i=0; i<modelsOpts.adminModels.length; i++)
+  {
+    let m = modelsOpts.adminModels[i];
+    m.modelsAtts = modelAtts;
+
+    /**
+     * Debug
+     */
+    //console.log("MODEL_OPTS: ", m);
+
+    fpath = path.resolve(spaBaseDir, `src/requests/`, `${m.nameLc}.js`);
+    await exports.renderToFileSync(fpath, 'requests/model', m, status, verbose);
+  }
+
+  /**
+   * requests - index & searchAttributes
+   * 
+   * */
+  // template 57: requests.index
+  fpath = path.resolve(spaBaseDir, `src/requests/`, `requests.index.js`);
+  await exports.renderToFileSync(fpath, 'requests/requests.index', modelsOpts, status, verbose);
+
+  // template 58: requests.attributes
+  fpath = path.resolve(spaBaseDir, `src/requests/`, `requests.attributes.js`);
+  await exports.renderToFileSync(fpath, 'requests/requests.attributes', modelsOpts, status, verbose);
+
+  /**
+   * routes
+   * 
+   * */
+  // template 59: routes
+  fpath = path.resolve(spaBaseDir, `src/routes/`, `routes.js`);
+  await exports.renderToFileSync(fpath, 'routes/routes', modelsOpts, status, verbose);
+
+  // template 60: TablesSwitch
+  fpath = path.resolve(spaBaseDir, `src/components/main-panel/table-panel/`, `TablesSwitch.js`);
+  await exports.renderToFileSync(fpath, 'routes/TablesSwitch', modelsOpts, status, verbose);
+
+  /**
+   * acl_rules
+   * 
+   * */
+  // template 61: acl_rules
+  fpath = path.resolve(spaBaseDir, `src/`, `acl_rules.js`);
+  await exports.renderToFileSync(fpath, 'acl/acl_rules', modelsOpts, status, verbose);
+
+  return status;
 }
