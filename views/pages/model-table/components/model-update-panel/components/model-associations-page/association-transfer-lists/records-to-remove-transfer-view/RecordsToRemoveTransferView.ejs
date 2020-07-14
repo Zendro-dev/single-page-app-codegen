@@ -1764,7 +1764,7 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
                   in={true}
                   unmountOnExit
                 >
-                  <div>
+                  <div id='<%- sortedAssociations[aindex].relationNameOnPascal -%>ToRemoveTransferView-div-noDataA'>
                     <Grid container>
                       <Grid item xs={12}>
                         <Grid className={classes.noDataBox} container justify="center" alignItems="center">
@@ -1787,7 +1787,8 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
                   unmountOnExit
                 >
                   <Box className={classes.listBox} ref={lref}>
-                    <List dense component="div" role="list" >
+                    <List id='<%- sortedAssociations[aindex].relationNameOnPascal -%>ToRemoveTransferView-list-listA'
+                      dense component="div" role="list" >
                       {items.map(it => {
                         let key = it.<%- sortedAssociations[aindex].internalId _%>;
                         let label = <%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='' && sortedAssociations[aindex].label !==  sortedAssociations[aindex].internalId) ? `it.${sortedAssociations[aindex].label}` : 'undefined' _%>;
@@ -1795,7 +1796,9 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
                         let disabled = lidsToRemove.current.find(<%- sortedAssociations[aindex].internalId _%> => <%- sortedAssociations[aindex].internalId _%> === it.<%- sortedAssociations[aindex].internalId _%>) !== undefined;
 
                         return (
-                          <ListItem key={key} 
+                          <ListItem 
+                            id={'<%- sortedAssociations[aindex].relationNameOnPascal -%>ToRemoveTransferView-listA-listItem-'+it.<%- sortedAssociations[aindex].internalId _%>}
+                            key={key} 
                             role="listitem" 
                             button 
                             className={classes.row}
@@ -1851,6 +1854,7 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
                               <Tooltip title={!disabled ? t('modelPanels.transferToRemove') : t('modelPanels.alreadyToRemove') }>
                                 <span>
                                   <IconButton
+                                    id={'<%- sortedAssociations[aindex].relationNameOnPascal -%>ToRemoveTransferView-listA-listItem-'+it.<%- sortedAssociations[aindex].internalId _%>+'-button-remove'}
                                     color="primary"
                                     className={classes.iconButton}
                                     onClick={(event) => {
@@ -1867,7 +1871,6 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
                           </ListItem>
                         );
                       })}
-                      <ListItem />
                     </List>
                   </Box>
                 </Fade>
@@ -2005,7 +2008,7 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
                   in={true}
                   unmountOnExit
                 >
-                  <div>
+                  <div id='<%- sortedAssociations[aindex].relationNameOnPascal -%>ToRemoveTransferView-div-noItemsB'>
                     <Grid container>
                       <Grid item xs={12}>
                         <Grid className={classes.noDataBox} container justify="center" alignItems="center">
@@ -2026,7 +2029,7 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
                   in={true}
                   unmountOnExit
                 >
-                  <div>
+                  <div id='<%- sortedAssociations[aindex].relationNameOnPascal -%>ToRemoveTransferView-div-noDataB'>
                     <Grid container>
                       <Grid item xs={12}>
                         <Grid className={classes.noDataBox} container justify="center" alignItems="center">
@@ -2049,14 +2052,17 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
                   unmountOnExit
                 >
                   <Box className={classes.listBox} ref={lrefB}>
-                    <List dense component="div" role="list">
+                    <List id='<%- sortedAssociations[aindex].relationNameOnPascal -%>ToRemoveTransferView-list-listB'
+                      dense component="div" role="list">
                       {itemsB.map(it => {
                         let key = it.<%- sortedAssociations[aindex].internalId _%>;
                         let label = <%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='' && sortedAssociations[aindex].label !==  sortedAssociations[aindex].internalId) ? `it.${sortedAssociations[aindex].label}` : 'undefined' _%>;
                         let sublabel = <%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='' && sortedAssociations[aindex].sublabel !==  sortedAssociations[aindex].label && sortedAssociations[aindex].sublabel !==  sortedAssociations[aindex].internalId) ? `it.${sortedAssociations[aindex].sublabel}` : 'undefined' _%>;
 
                         return (
-                          <ListItem key={key} 
+                          <ListItem 
+                            id={'<%- sortedAssociations[aindex].relationNameOnPascal -%>ToRemoveTransferView-listB-listItem-'+it.<%- sortedAssociations[aindex].internalId _%>}
+                            key={key} 
                             role="listitem"
                             button
                             className={classes.row}
@@ -2111,6 +2117,7 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
                             <ListItemSecondaryAction>
                               <Tooltip title={ t('modelPanels.untransferToRemove') }>
                                 <IconButton
+                                  id={'<%- sortedAssociations[aindex].relationNameOnPascal -%>ToRemoveTransferView-listB-listItem-'+it.<%- sortedAssociations[aindex].internalId _%>+'-button-remove'}
                                   color="primary"
                                   onClick={(event) => {
                                     event.stopPropagation();
@@ -2124,7 +2131,6 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
                           </ListItem>
                         );
                       })}
-                      <ListItem />
                     </List>
                   </Box>
                 </Fade>

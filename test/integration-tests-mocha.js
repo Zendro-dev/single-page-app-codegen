@@ -11,7 +11,8 @@ const ttmax = 20000;
 //delays
 const ttdelay = 500;
 //test specific settings
-const recordsCount_d2_it02 = 3;
+const recordsCount_d2_it02 = 5;
+let individual_d2_it03 = null;
 
 before(async function () {
   this.timeout(ttmax);
@@ -80,6 +81,8 @@ describe('1. Basic functionality', function () {
     expect(await page.title()).to.eql('Zendro');
   });
 
+  if(true)
+  {
   it('03. <individual> table is empty', async function () {
 
     let apiResponse = null;
@@ -295,21 +298,22 @@ describe('1. Basic functionality', function () {
     expect(rowsCount).to.eql(0);
     expect(await page.title()).to.eql('Zendro');
   });
+  }
 });
 
 /**
  * Part 2: Associations
  * 
- * <one_to_many>
- *   2. Add associations in create-panel.
+ * <one>(sql) to <many>(sql)
+ *   2.1 Associations - one(sql) to many(sql) - add associations - create-panel.
+ *   2.2 Associations - one(sql) to many(sql) - associations operations - update-panel.
  *    
  */
 
 /**
- * <one_to_many>
- * 2. Add associations in create-panel.
+ * 2.1 Associations - one(sql) to many(sql) - add associations - create-panel.
  */
-describe('2. Associations - one_to_many - Add associations in the create-panel.', function () {
+describe('2.1 Associations - one(sql) to many(sql) - add associations - create-panel.', function () {
   //general timeout for each test
   this.timeout(tt); //10s.
 
@@ -607,6 +611,9 @@ describe('2. Associations - one_to_many - Add associations in the create-panel.'
     expect(await data.addIndividual.name === 'individual-1').to.eql(true);
     expect(await page.title()).to.eql('Zendro');
 
+    //set global value
+    individual_d2_it03 = {...data.addIndividual};
+
     /**
      * #10: click on: <individual> detail view - on new record
      */
@@ -649,3 +656,563 @@ describe('2. Associations - one_to_many - Add associations in the create-panel.'
     expect(await page.title()).to.eql('Zendro');
   }).timeout(30000); //30s.
 });
+
+/**
+ * 
+ * 2.2 Associations - one(sql) to many(sql) - associations operations - update-panel.
+ */
+describe('2.2 Associations - one(sql) to many(sql) - associations operations - update-panel.', function () {
+  //general timeout for each test
+  this.timeout(tt*3); //10s * 3.
+
+  it('01. Add <transcript_count> associations to <individual>', async function () {
+    // #1: click on: update individual button
+    let props = {
+      elementType: 'button',
+      buttonId: 'IndividualEnhancedTable-row-iconButton-edit-'+individual_d2_it03.id,
+      visibleId: 'IndividualAttributesFormView-div-root',
+    }
+    await clickOn(props);
+
+    // #2: click on: associations tab button
+    props = {
+      elementType: 'button',
+      buttonId: 'IndividualUpdatePanel-tabsA-button-associations',
+      visibleIds: [
+        'TranscriptCountsTransferLists-div-root',
+        'TranscriptCountsToAddTransferView-list-listA',
+        'TranscriptCountsToAddTransferView-div-noItemsB',
+        'TranscriptCountsToRemoveTransferView-list-listB',
+        'TranscriptCountsToRemoveTransferView-div-noItemsB',
+      ],
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 4,
+    };
+    await clickOn(props);
+    // evaluate #2
+    let datas = await Promise.all(props.responses);
+    let rowsCount_toAddA = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listA] > li', rows => rows.length);
+    let rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);    
+    expect(datas).to.deep.include({ countTranscript_counts: recordsCount_d2_it02-2 });
+    expect(datas.reduce((a, c) => {
+      if(c&&c.readOneIndividual&&c.readOneIndividual.countFilteredTranscript_counts) {
+        return a+c.readOneIndividual.countFilteredTranscript_counts;
+      } else {
+        return a;
+      }
+    }, 0)).to.eql(2);
+    expect(datas).to.deep.include({ readOneIndividual: { transcript_countsConnection: {edges: [{node: {id: "1"}}, {node: {id: "3"}}]}} });
+    expect(rowsCount_toAddA).to.eql(recordsCount_d2_it02-2);
+    expect(rowsCount_toRemoveA).to.eql(2);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #3: click on: add button - item 2
+    props = {
+      elementType: 'button',
+      buttonId: 'TranscriptCountsToAddTransferView-listA-listItem-2-button-add',
+      visibleId: 'TranscriptCountsToAddTransferView-list-listB',
+      hiddenId: 'TranscriptCountsToAddTransferView-div-noItemsB',
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 5,
+    };
+    await clickOn(props);
+    // evaluate #3
+    datas = await Promise.all(props.responses);
+    rowsCount_toAddA = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listA] > li', rows => rows.length);
+    let rowsCount_toAddB = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listB] > li', rows => rows.length);
+    rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);
+    expect(datas).to.deep.include({ countTranscript_counts: recordsCount_d2_it02-2-1 });
+    expect(datas).to.deep.include({ countTranscript_counts: 1 });
+    expect(datas).to.deep.include({ readOneIndividual: { transcript_countsConnection: {edges: [{node: {id: "1"}}, {node: {id: "3"}}]}} });
+    expect(rowsCount_toAddA).to.eql(recordsCount_d2_it02-2-1);
+    expect(rowsCount_toAddB).to.eql(1);
+    expect(rowsCount_toRemoveA).to.eql(2);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #3: click on: add button - item 4
+    props = {
+      elementType: 'button',
+      buttonId: 'TranscriptCountsToAddTransferView-listA-listItem-4-button-add',
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 5,
+    };
+    await clickOn(props);
+    // evaluate #3
+    datas = await Promise.all(props.responses);
+    rowsCount_toAddA = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listA] > li', rows => rows.length);
+    rowsCount_toAddB = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listB] > li', rows => rows.length);
+    rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);
+    expect(datas).to.deep.include({ countTranscript_counts: recordsCount_d2_it02-2-2 });
+    expect(datas).to.deep.include({ countTranscript_counts: 2 });
+    expect(datas).to.deep.include({ readOneIndividual: { transcript_countsConnection: {edges: [{node: {id: "1"}}, {node: {id: "3"}}]}} });
+    expect(rowsCount_toAddA).to.eql(recordsCount_d2_it02-2-2);
+    expect(rowsCount_toAddB).to.eql(2);
+    expect(rowsCount_toRemoveA).to.eql(2);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #4: click on: add button - item 5
+    props = {
+      elementType: 'button',
+      buttonId: 'TranscriptCountsToAddTransferView-listA-listItem-5-button-add',
+      visibleId: 'TranscriptCountsToAddTransferView-div-noDataA',
+      hiddenId: 'TranscriptCountsToAddTransferView-list-listA',
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 5,
+    };
+    await clickOn(props);
+    // evaluate #4
+    datas = await Promise.all(props.responses);
+    rowsCount_toAddB = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listB] > li', rows => rows.length);
+    rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);
+    expect(datas).to.deep.include({ countTranscript_counts: recordsCount_d2_it02-2-3 });
+    expect(datas).to.deep.include({ countTranscript_counts: 3 });
+    expect(datas).to.deep.include({ readOneIndividual: { transcript_countsConnection: {edges: [{node: {id: "1"}}, {node: {id: "3"}}]}} });
+    expect(rowsCount_toAddB).to.eql(3);
+    expect(rowsCount_toRemoveA).to.eql(2);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #5: click on: save button
+    props = {
+      elementType: 'button',
+      buttonId: 'IndividualUpdatePanel-fabButton-save',
+      visibleId: 'IndividualEnhancedTable-tableBody',
+      hiddenId: 'TranscriptCountsTransferLists-div-root',
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 3,
+    };
+    await clickOn(props);
+    // evaluate #5
+    datas = await Promise.all(props.responses);
+    let cell = await page.$(`tr[id=IndividualEnhancedTable-row-${individual_d2_it03.id}] > td:nth-child(5)`); 
+    let text = await page.evaluate(cell => cell.textContent, cell);
+    expect(datas).to.deep.include({ updateIndividual: {id: individual_d2_it03.id, name: individual_d2_it03.name } });
+    expect(datas).to.deep.include({ countIndividuals: 1 });
+    expect(text).to.eql(individual_d2_it03.name);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #6: click on: <individual> detail view
+    props = {
+      elementType: 'button',
+      buttonId: `IndividualEnhancedTable-row-iconButton-detail-${individual_d2_it03.id}`,
+      visibleId: 'IndividualAssociationsPage-div-root',
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 1,
+    };
+    await clickOn(props);
+    // evaluate #6
+    datas = await Promise.all(props.responses);
+    let rowsCountA = await page.$$eval('div[id=TranscriptCountsCompactView-list-listA] > div[role=listitem]', rows => rows.length).catch((e) => null);
+    let assocId1 = await page.$eval('p[id=TranscriptCountsCompactView-listA-listItem-id-1]', cell => cell.textContent).catch((e) => null);
+    let assocId2 = await page.$eval('p[id=TranscriptCountsCompactView-listA-listItem-id-2]', cell => cell.textContent).catch((e) => null);
+    let assocId3 = await page.$eval('p[id=TranscriptCountsCompactView-listA-listItem-id-3]', cell => cell.textContent).catch((e) => null);
+    let assocId4 = await page.$eval('p[id=TranscriptCountsCompactView-listA-listItem-id-4]', cell => cell.textContent).catch((e) => null);
+    let assocId5 = await page.$eval('p[id=TranscriptCountsCompactView-listA-listItem-id-5]', cell => cell.textContent).catch((e) => null);
+    
+    expect(datas[0].readOneIndividual.countFilteredTranscript_counts).to.eql(5);
+    expect(rowsCountA).to.eql(5);
+    expect(assocId1).to.eql('1');
+    expect(assocId2).to.eql('2');
+    expect(assocId3).to.eql('3');
+    expect(assocId4).to.eql('4');
+    expect(assocId5).to.eql('5');
+    expect(await page.title()).to.eql('Zendro');
+
+    // #7: click on: close detail panel
+    props = {
+      elementType: 'button',
+      buttonId: 'IndividualDetailPanel-button-close',
+      visibleId: 'IndividualEnhancedTable-tableBody',
+      hiddenId: 'IndividualAssociationsPage-div-root',
+    };
+    await clickOn(props);
+    // evaluate #7
+    expect(await page.title()).to.eql('Zendro');
+
+  });
+
+  it('02. Remove <transcript_count> associations from <individual>', async function () {
+    // #1: click on: update individual button
+    let props = {
+      elementType: 'button',
+      buttonId: 'IndividualEnhancedTable-row-iconButton-edit-'+individual_d2_it03.id,
+      visibleId: 'IndividualAttributesFormView-div-root',
+    }
+    await clickOn(props);
+
+    // #2: click on: associations tab button
+    props = {
+      elementType: 'button',
+      buttonId: 'IndividualUpdatePanel-tabsA-button-associations',
+      visibleIds: [
+        'TranscriptCountsTransferLists-div-root',
+        'TranscriptCountsToAddTransferView-div-noDataA',
+        'TranscriptCountsToAddTransferView-div-noItemsB',
+        'TranscriptCountsToRemoveTransferView-list-listA',
+        'TranscriptCountsToRemoveTransferView-div-noItemsB',
+      ],
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 4,
+    };
+    await clickOn(props);
+    // evaluate #2
+    let datas = await Promise.all(props.responses);
+    let rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);    
+    expect(datas).to.deep.include({ countTranscript_counts: recordsCount_d2_it02-5 });
+    expect(datas.reduce((a, c) => {
+      if(c&&c.readOneIndividual&&c.readOneIndividual.countFilteredTranscript_counts) {
+        return a+c.readOneIndividual.countFilteredTranscript_counts;
+      } else {
+        return a;
+      }
+    }, 0)).to.eql(5);
+    expect(datas).to.deep.include({ readOneIndividual: { transcript_countsConnection: {edges: [{node: {id: "1"}}, {node: {id: "2"}}, {node: {id: "3"}}, {node: {id: "4"}}, {node: {id: "5"}}]}} });
+    expect(rowsCount_toRemoveA).to.eql(5);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #3: click on: listA - remove button - item 1
+    props = {
+      elementType: 'button',
+      buttonId: 'TranscriptCountsToRemoveTransferView-listA-listItem-1-button-remove',
+      visibleId: 'TranscriptCountsToRemoveTransferView-list-listB',
+      hiddenId: 'TranscriptCountsToRemoveTransferView-div-noItemsB',
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 3,
+    };
+    await clickOn(props);
+    // evaluate #3
+    datas = await Promise.all(props.responses);
+    rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);
+    let rowsCount_toRemoveB = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listB] > li', rows => rows.length);
+    let isDisabled1 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-1-button-remove', (button) => {return button.disabled});
+    let isDisabled2 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-2-button-remove', (button) => {return button.disabled});
+    let isDisabled3 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-3-button-remove', (button) => {return button.disabled});
+    let isDisabled4 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-4-button-remove', (button) => {return button.disabled});
+    let isDisabled5 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-5-button-remove', (button) => {return button.disabled});
+    expect(datas).to.deep.include({ countTranscript_counts: 1 });
+    expect(datas.reduce((a, c) => {
+      if(c&&c.readOneIndividual&&c.readOneIndividual.countFilteredTranscript_counts) {
+        return a+c.readOneIndividual.countFilteredTranscript_counts;
+      } else {
+        return a;
+      }
+    }, 0)).to.eql(5);
+    expect(rowsCount_toRemoveA).to.eql(5);
+    expect(rowsCount_toRemoveB).to.eql(1);
+    expect(isDisabled1).to.eql(true);
+    expect(isDisabled2).to.eql(false);
+    expect(isDisabled3).to.eql(false);
+    expect(isDisabled4).to.eql(false);
+    expect(isDisabled5).to.eql(false);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #3: click on: listA - remove button - item 5
+    props = {
+      elementType: 'button',
+      buttonId: 'TranscriptCountsToRemoveTransferView-listA-listItem-5-button-remove',
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 3,
+    };
+    await clickOn(props);
+    // evaluate #3
+    datas = await Promise.all(props.responses);
+    rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);
+    rowsCount_toRemoveB = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listB] > li', rows => rows.length);
+    isDisabled1 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-1-button-remove', (button) => {return button.disabled});
+    isDisabled2 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-2-button-remove', (button) => {return button.disabled});
+    isDisabled3 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-3-button-remove', (button) => {return button.disabled});
+    isDisabled4 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-4-button-remove', (button) => {return button.disabled});
+    isDisabled5 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-5-button-remove', (button) => {return button.disabled});
+    expect(datas).to.deep.include({ countTranscript_counts: 2 });
+    expect(datas.reduce((a, c) => {
+      if(c&&c.readOneIndividual&&c.readOneIndividual.countFilteredTranscript_counts) {
+        return a+c.readOneIndividual.countFilteredTranscript_counts;
+      } else {
+        return a;
+      }
+    }, 0)).to.eql(5);
+    expect(rowsCount_toRemoveA).to.eql(5);
+    expect(rowsCount_toRemoveB).to.eql(2);
+    expect(isDisabled1).to.eql(true);
+    expect(isDisabled2).to.eql(false);
+    expect(isDisabled3).to.eql(false);
+    expect(isDisabled4).to.eql(false);
+    expect(isDisabled5).to.eql(true);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #4: click on: listA - remove button - item 3
+    props = {
+      elementType: 'button',
+      buttonId: 'TranscriptCountsToRemoveTransferView-listA-listItem-3-button-remove',
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 3,
+    };
+    await clickOn(props);
+    // evaluate #4
+    datas = await Promise.all(props.responses);
+    rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);
+    rowsCount_toRemoveB = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listB] > li', rows => rows.length);
+    isDisabled1 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-1-button-remove', (button) => {return button.disabled});
+    isDisabled2 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-2-button-remove', (button) => {return button.disabled});
+    isDisabled3 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-3-button-remove', (button) => {return button.disabled});
+    isDisabled4 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-4-button-remove', (button) => {return button.disabled});
+    isDisabled5 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-5-button-remove', (button) => {return button.disabled});
+    expect(datas).to.deep.include({ countTranscript_counts: 3 });
+    expect(datas.reduce((a, c) => {
+      if(c&&c.readOneIndividual&&c.readOneIndividual.countFilteredTranscript_counts) {
+        return a+c.readOneIndividual.countFilteredTranscript_counts;
+      } else {
+        return a;
+      }
+    }, 0)).to.eql(5);
+    expect(rowsCount_toRemoveA).to.eql(5);
+    expect(rowsCount_toRemoveB).to.eql(3);
+    expect(isDisabled1).to.eql(true);
+    expect(isDisabled2).to.eql(false);
+    expect(isDisabled3).to.eql(true);
+    expect(isDisabled4).to.eql(false);
+    expect(isDisabled5).to.eql(true);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #5: click on: listA - remove button - item 2
+    props = {
+      elementType: 'button',
+      buttonId: 'TranscriptCountsToRemoveTransferView-listA-listItem-2-button-remove',
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 3,
+    };
+    await clickOn(props);
+    // evaluate #5
+    datas = await Promise.all(props.responses);
+    rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);
+    rowsCount_toRemoveB = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listB] > li', rows => rows.length);
+    isDisabled1 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-1-button-remove', (button) => {return button.disabled});
+    isDisabled2 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-2-button-remove', (button) => {return button.disabled});
+    isDisabled3 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-3-button-remove', (button) => {return button.disabled});
+    isDisabled4 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-4-button-remove', (button) => {return button.disabled});
+    isDisabled5 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-5-button-remove', (button) => {return button.disabled});
+    expect(datas).to.deep.include({ countTranscript_counts: 4 });
+    expect(datas.reduce((a, c) => {
+      if(c&&c.readOneIndividual&&c.readOneIndividual.countFilteredTranscript_counts) {
+        return a+c.readOneIndividual.countFilteredTranscript_counts;
+      } else {
+        return a;
+      }
+    }, 0)).to.eql(5);
+    expect(rowsCount_toRemoveA).to.eql(5);
+    expect(rowsCount_toRemoveB).to.eql(4);
+    expect(isDisabled1).to.eql(true);
+    expect(isDisabled2).to.eql(true);
+    expect(isDisabled3).to.eql(true);
+    expect(isDisabled4).to.eql(false);
+    expect(isDisabled5).to.eql(true);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #6: click on: listA - remove button - item 4
+    props = {
+      elementType: 'button',
+      buttonId: 'TranscriptCountsToRemoveTransferView-listA-listItem-4-button-remove',
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 3,
+    };
+    await clickOn(props);
+    // evaluate #6
+    datas = await Promise.all(props.responses);
+    rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);
+    rowsCount_toRemoveB = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listB] > li', rows => rows.length);
+    isDisabled1 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-1-button-remove', (button) => {return button.disabled});
+    isDisabled2 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-2-button-remove', (button) => {return button.disabled});
+    isDisabled3 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-3-button-remove', (button) => {return button.disabled});
+    isDisabled4 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-4-button-remove', (button) => {return button.disabled});
+    isDisabled5 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-5-button-remove', (button) => {return button.disabled});
+    expect(datas).to.deep.include({ countTranscript_counts: 5 });
+    expect(datas.reduce((a, c) => {
+      if(c&&c.readOneIndividual&&c.readOneIndividual.countFilteredTranscript_counts) {
+        return a+c.readOneIndividual.countFilteredTranscript_counts;
+      } else {
+        return a;
+      }
+    }, 0)).to.eql(5);
+    expect(rowsCount_toRemoveA).to.eql(5);
+    expect(rowsCount_toRemoveB).to.eql(5);
+    expect(isDisabled1).to.eql(true);
+    expect(isDisabled2).to.eql(true);
+    expect(isDisabled3).to.eql(true);
+    expect(isDisabled4).to.eql(true);
+    expect(isDisabled5).to.eql(true);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #7: click on: listB - remove button - item 1
+    props = {
+      elementType: 'button',
+      buttonId: 'TranscriptCountsToRemoveTransferView-listB-listItem-1-button-remove',
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 3,
+    };
+    await clickOn(props);
+    // evaluate #7
+    datas = await Promise.all(props.responses);
+    rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);
+    rowsCount_toRemoveB = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listB] > li', rows => rows.length);
+    isDisabled1 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-1-button-remove', (button) => {return button.disabled});
+    isDisabled2 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-2-button-remove', (button) => {return button.disabled});
+    isDisabled3 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-3-button-remove', (button) => {return button.disabled});
+    isDisabled4 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-4-button-remove', (button) => {return button.disabled});
+    isDisabled5 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-5-button-remove', (button) => {return button.disabled});
+    expect(datas).to.deep.include({ countTranscript_counts: 4 });
+    expect(datas.reduce((a, c) => {
+      if(c&&c.readOneIndividual&&c.readOneIndividual.countFilteredTranscript_counts) {
+        return a+c.readOneIndividual.countFilteredTranscript_counts;
+      } else {
+        return a;
+      }
+    }, 0)).to.eql(5);
+    expect(rowsCount_toRemoveA).to.eql(5);
+    expect(rowsCount_toRemoveB).to.eql(4);
+    expect(isDisabled1).to.eql(false);
+    expect(isDisabled2).to.eql(true);
+    expect(isDisabled3).to.eql(true);
+    expect(isDisabled4).to.eql(true);
+    expect(isDisabled5).to.eql(true);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #8: click on: listB - remove button - item 5
+    props = {
+      elementType: 'button',
+      buttonId: 'TranscriptCountsToRemoveTransferView-listB-listItem-5-button-remove',
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 3,
+    };
+    await clickOn(props);
+    // evaluate #8
+    datas = await Promise.all(props.responses);
+    rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);
+    rowsCount_toRemoveB = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listB] > li', rows => rows.length);
+    isDisabled1 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-1-button-remove', (button) => {return button.disabled});
+    isDisabled2 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-2-button-remove', (button) => {return button.disabled});
+    isDisabled3 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-3-button-remove', (button) => {return button.disabled});
+    isDisabled4 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-4-button-remove', (button) => {return button.disabled});
+    isDisabled5 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-5-button-remove', (button) => {return button.disabled});
+    expect(datas).to.deep.include({ countTranscript_counts: 3 });
+    expect(datas.reduce((a, c) => {
+      if(c&&c.readOneIndividual&&c.readOneIndividual.countFilteredTranscript_counts) {
+        return a+c.readOneIndividual.countFilteredTranscript_counts;
+      } else {
+        return a;
+      }
+    }, 0)).to.eql(5);
+    expect(rowsCount_toRemoveA).to.eql(5);
+    expect(rowsCount_toRemoveB).to.eql(3);
+    expect(isDisabled1).to.eql(false);
+    expect(isDisabled2).to.eql(true);
+    expect(isDisabled3).to.eql(true);
+    expect(isDisabled4).to.eql(true);
+    expect(isDisabled5).to.eql(false);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #9: click on: save button
+    props = {
+      elementType: 'button',
+      buttonId: 'IndividualUpdatePanel-fabButton-save',
+      visibleId: 'IndividualEnhancedTable-tableBody',
+      hiddenId: 'TranscriptCountsTransferLists-div-root',
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 3,
+    };
+    await clickOn(props);
+    // evaluate #9
+    datas = await Promise.all(props.responses);
+    let cell = await page.$(`tr[id=IndividualEnhancedTable-row-${individual_d2_it03.id}] > td:nth-child(5)`); 
+    let text = await page.evaluate(cell => cell.textContent, cell);
+    expect(datas).to.deep.include({ updateIndividual: {id: individual_d2_it03.id, name: individual_d2_it03.name } });
+    expect(datas).to.deep.include({ countIndividuals: 1 });
+    expect(text).to.eql(individual_d2_it03.name);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #10: click on: <individual> detail view
+    props = {
+      elementType: 'button',
+      buttonId: `IndividualEnhancedTable-row-iconButton-detail-${individual_d2_it03.id}`,
+      visibleId: 'IndividualAssociationsPage-div-root',
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 1,
+    };
+    await clickOn(props);
+    // evaluate #10
+    datas = await Promise.all(props.responses);
+    let rowsCountA = await page.$$eval('div[id=TranscriptCountsCompactView-list-listA] > div[role=listitem]', rows => rows.length).catch((e) => null);
+    let assocId1 = await page.$eval('p[id=TranscriptCountsCompactView-listA-listItem-id-1]', cell => cell.textContent).catch((e) => null);
+    let assocId5 = await page.$eval('p[id=TranscriptCountsCompactView-listA-listItem-id-5]', cell => cell.textContent).catch((e) => null);
+    
+    expect(datas[0].readOneIndividual.countFilteredTranscript_counts).to.eql(2);
+    expect(rowsCountA).to.eql(2);
+    expect(assocId1).to.eql('1');
+    expect(assocId5).to.eql('5');
+    expect(await page.title()).to.eql('Zendro');
+
+    // #11: click on: close detail panel
+    props = {
+      elementType: 'button',
+      buttonId: 'IndividualDetailPanel-button-close',
+      visibleId: 'IndividualEnhancedTable-tableBody',
+      hiddenId: 'IndividualAssociationsPage-div-root',
+    };
+    await clickOn(props);
+    // evaluate #11
+    expect(await page.title()).to.eql('Zendro');
+
+  });
+
+});
+
+/**
+ * Utils
+ */
+async function clickOn(props) {
+  let lttdelay = (props.ttdelay) ? props.ttdelay : ttdelay;
+  let waitEvents = [];
+  if(props.visibleId) 
+  waitEvents.push(page.waitForSelector(`[id=${props.visibleId}]`,{ visible: true }));
+  if(props.visibleIds) {
+    for(let i=0; i<props.visibleIds; i++) {
+      waitEvents.push(page.waitForSelector(`[id=${props.visibleIds[i]}]`,{ visible: true }));
+    }
+  }
+  if(props.hiddenId) 
+  waitEvents.push(page.waitForSelector(`[id=${props.hiddenId}]`,{ hidden: true }));
+  if(props.request1) 
+  waitEvents.push(props.response1 = page.waitForResponse(props.request1).then((res) => res.json().then((data) => data.data)));
+  if(props.requests && props.expectedResponses) {
+    waitEvents.push(page.waitForResponse((res) => {
+      if(props.requests.includes(res.url())){
+        props.responses.push(res.json().then((data) => data.data));
+      }
+      return(props.responses.length === props.expectedResponses);
+    }));
+  }
+
+  await Promise.all([
+    //wait for events
+    ...waitEvents,
+
+    //click
+    page.click(`${props.elementType}[id=${props.buttonId}]`),
+  ]);
+
+  await delay(lttdelay);
+}

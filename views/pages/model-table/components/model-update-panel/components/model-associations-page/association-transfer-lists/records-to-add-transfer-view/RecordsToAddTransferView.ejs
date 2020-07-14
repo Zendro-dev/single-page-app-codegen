@@ -2132,7 +2132,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                   in={true}
                   unmountOnExit
                 >
-                  <div>
+                  <div id='<%- sortedAssociations[aindex].relationNameOnPascal -%>ToAddTransferView-div-noDataA'>
                     <Grid container>
                       <Grid item xs={12}>
                         <Grid className={classes.noDataBox} container justify="center" alignItems="center">
@@ -2155,14 +2155,17 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                   unmountOnExit
                 >
                   <Box className={classes.listBox} ref={lref}>
-                    <List dense component="div" role="list" >
+                    <List id='<%- sortedAssociations[aindex].relationNameOnPascal -%>ToAddTransferView-list-listA'
+                    dense component="div" role="list" >
                       {items.map(it => {
                         let key = it.<%- sortedAssociations[aindex].internalId _%>;
                         let label = <%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='' && sortedAssociations[aindex].label !==  sortedAssociations[aindex].internalId) ? `it.${sortedAssociations[aindex].label}` : 'undefined' _%>;
                         let sublabel = <%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='' && sortedAssociations[aindex].sublabel !==  sortedAssociations[aindex].label && sortedAssociations[aindex].sublabel !==  sortedAssociations[aindex].internalId) ? `it.${sortedAssociations[aindex].sublabel}` : 'undefined' _%>;
                         
                         return (
-                          <ListItem key={key} 
+                          <ListItem 
+                            id={'<%- sortedAssociations[aindex].relationNameOnPascal -%>ToAddTransferView-listA-listItem-'+it.<%- sortedAssociations[aindex].internalId _%>}
+                            key={key} 
                             role="listitem" 
                             button 
                             className={classes.row}
@@ -2233,6 +2236,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                             <ListItemSecondaryAction>
                               <Tooltip title={ t('modelPanels.transferToAdd') }>
                                 <IconButton
+                                  id={'<%- sortedAssociations[aindex].relationNameOnPascal -%>ToAddTransferView-listA-listItem-'+it.<%- sortedAssociations[aindex].internalId _%>+'-button-add'}
                                   color="primary"
                                   className={classes.iconButton}
                                   onClick={(event) => {
@@ -2247,7 +2251,6 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                           </ListItem>
                         );
                       })}
-                      <ListItem />
                     </List>
                   </Box>
                 </Fade>
@@ -2388,7 +2391,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                   in={true}
                   unmountOnExit
                 >
-                  <div>
+                  <div id='<%- sortedAssociations[aindex].relationNameOnPascal -%>ToAddTransferView-div-noItemsB'>
                     <Grid container>
                       <Grid item xs={12}>
                         <Grid className={classes.noDataBox} container justify="center" alignItems="center">
@@ -2409,7 +2412,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                   in={true}
                   unmountOnExit
                 >
-                  <div>
+                  <div id='<%- sortedAssociations[aindex].relationNameOnPascal -%>ToAddTransferView-div-noDataB'>
                     <Grid container>
                       <Grid item xs={12}>
                         <Grid className={classes.noDataBox} container justify="center" alignItems="center">
@@ -2432,7 +2435,8 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                   unmountOnExit
                 >
                   <Box className={classes.listBox} ref={lrefB}>
-                    <List dense component="div" role="list">
+                    <List id='<%- sortedAssociations[aindex].relationNameOnPascal -%>ToAddTransferView-list-listB'
+                      dense component="div" role="list">
                       {itemsB.map(it => {
                         let key = it.<%- sortedAssociations[aindex].internalId _%>;
                         let label = <%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='' && sortedAssociations[aindex].label !==  sortedAssociations[aindex].internalId) ? `it.${sortedAssociations[aindex].label}` : 'undefined' _%>;
@@ -2440,7 +2444,9 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 
                         
                         return (
-                          <ListItem key={key} 
+                          <ListItem 
+                            id={'<%- sortedAssociations[aindex].relationNameOnPascal -%>ToAddTransferView-listB-listItem-'+it.<%- sortedAssociations[aindex].internalId _%>}
+                            key={key} 
                             role="listitem"
                             button
                             className={classes.row}
@@ -2511,6 +2517,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                             <ListItemSecondaryAction>
                               <Tooltip title={ t('modelPanels.untransferToAdd') }>
                                 <IconButton
+                                  id={'<%- sortedAssociations[aindex].relationNameOnPascal -%>ToAddTransferView-listB-listItem-'+it.<%- sortedAssociations[aindex].internalId _%>+'-button-remove'}
                                   color="primary"
                                   onClick={(event) => {
                                     event.stopPropagation();
@@ -2524,7 +2531,6 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                           </ListItem>
                         );
                       })}
-                      <ListItem />
                     </List>
                   </Box>
                 </Fade>
