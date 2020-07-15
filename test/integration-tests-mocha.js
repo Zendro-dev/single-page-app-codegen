@@ -2,6 +2,7 @@ require('lodash');
 const puppeteer = require('puppeteer');
 const { expect } = require('chai');
 const delay = require('delay');
+const { extendWith } = require('lodash');
 
 // open page in browser
 let browser = {}, page = {};
@@ -81,7 +82,7 @@ describe('1. Basic functionality', function () {
     expect(await page.title()).to.eql('Zendro');
   });
 
-  if(true)
+  if(false)
   {
   it('03. <individual> table is empty', async function () {
 
@@ -682,7 +683,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
         'TranscriptCountsTransferLists-div-root',
         'TranscriptCountsToAddTransferView-list-listA',
         'TranscriptCountsToAddTransferView-div-noItemsB',
-        'TranscriptCountsToRemoveTransferView-list-listB',
+        'TranscriptCountsToRemoveTransferView-list-listA',
         'TranscriptCountsToRemoveTransferView-div-noItemsB',
       ],
       requests: ['http://localhost:3000/graphql'],
@@ -691,7 +692,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     };
     await clickOn(props);
     // evaluate #2
-    let datas = await Promise.all(props.responses);
+    let datas = (await Promise.all(props.responses)).map((data) => data.data); 
     let rowsCount_toAddA = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listA] > li', rows => rows.length);
     let rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);    
     expect(datas).to.deep.include({ countTranscript_counts: recordsCount_d2_it02-2 });
@@ -719,7 +720,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     };
     await clickOn(props);
     // evaluate #3
-    datas = await Promise.all(props.responses);
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
     rowsCount_toAddA = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listA] > li', rows => rows.length);
     let rowsCount_toAddB = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listB] > li', rows => rows.length);
     rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);
@@ -741,7 +742,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     };
     await clickOn(props);
     // evaluate #3
-    datas = await Promise.all(props.responses);
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
     rowsCount_toAddA = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listA] > li', rows => rows.length);
     rowsCount_toAddB = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listB] > li', rows => rows.length);
     rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);
@@ -765,7 +766,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     };
     await clickOn(props);
     // evaluate #4
-    datas = await Promise.all(props.responses);
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
     rowsCount_toAddB = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listB] > li', rows => rows.length);
     rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);
     expect(datas).to.deep.include({ countTranscript_counts: recordsCount_d2_it02-2-3 });
@@ -787,7 +788,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     };
     await clickOn(props);
     // evaluate #5
-    datas = await Promise.all(props.responses);
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
     let cell = await page.$(`tr[id=IndividualEnhancedTable-row-${individual_d2_it03.id}] > td:nth-child(5)`); 
     let text = await page.evaluate(cell => cell.textContent, cell);
     expect(datas).to.deep.include({ updateIndividual: {id: individual_d2_it03.id, name: individual_d2_it03.name } });
@@ -806,7 +807,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     };
     await clickOn(props);
     // evaluate #6
-    datas = await Promise.all(props.responses);
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
     let rowsCountA = await page.$$eval('div[id=TranscriptCountsCompactView-list-listA] > div[role=listitem]', rows => rows.length).catch((e) => null);
     let assocId1 = await page.$eval('p[id=TranscriptCountsCompactView-listA-listItem-id-1]', cell => cell.textContent).catch((e) => null);
     let assocId2 = await page.$eval('p[id=TranscriptCountsCompactView-listA-listItem-id-2]', cell => cell.textContent).catch((e) => null);
@@ -862,7 +863,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     };
     await clickOn(props);
     // evaluate #2
-    let datas = await Promise.all(props.responses);
+    let datas = (await Promise.all(props.responses)).map((data) => data.data);
     let rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);    
     expect(datas).to.deep.include({ countTranscript_counts: recordsCount_d2_it02-5 });
     expect(datas.reduce((a, c) => {
@@ -888,7 +889,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     };
     await clickOn(props);
     // evaluate #3
-    datas = await Promise.all(props.responses);
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
     rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);
     let rowsCount_toRemoveB = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listB] > li', rows => rows.length);
     let isDisabled1 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-1-button-remove', (button) => {return button.disabled});
@@ -923,7 +924,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     };
     await clickOn(props);
     // evaluate #3
-    datas = await Promise.all(props.responses);
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
     rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);
     rowsCount_toRemoveB = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listB] > li', rows => rows.length);
     isDisabled1 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-1-button-remove', (button) => {return button.disabled});
@@ -958,7 +959,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     };
     await clickOn(props);
     // evaluate #4
-    datas = await Promise.all(props.responses);
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
     rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);
     rowsCount_toRemoveB = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listB] > li', rows => rows.length);
     isDisabled1 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-1-button-remove', (button) => {return button.disabled});
@@ -993,7 +994,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     };
     await clickOn(props);
     // evaluate #5
-    datas = await Promise.all(props.responses);
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
     rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);
     rowsCount_toRemoveB = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listB] > li', rows => rows.length);
     isDisabled1 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-1-button-remove', (button) => {return button.disabled});
@@ -1028,7 +1029,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     };
     await clickOn(props);
     // evaluate #6
-    datas = await Promise.all(props.responses);
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
     rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);
     rowsCount_toRemoveB = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listB] > li', rows => rows.length);
     isDisabled1 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-1-button-remove', (button) => {return button.disabled});
@@ -1063,7 +1064,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     };
     await clickOn(props);
     // evaluate #7
-    datas = await Promise.all(props.responses);
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
     rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);
     rowsCount_toRemoveB = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listB] > li', rows => rows.length);
     isDisabled1 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-1-button-remove', (button) => {return button.disabled});
@@ -1098,7 +1099,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     };
     await clickOn(props);
     // evaluate #8
-    datas = await Promise.all(props.responses);
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
     rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);
     rowsCount_toRemoveB = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listB] > li', rows => rows.length);
     isDisabled1 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-1-button-remove', (button) => {return button.disabled});
@@ -1135,7 +1136,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     };
     await clickOn(props);
     // evaluate #9
-    datas = await Promise.all(props.responses);
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
     let cell = await page.$(`tr[id=IndividualEnhancedTable-row-${individual_d2_it03.id}] > td:nth-child(5)`); 
     let text = await page.evaluate(cell => cell.textContent, cell);
     expect(datas).to.deep.include({ updateIndividual: {id: individual_d2_it03.id, name: individual_d2_it03.name } });
@@ -1154,7 +1155,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     };
     await clickOn(props);
     // evaluate #10
-    datas = await Promise.all(props.responses);
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
     let rowsCountA = await page.$$eval('div[id=TranscriptCountsCompactView-list-listA] > div[role=listitem]', rows => rows.length).catch((e) => null);
     let assocId1 = await page.$eval('p[id=TranscriptCountsCompactView-listA-listItem-id-1]', cell => cell.textContent).catch((e) => null);
     let assocId5 = await page.$eval('p[id=TranscriptCountsCompactView-listA-listItem-id-5]', cell => cell.textContent).catch((e) => null);
@@ -1178,6 +1179,623 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
 
   });
 
+  it('03. Add & Remove <transcript_count> associations on <individual>', async function () {
+    // #1: click on: update individual button
+    let props = {
+      elementType: 'button',
+      buttonId: 'IndividualEnhancedTable-row-iconButton-edit-'+individual_d2_it03.id,
+      visibleId: 'IndividualAttributesFormView-div-root',
+    }
+    await clickOn(props);
+
+    // #2: click on: associations tab button
+    props = {
+      elementType: 'button',
+      buttonId: 'IndividualUpdatePanel-tabsA-button-associations',
+      visibleIds: [
+        'TranscriptCountsTransferLists-div-root',
+        'TranscriptCountsToAddTransferView-list-listA',
+        'TranscriptCountsToAddTransferView-div-noItemsB',
+        'TranscriptCountsToRemoveTransferView-list-listA',
+        'TranscriptCountsToRemoveTransferView-div-noItemsB',
+      ],
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 4,
+    };
+    await clickOn(props);
+    // evaluate #2
+    let datas = (await Promise.all(props.responses)).map((data) => data.data);
+    let rowsCount_toAddA = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listA] > li', rows => rows.length);
+    let rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);    
+    expect(datas).to.deep.include({ countTranscript_counts: recordsCount_d2_it02-2 });
+    expect(datas.reduce((a, c) => {
+      if(c&&c.readOneIndividual&&c.readOneIndividual.countFilteredTranscript_counts) {
+        return a+c.readOneIndividual.countFilteredTranscript_counts;
+      } else {
+        return a;
+      }
+    }, 0)).to.eql(2);
+    expect(datas).to.deep.include({ readOneIndividual: { transcript_countsConnection: {edges: [{node: {id: "1"}}, {node: {id: "5"}}]}} });
+    expect(rowsCount_toAddA).to.eql(recordsCount_d2_it02-2);
+    expect(rowsCount_toRemoveA).to.eql(2);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #3: click on: toAdd - List A - add button - item 2
+    props = {
+      elementType: 'button',
+      buttonId: 'TranscriptCountsToAddTransferView-listA-listItem-2-button-add',
+      visibleId: 'TranscriptCountsToAddTransferView-list-listB',
+      hiddenId: 'TranscriptCountsToAddTransferView-div-noItemsB',
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 5,
+    };
+    await clickOn(props);
+    // evaluate #3
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
+    rowsCount_toAddA = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listA] > li', rows => rows.length);
+    let rowsCount_toAddB = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listB] > li', rows => rows.length);
+    rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);
+    expect(datas).to.deep.include({ countTranscript_counts: recordsCount_d2_it02-2-1 });
+    expect(datas).to.deep.include({ countTranscript_counts: 1 });
+    expect(datas).to.deep.include({ readOneIndividual: { transcript_countsConnection: {edges: [{node: {id: "1"}}, {node: {id: "5"}}]}} });
+    expect(rowsCount_toAddA).to.eql(recordsCount_d2_it02-2-1);
+    expect(rowsCount_toAddB).to.eql(1);
+    expect(rowsCount_toRemoveA).to.eql(2);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #4: click on: toAdd - List A - add button - item 4
+    props = {
+      elementType: 'button',
+      buttonId: 'TranscriptCountsToAddTransferView-listA-listItem-4-button-add',
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 5,
+    };
+    await clickOn(props);
+    // evaluate #4
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
+    rowsCount_toAddA = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listA] > li', rows => rows.length);
+    rowsCount_toAddB = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listB] > li', rows => rows.length);
+    rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);
+    expect(datas).to.deep.include({ countTranscript_counts: recordsCount_d2_it02-2-2 });
+    expect(datas).to.deep.include({ countTranscript_counts: 2 });
+    expect(datas).to.deep.include({ readOneIndividual: { transcript_countsConnection: {edges: [{node: {id: "1"}}, {node: {id: "5"}}]}} });
+    expect(rowsCount_toAddA).to.eql(recordsCount_d2_it02-2-2);
+    expect(rowsCount_toAddB).to.eql(2);
+    expect(rowsCount_toRemoveA).to.eql(2);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #5: click on: toAdd - List A - add button - item 3
+    props = {
+      elementType: 'button',
+      buttonId: 'TranscriptCountsToAddTransferView-listA-listItem-3-button-add',
+      visibleId: 'TranscriptCountsToAddTransferView-div-noDataA',
+      hiddenId: 'TranscriptCountsToAddTransferView-list-listA',
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 5,
+    };
+    await clickOn(props);
+    // evaluate #5
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
+    rowsCount_toAddB = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listB] > li', rows => rows.length);
+    rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);
+    expect(datas).to.deep.include({ countTranscript_counts: recordsCount_d2_it02-2-3 });
+    expect(datas).to.deep.include({ countTranscript_counts: 3 });
+    expect(datas).to.deep.include({ readOneIndividual: { transcript_countsConnection: {edges: [{node: {id: "1"}}, {node: {id: "5"}}]}} });
+    expect(rowsCount_toAddB).to.eql(3);
+    expect(rowsCount_toRemoveA).to.eql(2);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #6: click on: toAdd - List B - remove button - item 2
+    props = {
+      elementType: 'button',
+      buttonId: 'TranscriptCountsToAddTransferView-listB-listItem-2-button-remove',
+      visibleId: 'TranscriptCountsToAddTransferView-list-listA',
+      hiddenId: 'TranscriptCountsToAddTransferView-div-noDataA',
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 5,
+    };
+    await clickOn(props);
+    // evaluate #6
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
+    rowsCount_toAddA = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listA] > li', rows => rows.length);
+    rowsCount_toAddB = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listB] > li', rows => rows.length);
+    rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);
+    expect(datas).to.deep.include({ countTranscript_counts: recordsCount_d2_it02-2-2 });
+    expect(datas).to.deep.include({ countTranscript_counts: 2 });
+    expect(datas).to.deep.include({ readOneIndividual: { transcript_countsConnection: {edges: [{node: {id: "1"}}, {node: {id: "5"}}]}} });
+    expect(rowsCount_toAddA).to.eql(recordsCount_d2_it02-2-2);
+    expect(rowsCount_toAddB).to.eql(2);
+    expect(rowsCount_toRemoveA).to.eql(2);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #7: click on: toRemove - listA - remove button - item 1
+    props = {
+      elementType: 'button',
+      buttonId: 'TranscriptCountsToRemoveTransferView-listA-listItem-1-button-remove',
+      visibleId: 'TranscriptCountsToRemoveTransferView-list-listB',
+      hiddenId: 'TranscriptCountsToRemoveTransferView-div-noItemsB',
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 3,
+    };
+    await clickOn(props);
+    // evaluate #7
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
+    rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);
+    let rowsCount_toRemoveB = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listB] > li', rows => rows.length);
+    let isDisabled1 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-1-button-remove', (button) => {return button.disabled});
+    let isDisabled5 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-5-button-remove', (button) => {return button.disabled});
+    expect(datas).to.deep.include({ countTranscript_counts: 1 });
+    expect(datas.reduce((a, c) => {
+      if(c&&c.readOneIndividual&&c.readOneIndividual.countFilteredTranscript_counts) {
+        return a+c.readOneIndividual.countFilteredTranscript_counts;
+      } else {
+        return a;
+      }
+    }, 0)).to.eql(2);
+    expect(rowsCount_toRemoveA).to.eql(2);
+    expect(rowsCount_toRemoveB).to.eql(1);
+    expect(isDisabled1).to.eql(true);
+    expect(isDisabled5).to.eql(false);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #8: click on: listA - remove button - item 5
+    props = {
+      elementType: 'button',
+      buttonId: 'TranscriptCountsToRemoveTransferView-listA-listItem-5-button-remove',
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 3,
+    };
+    await clickOn(props);
+    // evaluate #8
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
+    rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);
+    rowsCount_toRemoveB = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listB] > li', rows => rows.length);
+    isDisabled1 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-1-button-remove', (button) => {return button.disabled});
+    isDisabled5 = await page.$eval('[id=TranscriptCountsToRemoveTransferView-listA-listItem-5-button-remove', (button) => {return button.disabled});
+    expect(datas).to.deep.include({ countTranscript_counts: 2 });
+    expect(datas.reduce((a, c) => {
+      if(c&&c.readOneIndividual&&c.readOneIndividual.countFilteredTranscript_counts) {
+        return a+c.readOneIndividual.countFilteredTranscript_counts;
+      } else {
+        return a;
+      }
+    }, 0)).to.eql(2);
+    expect(rowsCount_toRemoveA).to.eql(2);
+    expect(rowsCount_toRemoveB).to.eql(2);
+    expect(isDisabled1).to.eql(true);
+    expect(isDisabled5).to.eql(true);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #9: click on: save button
+    props = {
+      elementType: 'button',
+      buttonId: 'IndividualUpdatePanel-fabButton-save',
+      visibleId: 'IndividualEnhancedTable-tableBody',
+      hiddenId: 'TranscriptCountsTransferLists-div-root',
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 3,
+    };
+    await clickOn(props);
+    // evaluate #9
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
+    let cell = await page.$(`tr[id=IndividualEnhancedTable-row-${individual_d2_it03.id}] > td:nth-child(5)`); 
+    let text = await page.evaluate(cell => cell.textContent, cell);
+    expect(datas).to.deep.include({ updateIndividual: {id: individual_d2_it03.id, name: individual_d2_it03.name } });
+    expect(datas).to.deep.include({ countIndividuals: 1 });
+    expect(text).to.eql(individual_d2_it03.name);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #10: click on: <individual> detail view
+    props = {
+      elementType: 'button',
+      buttonId: `IndividualEnhancedTable-row-iconButton-detail-${individual_d2_it03.id}`,
+      visibleId: 'IndividualAssociationsPage-div-root',
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 1,
+    };
+    await clickOn(props);
+    // evaluate #10
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
+    let rowsCountA = await page.$$eval('div[id=TranscriptCountsCompactView-list-listA] > div[role=listitem]', rows => rows.length).catch((e) => null);
+    let assocId3 = await page.$eval('p[id=TranscriptCountsCompactView-listA-listItem-id-3]', cell => cell.textContent).catch((e) => null);
+    let assocId4 = await page.$eval('p[id=TranscriptCountsCompactView-listA-listItem-id-4]', cell => cell.textContent).catch((e) => null);
+    
+    expect(datas[0].readOneIndividual.countFilteredTranscript_counts).to.eql(2);
+    expect(rowsCountA).to.eql(2);
+    expect(assocId3).to.eql('3');
+    expect(assocId4).to.eql('4');
+    expect(await page.title()).to.eql('Zendro');
+
+    // #11: click on: close detail panel
+    props = {
+      elementType: 'button',
+      buttonId: 'IndividualDetailPanel-button-close',
+      visibleId: 'IndividualEnhancedTable-tableBody',
+      hiddenId: 'IndividualAssociationsPage-div-root',
+    };
+    await clickOn(props);
+    // evaluate #11
+    expect(await page.title()).to.eql('Zendro');
+
+    /**
+     * Validate peer associated records:
+     * 
+     * #12: click on <transcript_count>
+     * #13 - #15: item 1
+     * #16 - #18: item 2
+     * #19 - #21: item 3
+     * #22 - #24: item 4
+     * #25 - #27: item 5
+     */
+    // #12: click on: <transcript_count> left-list item
+    props = {
+      elementType: 'div',
+      buttonId: `MainPanel-listItem-button-transcript_count`,
+      visibleId: 'TranscriptCountEnhancedTable-tableBody',
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 1,
+    };
+    await clickOn(props);
+    // evaluate #12
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
+    expect(datas[0].countTranscript_counts).to.eql(recordsCount_d2_it02);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #13: click on: <transcript_count> detail view - item 1
+    props = {
+      elementType: 'tr',
+      buttonId: `TranscriptCountEnhancedTable-row-1`,
+      visibleIds: [
+        'TranscriptCountAssociationsPage-div-root',
+        'AminoacidsequenceCompactView-div-noDataA'
+      ],
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 1,
+    };
+    await clickOn(props);
+    // evaluate #13
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
+    expect(datas[0].readOneTranscript_count.aminoacidsequence).to.eql(null);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #14: click on: <individual> associations tab
+    props = {
+      elementType: 'button',
+      buttonId: `TranscriptCountUpdatePanel-tabsA-button-individual`,
+      visibleIds: [
+        'IndividualAssociationsPage-div-root',
+        'IndividualCompactView-div-noDataA'
+      ],
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 1,
+    };
+    await clickOn(props);
+    // evaluate #14
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
+    expect(datas[0].readOneTranscript_count.individual).to.eql(null);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #15: click on: close detail panel
+    props = {
+      elementType: 'button',
+      buttonId: 'TranscriptCountDetailPanel-button-close',
+      visibleId: 'TranscriptCountEnhancedTable-tableBody',
+      hiddenId: 'TranscriptCountAssociationsPage-div-root',
+    };
+    await clickOn(props);
+    // evaluate #15
+    expect(await page.title()).to.eql('Zendro');
+
+    // #16: click on: <transcript_count> detail view - item 2
+    props = {
+      elementType: 'tr',
+      buttonId: `TranscriptCountEnhancedTable-row-2`,
+      visibleIds: [
+        'TranscriptCountAssociationsPage-div-root',
+        'AminoacidsequenceCompactView-div-noDataA'
+      ],
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 1,
+    };
+    await clickOn(props);
+    // evaluate #16
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
+    expect(datas[0].readOneTranscript_count.aminoacidsequence).to.eql(null);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #17: click on: <individual> associations tab
+    props = {
+      elementType: 'button',
+      buttonId: `TranscriptCountUpdatePanel-tabsA-button-individual`,
+      visibleIds: [
+        'IndividualAssociationsPage-div-root',
+        'IndividualCompactView-div-noDataA'
+      ],
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 1,
+    };
+    await clickOn(props);
+    // evaluate #17
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
+    expect(datas[0].readOneTranscript_count.individual).to.eql(null);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #18: click on: close detail panel
+    props = {
+      elementType: 'button',
+      buttonId: 'TranscriptCountDetailPanel-button-close',
+      visibleId: 'TranscriptCountEnhancedTable-tableBody',
+      hiddenId: 'TranscriptCountAssociationsPage-div-root',
+    };
+    await clickOn(props);
+    // evaluate #18
+    expect(await page.title()).to.eql('Zendro');
+
+    // #19: click on: <transcript_count> detail view - item 3
+    props = {
+      elementType: 'tr',
+      buttonId: `TranscriptCountEnhancedTable-row-3`,
+      visibleIds: [
+        'TranscriptCountAssociationsPage-div-root',
+        'AminoacidsequenceCompactView-div-noDataA'
+      ],
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 1,
+    };
+    await clickOn(props);
+    // evaluate #19
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
+    expect(datas[0].readOneTranscript_count.aminoacidsequence).to.eql(null);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #20: click on: <individual> associations tab
+    props = {
+      elementType: 'button',
+      buttonId: `TranscriptCountUpdatePanel-tabsA-button-individual`,
+      visibleIds: [
+        'IndividualAssociationsPage-div-root',
+        'IndividualCompactView-list-listA'
+      ],
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 1,
+    };
+    await clickOn(props);
+    // evaluate #20
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
+    rowsCountA = await page.$$eval('div[id=IndividualCompactView-list-listA] > div[role=listitem]', rows => rows.length).catch((e) => null);
+    assocId1 = await page.$eval('p[id=IndividualCompactView-listA-listItem-id-1]', cell => cell.textContent).catch((e) => null);
+    
+    expect(datas[0].readOneTranscript_count.individual.id).to.eql("1");
+    expect(rowsCountA).to.eql(1);
+    expect(assocId1).to.eql('1');
+    expect(await page.title()).to.eql('Zendro');
+
+    // #21: click on: close detail panel
+    props = {
+      elementType: 'button',
+      buttonId: 'TranscriptCountDetailPanel-button-close',
+      visibleId: 'TranscriptCountEnhancedTable-tableBody',
+      hiddenId: 'TranscriptCountAssociationsPage-div-root',
+    };
+    await clickOn(props);
+    // evaluate #21
+    expect(await page.title()).to.eql('Zendro');
+
+    // #22: click on: <transcript_count> detail view - item 4
+    props = {
+      elementType: 'tr',
+      buttonId: `TranscriptCountEnhancedTable-row-4`,
+      visibleIds: [
+        'TranscriptCountAssociationsPage-div-root',
+        'AminoacidsequenceCompactView-div-noDataA'
+      ],
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 1,
+    };
+    await clickOn(props);
+    // evaluate #22
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
+    expect(datas[0].readOneTranscript_count.aminoacidsequence).to.eql(null);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #23: click on: <individual> associations tab
+    props = {
+      elementType: 'button',
+      buttonId: `TranscriptCountUpdatePanel-tabsA-button-individual`,
+      visibleIds: [
+        'IndividualAssociationsPage-div-root',
+        'IndividualCompactView-list-listA'
+      ],
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 1,
+    };
+    await clickOn(props);
+    // evaluate #23
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
+    rowsCountA = await page.$$eval('div[id=IndividualCompactView-list-listA] > div[role=listitem]', rows => rows.length).catch((e) => null);
+    assocId1 = await page.$eval('p[id=IndividualCompactView-listA-listItem-id-1]', cell => cell.textContent).catch((e) => null);
+    
+    expect(datas[0].readOneTranscript_count.individual.id).to.eql("1");
+    expect(rowsCountA).to.eql(1);
+    expect(assocId1).to.eql('1');
+    expect(await page.title()).to.eql('Zendro');
+
+    // #24: click on: close detail panel
+    props = {
+      elementType: 'button',
+      buttonId: 'TranscriptCountDetailPanel-button-close',
+      visibleId: 'TranscriptCountEnhancedTable-tableBody',
+      hiddenId: 'TranscriptCountAssociationsPage-div-root',
+    };
+    await clickOn(props);
+    // evaluate #24
+    expect(await page.title()).to.eql('Zendro');
+
+    // #25: click on: <transcript_count> detail view - item 5
+    props = {
+      elementType: 'tr',
+      buttonId: `TranscriptCountEnhancedTable-row-5`,
+      visibleIds: [
+        'TranscriptCountAssociationsPage-div-root',
+        'AminoacidsequenceCompactView-div-noDataA'
+      ],
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 1,
+    };
+    await clickOn(props);
+    // evaluate #25
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
+    expect(datas[0].readOneTranscript_count.aminoacidsequence).to.eql(null);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #26: click on: <individual> associations tab
+    props = {
+      elementType: 'button',
+      buttonId: `TranscriptCountUpdatePanel-tabsA-button-individual`,
+      visibleIds: [
+        'IndividualAssociationsPage-div-root',
+        'IndividualCompactView-div-noDataA'
+      ],
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 1,
+    };
+    await clickOn(props);
+    // evaluate #26
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
+    expect(datas[0].readOneTranscript_count.individual).to.eql(null);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #27: click on: close detail panel
+    props = {
+      elementType: 'button',
+      buttonId: 'TranscriptCountDetailPanel-button-close',
+      visibleId: 'TranscriptCountEnhancedTable-tableBody',
+      hiddenId: 'TranscriptCountAssociationsPage-div-root',
+    };
+    await clickOn(props);
+    // evaluate #27
+    expect(await page.title()).to.eql('Zendro');
+
+  });
+
+  it('04. Add & Remove <individual> associations on <transcript_count>', async function () {
+    
+    /**
+     * Add association on <transcript_count> item 1
+     */
+    // #1: click on: update <transcript_count> button - item 1
+    let props = {
+      elementType: 'button',
+      buttonId: 'TranscriptCountEnhancedTable-row-iconButton-edit-1',
+      visibleId: 'TranscriptCountAttributesFormView-div-root',
+    }
+    await clickOn(props);
+
+    // #2: click on: associations tab button
+    props = {
+      elementType: 'button',
+      buttonId: 'TranscriptCountUpdatePanel-tabsA-button-associations',
+      visibleIds: [
+        'AminoacidsequenceTransferLists-div-root',
+        'AminoacidsequenceToAddTransferView-div-noDataA',
+        'AminoacidsequenceToAddTransferView-div-noItemsB',
+      ],
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 2,
+    };
+    await clickOn(props);
+    // evaluate #2
+    let datas = (await Promise.all(props.responses)).map((data) => data.data);
+    let errors = (await Promise.all(props.responses)).map((data) => data.errors);
+    expect(datas).to.deep.include({ readOneTranscript_count: {aminoacidsequence: null} });
+    expect(datas.reduce((a, c) => {
+      if(c&&c.countAminoacidsequences === null) {return true} 
+      else {return a}
+    }, false)).to.eql(true);
+    expect(errors.reduce((a, c) => {
+      if(c&&Array.isArray(c)){
+        return c.reduce((a, c) => {if(c&&c.message === "countRecords() is not implemented for model aminoacidsequence") {
+          return true} else return a}, false)}
+      else {return a}
+    }, false)).to.eql(true);
+    expect(await page.title()).to.eql('Zendro');
+
+    // #3: click on: <individual> associations tab
+    props = {
+      elementType: 'button',
+      buttonId: `TranscriptCountUpdatePanel-tabsA-button-individual`,
+      visibleIds: [
+        'IndividualAssociationsPage-div-root',
+        'IndividualToAddTransferView-list-listA',
+        'IndividualToAddTransferView-div-noItemsB'
+      ],
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 3,
+    };
+    await clickOn(props);
+    // evaluate #3
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
+    let rowsCount_toAddA = await page.$$eval('div[id=IndividualToAddTransferView-list-listA] > li', rows => rows.length).catch((e) => null);
+    let assocId1 = await page.$eval('p[id=IndividualToAddTransferView-listA-listItem-id-1]', cell => cell.textContent).catch((e) => null);
+    expect(datas).to.deep.include({ readOneTranscript_count: {individual: null} });
+    expect(datas).to.deep.include({ countIndividuals: 1 });
+    expect(rowsCount_toAddA).to.eql(1);
+    expect(assocId1).to.eql('1');
+    expect(await page.title()).to.eql('Zendro');
+
+    // #4: click on: toAdd - List A - add button - item 1
+    props = {
+      elementType: 'button',
+      buttonId: 'IndividualToAddTransferView-listA-listItem-1-button-add',
+      visibleIds: [
+        'IndividualToAddTransferView-div-noDataA',
+        'IndividualToAddTransferView-list-listB',
+      ],
+      hiddenIds: [
+        'IndividualToAddTransferView-list-listA',
+        'IndividualToAddTransferView-div-noItemsB',
+      ],
+      requests: ['http://localhost:3000/graphql'],
+      responses: [],
+      expectedResponses: 5,
+    };
+    await clickOn(props);
+    // evaluate #5
+    datas = (await Promise.all(props.responses)).map((data) => data.data);
+    let rowsCount_toAddB = await page.$$eval('div[id=IndividualToAddTransferView-list-listB] > li', rows => rows.length).catch((e) => null);
+    assocId1 = await page.$eval('p[id=IndividualToAddTransferView-listB-listItem-id-1]', cell => cell.textContent).catch((e) => null);
+    expect(datas).to.deep.include({ readOneTranscript_count: {individual: null} });
+    expect(datas).to.deep.include({ countIndividuals: 0 });
+    expect(datas).to.deep.include({ countIndividuals: 1 });
+    expect(datas).to.deep.include({ individualsConnection: { pageInfo: {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false}, edges: [] } });
+    expect(rowsCount_toAddB).to.eql(1);
+    expect(assocId1).to.eql('1');
+    expect(await page.title()).to.eql('Zendro');
+
+  });
+
 });
 
 /**
@@ -1196,11 +1814,11 @@ async function clickOn(props) {
   if(props.hiddenId) 
   waitEvents.push(page.waitForSelector(`[id=${props.hiddenId}]`,{ hidden: true }));
   if(props.request1) 
-  waitEvents.push(props.response1 = page.waitForResponse(props.request1).then((res) => res.json().then((data) => data.data)));
+  waitEvents.push(props.response1 = page.waitForResponse(props.request1).then((res) => res.json().then((data) => data)));
   if(props.requests && props.expectedResponses) {
     waitEvents.push(page.waitForResponse((res) => {
       if(props.requests.includes(res.url())){
-        props.responses.push(res.json().then((data) => data.data));
+        props.responses.push(res.json().then((data) => data));
       }
       return(props.responses.length === props.expectedResponses);
     }));

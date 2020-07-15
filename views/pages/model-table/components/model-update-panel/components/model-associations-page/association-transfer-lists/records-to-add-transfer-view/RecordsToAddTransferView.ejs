@@ -2196,7 +2196,9 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                                   <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
                                     <Grid item>
                                       <Tooltip title={ '<%- sortedAssociations[aindex].internalId %>' }>
-                                        <Typography variant="body1" display="block" noWrap={true}>{it.<%- sortedAssociations[aindex].internalId _%>}</Typography>
+                                        <Typography 
+                                        id={'<%- sortedAssociations[aindex].relationNameOnPascal -%>ToAddTransferView-listA-listItem-id-'+it.<%- sortedAssociations[aindex].internalId _%>}
+                                        variant="body1" display="block" noWrap={true}>{it.<%- sortedAssociations[aindex].internalId _%>}</Typography>
                                       </Tooltip>
                                     </Grid>
                                     {/*Key icon*/}
@@ -2477,7 +2479,9 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                                   <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
                                     <Grid item>
                                       <Tooltip title={ '<%- sortedAssociations[aindex].internalId %>' }>
-                                        <Typography variant="body1" display="block" noWrap={true}>{it.<%- sortedAssociations[aindex].internalId _%>}</Typography>
+                                        <Typography 
+                                        id={'<%- sortedAssociations[aindex].relationNameOnPascal -%>ToAddTransferView-listB-listItem-id-'+it.<%- sortedAssociations[aindex].internalId _%>}
+                                        variant="body1" display="block" noWrap={true}>{it.<%- sortedAssociations[aindex].internalId _%>}</Typography>
                                       </Tooltip>
                                     </Grid>
                                     {/*Key icon*/}

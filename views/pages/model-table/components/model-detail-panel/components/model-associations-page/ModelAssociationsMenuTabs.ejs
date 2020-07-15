@@ -26,10 +26,12 @@ export default function <%- nameOnPascal _%>AssociationsMenuTabs(props) {
         scrollButtons="auto"
       >
 <%if(sortedAssociations.length === 0){-%>
-        <Tab key='no-associations' label={ t('modelPanels.noAssociations') } value='no-associations' />
+        <Tab id='<%- nameOnPascal -%>UpdatePanel-tabsA-button-noAssociations' 
+          key='no-associations' label={ t('modelPanels.noAssociations') } value='no-associations' />
 <%}-%>
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
-        <Tab key='<%- sortedAssociations[i].relationName _%>' label='<%- sortedAssociations[i].relationNameCp _%>' value='<%- sortedAssociations[i].relationNameLc _%>' />
+        <Tab id='<%- nameOnPascal -%>UpdatePanel-tabsA-button-<%- sortedAssociations[i].relationName _%>' 
+          key='<%- sortedAssociations[i].relationName _%>' label='<%- sortedAssociations[i].relationNameCp _%>' value='<%- sortedAssociations[i].relationNameLc _%>' />
 <%}-%>
       </Tabs>
     </div>
