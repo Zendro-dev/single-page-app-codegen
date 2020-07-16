@@ -11,37 +11,37 @@ import CardHeader from '@material-ui/core/CardHeader';
 import Attributes from '@material-ui/icons/HdrWeakTwoTone';
 import Key from '@material-ui/icons/VpnKey';
 <%
-  let contString = 0;
-  let contFloat = 0;
-  let contInt = 0;
+  let types = [];
 
   for( let i=0; i<attributesArr.length; i++ ){
     let a = attributesArr[i][0];
     let type = attributesArr[i][1];
     let isForeignKey = (hasOwnForeingKeys&&ownForeignKeysArr.includes(a));
+    
+    //Skipp: foreign keys
+    if(isForeignKey) continue;
 
-    if(type === 'Int' && !isForeignKey) {
-      contInt++;
-    } else if(type === 'Float' && !isForeignKey) {
-      contFloat++;
-    } else if(type === 'String' && !isForeignKey) {
-      contString++;
-    }
+    //Case: password
+    if(nameLc==='user' && a==='password') type = 'Password';
+
+    //push
+    if(!types.includes(type)) types.push(type);
   }
--%>
 
-
-<%let keys = Object.keys(typeAttributes);
-  for( let i=0; i<keys.length; i++ ){
-    let type = keys[i];
+  //render imports
+  for( let i=0; i<types.length; i++ ){
+    let type = types[i];
 -%>
-<%if(type === 'String' && contString > 0) {%>
+<%if(type === 'Password') {%>
+import PasswordField from './components/PasswordField'
+<%}-%>
+<%if(type === 'String') {%>
 import StringField from './components/StringField'
 <%}-%>
-<%if(type === 'Float' && contFloat > 0) {%>
+<%if(type === 'Float') {%>
 import FloatField from './components/FloatField'
 <%}-%>
-<%if(type === 'Int' && contInt > 0) {%>
+<%if(type === 'Int') {%>
 import IntField from './components/IntField'
 <%}-%>
 <%if(type === 'Boolean') {%>
@@ -143,14 +143,34 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
   let a = attributesArr[i][0];
   let label = a;
   let type = attributesArr[i][1];
+  let f=0;
   
   //Skipp: foreign keys
   let isForeignKey = (hasOwnForeingKeys&&ownForeignKeysArr.includes(a));
   if(isForeignKey) continue;
 
   //Skipp: internalId (already rendered).
-  if(a===internalId) continue;  
+  if(a===internalId) continue;
+  else f++;
+
+  //Case: password
+  if(nameLc==='user' && a==='password') type = 'Password';
 -%>
+<% if(type === 'Password') {%>
+            {/* <%- label %> */}
+            <CardContent key='<%- a %>' className={classes.cardContent} >
+              <PasswordField
+                itemKey='<%- a %>'
+                name='<%- a %>'
+                label='<%- label %>'
+                text={item.<%- a %>}
+                valueOk={valueOkStates.<%- a _%>}
+<% if(f===0) {-%>
+                autoFocus={true}
+<%}-%>
+              />
+            </CardContent>
+<%}-%>
 <% if(type === 'String') {%>
             {/* <%- label %> */}
             <CardContent key='<%- a %>' className={classes.cardContent} >
@@ -160,7 +180,7 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
                 label='<%- label %>'
                 text={item.<%- a %>}
                 valueOk={valueOkStates.<%- a _%>}
-<% if(i===0) {-%>
+<% if(f===0) {-%>
                 autoFocus={true}
 <%}-%>
               />
@@ -175,7 +195,7 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
                 label='<%- label %>'
                 text={item.<%- a %>}
                 valueOk={valueOkStates.<%- a _%>}
-<% if(i===0) {-%>
+<% if(f===0) {-%>
                 autoFocus={true}
 <%}-%>
               />
@@ -191,7 +211,7 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
                 text={item.<%- a %>}
                 isForeignKey={<%- isForeignKey _%>}
                 valueOk={valueOkStates.<%- a _%>}
-<% if(i===0) {-%>
+<% if(f===0) {-%>
                 autoFocus={true}
 <%}-%>
               />
@@ -206,7 +226,7 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
                 label='<%- label %>'
                 text={item.<%- a %>}
                 valueOk={valueOkStates.<%- a _%>}
-<% if(i===0) {-%>
+<% if(f===0) {-%>
                 autoFocus={true}
 <%}-%>
               />
@@ -221,7 +241,7 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
                 label='<%- label %>'
                 text={item.<%- a %>}
                 valueOk={valueOkStates.<%- a _%>}
-<% if(i===0) {-%>
+<% if(f===0) {-%>
                 autoFocus={true}
 <%}-%>
               />
@@ -236,7 +256,7 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
                 label='<%- label %>'
                 text={item.<%- a %>}
                 valueOk={valueOkStates.<%- a _%>}
-<% if(i===0) {-%>
+<% if(f===0) {-%>
                 autoFocus={true}
 <%}-%>
               />
@@ -251,7 +271,7 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
                 label='<%- label %>'
                 text={item.<%- a %>}
                 valueOk={valueOkStates.<%- a _%>}
-<% if(i===0) {-%>
+<% if(f===0) {-%>
                 autoFocus={true}
 <%}-%>
               />

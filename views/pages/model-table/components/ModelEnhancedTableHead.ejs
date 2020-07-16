@@ -85,8 +85,13 @@ let a = attributesArr[i][0];
 let label = a;
 let type = attributesArr[i][1];
 
-//Skip internalId (already rendered).
-if(a===internalId) continue;
+/** 
+ * Skip:
+ *  - internalId (already rendered).
+ *  - password field in admin model User.
+ */
+if((a===internalId) 
+|| (nameLc==='user' && a==='password')) continue;
 -%>
 
         <TableCell

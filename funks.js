@@ -1883,6 +1883,10 @@ exports.genSpa = async function(program, {plotlyOptions}) {
     fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `StringField.js`);
     await exports.renderToFileSync(fpath, 'model-table/components/model-create-panel/components/model-attributes-page/model-attributes-form-view/components/StringField', ejbOpts, status, verbose);
 
+    // template 16_b: PasswordField
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `PasswordField.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-create-panel/components/model-attributes-page/model-attributes-form-view/components/PasswordField', ejbOpts, status, verbose);
+
     // template 17: TimeField
     fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `TimeField.js`);
     await exports.renderToFileSync(fpath, 'model-table/components/model-create-panel/components/model-attributes-page/model-attributes-form-view/components/TimeField', ejbOpts, status, verbose);
@@ -1974,6 +1978,10 @@ exports.genSpa = async function(program, {plotlyOptions}) {
     // template 33: StringField
     fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `StringField.js`);
     await exports.renderToFileSync(fpath, 'model-table/components/model-update-panel/components/model-attributes-page/model-attributes-form-view/components/StringField', ejbOpts, status, verbose);
+
+    // template 33_b: PasswordField
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `PasswordField.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-update-panel/components/model-attributes-page/model-attributes-form-view/components/PasswordField', ejbOpts, status, verbose);
 
     // template 34: TimeField
     fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `TimeField.js`);
@@ -2073,6 +2081,10 @@ exports.genSpa = async function(program, {plotlyOptions}) {
     // template 50: StringField
     fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `StringField.js`);
     await exports.renderToFileSync(fpath, 'model-table/components/model-detail-panel/components/model-attributes-page/model-attributes-form-view/components/StringField', ejbOpts, status, verbose);
+
+    // template 50_b: PasswordField
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `PasswordField.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-detail-panel/components/model-attributes-page/model-attributes-form-view/components/PasswordField', ejbOpts, status, verbose);
 
     // template 51: TimeField
     fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `TimeField.js`);

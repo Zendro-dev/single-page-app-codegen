@@ -202,25 +202,29 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
 
     //check if this.item changed
     if(lastModelChanged&&
-      lastModelChanged.<%- name _%>&&
-      lastModelChanged.<%- name _%>[String(itemState.<%- internalId _%>)]) {
+      lastModelChanged['<%- name _%>']&&
+      lastModelChanged['<%- name _%>'][String(item['<%- internalId _%>'])]) {
           
         //updated item
-        if(lastModelChanged.<%- name _%>[String(itemState.<%- internalId _%>)].op === "update"&&
-            lastModelChanged.<%- name _%>[String(itemState.<%- internalId _%>)].newItem) {
+        if(lastModelChanged['<%- name _%>'][String(item['<%- internalId _%>'])].op === "update"&&
+            lastModelChanged['<%- name _%>'][String(item['<%- internalId _%>'])].newItem) {
               //replace item
-              setItemState(lastModelChanged.<%- name _%>[String(itemState.<%- internalId _%>)].newItem);
+              setItemState(lastModelChanged['<%- name _%>'][String(item['<%- internalId _%>'])].newItem);
               //show alert
               setUpdated(true);
+        } else if(lastModelChanged['<%- name _%>'][String(item['<%- internalId _%>'])].op === "updatePassword"
+          &&lastModelChanged['<%- name _%>'][String(item['<%- internalId _%>'])].newItem){
+            //replace item
+            setItemState(lastModelChanged['<%- name _%>'][String(item['<%- internalId _%>'])].newItem);
         } else {
           //deleted item
-          if(lastModelChanged.<%- name _%>[String(itemState.<%- internalId _%>)].op === "delete") {
+          if(lastModelChanged['<%- name _%>'][String(item['<%- internalId _%>'])].op === "delete") {
               //show alert
               setDeleted(true);
           }
         }
     }//end: Case 1
-  }, [lastModelChanged, lastChangeTimestamp, itemState.<%- internalId _%>]);
+  }, [lastModelChanged, lastChangeTimestamp, item]);
 
   useEffect(() => {
     if(deleted&&updated) {
@@ -551,7 +555,7 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
                 </IconButton>
               </Tooltip>
               <Typography variant="h6" className={classes.title}>
-                { t('modelPanels.detailOf') +  ": <%- nameCp %> | <%- internalId _%>: " + itemState.<%- internalId _%> }
+                { t('modelPanels.detailOf') +  ": <%- nameCp %> | <%- internalId _%>: " + itemState['<%- internalId _%>'] }
               </Typography>
               {/*
                 Actions:

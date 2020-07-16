@@ -302,6 +302,7 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
         0: unknown/not tested yet (this is set on initial render)/empty
        -1: not acceptable
        -2: foreing key
+       -3: readOnly
     */
     let initialValueOkStates = {};
 
@@ -312,6 +313,8 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
   if(isForeignKey) {
 -%>
     initialValueOkStates.<%- attributesArr[i][0] %> = -2; //FK
+<%} else if(nameLc==='user' && a==='password'){-%>
+    initialValueOkStates.<%- attributesArr[i][0] %> = -3;
 <%} else {-%>
   initialValueOkStates.<%- attributesArr[i][0] %> = (item.<%- attributesArr[i][0] _%>!==null ? 1 : 0);
 <%}}-%>
@@ -521,19 +524,21 @@ function setAjvErrors(err) {
 
     //attributes
     for(let i=0; i<keys.length; i++) {
-      if(valuesOkRefs.current[keys[i]] !== -1) {
+      if(valuesOkRefs.current[keys[i]] !== -1
+      && valuesOkRefs.current[keys[i]] !== -2 //FK
+      && valuesOkRefs.current[keys[i]] !== -3 //readOnly
+      ) {
         variables[keys[i]] = values.current[keys[i]];
       }
     }
-
-    //delete: fk's
+    
 <%for( let i=0; i<attributesArr.length; i++ ){
   let a = attributesArr[i][0];
   let isForeignKey = (hasOwnForeingKeys&&ownForeignKeysArr.includes(a));
 
   if(isForeignKey) {
 -%>
-    delete variables.<%- a _%>;
+    delete variables.<%- a _%>; //FK
 <%}}-%>
 
     //add & remove: to_one's
