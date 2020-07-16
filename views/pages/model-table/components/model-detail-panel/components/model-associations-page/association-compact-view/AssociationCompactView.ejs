@@ -586,9 +586,18 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
 
       let oens = Object.entries(lastModelChanged.<%- sortedAssociations[aindex].targetModel _%>);
       oens.forEach( (entry) => {
-        
+<%#
+/**
+ * Special case: user model
+ */
+-%>
+<% if(sortedAssociations[aindex].targetModelLc==='user') {%>
+        //case A: updated || updated password
+        if((entry[1].op === "update" || entry[1].op === "updatePassword")&&entry[1].newItem) {
+<%} else {-%>
         //case A: updated
         if(entry[1].op === "update"&&entry[1].newItem) {
+<%}-%>
           let idUpdated = entry[1].item.<%- sortedAssociations[aindex].internalId _%>;
           
           //lookup item on table

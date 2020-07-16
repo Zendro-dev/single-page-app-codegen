@@ -212,10 +212,6 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
               setItemState(lastModelChanged['<%- name _%>'][String(item['<%- internalId _%>'])].newItem);
               //show alert
               setUpdated(true);
-        } else if(lastModelChanged['<%- name _%>'][String(item['<%- internalId _%>'])].op === "updatePassword"
-          &&lastModelChanged['<%- name _%>'][String(item['<%- internalId _%>'])].newItem){
-            //replace item
-            setItemState(lastModelChanged['<%- name _%>'][String(item['<%- internalId _%>'])].newItem);
         } else {
           //deleted item
           if(lastModelChanged['<%- name _%>'][String(item['<%- internalId _%>'])].op === "delete") {
@@ -223,6 +219,18 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
               setDeleted(true);
           }
         }
+<%#
+/**
+ * Special case: user model
+ */
+-%>
+<% if(nameLc==='user') {%>
+        if(lastModelChanged['<%- name _%>'][String(item['<%- internalId _%>'])].op === "updatePassword"
+          &&lastModelChanged['<%- name _%>'][String(item['<%- internalId _%>'])].newItem){
+            //replace item
+            setItemState(lastModelChanged['<%- name _%>'][String(item['<%- internalId _%>'])].newItem);
+        } 
+<%}-%>
     }//end: Case 1
   }, [lastModelChanged, lastChangeTimestamp, item]);
 
