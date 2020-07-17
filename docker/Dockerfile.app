@@ -6,5 +6,5 @@ WORKDIR /usr/src/app
 # Clone the skeleton App project and install dependencies
 RUN apk update && \
  apk add git bash && \
- git clone --branch latest-stable https://github.com/ScienceDb/single-page-app.git . && \
+ git clone --branch master https://github.com/ScienceDb/single-page-app.git . && \
  npm install

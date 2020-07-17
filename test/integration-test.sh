@@ -135,10 +135,12 @@ DOCKER_GQL_SERVER1=gql_science_db_graphql_server1
 DOCKER_GQL_SERVER2=gql_science_db_graphql_server2
 TEST_MODELS_INSTANCE1="./test/integration_test_models_instance1"
 TEST_MODELS_INSTANCE2="./test/integration_test_models_instance2"
+GQL_TEST_MODELS_INSTANCE1="./test/integration_test_models_instance1/gql"
+GQL_TEST_MODELS_INSTANCE2="./test/integration_test_models_instance2/gql"
 TARGET_DIR="./docker/integration_test_run"
 GQL_CODEGEN_DIR="./docker/graphql-server-model-codegen"
 GQL_CODEGEN_URL="https://github.com/ScienceDb/graphql-server-model-codegen.git"
-GQL_CODEGEN_BRANCH_TAG="latest-stable"
+GQL_CODEGEN_BRANCH_TAG="master"
 TARGET_DIR="./docker/integration_test_run"
 TARGET_DIR_GQL_INSTANCE1=$TARGET_DIR"/gql-instance1"
 TARGET_DIR_GQL_INSTANCE2=$TARGET_DIR"/gql-instance2"
@@ -562,9 +564,9 @@ genCode() {
   # Msg
   echo -e "${LGRAY}@@ Generating GraphQL Server code...${NC}"
   #Generate
-  node ${GQL_CODEGEN_DIR}/index.js -f ${TEST_MODELS_INSTANCE1} -o ${TARGET_DIR_GQL_INSTANCE1}
+  node ${GQL_CODEGEN_DIR}/index.js -f ${GQL_TEST_MODELS_INSTANCE1} -o ${TARGET_DIR_GQL_INSTANCE1}
   local gql1_status=$?
-  node ${GQL_CODEGEN_DIR}/index.js -f ${TEST_MODELS_INSTANCE2} -o ${TARGET_DIR_GQL_INSTANCE2}
+  node ${GQL_CODEGEN_DIR}/index.js -f ${GQL_TEST_MODELS_INSTANCE2} -o ${TARGET_DIR_GQL_INSTANCE2}
   local gql2_status=$?
   
   # Print summary

@@ -42,16 +42,17 @@ services:
 
     volumes:
       - ./integration_test_run/gql-instance1/models/adapters:/usr/src/app/models/adapters
-      - ./integration_test_run/gql-instance1/schemas:/usr/src/app/schemas
-      - ./integration_test_run/gql-instance1/resolvers:/usr/src/app/resolvers
-      - ./integration_test_run/gql-instance1/models/sql:/usr/src/app/models/sql
+      - ./integration_test_run/gql-instance1/schemas:/usr/src/app/generated/schemas
+      - ./integration_test_run/gql-instance1/resolvers:/usr/src/app/generated/resolvers
+      - ./integration_test_run/gql-instance1/models/sql:/usr/src/app/generated/models/sql
       - ./integration_test_run/gql-instance1/models/distributed:/usr/src/app/models/distributed
       - ./integration_test_run/gql-instance1/models/zendro-server:/usr/src/app/models/zendro-server
       - ./integration_test_run/gql-instance1/models/generic:/usr/src/app/models/generic
-      - ./integration_test_run/gql-instance1/migrations:/usr/src/app/migrations
-      - ./integration_test_run/gql-instance1/validations:/usr/src/app/validations
-      - ./integration_test_run/gql-instance1/patches:/usr/src/app/patches
+      - ./integration_test_run/gql-instance1/migrations:/usr/src/app/generated/migrations
+      - ./integration_test_run/gql-instance1/validations:/usr/src/app/generated/validations
+      - ./integration_test_run/gql-instance1/patches:/usr/src/app/generated/patches
       - ./sequelize_config_instance1.json:/usr/src/app/config/config.json
+      - ./copy_generated_code.sh:/usr/src/app/copy_generated_code.sh
 
     ports:
       - "3000:3000"
@@ -70,6 +71,8 @@ services:
       - -c
       - |
         npm install
+        chmod u+x ./copy_generated_code.sh
+        ./copy_generated_code.sh
         ./migrateDbAndStartServer.sh
 #
 # NCBI Simulated Server 1
@@ -163,16 +166,17 @@ services:
 
     volumes:
       - ./integration_test_run/gql-instance2/models/adapters:/usr/src/app/models/adapters
-      - ./integration_test_run/gql-instance2/schemas:/usr/src/app/schemas
-      - ./integration_test_run/gql-instance2/resolvers:/usr/src/app/resolvers
-      - ./integration_test_run/gql-instance2/models/sql:/usr/src/app/models/sql
+      - ./integration_test_run/gql-instance2/schemas:/usr/src/app/generated/schemas
+      - ./integration_test_run/gql-instance2/resolvers:/usr/src/app/generated/resolvers
+      - ./integration_test_run/gql-instance2/models/sql:/usr/src/app/generated/models/sql
       - ./integration_test_run/gql-instance2/models/distributed:/usr/src/app/models/distributed
       - ./integration_test_run/gql-instance2/models/zendro-server:/usr/src/app/models/zendro-server
       - ./integration_test_run/gql-instance2/models/generic:/usr/src/app/models/generic
-      - ./integration_test_run/gql-instance2/migrations:/usr/src/app/migrations
-      - ./integration_test_run/gql-instance2/validations:/usr/src/app/validations
-      - ./integration_test_run/gql-instance2/patches:/usr/src/app/patches
+      - ./integration_test_run/gql-instance2/migrations:/usr/src/app/generated/migrations
+      - ./integration_test_run/gql-instance2/validations:/usr/src/app/generated/validations
+      - ./integration_test_run/gql-instance2/patches:/usr/src/app/generated/patches
       - ./sequelize_config_instance2.json:/usr/src/app/config/config.json
+      - ./copy_generated_code.sh:/usr/src/app/copy_generated_code.sh
 
     ports:
       - "3030:3030"
@@ -190,6 +194,8 @@ services:
       - -c
       - |
         npm install
+        chmod u+x ./copy_generated_code.sh
+        ./copy_generated_code.sh
         ./migrateDbAndStartServer.sh
 #
 # SPA 2

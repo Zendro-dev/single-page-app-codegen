@@ -82,7 +82,7 @@ describe('1. Basic functionality', function () {
     expect(await page.title()).to.eql('Zendro');
   });
 
-  if(false)
+  if(true)
   {
   it('03. <individual> table is empty', async function () {
 
@@ -1579,11 +1579,11 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     // evaluate #20
     datas = (await Promise.all(props.responses)).map((data) => data.data);
     rowsCountA = await page.$$eval('div[id=IndividualCompactView-list-listA] > div[role=listitem]', rows => rows.length).catch((e) => null);
-    assocId1 = await page.$eval('p[id=IndividualCompactView-listA-listItem-id-1]', cell => cell.textContent).catch((e) => null);
+    assocId3 = await page.$eval('p[id=IndividualCompactView-listA-listItem-id-3]', cell => cell.textContent).catch((e) => null);
     
-    expect(datas[0].readOneTranscript_count.individual.id).to.eql("1");
+    expect(datas[0].readOneTranscript_count.individual.id).to.eql("3");
     expect(rowsCountA).to.eql(1);
-    expect(assocId1).to.eql('1');
+    expect(assocId3).to.eql('3');
     expect(await page.title()).to.eql('Zendro');
 
     // #21: click on: close detail panel
@@ -1631,11 +1631,11 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     // evaluate #23
     datas = (await Promise.all(props.responses)).map((data) => data.data);
     rowsCountA = await page.$$eval('div[id=IndividualCompactView-list-listA] > div[role=listitem]', rows => rows.length).catch((e) => null);
-    assocId1 = await page.$eval('p[id=IndividualCompactView-listA-listItem-id-1]', cell => cell.textContent).catch((e) => null);
+    assocId3 = await page.$eval('p[id=IndividualCompactView-listA-listItem-id-3]', cell => cell.textContent).catch((e) => null);
     
-    expect(datas[0].readOneTranscript_count.individual.id).to.eql("1");
+    expect(datas[0].readOneTranscript_count.individual.id).to.eql("3");
     expect(rowsCountA).to.eql(1);
-    expect(assocId1).to.eql('1');
+    expect(assocId3).to.eql('3');
     expect(await page.title()).to.eql('Zendro');
 
     // #24: click on: close detail panel
@@ -1708,6 +1708,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
       elementType: 'button',
       buttonId: 'TranscriptCountEnhancedTable-row-iconButton-edit-1',
       visibleId: 'TranscriptCountAttributesFormView-div-root',
+      ttdelay: ttdelay*2,
     }
     await clickOn(props);
 
@@ -1758,17 +1759,17 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     // evaluate #3
     datas = (await Promise.all(props.responses)).map((data) => data.data);
     let rowsCount_toAddA = await page.$$eval('div[id=IndividualToAddTransferView-list-listA] > li', rows => rows.length).catch((e) => null);
-    let assocId1 = await page.$eval('p[id=IndividualToAddTransferView-listA-listItem-id-1]', cell => cell.textContent).catch((e) => null);
+    let assocId3 = await page.$eval('p[id=IndividualToAddTransferView-listA-listItem-id-3]', cell => cell.textContent).catch((e) => null);
     expect(datas).to.deep.include({ readOneTranscript_count: {individual: null} });
     expect(datas).to.deep.include({ countIndividuals: 1 });
     expect(rowsCount_toAddA).to.eql(1);
-    expect(assocId1).to.eql('1');
+    expect(assocId3).to.eql('3');
     expect(await page.title()).to.eql('Zendro');
 
-    // #4: click on: toAdd - List A - add button - item 1
+    // #4: click on: toAdd - List A - add button - item 3
     props = {
       elementType: 'button',
-      buttonId: 'IndividualToAddTransferView-listA-listItem-1-button-add',
+      buttonId: 'IndividualToAddTransferView-listA-listItem-3-button-add',
       visibleIds: [
         'IndividualToAddTransferView-div-noDataA',
         'IndividualToAddTransferView-list-listB',
@@ -1785,13 +1786,13 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     // evaluate #5
     datas = (await Promise.all(props.responses)).map((data) => data.data);
     let rowsCount_toAddB = await page.$$eval('div[id=IndividualToAddTransferView-list-listB] > li', rows => rows.length).catch((e) => null);
-    assocId1 = await page.$eval('p[id=IndividualToAddTransferView-listB-listItem-id-1]', cell => cell.textContent).catch((e) => null);
+    assocId3 = await page.$eval('p[id=IndividualToAddTransferView-listB-listItem-id-3]', cell => cell.textContent).catch((e) => null);
     expect(datas).to.deep.include({ readOneTranscript_count: {individual: null} });
     expect(datas).to.deep.include({ countIndividuals: 0 });
     expect(datas).to.deep.include({ countIndividuals: 1 });
     expect(datas).to.deep.include({ individualsConnection: { pageInfo: {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false}, edges: [] } });
     expect(rowsCount_toAddB).to.eql(1);
-    expect(assocId1).to.eql('1');
+    expect(assocId3).to.eql('3');
     expect(await page.title()).to.eql('Zendro');
 
   });
