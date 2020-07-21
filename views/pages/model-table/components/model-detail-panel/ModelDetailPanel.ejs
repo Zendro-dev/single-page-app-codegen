@@ -572,8 +572,8 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
               */}
               {
                 /* acl check */
-                (permissions&&permissions.user&&Array.isArray(permissions.user)
-                &&(permissions.user.includes('update') || permissions.user.includes('*')))
+                (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
+                &&(permissions.<%- nameLc -%>.includes('update') || permissions.<%- nameLc -%>.includes('*')))
                 &&(!deleted)&&(
                   
                     <Tooltip title={ t('modelPanels.edit') }>
@@ -592,8 +592,8 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
               }
               {
                 /* acl check */
-                (permissions&&permissions.user&&Array.isArray(permissions.user)
-                &&(permissions.user.includes('delete') || permissions.user.includes('*')))
+                (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
+                &&(permissions.<%- nameLc -%>.includes('delete') || permissions.<%- nameLc -%>.includes('*')))
                 &&(!deleted)&&(
                   
                     <Tooltip title={ t('modelPanels.delete') }>

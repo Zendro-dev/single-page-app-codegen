@@ -1,15 +1,12 @@
 module.exports = {
   aclRules: [
-    //all models
+    //administrator
     {
-      roles: 'admin',
+      roles: 'administrator',
       allows: [{
         resources: [
 <%for( let i=0; i<adminModels.length; i++ ){-%>
           '<%- adminModels[i].nameLc _%>',
-<%}-%>
-<%for( let i=0; i<models.length; i++ ){-%>
-          '<%- models[i].nameLc _%>',
 <%}-%>
         ],
         permissions: '*'
@@ -18,32 +15,32 @@ module.exports = {
 
     //models
 <%for( let i=0; i<models.length; i++ ){-%>
+    /**
+     * Model: <%- models[i].nameLc %>
+     */
     {
-      /**
-       * Model: <%- models[i].nameLc %>
-       */
-      roles: '<%- models[i].nameLc _%>_create',
+      roles: 'editor',
       allows: [{
         resources: '<%- models[i].nameLc _%>',
         permissions: 'create'
       }]
     },
     {
-      roles: '<%- models[i].nameLc _%>_read',
+      roles: 'reader',
       allows: [{
         resources: '<%- models[i].nameLc _%>',
         permissions: 'read'
       }]
     },
     {
-      roles: '<%- models[i].nameLc _%>_update',
+      roles: 'editor',
       allows: [{
         resources: '<%- models[i].nameLc _%>',
         permissions: 'update'
       }]
     },
     {
-      roles: '<%- models[i].nameLc _%>_delete',
+      roles: 'editor',
       allows: [{
         resources: '<%- models[i].nameLc _%>',
         permissions: 'delete'
