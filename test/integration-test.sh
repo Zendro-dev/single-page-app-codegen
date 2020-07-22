@@ -566,6 +566,18 @@ genCode() {
   #Generate
   node ${GQL_CODEGEN_DIR}/index.js -f ${GQL_TEST_MODELS_INSTANCE1} -o ${TARGET_DIR_GQL_INSTANCE1}
   local gql1_status=$?
+  if [ $gql1_status -eq 0 ]; then  
+    # Patch
+    echo -e "${LGRAY}@ Patching required files...${NC}"
+    patch $TARGET_DIR_GQL_INSTANCE1"/validations/with_validations.js" "./test/patches/with_validations.js.patch"
+    if [ $? -eq 0 ]; then
+      echo -e "@ Patched: ${TARGET_DIR_GQL_INSTANCE1}/validations/with_validations.js ... ${LGREEN}done${NC}"
+    else
+      echo -e "!!${RED}ERROR${NC}: trying to patch: ${RED}${TARGET_DIR_GQL_INSTANCE1}/validations/with_validations.js${NC} fails ... ${YEL}exit${NC}"
+      exit 0
+    fi
+  fi
+
   node ${GQL_CODEGEN_DIR}/index.js -f ${GQL_TEST_MODELS_INSTANCE2} -o ${TARGET_DIR_GQL_INSTANCE2}
   local gql2_status=$?
   

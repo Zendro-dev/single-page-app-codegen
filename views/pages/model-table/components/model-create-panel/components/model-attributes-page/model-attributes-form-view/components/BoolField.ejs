@@ -60,7 +60,7 @@ export default function BoolField(props) {
   }
 
   return (
-    <Grid container justify='flex-start' alignItems='center' spacing={2}>
+    <Grid container justify='flex-start' alignItems='center' spacing={0}>
       <Grid item>
         <FormControl className={classes.root} component="fieldset">
           <FormLabel component="legend">{label}</FormLabel>
@@ -69,8 +69,8 @@ export default function BoolField(props) {
                 <Checkbox
                   id={'BoolField-<%- nameOnPascal -%>-'+name}
                   className={classes.checkbox}
-                  checked={checked} 
-                  color="primary"
+                  checked={checked}
+                  color={(valueAjv !== undefined && valueAjv.errors.length > 0) ? "secondary" : "primary"}
                   indeterminate={(valueOk===0)}
                   autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
                   onChange={(event) => {
@@ -95,9 +95,9 @@ export default function BoolField(props) {
         </FormControl>
       </Grid>
       {(valueAjv !== undefined && valueAjv.errors.length > 0) && (
-        <Grid item>
+        <Grid id={'BoolField-<%- nameOnPascal -%>-ajvError-'+name} item xs={12}>
           <Typography variant="caption" color='error'>
-            {valueAjv.errors.join()}
+            {valueAjv.errors.join(' & ')}
           </Typography>
         </Grid>
       )}

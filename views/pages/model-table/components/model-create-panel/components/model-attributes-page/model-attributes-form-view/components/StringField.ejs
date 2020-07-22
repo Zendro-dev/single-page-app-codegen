@@ -30,10 +30,11 @@ export default function StringField(props) {
   const textValue = useRef((text !== undefined && typeof text === 'string' ) ? text : null);
 
   return (
-    <Grid container justify='flex-start' alignItems='center' spacing={2}>
+    <Grid container justify='flex-start' alignItems='center' spacing={0}>
       <Grid item xs={12}>
         <TextField
           id={'StringField-<%- nameOnPascal -%>-'+name}
+          error={(valueAjv !== undefined && valueAjv.errors.length > 0)}
           label={label}
           multiline
           rowsMax="4"
@@ -78,9 +79,9 @@ export default function StringField(props) {
         />
       </Grid>
       {(valueAjv !== undefined && valueAjv.errors.length > 0) && (
-        <Grid item xs={12}>
+        <Grid item id={'StringField-<%- nameOnPascal -%>-ajvError-'+name} xs={12}>
           <Typography variant="caption" color='error'>
-            {valueAjv.errors.join()}
+            {valueAjv.errors.join(' & ')}
           </Typography>
         </Grid>
       )}

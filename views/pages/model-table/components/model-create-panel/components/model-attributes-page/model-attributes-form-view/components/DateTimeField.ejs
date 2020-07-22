@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
+import classnames from 'classnames';
 import { useTranslation } from 'react-i18next';
 import moment from "moment";
 import MomentUtils from "@date-io/moment";
@@ -15,6 +16,9 @@ import "moment/locale/de.js";
 const useStyles = makeStyles(theme => ({
   input: {
     margin: theme.spacing(0),
+  },
+  ajvError: {
+    color: "red"
   },
 }));
 
@@ -77,7 +81,7 @@ export default function DateTimeField(props) {
   }, [i18n.language]);
 
   return (
-    <Grid container justify='flex-start' alignItems='center' spacing={2}>
+    <Grid container justify='flex-start' alignItems='center' spacing={0}>
       <Grid item>
         <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils} locale={i18n.language}>
             <KeyboardDateTimePicker
@@ -91,6 +95,7 @@ export default function DateTimeField(props) {
               autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
               invalidDateMessage={ t('modelPanels.invalidDate', 'Invalid date format') }
               InputProps={{
+                className: classnames({[classes.ajvError]: (valueAjv !== undefined && valueAjv.errors.length > 0)}),
                 startAdornment:
                   <InputAdornment position="start">
                     {(valueOk!==undefined&&valueOk===1&&false) ? <CheckIcon color="primary" fontSize="small" /> : ''}
@@ -130,9 +135,9 @@ export default function DateTimeField(props) {
         </MuiPickersUtilsProvider>
       </Grid>
       {(valueAjv !== undefined && valueAjv.errors.length > 0) && (
-        <Grid item>
+        <Grid item id={'DateTimeField-<%- nameOnPascal -%>-ajvError-'+name} xs={12}>
           <Typography variant="caption" color='error'>
-            {valueAjv.errors.join()}
+            {valueAjv.errors.join(' & ')}
           </Typography>
         </Grid>
       )}
