@@ -10,12 +10,14 @@
     "aminoacidsequence_id": "Int"
   },
   "associations":{
-    "individual":{
+    "individual": {
       "type" : "to_one",
       "target" : "individual",
       "targetKey" : "individual_id",
       "keyIn": "transcript_count",
-      "targetStorageType" : "sql"
+      "targetStorageType" : "sql",
+      "label" : "name",
+      "sublabel": "developmental_state"
     },
     "aminoacidsequence":{
       "type" : "to_one",

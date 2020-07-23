@@ -1,0 +1,83 @@
+{
+  "model": "sample",
+  "storageType": "sql",
+  "attributes": {
+    "name": "String",
+    "material": "String",
+    "life_cycle_phase": "String",
+    "description": "String",
+    "harvest_date": "Date",
+    "library": "String",
+    "barcode_number": "Int",
+    "barcode_sequence": "String",
+    "sample_id": "Int",
+    "individual_id" : "Int",
+    "pot_id": "Int",
+    "field_plot_id": "Int"
+  },
+  "associations": {
+    "parent": {
+      "type" : "to_one",
+      "target" : "sample",
+      "targetKey" : "sample_id",
+      "keyIn": "sample",
+      "targetStorageType" : "sql",
+      "label" : "name",
+      "sublabel": "material"
+    },
+    "individual": {
+      "type" : "to_one",
+      "target" : "individual",
+      "targetKey" : "individual_id",
+      "keyIn": "sample",
+      "targetStorageType" : "sql",
+      "label" : "name",
+      "sublabel": "location_type"
+    },
+    "pot": {
+      "type" : "to_one",
+      "target" : "pot",
+      "targetKey" : "pot_id",
+      "keyIn": "sample",
+      "targetStorageType" : "sql",
+      "label" : "pot",
+      "sublabel": "greenhouse"
+    },
+    "field_plot": {
+      "type" : "to_one",
+      "target" : "field_plot",
+      "targetKey" : "field_plot_id",
+      "keyIn": "sample",
+      "targetStorageType" : "sql",
+      "label" : "location_code",
+      "sublabel": "field_name"
+    },
+    "samples": {
+      "type" : "to_many",
+      "target" : "sample",
+      "targetKey" : "sample_id",
+      "keyIn": "sample",
+      "targetStorageType" : "sql",
+      "label" : "name",
+      "sublabel": "material"
+    },
+    "microbiome_asvs": {
+      "type" : "to_many",
+      "target" : "microbiome_asv",
+      "targetKey" : "sample_id",
+      "keyIn": "microbiome_asv",
+      "targetStorageType" : "sql",
+      "label" : "asv_id",
+      "sublabel": "primer_kingdom"
+    },
+    "sample_measurements": {
+      "type" : "to_many",
+      "target" : "sample_measurement",
+      "targetKey" : "sample_id",
+      "keyIn": "sample_measurement",
+      "targetStorageType" : "sql",
+      "label" : "variable",
+      "sublabel": "value"
+    }
+  }
+}
