@@ -264,7 +264,7 @@ exports.checkJsonFiles = function(jsonDir, jsonFiles, options){
   //'jsonFiles'
   if(jsonFiles.length <= 0) {
     result.pass = false;
-    result.errors.push(`ERROR: There are no JSON files on input directory. You should specify some JSON files in order to generate the Zendro SPA.`);
+    result.errors.push(`@@Error: There are no JSON files on input directory. You should specify some JSON files in order to generate the Zendro SPA.`);
   } else {
     
     /**
@@ -281,7 +281,7 @@ exports.checkJsonFiles = function(jsonDir, jsonFiles, options){
       plotlyOptions.modelsWithPlotly.forEach((file) => {
         if(!jsonFilesPaths.includes(path.resolve(file))) {
           result.pass = false;
-          result.errors.push(`ERROR: json model file '${file}' is not in the json input directory.`);
+          result.errors.push(`@@Error: json model file '${file}' is not in the json input directory.`);
         } 
       });
     }
@@ -300,7 +300,8 @@ exports.checkJsonFiles = function(jsonDir, jsonFiles, options){
 exports.checkJsonDataFile = function(jsonModel, options){
   let result = {
     pass : true,
-    errors: []
+    errors: [],
+    warnings: 0,
   }
 
   /*
@@ -310,24 +311,24 @@ exports.checkJsonDataFile = function(jsonModel, options){
   //'model'
   if(!jsonModel.hasOwnProperty('model')) {
     result.pass = false;
-    result.errors.push(`ERROR: 'model' is a mandatory field.`);
+    result.errors.push(`@@Error: 'model' is a mandatory field.`);
   } else {
     //check 'model' type
     if(typeof jsonModel.model !== 'string') {
       result.pass = false;
-      result.errors.push(`ERROR: 'model' field must be a string.`);
+      result.errors.push(`@@Error: 'model' field must be a string.`);
     }
   }
   
   //'storageType'
   if(!jsonModel.hasOwnProperty('storageType')) {
     result.pass = false;
-    result.errors.push(`ERROR: 'storageType' is a mandatory field.`);
+    result.errors.push(`@@Error: 'storageType' is a mandatory field.`);
   } else {
     //check 'storageType' type
     if(typeof jsonModel.storageType !== 'string') {
       result.pass = false;
-      result.errors.push(`ERROR: 'storageType' field must be a string.`);
+      result.errors.push(`@@Error: 'storageType' field must be a string.`);
     } else {
       //check for valid storageType
       switch(jsonModel.storageType.toLowerCase()) {
@@ -347,7 +348,7 @@ exports.checkJsonDataFile = function(jsonModel, options){
         default:
           //not ok
           result.pass = false;
-          result.errors.push(`ERROR: The attribute 'storageType' has an invalid value. One of the following types is expected: [sql, zendro-server, distributed-data-model, generic]. But '${jsonModel.storageType}' was obtained.`);
+          result.errors.push(`@@Error: The attribute 'storageType' has an invalid value. One of the following types is expected: [sql, zendro-server, distributed-data-model, generic]. But '${jsonModel.storageType}' was obtained.`);
           break;
       }
     }
@@ -356,18 +357,18 @@ exports.checkJsonDataFile = function(jsonModel, options){
   //'attributes'
   if(!jsonModel.hasOwnProperty('attributes')) {
     result.pass = false;
-    result.errors.push(`ERROR: 'attributes' is a mandatory field.`);
+    result.errors.push(`@@Error: 'attributes' is a mandatory field.`);
   } else {
     //check for attributes type
     if(typeof jsonModel.attributes !== 'object') {
       result.pass = false;
-      result.errors.push(`ERROR: 'attributes' field must be an object.`);
+      result.errors.push(`@@Error: 'attributes' field must be an object.`);
     } else {
       //check for non empty attributes object
       let keys = Object.keys(jsonModel.attributes);
       if(keys.length === 0) {
         result.pass = false;
-        result.errors.push(`ERROR: 'attributes' object can not be empty`);
+        result.errors.push(`@@Error: 'attributes' object can not be empty`);
       } else {
         //check for correct attributes types
         for(let i=0; i<keys.length; ++i) {
@@ -385,7 +386,7 @@ exports.checkJsonDataFile = function(jsonModel, options){
             default:
               //not ok
               result.pass = false;
-              result.errors.push(`ERROR: 'attribute.${keys[i]}' has an invalid type. One of the following types is expected: [String, Int, Float, Boolean, Date, Time, DateTime]. But '${jsonModel.attributes[keys[i]]}' was obtained.`);
+              result.errors.push(`@@Error: 'attribute.${keys[i]}' has an invalid type. One of the following types is expected: [String, Int, Float, Boolean, Date, Time, DateTime]. But '${jsonModel.attributes[keys[i]]}' was obtained.`);
               break;
           }
         }
@@ -398,7 +399,7 @@ exports.checkJsonDataFile = function(jsonModel, options){
     //check 'associations' type
     if(typeof jsonModel.associations !== 'object') {
       result.pass = false;
-      result.errors.push(`ERROR: 'associations' field must be an object.`);
+      result.errors.push(`@@Error: 'associations' field must be an object.`);
     }
   }
 
@@ -407,13 +408,13 @@ exports.checkJsonDataFile = function(jsonModel, options){
     //check: 'internalId' type
     if(typeof jsonModel.internalId !== 'string') {
       result.pass = false;
-      result.errors.push(`ERROR: 'internalId' attribute should have a value of type 'string', but it has one of type: '${typeof jsonModel.internalId}'`);
+      result.errors.push(`@@Error: 'internalId' attribute should have a value of type 'string', but it has one of type: '${typeof jsonModel.internalId}'`);
 
     } else {
       //check: the respective attribute has actually been defined in the "attributes" object
       if(!jsonModel.attributes.hasOwnProperty(jsonModel.internalId)) {
         result.pass = false;
-        result.errors.push(`ERROR: 'internalId' value has not been defined as an attribute. '${jsonModel.internalId}' is not an attribute.`);
+        result.errors.push(`@@Error: 'internalId' value has not been defined as an attribute. '${jsonModel.internalId}' is not an attribute.`);
 
       } else {
         //check: the respective attribute is of the allowed types String, Int, or Float
@@ -427,7 +428,7 @@ exports.checkJsonDataFile = function(jsonModel, options){
           default:
             //not ok
             result.pass = false;
-            result.errors.push(`ERROR: 'internalId' has an invalid type. One of the following types is expected: [String, Int, Float]. But '${jsonModel.attributes[jsonModel.internalId]}' was obtained.`);
+            result.errors.push(`@@Error: 'internalId' has an invalid type. One of the following types is expected: [String, Int, Float]. But '${jsonModel.attributes[jsonModel.internalId]}' was obtained.`);
             break;
         }
       }
@@ -439,19 +440,19 @@ exports.checkJsonDataFile = function(jsonModel, options){
     //check: 'paginationType' type
     if(typeof jsonModel.paginationType !== 'string') {
       result.pass = false;
-      result.errors.push(`ERROR: 'paginationType' attribute should have a value of type 'string', but it has one of type: '${typeof jsonModel.paginationType}'`);
+      result.errors.push(`@@Error: 'paginationType' attribute should have a value of type 'string', but it has one of type: '${typeof jsonModel.paginationType}'`);
 
     } else {
       //check: value should be 'limitOffset' or 'cursorBased';
       if(jsonModel.paginationType !== 'limitOffset' && jsonModel.paginationType !== 'cursorBased') {
         result.pass = false;
-        result.errors.push(`ERROR: 'paginationType' value should be either 'limitOffset' or 'cursorBased', but it is: '${jsonModel.paginationType}'`);
+        result.errors.push(`@@Error: 'paginationType' value should be either 'limitOffset' or 'cursorBased', but it is: '${jsonModel.paginationType}'`);
 
       } else {
         //check: cursorBased is the only option for non-sql models
         if( (jsonModel.storageType)&&(String(jsonModel.storageType).toLowerCase() !== 'sql')&&(jsonModel.paginationType !== 'cursorBased') ){
           result.pass = false;
-          result.errors.push(`ERROR: 'limitOffset' pagination is not supported on non-sql storage types`);
+          result.errors.push(`@@Error: 'limitOffset' pagination is not supported on non-sql storage types`);
         }
       }
     }
@@ -466,7 +467,8 @@ exports.checkJsonDataFile = function(jsonModel, options){
       //check
       if(association.label === undefined || association.label === ''){
         //warning
-        console.log(colors.yellow('@@Warning:'), 'on model:', colors.blue(jsonModel.model), 'on associaton:', colors.blue(name), " - 'label' is not defined.");
+        console.log(colors.yellow("@@Warning: 'label' is not defined"), 'on model:', colors.blue(jsonModel.model), 'on associaton:', colors.blue(name));
+        result.warnings++;
       }
    })
   }
@@ -483,9 +485,10 @@ exports.checkJsonDataFile = function(jsonModel, options){
  * @return {object}           Object with all data model info that will be used to create files with templates.
  */
 exports.fillOptionsForViews = function(fileData, filePath, options){
-
   //get associations options
-  let associations = parseAssociationsFromFile(fileData);
+  let results = parseAssociationsFromFile(fileData);
+  let associations = results.associations;
+  let warnings = results.warnings;
 
   //set options used by EJS templates
   let opts = {
@@ -516,6 +519,9 @@ exports.fillOptionsForViews = function(fileData, filePath, options){
     //Plotly
     withPlotly: getWithPlotly(options.plotlyOptions, filePath),
     standalonePlotly: options.plotlyOptions.standalonePlotly,
+
+    //Warnings
+    warnings,
   }
 
   return opts;
@@ -535,8 +541,9 @@ exports.fillOptionsForViews = function(fileData, filePath, options){
  *      <modelName>_<relationName>
  *
  * @param  {array} opts Array of already calculated EJS model options.
+ * @param  {object} status Object with status properties. This function will set status properties on this object.
  */
-exports.addKeyRelationName = function(opts) {
+exports.addKeyRelationName = function(opts, status) {
   let warningsA = []; //target model not found
   let warningsB = []; //peer association not found
   let errorsA = []; //check A: keyIn should be the same in both peers
@@ -703,6 +710,9 @@ exports.addKeyRelationName = function(opts) {
   warningsB.forEach((e) => {
     console.log(colors.yellow('@@Warning: Incomplete association definition'), 'on model:', colors.blue(e.model), 'on associaton:', colors.blue(e.association), '- Peer association on target key:', colors.yellow(e.targetKey), 'not found on target model:', colors.yellow(e.targetModel));
   });
+  //set status totalWarnings
+  status.totalWarnings += (warningsA.length + warningsB.length);
+
   //errorsA: keyIn should be the same in both peers
   errorsA.forEach((e) => {
     console.log(colors.yellow('@@Error: Incorrect association definitions peer'), 'on model:', colors.blue(e.model), 'on associaton:', colors.blue(e.association), '- <keyIn> attribute should be the same in an associaton definitions peer, but got: <keyIn>:', colors.blue(e.keyIn), 'with: <keyIn>:', colors.yellow(e.peerAssociationKeyIn), 'in peer:', colors.yellow(e.targetModel+'-'+e.peerAssociationName));
@@ -815,7 +825,8 @@ attributesWithoutTargetKeysArrayFromFile = function(attributes, ownTargetKeys){
  */
 parseAssociationsFromFile = function(fileData){
   //check
-  checkAssociations(fileData); // !throws on error
+  let results = checkAssociations(fileData); // !throws on error
+  let warnings = results.warnings;
  
   let associations = fileData.associations;
   let assoc = {
@@ -892,7 +903,7 @@ parseAssociationsFromFile = function(fileData){
 
         default:
           //unknown type
-          console.log(colors.red('@@@@Error on association:'), colors.blue(name), '- Association has insconsistent key attributes.');
+          console.log(colors.red('@@Error on association:'), colors.blue(name), '- Association has insconsistent key attributes.');
           throw new Error("Inconsistent attributes found");
       }
 
@@ -939,7 +950,7 @@ parseAssociationsFromFile = function(fileData){
     }
   }
 
-  return assoc;
+  return {associations: assoc, warnings};
 }
 
 /**
@@ -984,6 +995,7 @@ getPaginationType = function(jsonModel){
  * @param  {object} fileData Object parsed from a model JSON file definition.
  */
 checkAssociations = function(fileData){
+  let warnings = 0;
   let associations = fileData.associations;
   let attributes = fileData.attributes;
   let modelName = fileData.model;
@@ -991,12 +1003,12 @@ checkAssociations = function(fileData){
   let ownCrossTables = {};
 
   //check: undefined
-  if(associations === undefined) return;
+  if(associations === undefined) return {warnings};
 
   //check: typeof
   if(typeof associations !== 'object') {
     //error: invalid type
-    console.log(colors.red('@@@@Error:'), "Invalid type of model's attribute:", colors.dim('associations'), "Expected an object but got:", colors.dim(typeof associations));
+    console.log(colors.red('@@Error:'), "Invalid type of model's attribute:", colors.dim('associations'), "Expected an object but got:", colors.dim(typeof associations));
     throw new Error("Invalid attributes found");
   }
   
@@ -1008,7 +1020,7 @@ checkAssociations = function(fileData){
     //check: typeof
     if(typeof association.type !== 'string') {
       //error: invalid type
-      console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Invalid association attribute:", colors.dim('type'), "Expected an string but got:", colors.dim(typeof association.type));
+      console.log(colors.red('@@Error on association:'), colors.blue(name), "- Invalid association attribute:", colors.dim('type'), "Expected an string but got:", colors.dim(typeof association.type));
       throw new Error("Invalid attributes found");
     }
     
@@ -1025,7 +1037,7 @@ checkAssociations = function(fileData){
 
       default:
         //error: unknown type
-        console.log(colors.red('@@@@Error on association:'), colors.blue(name), '- Association type:', colors.dim(association.type), colors.yellow("not supported"), 'One of the following types is expected: [to_one, to_many, to_many_through_sql_cross_table, generic_to_one, generic_to_many].');
+        console.log(colors.red('@@Error on association:'), colors.blue(name), '- Association type:', colors.dim(association.type), colors.yellow("not supported"), 'One of the following types is expected: [to_one, to_many, to_many_through_sql_cross_table, generic_to_one, generic_to_many].');
         throw new Error("Invalid attributes found");
     }
 
@@ -1038,28 +1050,28 @@ checkAssociations = function(fileData){
       //check: required attribute: target
       if(association.target === undefined || typeof association.target !== 'string') {
         //error
-        console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("target"), "and should be a string.");
+        console.log(colors.red('@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("target"), "and should be a string.");
         throw new Error("Required attributes not found");
       }
 
       //check: required attribute: targetKey
       if(association.targetKey === undefined || typeof association.targetKey !== 'string') {
         //error
-        console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("targetKey"), "and should be a string.");
+        console.log(colors.red('@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("targetKey"), "and should be a string.");
         throw new Error("Required attributes not found");
       }
 
       //check: required attribute: targetStorageType
       if(association.targetStorageType === undefined || typeof association.targetStorageType !== 'string') {
         //error
-        console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("targetStorageType"), "and should be a string.");
+        console.log(colors.red('@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("targetStorageType"), "and should be a string.");
         throw new Error("Required attributes not found");
       }
       
       //check: required attribute: keyIn
       if(association.keyIn === undefined || typeof association.keyIn !== 'string') {
         //error
-        console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("keyIn"), "and should be a string.");
+        console.log(colors.red('@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("keyIn"), "and should be a string.");
         throw new Error("Required attributes not found");
       }
 
@@ -1067,13 +1079,26 @@ checkAssociations = function(fileData){
       if(association.keyIn === modelName) {
 
         //update targetKey count
-        if(!ownTargetKeys[association.targetKey]) ownTargetKeys[association.targetKey] = 1;
-        else ownTargetKeys[association.targetKey]++;
+        if(!ownTargetKeys[association.targetKey]) { //case: first occurrence of targetKey
+          //Case: self-associated
+          if(association.target === modelName) {
+            ownTargetKeys[association.targetKey] = {count: 0, selfAssociatedCount: 1};
+          } else { //Case: not self-associated
+            ownTargetKeys[association.targetKey] = {count: 1, selfAssociatedCount: 0};
+          }
+        } else { //Case: this targetKey has appeared before
+          //Case: self-associated
+          if(association.target === modelName) {
+            ownTargetKeys[association.targetKey].selfAssociatedCount++;
+          } else { //Case: not self-associated
+            ownTargetKeys[association.targetKey].count++;
+          }
+        }
 
         //check: consistency definition: targetKey
         if(!attributes.hasOwnProperty(association.targetKey)) {
         //error
-        console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined the value of", colors.dim("targetKey"), "as an attribute of this model, but", colors.yellow(association.targetKey), "is not declared as an attribute.");
+        console.log(colors.red('@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined the value of", colors.dim("targetKey"), "as an attribute of this model, but", colors.yellow(association.targetKey), "is not declared as an attribute.");
         throw new Error("Inconsistent attributes found");
         }
       }
@@ -1088,48 +1113,48 @@ checkAssociations = function(fileData){
       //check: required attribute: target
       if(association.target === undefined || typeof association.target !== 'string') {
         //error
-        console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("target"), "and should be a string.");
+        console.log(colors.red('@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("target"), "and should be a string.");
         throw new Error("Required attributes not found");
       }
 
       //check: required attribute: targetKey
       if(association.targetKey === undefined || typeof association.targetKey !== 'string') {
         //error
-        console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("targetKey"), "and should be a string.");
+        console.log(colors.red('@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("targetKey"), "and should be a string.");
         throw new Error("Required attributes not found");
       }
 
       //check: required attribute: sourceKey
       if(association.sourceKey === undefined || typeof association.sourceKey !== 'string') {
         //error
-        console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("sourceKey"), "and should be a string.");
+        console.log(colors.red('@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("sourceKey"), "and should be a string.");
         throw new Error("Required attributes not found");
       }
 
       //check: required attribute: targetStorageType
       if(association.targetStorageType === undefined || typeof association.targetStorageType !== 'string') {
         //error
-        console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("targetStorageType"), "and should be a string.");
+        console.log(colors.red('@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("targetStorageType"), "and should be a string.");
         throw new Error("Required attributes not found");
       }
 
       //check: required attribute: keysIn
       if(association.keysIn === undefined || typeof association.keysIn !== 'string') {
         //error
-        console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("keysIn"), "and should be a string.");
+        console.log(colors.red('@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("keysIn"), "and should be a string.");
         throw new Error("Required attributes not found");
       }
 
       //check: only sql
       if(fileData.storageType.toLowerCase() !== 'sql') {
         //error
-        console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "only allowed for relational database (sql) types with well defined cross-table, but got 'storageType':", colors.red(fileData.storageType.toLowerCase()));
+        console.log(colors.red('@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "only allowed for relational database (sql) types with well defined cross-table, but got 'storageType':", colors.red(fileData.storageType.toLowerCase()));
         throw new Error("Inconsistent attributes found");
       }
 
       if(association.targetStorageType.toLowerCase() !== 'sql') {
         //error
-        console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "only allowed for relational database (sql) types with well defined cross-table, but got 'targetStorageType':", colors.red(association.targetStorageType.toLowerCase()));
+        console.log(colors.red('@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "only allowed for relational database (sql) types with well defined cross-table, but got 'targetStorageType':", colors.red(association.targetStorageType.toLowerCase()));
         throw new Error("Inconsistent attributes found");
       }
 
@@ -1147,21 +1172,36 @@ checkAssociations = function(fileData){
       //check: required attribute: target
       if(association.target === undefined || typeof association.target !== 'string') {
         //error
-        console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("target"), "and should be a string.");
+        console.log(colors.red('@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("target"), "and should be a string.");
         throw new Error("Required attributes not found");
       }
     }
-  });
+  }); //end: Object.entries(associations).forEach()
   
 
   /**
-   * Check: unique target keys
+   * Check: target key should:
+   * - appears only once (unique) per association, in a non self-associated definition.
+   * - appears only twice in a self-associated definition, once in each of the two complementary definitions.   
    */
   Object.entries(ownTargetKeys).forEach((entry) => {
-    if(entry[1] > 1) {
+    //Case: not self-associated: target key appears more than once. 
+    if(entry[1].count > 1) {
       //error
-      console.log(colors.red('@@@@Error on model:'), colors.blue(modelName), "- target keys should be unique for each association, but", colors.dim(entry[0]), "is used in",entry[1], "different associations as target key.");
+      console.log(colors.red('@@Error on model:'), colors.blue(modelName), "- target keys should be unique for each association, but", colors.dim(entry[0]), "is used in",entry[1].count, "different associations as target key.");
       throw new Error("Inconsistent attributes found");
+    }
+    //Case: self-associated: target key appears more than twice.
+    if(entry[1].selfAssociatedCount > 2) {
+      //error
+      console.log(colors.red('@@Error on model:'), colors.blue(modelName), "- target keys in a self-association should appears only twice, once in each of the two association's complementary definitions, but", colors.dim(entry[0]), "is used in",entry[1].selfAssociatedCount, "different self-association definitions as target key.");
+      throw new Error("Inconsistent attributes found");
+    }
+    //Case: self-associated: target key appears only once.
+    if(entry[1].selfAssociatedCount === 1) {
+      //warning
+      console.log(colors.yellow('@@Warning: Incomplete self-association definition'),'on model:', colors.blue(modelName), "- target key in a self-association should appears twice, once in each of the two association's complementary definitions, but", colors.dim(entry[0]), "is used only in",entry[1].selfAssociatedCount, "self-association definition as target key.");
+      warnings++;
     }
   });
 
@@ -1171,10 +1211,12 @@ checkAssociations = function(fileData){
   Object.entries(ownCrossTables).forEach((entry) => {
     if(entry[1] > 1) {
       //error
-      console.log(colors.red('@@@@Error on model:'), colors.blue(modelName), "- cross tables should be unique for each many-to-many association, but", colors.dim(entry[0]), "is used in",entry[1], "different associations, as the value of 'keysIn' attribute.");
+      console.log(colors.red('@@Error on model:'), colors.blue(modelName), "- cross tables should be unique for each many-to-many association, but", colors.dim(entry[0]), "is used in",entry[1], "different associations, as the value of 'keysIn' attribute.");
       throw new Error("Inconsistent attributes found");
     }
   });
+
+  return {warnings};
 }
 
 /**
@@ -1196,7 +1238,7 @@ getSqlType = function(association, name){
     return 'generic';
   }else{
     //error
-    console.log(colors.red('@@@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "has inconsistent key attributes.");
+    console.log(colors.red('@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "has inconsistent key attributes.");
     throw new Error("Required attributes not found");
   }
 }
@@ -1475,6 +1517,7 @@ parseJsonModels = function(jsonFiles, baseDir, {plotlyOptions}, verbose) {
   let totalFiles = 0;         //files readed from input dir
   let totalExcludedFiles = 0; //files excluded: either by JSON error parsing or by semantic errors.
   let totalWrongFiles = 0;    //files with semantic errors.
+  let totalWarnings = 0;
 
   //msg
   console.log(colors.white('\n@ Processing JSON files...'));
@@ -1520,6 +1563,8 @@ parseJsonModels = function(jsonFiles, baseDir, {plotlyOptions}, verbose) {
     
     //do semantic validations
     let check_json_model = funks.checkJsonDataFile(fileData);
+    totalWarnings += check_json_model.warnings;
+
     if(!check_json_model.pass) {//no-valid
       totalWrongFiles++;
       totalExcludedFiles++;
@@ -1539,6 +1584,7 @@ parseJsonModels = function(jsonFiles, baseDir, {plotlyOptions}, verbose) {
       let opt = null;
       try {
         opt = funks.fillOptionsForViews(fileData, jsonFilePath, {plotlyOptions});
+        totalWarnings += opt.warnings;
       }catch(e) {
         totalWrongFiles++;
         totalExcludedFiles++;
@@ -1561,6 +1607,7 @@ parseJsonModels = function(jsonFiles, baseDir, {plotlyOptions}, verbose) {
     totalFiles,
     totalWrongFiles,
     totalExcludedFiles,
+    totalWarnings,
   };
 }
 
@@ -1576,6 +1623,8 @@ exports.printSummary = function(status) {
   if(status.totalFilesGenerated !== undefined) console.log("@@ Total files generated: ", (status.totalFilesGenerated>0) ? colors.green(status.totalFilesGenerated) : colors.yellow(status.totalFilesGenerated));
   //msg
   if(status.totalCodeGenerationErrors !== undefined) console.log("@@ Total code generation errors: ", (status.totalCodeGenerationErrors>0) ? colors.red(status.totalCodeGenerationErrors) : colors.green(status.totalCodeGenerationErrors));
+  //msg
+  if(status.totalWarnings !== undefined) console.log("@@ Total warnings: ", (status.totalWarnings>0) ? colors.yellow(status.totalWarnings) : colors.green(status.totalWarnings));
   //msg
   if(status.templatesWithErrors !== undefined && Array.isArray(status.templatesWithErrors) && status.templatesWithErrors.length > 0){
     console.log("@@ Total templates with errors: ", colors.red(status.templatesWithErrors.length));
@@ -1697,8 +1746,11 @@ exports.genSpa = async function(program, {plotlyOptions}) {
 
   //add extra attributes
   try {
-    exports.addKeyRelationName(opts);
+    //msg
+    console.log(colors.white('@ Associations pos-processing:'));    
+    exports.addKeyRelationName(opts, status);
     exports.addExtraAttributesAssociations(opts);
+    console.log(colors.white('@ ', colors.green('done')));
 
   }catch(e) {
     //err
