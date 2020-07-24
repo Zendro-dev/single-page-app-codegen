@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import Checkbox from '@material-ui/core/Checkbox';
@@ -7,10 +8,14 @@ import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
+import Tooltip from '@material-ui/core/Tooltip';
 
 const useStyles = makeStyles(theme => ({
   root: {
     paddingLeft: theme.spacing(2),
+  },
+  formControlLabel: {
+    margin: theme.spacing(0),
   },
   checkbox: {
     padding: theme.spacing(2),
@@ -19,6 +24,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function BoolField(props) {
   const classes = useStyles();
+  const { t } = useTranslation();
   const {
     itemKey,
     name,
@@ -64,7 +70,7 @@ export default function BoolField(props) {
       <Grid item>
         <FormControl className={classes.root} component="fieldset">
           <FormLabel component="legend">{label}</FormLabel>
-            <FormControlLabel
+            <FormControlLabel className={classes.formControlLabel}
               control={
                 <Checkbox
                   id={'BoolField-<%- nameOnPascal -%>-'+name}
@@ -93,6 +99,22 @@ export default function BoolField(props) {
               }
             />
         </FormControl>
+      </Grid>
+      <Grid item>
+        {(valueOk!==undefined&&valueOk===1) 
+          ? 
+          <Tooltip title={ t('modelPanels.valueEntered', "Value entered") }>
+            <Typography id={'BoolField-<%- nameOnPascal -%>-exists-'+name} variant="caption" color="primary">
+              &#8707;
+            </Typography>
+          </Tooltip>
+          : 
+          <Tooltip title={ t('modelPanels.valueNotEntered', "Value not entered") }>
+            <Typography id={'BoolField-<%- nameOnPascal -%>-notExists-'+name} variant="caption" color="textSecondary">
+              &#8708;
+            </Typography>
+          </Tooltip>
+        }
       </Grid>
       {(valueAjv !== undefined && valueAjv.errors.length > 0) && (
         <Grid id={'BoolField-<%- nameOnPascal -%>-ajvError-'+name} item xs={12}>

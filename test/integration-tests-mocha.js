@@ -3199,6 +3199,7 @@ describe('3.2 Validations - update-panel.', function () {
       requests: ['http://localhost:3000/graphql'],
       responses: [],
       expectedResponses: 1,
+      ttdelay: ttdelay*1.5,
     };
     await clickOn(props);
     // evaluate #31
@@ -3241,6 +3242,7 @@ describe('3.2 Validations - update-panel.', function () {
       requests: ['http://localhost:3000/graphql'],
       responses: [],
       expectedResponses: 1,
+      ttdelay: ttdelay*1.5,
     };
     await clickOn(props);
     // evaluate #35
@@ -3283,6 +3285,7 @@ describe('3.2 Validations - update-panel.', function () {
       requests: ['http://localhost:3000/graphql'],
       responses: [],
       expectedResponses: 1,
+      ttdelay: ttdelay*1.5,
     };
     await clickOn(props);
     // evaluate #39
@@ -3325,6 +3328,7 @@ describe('3.2 Validations - update-panel.', function () {
       requests: ['http://localhost:3000/graphql'],
       responses: [],
       expectedResponses: 1,
+      ttdelay: ttdelay*2,
     };
     await clickOn(props);
     // evaluate #43
@@ -3367,6 +3371,7 @@ describe('3.2 Validations - update-panel.', function () {
       requests: ['http://localhost:3000/graphql'],
       responses: [],
       expectedResponses: 1,
+      ttdelay: ttdelay*1.5,
     };
     await clickOn(props);
     // evaluate #48
@@ -3410,6 +3415,7 @@ describe('3.2 Validations - update-panel.', function () {
       requests: ['http://localhost:3000/graphql'],
       responses: [],
       expectedResponses: 3,
+      ttdelay: ttdelay*1.5,
     };
     await clickOn(props);
     // evaluate #52
