@@ -272,17 +272,21 @@ exports.checkJsonFiles = function(jsonDir, jsonFiles, options){
      */
     let plotlyOptions = options.plotlyOptions;
     let jsonFilesPaths = jsonFiles.map((file) => path.resolve(path.join(jsonDir, file)));
+    let adminModels = getAdminModels();
 
     //genPlotly + modelsWithPlotly
     if(plotlyOptions.genPlotly) {
       /**
-       * All models should be one of those in jsonDir
+       * All models should be one of those in jsonDir or an admin model name.
        */
       plotlyOptions.modelsWithPlotly.forEach((file) => {
-        if(!jsonFilesPaths.includes(path.resolve(file))) {
+
+        //check admin models
+        if(!adminModels.map(m => m.model).includes(file)
+        && !jsonFilesPaths.includes(path.resolve(file))) {
           result.pass = false;
           result.errors.push(`@@Error: json model file '${file}' is not in the json input directory.`);
-        } 
+        }
       });
     }
   }
@@ -517,7 +521,7 @@ exports.fillOptionsForViews = function(fileData, filePath, options){
     storageType: fileData.storageType,
     
     //Plotly
-    withPlotly: getWithPlotly(options.plotlyOptions, filePath),
+    withPlotly: getWithPlotly(options, filePath),
     standalonePlotly: options.plotlyOptions.standalonePlotly,
 
     //Warnings
@@ -1246,10 +1250,12 @@ getSqlType = function(association, name){
 /**
  * getWithPlotly - Calculates the value for withPlotly option.
  *
- * @param  {object} plotlyOptions Plotly related options.
+ * @param  {object} options Generation process related options.
  * @param  {string} filePath JSON model file path.
  */
-getWithPlotly = function(plotlyOptions, filePath) {
+getWithPlotly = function(options, filePath) {
+  let plotlyOptions = options.plotlyOptions;
+
   //check
   if(!plotlyOptions) return false;
 
@@ -1258,9 +1264,15 @@ getWithPlotly = function(plotlyOptions, filePath) {
 
   //check: genPlotly
   if(plotlyOptions.genPlotly) {
+
+    //check: admin model
+    if(plotlyOptions.isAdminModel && plotlyOptions.modelsWithPlotly.includes(plotlyOptions.modelName)) {
+      return true;
+    }
+
+    //check: model included in modelsWithPlotly array
     //get resolved paths
     let modelsWithPlotlyPaths = plotlyOptions.modelsWithPlotly.map((file) => path.resolve(file));
-
     if(modelsWithPlotlyPaths.includes(path.resolve(filePath))) {
       return true;
     } else {
@@ -1512,16 +1524,94 @@ checkRequiredDirs = function(requiredDirs, createDirs, baseDir, verbose) {
   };
 }
 
+getAdminModels = function() {
+  return [
+    {
+      model: 'user',
+      storageType: 'SQL',
+      attributes: { email: 'String', password: 'String' },
+      associations: {
+        roles: {
+          type: 'to_many_through_sql_cross_table',
+          target: 'role',
+          targetKey: 'roleId',
+          sourceKey: 'userId',
+          keysIn: 'role_to_user',
+          targetStorageType: 'sql',
+          label: 'name',
+          sublabel: 'id'
+        }
+      }
+    },
+    {
+      model: 'role',
+      storageType: 'SQL',
+      attributes: { name: 'String', description: 'String' },
+      associations: {
+        users: {
+          type: 'to_many_through_sql_cross_table',
+          target: 'user',
+          targetKey: 'userId',
+          sourceKey: 'roleId',
+          keysIn: 'role_to_user',
+          targetStorageType: 'sql',
+          label: 'email',
+          sublabel: 'id'
+        }
+      }
+    },
+    {
+      model: 'role_to_user',
+      storageType: 'SQL',
+      attributes: { userId: 'Int', roleId: 'Int' }
+    }
+  ];
+}
+
 parseJsonModels = function(jsonFiles, baseDir, {plotlyOptions}, verbose) {
   let opts = [];
   let totalFiles = 0;         //files readed from input dir
   let totalExcludedFiles = 0; //files excluded: either by JSON error parsing or by semantic errors.
   let totalWrongFiles = 0;    //files with semantic errors.
   let totalWarnings = 0;
+  let adminModels = getAdminModels();
 
+  /**
+   * Add admin models
+   */
+  //msg
+  console.log(colors.white('\n@ Adding admin models...'));
+  //for each admin model
+  for(let i=0; i<adminModels.length; i++) {
+    let model = adminModels[i];
+    //get options
+    let opt = null;
+    try {
+      opt = funks.fillOptionsForViews(model, null, {plotlyOptions, isAdminModel: true, modelName: model.model});
+      totalWarnings += opt.warnings;
+    }catch(e) {
+      totalWrongFiles++;
+      totalExcludedFiles++;
+      //err
+      console.log(colors.red("@@@ Error on admin model:"), colors.blue(model.model));
+      console.log(e);
+      //msg
+      console.log('@@@ Model:', colors.blue(model.model), colors.yellow('excluded'));
+      continue;
+    }
+
+    //msg
+    if(verbose) console.log("@@ ", colors.green('done'));
+    opts.push(opt);
+  }
+  //msg
+  console.log("@ ", colors.green('done'));
+
+  /**
+   * Add non-admin models
+   */
   //msg
   console.log(colors.white('\n@ Processing JSON files...'));
-
   //for each json model file
   for(let i=0; i<jsonFiles.length; i++) {
     let jsonFile = jsonFiles[i];
@@ -1547,6 +1637,14 @@ parseJsonModels = function(jsonFiles, baseDir, {plotlyOptions}, verbose) {
       if(fileData === null) {
         totalExcludedFiles++;
         //msg
+        console.log('@@@ File:', colors.blue(jsonFile), colors.yellow('excluded'));
+        continue;
+      }
+      //check: admin models
+      if(adminModels.map(m => m.model).includes(fileData.model)) {
+        totalExcludedFiles++;
+        //msg
+        console.log('@@@ The model names: [', colors.white(adminModels.join(', ')), "] are reserved model names, please use another name.");
         console.log('@@@ File:', colors.blue(jsonFile), colors.yellow('excluded'));
         continue;
       }
@@ -1772,7 +1870,7 @@ exports.genSpa = async function(program, {plotlyOptions}) {
   status.templatesWithErrors = [];
   let modelsOpts = {models: [], adminModels: []};
   let modelAtts = {};
-  let adminModels = ['role', 'user', 'role_to_user'];
+  let adminModelsNames = getAdminModels().map(m=>m.model);
 
   /**
    * For each model in opts
@@ -1782,7 +1880,7 @@ exports.genSpa = async function(program, {plotlyOptions}) {
 
     // set table path & collect models
     let tablePath = null;
-    if(adminModels.includes(ejbOpts.nameLc)) {
+    if(adminModelsNames.includes(ejbOpts.nameLc)) {
       tablePath = 'src/components/main-panel/table-panel/admin-tables';
       modelsOpts.adminModels.push(ejbOpts);
     } else {
@@ -2184,10 +2282,10 @@ exports.genSpa = async function(program, {plotlyOptions}) {
 
     if(status.errorOnRender) {
       //msg
-      console.log(colors.white('@@ Generating code for model: '), colors.blue(ejbOpts.name), '... ', colors.red('done'));
+      console.log(colors.white('@@ Generating code for model: '), colors.blue(ejbOpts.name+(adminModelsNames.includes(ejbOpts.name)?' (admin)':'')), '... ', colors.red('done'));
     } else {
       //msg
-      console.log(colors.white('@@ Generating code for model: '), colors.blue(ejbOpts.name), '... ', colors.green('done'));
+      console.log(colors.white('@@ Generating code for model: '), colors.blue(ejbOpts.name+(adminModelsNames.includes(ejbOpts.name)?' (admin)':'')), '... ', colors.green('done'));
     }
   }//end: for each model in opts
   opts = null;
