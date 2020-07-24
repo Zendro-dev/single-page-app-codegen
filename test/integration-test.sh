@@ -327,6 +327,9 @@ restartContainers() {
   # Msg
   echo -e "@@ Containers restarted ... ${LGREEN}done${NC}"
   echo -e "${LGRAY}---------------------------- @@${NC}\n"
+
+  # Wait for all servers to respond
+  waitForAll
 }
 
 #
@@ -494,6 +497,40 @@ waitForSpa() {
 }
 
 #
+# Function: waitForAll()
+#
+# Waits for all servers to start.
+#
+waitForAll() {
+  # Msg
+  echo -e "\n${LGRAY}@@ ----------------------------${NC}"
+  echo -e "${LGRAY}@@ Waiting for servers...${NC}"
+
+  # Wait for graphql server
+  waitForGql
+
+  #Init dbs
+  # Instance 1
+  docker-compose -f ./docker/docker-compose-test.yml exec ${DOCKER_POSTGRES_SERVER1} \
+  bash -c "psql -U sciencedb -d sciencedb_development -P pager=off --single-transaction -f /usr/src/app/integration-test.sql"
+  # Msg
+  echo -e "@@ db1 init ... ${LGREEN}done${NC}"
+  
+  # Instance 2
+  docker-compose -f ./docker/docker-compose-test.yml exec ${DOCKER_POSTGRES_SERVER2} \
+  bash -c "psql -U sciencedb -d sciencedb_development -P pager=off --single-transaction -f /usr/src/app/integration-test.sql"
+  # Msg
+  echo -e "@@ db2 init ... ${LGREEN}done${NC}"
+
+  # Wait for spa server
+  waitForSpa
+
+  # Msg
+  echo -e "@@ All servers up! ... ${LGREEN}done${NC}"
+  echo -e "${LGRAY}---------------------------- @@${NC}\n"
+}
+
+#
 # Function: gqlCodegenSetup()
 #
 # Check the GraphQL Server codegen, clone it if necessary & install it.
@@ -569,11 +606,24 @@ genCode() {
   if [ $gql1_status -eq 0 ]; then  
     # Patch
     echo -e "${LGRAY}@ Patching required files...${NC}"
+    #
+    # path file: /validations/with_validations.js"
+    #
     patch $TARGET_DIR_GQL_INSTANCE1"/validations/with_validations.js" "./test/patches/with_validations.js.patch"
     if [ $? -eq 0 ]; then
       echo -e "@ Patched: ${TARGET_DIR_GQL_INSTANCE1}/validations/with_validations.js ... ${LGREEN}done${NC}"
     else
       echo -e "!!${RED}ERROR${NC}: trying to patch: ${RED}${TARGET_DIR_GQL_INSTANCE1}/validations/with_validations.js${NC} fails ... ${YEL}exit${NC}"
+      exit 0
+    fi
+    #
+    # path file: /src/acl_rules.js"
+    #
+    patch $TARGET_DIR_SPA_INSTANCE1"/src/acl_rules.js" "./test/patches/acl_rules.js.patch"
+    if [ $? -eq 0 ]; then
+      echo -e "@ Patched: ${TARGET_DIR_SPA_INSTANCE1}/src/acl_rules.js ... ${LGREEN}done${NC}"
+    else
+      echo -e "!!${RED}ERROR${NC}: trying to patch: ${RED}${TARGET_DIR_SPA_INSTANCE1}/src/acl_rules.js${NC} fails ... ${YEL}exit${NC}"
       exit 0
     fi
   fi
@@ -794,6 +844,8 @@ if [ $# -gt 0 ]; then
               genCode
               # Ups containers
               upContainers
+              # Wait for all servers
+              waitForAll
 
               # Done
               exit 0
