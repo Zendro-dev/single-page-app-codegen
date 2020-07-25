@@ -7,7 +7,6 @@ jsb = require('js-beautify').js_beautify;
 funks = require(path.resolve(__dirname, 'funks.js'));
 program = require('commander');
 const colors = require('colors/safe');
-const { stringify } = require('querystring');
 
 /*
  * Program options
