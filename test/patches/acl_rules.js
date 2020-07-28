@@ -46,6 +46,37 @@ module.exports = {
       }]
     },
     /**
+     * Model: acl_validations
+     */
+    {
+      roles: 'editor',
+      allows: [{
+        resources: 'acl_validations',
+        permissions: 'create'
+      }]
+    },
+    {
+      roles: 'reader',
+      allows: [{
+        resources: 'acl_validations',
+        permissions: 'read'
+      }]
+    },
+    {
+      roles: 'editor',
+      allows: [{
+        resources: 'acl_validations',
+        permissions: 'update'
+      }]
+    },
+    {
+      roles: 'editor',
+      allows: [{
+        resources: 'acl_validations',
+        permissions: 'delete'
+      }]
+    },
+    /**
      * Model: aminoacidsequence
      */
     {

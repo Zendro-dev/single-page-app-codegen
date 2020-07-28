@@ -578,6 +578,7 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
                   
                     <Tooltip title={ t('modelPanels.edit') }>
                       <IconButton
+                        id='<%- nameOnPascal -%>DetailPanel-button-edit'
                         color='inherit'
                         onClick={(event) => {
                           event.stopPropagation();
@@ -598,6 +599,7 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
                   
                     <Tooltip title={ t('modelPanels.delete') }>
                       <IconButton
+                        id='<%- nameOnPascal -%>DetailPanel-button-delete'
                         color='inherit'
                         onClick={(event) => {
                           event.stopPropagation();

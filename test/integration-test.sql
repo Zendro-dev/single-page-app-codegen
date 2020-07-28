@@ -162,13 +162,3 @@ WHERE NOT EXISTS (
     "userId" = (SELECT id FROM users WHERE email = 'uadmin@zen.dro' AND password = '$2b$10$JaV2B19HT19FF/UeLomHxe5ohrvXCWTIRQjuF7yzz5TbnlOqO.HKa') AND
     "roleId" = (SELECT id FROM roles WHERE name = 'administrator')
 );
-
-INSERT INTO role_to_users ("userId", "roleId")
-SELECT (SELECT id FROM users WHERE email = 'uadmin@zen.dro' AND password = '$2b$10$JaV2B19HT19FF/UeLomHxe5ohrvXCWTIRQjuF7yzz5TbnlOqO.HKa'), 
-       (SELECT id FROM roles WHERE name = 'acl_validations-role')
-WHERE NOT EXISTS (
-  SELECT id FROM role_to_users 
-  WHERE 
-    "userId" = (SELECT id FROM users WHERE email = 'uadmin@zen.dro' AND password = '$2b$10$JaV2B19HT19FF/UeLomHxe5ohrvXCWTIRQjuF7yzz5TbnlOqO.HKa') AND
-    "roleId" = (SELECT id FROM roles WHERE name = 'acl_validations-role')
-);
