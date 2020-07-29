@@ -72,7 +72,13 @@ export default function TimeField(props) {
               autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
               autoOk={true}
               InputProps={{
-                  readOnly: true
+                readOnly: true,
+              }}
+              InputAdornmentProps={{
+                id: 'TimeField-<%- nameOnPascal -%>-input-inputAdornment-'+name,
+              }}
+              KeyboardButtonProps={{
+                id: 'TimeField-<%- nameOnPascal -%>-input-inputAdornment-button-'+name,
               }}
               onChange={()=>{/** do nothing */}}
             />

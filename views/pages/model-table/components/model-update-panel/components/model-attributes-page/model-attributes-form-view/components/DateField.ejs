@@ -101,7 +101,12 @@ export default function DateField(props) {
               InputProps={{
                 className: classnames({[classes.ajvError]: (valueAjv !== undefined && valueAjv.errors.length > 0)}),
               }}
-              
+              InputAdornmentProps={{
+                id: 'DateField-<%- nameOnPascal -%>-input-inputAdornment-'+name,
+              }}
+              KeyboardButtonProps={{
+                id: 'DateField-<%- nameOnPascal -%>-input-inputAdornment-button-'+name,
+              }}
               onChange={(date, value) => {
                 setSelectedDate(date);
 

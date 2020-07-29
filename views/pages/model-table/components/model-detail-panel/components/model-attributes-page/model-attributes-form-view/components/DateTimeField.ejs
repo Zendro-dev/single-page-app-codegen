@@ -70,9 +70,14 @@ export default function DateTimeField(props) {
               autoFocus={autoFocus!==undefined&&autoFocus===true ? true : false}
               autoOk={true}
               InputProps={{
-                  readOnly: true
+                readOnly: true,
               }}
-              
+              InputAdornmentProps={{
+                id: 'DateTimeField-<%- nameOnPascal -%>-input-inputAdornment-'+name,
+              }}
+              KeyboardButtonProps={{
+                id: 'DateTimeField-<%- nameOnPascal -%>-input-inputAdornment-button-'+name,
+              }}
               onChange={()=>{/** do nothing */}}
             />
           </FormControl>

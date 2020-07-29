@@ -10,7 +10,7 @@ let browser = {}, page = {};
 const tt = 10000;
 const ttmax = 20000;
 //delays
-const ttdelay = 400;
+const ttdelay = 600;
 //test specific settings
 const recordsCount_d2_it02 = 5;
 let individual_d2_it03 = null;
@@ -22,7 +22,7 @@ before(async function () {
     // show chrome window
     headless: false,
     // do not run too fast
-    slowMo: 10,
+    slowMo: 1,
     // 30sec max wait for response
     timeout: 30000,
     // max resolution
@@ -45,261 +45,1351 @@ after(async function () {
 /**
  * Part 1: Basic functionality
  */
+if(true)
 describe('1. Basic functionality', function () {
-  //general timeout for each test
-  this.timeout(tt);
+  let addedIndividuals = [];
 
-  it('01. Server OK', async function () {
-    await delay(ttdelay);
+  describe('1.1 Server OK', function() {
+    //general timeout for each 'it'.
+    this.timeout(tt); //10s.
+    let n=1;
 
-    /**
-     * Evaluate
-     */
-    expect(await page.title()).to.eql('Zendro');
-  });
-
-  it('02. Login', async function () {
-    //add data
-    await page.click("input[id=LoginPage-textField-email]");
-    await page.type("input[id=LoginPage-textField-email]", 'admin@zen.dro');
-    //add data
-    await page.click("input[id=LoginPage-textField-password]");
-    await page.type("input[id=LoginPage-textField-password]", 'admin');
-
-    await Promise.all([
-      //wait for events
+    it(`${n++}. page title: Zendro`, async function() {
       page.waitForNavigation({ waitUntil: 'load' }),
-      browser.waitForTarget(target => target.url() === 'http://localhost:8080/main/home'),
-
-      //click
-      page.click("button[id=LoginPage-button-login]"),
-    ]);
-    await delay(ttdelay);
-
-    /**
-     * Evaluate
-     */
-    expect(await page.title()).to.eql('Zendro');
+      expect(await page.title()).to.eql('Zendro');
+    });
   });
 
-  if(false)
-  {
-  it('03. <individual> table is empty', async function () {
+  describe('1.2 Login', function() {
+    //general timeout for each 'it'.
+    this.timeout(tt); //10s.
+    let n=1;
 
-    let apiResponse = null;
-    await Promise.all([
-      //wait for events
-      page.waitForNavigation({ waitUntil: 'load' }),
-      browser.waitForTarget(target => target.url() === 'http://localhost:8080/main/model/individual'),
-      apiResponse = page.waitForResponse('http://localhost:3000/graphql').then((res) => res.json().then((data) => data.data)),
-      page.waitForSelector('tbody[id=IndividualEnhancedTable-tableBody]', { hidden: true }),
-      page.waitForSelector('div[id=IndividualEnhancedTable-box-noData]', { visible: true }),
+    it(`${n++}. type on: input field - email`, async function () {
+      await page.click("input[id=LoginPage-textField-email]");
+      await page.type("input[id=LoginPage-textField-email]", 'admin@zen.dro');
+    });
 
-      //click
-      page.click("div[id=MainPanel-listItem-button-individual]"),
-    ]);
-    await delay(ttdelay);
+    it(`${n++}. type on: input field - password`, async function () {
+      await page.click("input[id=LoginPage-textField-password]");
+      await page.type("input[id=LoginPage-textField-password]", 'admin');
+    });
 
-    /**
-     * Evaluate
-     */
-    let data = await apiResponse;
-
-    expect(await data.countIndividuals === 0).to.eql(true);
-    expect(await page.title()).to.eql('Zendro');
+    it(`${n++}. login: with admin@zen.dro user`, async function() {
+      props = {
+        buttonId: 'LoginPage-button-login',
+        visibleId: 'MainPanel-div-root',
+        hiddenId: 'LoginPage-div-root',
+      };
+      await clickOn(props);
+    });
   });
 
-  it('04. Add <individual>', async function () {
+  describe('1.3 <individual> table is empty', function() {
+    //general timeout for each 'it'.
+    this.timeout(tt); //10s.
+    let n=1;
 
-    await Promise.all([
-      //wait for events
-      page.waitForSelector('div[id=IndividualAttributesFormView-div-root]', { visible: true }),
-
-      //click
-      page.click("button[id=IndividualEnhancedTableToolbar-button-add]"),
-    ]);
-
-    //add data
-    await page.click("textarea[id=StringField-Individual-name]");
-    await page.type("textarea[id=StringField-Individual-name]", 'individual-1');
-
-    let apiResponse = null;
-    await Promise.all([
-      //wait for events
-      page.waitForSelector('div[id=IndividualAttributesFormView-div-root]', { hidden: true }),
-      apiResponse = page.waitForResponse('http://localhost:3000/graphql').then((res) => res.json().then((data) => data.data)),
-
-      //click
-      page.click("button[id=IndividualCreatePanel-fabButton-save]"),
-    ]);
-    await delay(ttdelay);
-
-    /**
-     * Evaluate
-     */
-    let data = await apiResponse;
-
-    expect(await data.addIndividual.name === 'individual-1').to.eql(true);
-    expect(await page.title()).to.eql('Zendro');
-  });
-
-  it('05. Update <individual>', async function () {
-
-    await Promise.all([
-      //wait for events
-      page.waitForSelector('div[id=IndividualAttributesFormView-div-root]', { visible: true }),
-
-      //click
-      page.click("button[id=IndividualEnhancedTable-row-iconButton-edit-1]"),
-    ]);
-    await delay(ttdelay*2);
-
-    //add data
-    await page.click("textarea[id=StringField-Individual-name]", { clickCount: 3 });
-    await page.type("textarea[id=StringField-Individual-name]", 'individual-1-edited');
-
-    let apiResponse = null;
-    await Promise.all([
-      //wait for events
-      page.waitForSelector('div[id=IndividualAttributesFormView-div-root]', { hidden: true }),
-      apiResponse = page.waitForResponse('http://localhost:3000/graphql').then((res) => res.json().then((data) => data.data)),
-
-      //click
-      page.click("button[id=IndividualUpdatePanel-fabButton-save]"),
-    ]);
-    await delay(ttdelay);
-
-    /**
-     * Evaluate
-     */
-    let data = await apiResponse;
-    let cell = await page.$('tbody > tr > td:nth-child(0n+5)');
-    let text = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-
-    expect(text).to.eql('individual-1-edited');
-    expect(await data.updateIndividual.name === 'individual-1-edited').to.eql(true);
-    expect(await page.title()).to.eql('Zendro');
-  });
-
-  it('06. Add one more and find both', async function () {
-
-    /**
-     * Add record
-     */
-    await Promise.all([
-      //wait for events
-      page.waitForSelector('div[id=IndividualAttributesFormView-div-root]', { visible: true }),
-
-      //click
-      page.click("button[id=IndividualEnhancedTableToolbar-button-add]"),
-    ]);
-
-    //add data
-    await page.click("textarea[id=StringField-Individual-name]");
-    await page.type("textarea[id=StringField-Individual-name]", 'individual-2');
-
-    let apiResponse1 = null;
-    await Promise.all([
-      //wait for events
-      page.waitForSelector('div[id=IndividualAttributesFormView-div-root]', { hidden: true }),
-      apiResponse1 = page.waitForResponse('http://localhost:3000/graphql').then((res) => res.json().then((data) => data.data)),
-
-      //click
-      page.click("button[id=IndividualCreatePanel-fabButton-save]"),
-    ]);
-    await delay(ttdelay);
-
-    /**
-     * Search
-     */
-    //add input
-    await page.click("input[id=IndividualEnhancedTableToolbar-textField-search]");
-    await page.type("input[id=IndividualEnhancedTableToolbar-textField-search]", 'individual-');
-
-    let apiResponse2 = null;
-    let selCell1 = null;
-    let selCell2 = null;
-    await Promise.all([
-      //wait for events
-      selCell1 = page.waitForSelector('tr[id=IndividualEnhancedTable-row-1] > td:nth-child(0n+5)', { visible: true }),
-      selCell2 = page.waitForSelector('tr[id=IndividualEnhancedTable-row-2] > td:nth-child(0n+5)', { visible: true }),
-      apiResponse2 = page.waitForResponse('http://localhost:3000/graphql').then((res) => res.json().then((data) => data.data)),
-
-      //click
-      page.click("button[id=IndividualEnhancedTableToolbar-iconButton-search]"),
-    ]);
-    await delay(ttdelay);
-
-    /**
-     * Evaluate
-     */
-    let data1 = await apiResponse1;
-    let data2 = await apiResponse2;
-    let cell1 = await selCell1;
-    let cell2 = await selCell2;
-    let text1 = await page.evaluate(cell => cell ? cell.textContent : null , cell1);
-    let text2 = await page.evaluate(cell => cell ? cell.textContent : null , cell2);
-    let rowsCount = await page.$$eval('tbody > tr', rows => rows.length);
-
-    expect(await data1.addIndividual.name === 'individual-2').to.eql(true);
-    expect(await data2.countIndividuals === 2).to.eql(true);
-    expect(rowsCount).to.eql(2);
-    expect(text1).to.eql('individual-1-edited');
-    expect(text2).to.eql('individual-2');
-    expect(await page.title()).to.eql('Zendro');
-
-  });
-
-  it('07. Delete all', async function () {
-
-    let rowsCount = await page.$$eval('tbody > tr', rows => rows.length);
-    for (let i = 0; i < rowsCount; i = i + 1) {
-      //last events
-      let lastEvents = [];
-      if (i + 1 === rowsCount) {
-        lastEvents = [
-          page.waitForSelector('tbody[id=IndividualEnhancedTable-tableBody]', { hidden: true }),
-          page.waitForSelector('div[id=IndividualEnhancedTable-box-noData]', { visible: true }),
-        ];
+    let q1 = {
+      "data": {
+        "countIndividuals": 0
       }
+    };
+    let q2 = {
+      "data": {
+        "individualsConnection": {
+          "pageInfo": {
+            "startCursor": null,
+            "endCursor": null,
+            "hasPreviousPage": false,
+            "hasNextPage": false
+          },
+          "edges": []
+        }
+      }
+    };
 
-      await Promise.all([
-        //wait for events
-        page.waitForSelector('div[id=IndividualAttributesFormView-div-root]', { visible: true }),
-
-        //click
-        page.click(`button[id=IndividualEnhancedTable-row-iconButton-delete-${i + 1}]`),
-      ]);
-      await delay(ttdelay);
-
-      let apiResponse = null;
-      await Promise.all(lastEvents.concat([
-        //wait for events
-        page.waitForSelector('div[id=IndividualAttributesFormView-div-root]', { hidden: true }),
-        apiResponse = page.waitForResponse('http://localhost:3000/graphql').then((res) => res.json().then((data) => data.data)),
-
-        //click
-        page.click('button[id=IndividualDeleteConfirmationDialog-button-accept]'),
-      ]));
-      await delay(ttdelay*2);
-
-      /**
-       * Evaluate
-       */
-      let data = await apiResponse;
-
-      expect(await data.deleteIndividual === 'Item successfully deleted').to.eql(true);
-    }
-
-    /**
-     * Evaluate
-     */
-    rowsCount = await page.$$eval('tbody > tr', rows => rows.length);
-
-    expect(rowsCount).to.eql(0);
-    expect(await page.title()).to.eql('Zendro');
+    it(`${n++}. click on: <individual>`, async function() {
+      props = {
+        buttonId: 'MainPanel-listItem-button-individual',
+        visibleIds: [
+          'IndividualEnhancedTable-box-noData',
+          'IndividualEnhancedTableToolbar-button-add',
+          'IndividualEnhancedTableToolbar-button-import',
+          'IndividualEnhancedTableToolbar-button-downloadOptions'
+        ],
+        hiddenIds: [
+          'IndividualEnhancedTable-tableBody',
+        ],
+        requests: ['http://localhost:3000/graphql'],
+        responses: [],
+        expectedResponses: 2,
+      };
+      await clickOn(props);
+      // evaluate
+      let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
+      let recordsCount = await page.$$eval('[id=IndividualEnhancedTable-tableBody] > tr', items => items.length);
+      expect(datas).to.include.deep.members([q1, q2]);
+      expect(recordsCount).to.eql(0);
+    });
   });
-  }
+
+  describe('1.4 Add <individual> - record-1', function() {
+    //general timeout for each 'it'.
+    this.timeout(tt); //10s.
+    let n=1;
+
+    let individual1 = {
+      id: "to_be_assigned",
+      name: "individual-1",
+      sowing_date: "to_be_assigned",
+      harvest_date: "to_be_assigned",
+      developmental_state: "dev-1",
+      life_cycle_phase: "phase-1",
+      location_type: "type-1",
+      cultivar_id: null,
+      field_plot_id: null,
+      pot_id: null,
+      cultivar: null,
+      field_plot: null,
+      pot: null
+    };
+    let q1 = {
+      "data": {
+        "addIndividual": individual1
+      }
+    };
+    let q2= {
+      "data": {
+        "countIndividuals": 1
+      }
+    };
+    let q3 = {
+      "data": {
+        "individualsConnection": {
+          "pageInfo": {
+            "startCursor": "to_be_assigned",
+            "endCursor": "to_be_assigned",
+            "hasPreviousPage": false,
+            "hasNextPage": false
+          },
+          "edges": [
+            //to_be_assigned
+          ]
+        }
+      }
+    };
+
+    it(`${n++}. click on: add icon - <individual>`, async function() {
+      props = {
+        buttonId: 'IndividualEnhancedTableToolbar-button-add',
+        visibleIds: [
+          'IndividualCreatePanel-tabsA-button-attributes',
+          'IndividualCreatePanel-tabsA-button-associations',
+          'IndividualCreatePanel-fabButton-save',
+          'IndividualCreatePanel-button-cancel',
+          'IndividualAttributesFormView-div-root',
+        ],
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. type on: input field - name`, async function () {
+      await page.click("[id=StringField-Individual-name]");
+      await page.type("[id=StringField-Individual-name]", individual1.name);
+    });
+
+    it(`${n++}. click on: calendar button - sowing_date`, async function () {
+      props = {
+        buttonId: 'DateField-Individual-input-inputAdornment-button-sowing_date',
+        visibleSelectors: [
+          'div.MuiPickersBasePicker-container',
+        ]
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. click on: week 3 - day 1 - sowing_date`, async function () {
+      props = {
+        buttonSelector: '\
+          div.MuiPickersBasePicker-pickerView > \
+          div.MuiPickersSlideTransition-transitionContainer.MuiPickersCalendar-transitionContainer > \
+          div > div.MuiPickersCalendar-week:nth-child(3) > \
+          div[role=presentation]:nth-child(1) > button[type=button]',
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. click on: accept - sowing_date`, async function () {
+      props = {
+        buttonSelector: '\
+          div.MuiDialogActions-root.MuiDialogActions-spacing > \
+          button[type=button]:nth-child(2)',
+        hiddenSelectors: [
+          'div.MuiPickersBasePicker-container',
+        ]
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. click on: calendar button - harvest_date`, async function () {
+      props = {
+        buttonId: 'DateField-Individual-input-inputAdornment-button-harvest_date',
+        visibleSelectors: [
+          'div.MuiPickersBasePicker-container',
+        ]
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. click on: week 3 - day 2 - harvest_date`, async function () {
+      props = {
+        buttonSelector: '\
+          div.MuiPickersBasePicker-pickerView > \
+          div.MuiPickersSlideTransition-transitionContainer.MuiPickersCalendar-transitionContainer > \
+          div > div.MuiPickersCalendar-week:nth-child(3) > \
+          div[role=presentation]:nth-child(2) > button[type=button]',
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. click on: accept - harvest_date`, async function () {
+      props = {
+        buttonSelector: '\
+          div.MuiDialogActions-root.MuiDialogActions-spacing > \
+          button[type=button]:nth-child(2)',
+        hiddenSelectors: [
+          'div.MuiPickersBasePicker-container',
+        ]
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. type on: input field - developmental_state`, async function () {
+      await page.click("[id=StringField-Individual-developmental_state]");
+      await page.type("[id=StringField-Individual-developmental_state]", individual1.developmental_state);
+    });
+
+    it(`${n++}. type on: input field - life_cycle_phase`, async function () {
+      await page.click("[id=StringField-Individual-life_cycle_phase]");
+      await page.type("[id=StringField-Individual-life_cycle_phase]", individual1.life_cycle_phase);
+    });
+
+    it(`${n++}. type on: input field - location_type`, async function () {
+      await page.click("[id=StringField-Individual-location_type]");
+      await page.type("[id=StringField-Individual-location_type]", individual1.location_type);
+    });
+
+    it(`${n++}. click on: save record <individual>`, async function() {
+      props = {
+        buttonId: 'IndividualCreatePanel-fabButton-save',
+        visibleIds: [
+          'IndividualEnhancedTable-tableBody',
+          'IndividualEnhancedTableToolbar-button-add',
+          'IndividualEnhancedTableToolbar-button-import',
+          'IndividualEnhancedTableToolbar-button-downloadOptions',
+          'IndividualEnhancedTable-row-iconButton-detail-1',
+          'IndividualEnhancedTable-row-iconButton-edit-1',
+          'IndividualEnhancedTable-row-iconButton-delete-1',
+        ],
+        hiddenIds: [
+          'IndividualCreatePanel-tabsA-button-attributes',
+          'IndividualCreatePanel-tabsA-button-associations',
+          'IndividualCreatePanel-fabButton-save',
+          'IndividualCreatePanel-button-cancel',
+          'IndividualAttributesFormView-div-root',
+        ],
+        requests: ['http://localhost:3000/graphql'],
+        responses: [],
+        expectedResponses: 3,
+      };
+      await clickOn(props);
+      // evaluate
+      let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
+      let recordsCount = await page.$$eval('[id=IndividualEnhancedTable-tableBody] > tr', items => items.length);
+      let addIndividual = datas.reduce((a, c) => {if(c&&c.data&&c.data.addIndividual){ a=c.data.addIndividual; return a; } else  {return a; }}, {});
+      let individualsConnection = datas.reduce((a, c) => {if(c&&c.data&&c.data.individualsConnection){ a=c.data.individualsConnection; return a; } else  {return a; }}, {});
+      q1.data.addIndividual.id = addIndividual.id;
+      q1.data.addIndividual.sowing_date = addIndividual.sowing_date;
+      q1.data.addIndividual.harvest_date = addIndividual.harvest_date;
+      q3.data.individualsConnection.edges.push({node: q1.data.addIndividual});
+      q3.data.individualsConnection.pageInfo.startCursor = individualsConnection.pageInfo.startCursor;
+      q3.data.individualsConnection.pageInfo.endCursor = individualsConnection.pageInfo.endCursor;
+      expect(datas).to.include.deep.members([q1, q2, q3]);
+      expect(recordsCount).to.eql(1);
+    });
+
+  });
+
+  describe('1.5 Update <individual> - record-1', function() {
+    //general timeout for each 'it'.
+    this.timeout(tt); //10s.
+    let n=1;
+
+    let individual1 = {
+      id: "to_be_assigned",
+      name: "individual-1-edited",
+      sowing_date: "to_be_assigned",
+      harvest_date: "to_be_assigned",
+      developmental_state: "dev-1-edited",
+      life_cycle_phase: "phase-1-edited",
+      location_type: "type-1-edited",
+      cultivar_id: null,
+      field_plot_id: null,
+      pot_id: null,
+      cultivar: null,
+      field_plot: null,
+      pot: null
+    };
+    let q1 = {
+      "data": {
+        "updateIndividual": individual1
+      }
+    };
+    let q2= {
+      "data": {
+        "countIndividuals": 1
+      }
+    };
+    let q3 = {
+      "data": {
+        "individualsConnection": {
+          "pageInfo": {
+            "startCursor": "to_be_assigned",
+            "endCursor": "to_be_assigned",
+            "hasPreviousPage": false,
+            "hasNextPage": false
+          },
+          "edges": [
+            //to_be_assigned
+          ]
+        }
+      }
+    };
+
+    it(`${n++}. click on: update <individual> - record-1`, async function () {
+      let props = {
+        elementType: 'button',
+        buttonId: 'IndividualEnhancedTable-row-iconButton-edit-1',
+        visibleIds: [
+          'IndividualUpdatePanel-tabsA-button-attributes',
+          'IndividualUpdatePanel-tabsA-button-associations',
+          'IndividualUpdatePanel-fabButton-save',
+          'IndividualUpdatePanel-button-cancel',
+          'IndividualAttributesFormView-div-root',
+        ],
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. type on: input field - name`, async function () {
+      await page.click("[id=StringField-Individual-name]", { clickCount: 3 });
+      await page.type("[id=StringField-Individual-name]", individual1.name);
+    });
+
+    it(`${n++}. click on: calendar button - sowing_date`, async function () {
+      props = {
+        buttonId: 'DateField-Individual-input-inputAdornment-button-sowing_date',
+        visibleSelectors: [
+          'div.MuiPickersBasePicker-container',
+        ]
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. click on: week 3 - day 3 - sowing_date`, async function () {
+      props = {
+        buttonSelector: '\
+          div.MuiPickersBasePicker-pickerView > \
+          div.MuiPickersSlideTransition-transitionContainer.MuiPickersCalendar-transitionContainer > \
+          div > div.MuiPickersCalendar-week:nth-child(3) > \
+          div[role=presentation]:nth-child(3) > button[type=button]',
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. click on: accept - sowing_date`, async function () {
+      props = {
+        buttonSelector: '\
+          div.MuiDialogActions-root.MuiDialogActions-spacing > \
+          button[type=button]:nth-child(2)',
+        hiddenSelectors: [
+          'div.MuiPickersBasePicker-container',
+        ]
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. click on: calendar button - harvest_date`, async function () {
+      props = {
+        buttonId: 'DateField-Individual-input-inputAdornment-button-harvest_date',
+        visibleSelectors: [
+          'div.MuiPickersBasePicker-container',
+        ]
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. click on: week 3 - day 5 - harvest_date`, async function () {
+      props = {
+        buttonSelector: '\
+          div.MuiPickersBasePicker-pickerView > \
+          div.MuiPickersSlideTransition-transitionContainer.MuiPickersCalendar-transitionContainer > \
+          div > div.MuiPickersCalendar-week:nth-child(3) > \
+          div[role=presentation]:nth-child(5) > button[type=button]',
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. click on: accept - harvest_date`, async function () {
+      props = {
+        buttonSelector: '\
+          div.MuiDialogActions-root.MuiDialogActions-spacing > \
+          button[type=button]:nth-child(2)',
+        hiddenSelectors: [
+          'div.MuiPickersBasePicker-container',
+        ]
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. type on: input field - developmental_state`, async function () {
+      await page.click("[id=StringField-Individual-developmental_state]", { clickCount: 3 });
+      await page.type("[id=StringField-Individual-developmental_state]", individual1.developmental_state);
+    });
+
+    it(`${n++}. type on: input field - life_cycle_phase`, async function () {
+      await page.click("[id=StringField-Individual-life_cycle_phase]", { clickCount: 3 });
+      await page.type("[id=StringField-Individual-life_cycle_phase]", individual1.life_cycle_phase);
+    });
+
+    it(`${n++}. type on: input field - location_type`, async function () {
+      await page.click("[id=StringField-Individual-location_type]", { clickCount: 3 });
+      await page.type("[id=StringField-Individual-location_type]", individual1.location_type);
+    });
+
+    it(`${n++}. click on: save record <individual>`, async function() {
+      props = {
+        buttonId: 'IndividualUpdatePanel-fabButton-save',
+        visibleIds: [
+          'IndividualEnhancedTable-tableBody',
+          'IndividualEnhancedTableToolbar-button-add',
+          'IndividualEnhancedTableToolbar-button-import',
+          'IndividualEnhancedTableToolbar-button-downloadOptions',
+          'IndividualEnhancedTable-row-iconButton-detail-1',
+          'IndividualEnhancedTable-row-iconButton-edit-1',
+          'IndividualEnhancedTable-row-iconButton-delete-1',
+        ],
+        hiddenIds: [
+          'IndividualUpdatePanel-tabsA-button-attributes',
+          'IndividualUpdatePanel-tabsA-button-associations',
+          'IndividualUpdatePanel-fabButton-save',
+          'IndividualUpdatePanel-button-cancel',
+          'IndividualAttributesFormView-div-root',
+        ],
+        requests: ['http://localhost:3000/graphql'],
+        responses: [],
+        expectedResponses: 3,
+      };
+      await clickOn(props);
+      // evaluate
+      let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
+      let recordsCount = await page.$$eval('[id=IndividualEnhancedTable-tableBody] > tr', items => items.length);
+      let updateIndividual = datas.reduce((a, c) => {if(c&&c.data&&c.data.updateIndividual){ a=c.data.updateIndividual; return a; } else  {return a; }}, {});
+      let individualsConnection = datas.reduce((a, c) => {if(c&&c.data&&c.data.individualsConnection){ a=c.data.individualsConnection; return a; } else  {return a; }}, {});
+      q1.data.updateIndividual.id = updateIndividual.id;
+      q1.data.updateIndividual.sowing_date = updateIndividual.sowing_date;
+      q1.data.updateIndividual.harvest_date = updateIndividual.harvest_date;
+      q3.data.individualsConnection.edges.push({node: q1.data.updateIndividual});
+      q3.data.individualsConnection.pageInfo.startCursor = individualsConnection.pageInfo.startCursor;
+      q3.data.individualsConnection.pageInfo.endCursor = individualsConnection.pageInfo.endCursor;
+      expect(datas).to.include.deep.members([q1, q2, q3]);
+      expect(recordsCount).to.eql(1);
+
+      //save
+      addedIndividuals.push({...q1.data.updateIndividual});
+    });
+
+  });
+
+  describe('1.6 Add <individual> - record-2', function() {
+    //general timeout for each 'it'.
+    this.timeout(tt); //10s.
+    let n=1;
+
+    let individual1 = {
+      id: "to_be_assigned",
+      name: "individual-2",
+      sowing_date: "to_be_assigned",
+      harvest_date: "to_be_assigned",
+      developmental_state: "dev-2",
+      life_cycle_phase: "phase-2",
+      location_type: "type-2",
+      cultivar_id: null,
+      field_plot_id: null,
+      pot_id: null,
+      cultivar: null,
+      field_plot: null,
+      pot: null
+    };
+    let q1 = {
+      "data": {
+        "addIndividual": individual1
+      }
+    };
+    let q2= {
+      "data": {
+        "countIndividuals": 2
+      }
+    };
+    let q3 = {
+      "data": {
+        "individualsConnection": {
+          "pageInfo": {
+            "startCursor": "to_be_assigned",
+            "endCursor": "to_be_assigned",
+            "hasPreviousPage": false,
+            "hasNextPage": false
+          },
+          "edges": [
+            //to_be_assigned
+          ]
+        }
+      }
+    };
+
+    it(`${n++}. click on: add icon - <individual>`, async function() {
+      props = {
+        buttonId: 'IndividualEnhancedTableToolbar-button-add',
+        visibleIds: [
+          'IndividualCreatePanel-tabsA-button-attributes',
+          'IndividualCreatePanel-tabsA-button-associations',
+          'IndividualCreatePanel-fabButton-save',
+          'IndividualCreatePanel-button-cancel',
+          'IndividualAttributesFormView-div-root',
+        ],
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. type on: input field - name`, async function () {
+      await page.click("[id=StringField-Individual-name]");
+      await page.type("[id=StringField-Individual-name]", individual1.name);
+    });
+
+    it(`${n++}. click on: calendar button - sowing_date`, async function () {
+      props = {
+        buttonId: 'DateField-Individual-input-inputAdornment-button-sowing_date',
+        visibleSelectors: [
+          'div.MuiPickersBasePicker-container',
+        ]
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. click on: week 3 - day 1 - sowing_date`, async function () {
+      props = {
+        buttonSelector: '\
+          div.MuiPickersBasePicker-pickerView > \
+          div.MuiPickersSlideTransition-transitionContainer.MuiPickersCalendar-transitionContainer > \
+          div > div.MuiPickersCalendar-week:nth-child(3) > \
+          div[role=presentation]:nth-child(1) > button[type=button]',
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. click on: accept - sowing_date`, async function () {
+      props = {
+        buttonSelector: '\
+          div.MuiDialogActions-root.MuiDialogActions-spacing > \
+          button[type=button]:nth-child(2)',
+        hiddenSelectors: [
+          'div.MuiPickersBasePicker-container',
+        ]
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. click on: calendar button - harvest_date`, async function () {
+      props = {
+        buttonId: 'DateField-Individual-input-inputAdornment-button-harvest_date',
+        visibleSelectors: [
+          'div.MuiPickersBasePicker-container',
+        ]
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. click on: week 3 - day 2 - harvest_date`, async function () {
+      props = {
+        buttonSelector: '\
+          div.MuiPickersBasePicker-pickerView > \
+          div.MuiPickersSlideTransition-transitionContainer.MuiPickersCalendar-transitionContainer > \
+          div > div.MuiPickersCalendar-week:nth-child(3) > \
+          div[role=presentation]:nth-child(2) > button[type=button]',
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. click on: accept - harvest_date`, async function () {
+      props = {
+        buttonSelector: '\
+          div.MuiDialogActions-root.MuiDialogActions-spacing > \
+          button[type=button]:nth-child(2)',
+        hiddenSelectors: [
+          'div.MuiPickersBasePicker-container',
+        ]
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. type on: input field - developmental_state`, async function () {
+      await page.click("[id=StringField-Individual-developmental_state]");
+      await page.type("[id=StringField-Individual-developmental_state]", individual1.developmental_state);
+    });
+
+    it(`${n++}. type on: input field - life_cycle_phase`, async function () {
+      await page.click("[id=StringField-Individual-life_cycle_phase]");
+      await page.type("[id=StringField-Individual-life_cycle_phase]", individual1.life_cycle_phase);
+    });
+
+    it(`${n++}. type on: input field - location_type`, async function () {
+      await page.click("[id=StringField-Individual-location_type]");
+      await page.type("[id=StringField-Individual-location_type]", individual1.location_type);
+    });
+
+    it(`${n++}. click on: save record <individual>`, async function() {
+      props = {
+        buttonId: 'IndividualCreatePanel-fabButton-save',
+        visibleIds: [
+          'IndividualEnhancedTable-tableBody',
+          'IndividualEnhancedTableToolbar-button-add',
+          'IndividualEnhancedTableToolbar-button-import',
+          'IndividualEnhancedTableToolbar-button-downloadOptions',
+          'IndividualEnhancedTable-row-iconButton-detail-1',
+          'IndividualEnhancedTable-row-iconButton-edit-1',
+          'IndividualEnhancedTable-row-iconButton-delete-1',
+          'IndividualEnhancedTable-row-iconButton-detail-2',
+          'IndividualEnhancedTable-row-iconButton-edit-2',
+          'IndividualEnhancedTable-row-iconButton-delete-2',
+        ],
+        hiddenIds: [
+          'IndividualCreatePanel-tabsA-button-attributes',
+          'IndividualCreatePanel-tabsA-button-associations',
+          'IndividualCreatePanel-fabButton-save',
+          'IndividualCreatePanel-button-cancel',
+          'IndividualAttributesFormView-div-root',
+        ],
+        requests: ['http://localhost:3000/graphql'],
+        responses: [],
+        expectedResponses: 3,
+      };
+      await clickOn(props);
+      // evaluate
+      let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
+      let recordsCount = await page.$$eval('[id=IndividualEnhancedTable-tableBody] > tr', items => items.length);
+      let addIndividual = datas.reduce((a, c) => {if(c&&c.data&&c.data.addIndividual){ a=c.data.addIndividual; return a; } else  {return a; }}, {});
+      let individualsConnection = datas.reduce((a, c) => {if(c&&c.data&&c.data.individualsConnection){ a=c.data.individualsConnection; return a; } else  {return a; }}, {});
+      q1.data.addIndividual.id = addIndividual.id;
+      q1.data.addIndividual.sowing_date = addIndividual.sowing_date;
+      q1.data.addIndividual.harvest_date = addIndividual.harvest_date;
+      q3.data.individualsConnection.edges = addedIndividuals.map(item=>({node: {...item}}));
+      q3.data.individualsConnection.edges.push({node: {...q1.data.addIndividual}});
+      q3.data.individualsConnection.pageInfo.startCursor = individualsConnection.pageInfo.startCursor;
+      q3.data.individualsConnection.pageInfo.endCursor = individualsConnection.pageInfo.endCursor;
+      expect(datas).to.include.deep.members([q1, q2, q3]);
+      expect(recordsCount).to.eql(2);
+
+      //save
+      addedIndividuals.push({...q1.data.addIndividual});
+    });
+
+  });
+
+  describe('1.7 Add <individual> - record-3', function() {
+    //general timeout for each 'it'.
+    this.timeout(tt); //10s.
+    let n=1;
+
+    let individual1 = {
+      id: "to_be_assigned",
+      name: "individual-2-b",
+      sowing_date: "to_be_assigned",
+      harvest_date: "to_be_assigned",
+      developmental_state: "dev-2-b",
+      life_cycle_phase: "phase-2-b",
+      location_type: "type-2-b",
+      cultivar_id: null,
+      field_plot_id: null,
+      pot_id: null,
+      cultivar: null,
+      field_plot: null,
+      pot: null
+    };
+    let q1 = {
+      "data": {
+        "addIndividual": individual1
+      }
+    };
+    let q2= {
+      "data": {
+        "countIndividuals": 3
+      }
+    };
+    let q3 = {
+      "data": {
+        "individualsConnection": {
+          "pageInfo": {
+            "startCursor": "to_be_assigned",
+            "endCursor": "to_be_assigned",
+            "hasPreviousPage": false,
+            "hasNextPage": false
+          },
+          "edges": [
+            //to_be_assigned
+          ]
+        }
+      }
+    };
+
+    it(`${n++}. click on: add icon - <individual>`, async function() {
+      props = {
+        buttonId: 'IndividualEnhancedTableToolbar-button-add',
+        visibleIds: [
+          'IndividualCreatePanel-tabsA-button-attributes',
+          'IndividualCreatePanel-tabsA-button-associations',
+          'IndividualCreatePanel-fabButton-save',
+          'IndividualCreatePanel-button-cancel',
+          'IndividualAttributesFormView-div-root',
+        ],
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. type on: input field - name`, async function () {
+      await page.click("[id=StringField-Individual-name]");
+      await page.type("[id=StringField-Individual-name]", individual1.name);
+    });
+
+    it(`${n++}. click on: calendar button - sowing_date`, async function () {
+      props = {
+        buttonId: 'DateField-Individual-input-inputAdornment-button-sowing_date',
+        visibleSelectors: [
+          'div.MuiPickersBasePicker-container',
+        ]
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. click on: week 3 - day 1 - sowing_date`, async function () {
+      props = {
+        buttonSelector: '\
+          div.MuiPickersBasePicker-pickerView > \
+          div.MuiPickersSlideTransition-transitionContainer.MuiPickersCalendar-transitionContainer > \
+          div > div.MuiPickersCalendar-week:nth-child(3) > \
+          div[role=presentation]:nth-child(1) > button[type=button]',
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. click on: accept - sowing_date`, async function () {
+      props = {
+        buttonSelector: '\
+          div.MuiDialogActions-root.MuiDialogActions-spacing > \
+          button[type=button]:nth-child(2)',
+        hiddenSelectors: [
+          'div.MuiPickersBasePicker-container',
+        ]
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. click on: calendar button - harvest_date`, async function () {
+      props = {
+        buttonId: 'DateField-Individual-input-inputAdornment-button-harvest_date',
+        visibleSelectors: [
+          'div.MuiPickersBasePicker-container',
+        ]
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. click on: week 3 - day 2 - harvest_date`, async function () {
+      props = {
+        buttonSelector: '\
+          div.MuiPickersBasePicker-pickerView > \
+          div.MuiPickersSlideTransition-transitionContainer.MuiPickersCalendar-transitionContainer > \
+          div > div.MuiPickersCalendar-week:nth-child(3) > \
+          div[role=presentation]:nth-child(2) > button[type=button]',
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. click on: accept - harvest_date`, async function () {
+      props = {
+        buttonSelector: '\
+          div.MuiDialogActions-root.MuiDialogActions-spacing > \
+          button[type=button]:nth-child(2)',
+        hiddenSelectors: [
+          'div.MuiPickersBasePicker-container',
+        ]
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. type on: input field - developmental_state`, async function () {
+      await page.click("[id=StringField-Individual-developmental_state]");
+      await page.type("[id=StringField-Individual-developmental_state]", individual1.developmental_state);
+    });
+
+    it(`${n++}. type on: input field - life_cycle_phase`, async function () {
+      await page.click("[id=StringField-Individual-life_cycle_phase]");
+      await page.type("[id=StringField-Individual-life_cycle_phase]", individual1.life_cycle_phase);
+    });
+
+    it(`${n++}. type on: input field - location_type`, async function () {
+      await page.click("[id=StringField-Individual-location_type]");
+      await page.type("[id=StringField-Individual-location_type]", individual1.location_type);
+    });
+
+    it(`${n++}. click on: save record <individual>`, async function() {
+      props = {
+        buttonId: 'IndividualCreatePanel-fabButton-save',
+        visibleIds: [
+          'IndividualEnhancedTable-tableBody',
+          'IndividualEnhancedTableToolbar-button-add',
+          'IndividualEnhancedTableToolbar-button-import',
+          'IndividualEnhancedTableToolbar-button-downloadOptions',
+          'IndividualEnhancedTable-row-iconButton-detail-1',
+          'IndividualEnhancedTable-row-iconButton-edit-1',
+          'IndividualEnhancedTable-row-iconButton-delete-1',
+          'IndividualEnhancedTable-row-iconButton-detail-2',
+          'IndividualEnhancedTable-row-iconButton-edit-2',
+          'IndividualEnhancedTable-row-iconButton-delete-2',
+        ],
+        hiddenIds: [
+          'IndividualCreatePanel-tabsA-button-attributes',
+          'IndividualCreatePanel-tabsA-button-associations',
+          'IndividualCreatePanel-fabButton-save',
+          'IndividualCreatePanel-button-cancel',
+          'IndividualAttributesFormView-div-root',
+        ],
+        requests: ['http://localhost:3000/graphql'],
+        responses: [],
+        expectedResponses: 3,
+      };
+      await clickOn(props);
+      // evaluate
+      let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
+      let recordsCount = await page.$$eval('[id=IndividualEnhancedTable-tableBody] > tr', items => items.length);
+      let addIndividual = datas.reduce((a, c) => {if(c&&c.data&&c.data.addIndividual){ a=c.data.addIndividual; return a; } else  {return a; }}, {});
+      let individualsConnection = datas.reduce((a, c) => {if(c&&c.data&&c.data.individualsConnection){ a=c.data.individualsConnection; return a; } else  {return a; }}, {});
+      q1.data.addIndividual.id = addIndividual.id;
+      q1.data.addIndividual.sowing_date = addIndividual.sowing_date;
+      q1.data.addIndividual.harvest_date = addIndividual.harvest_date;
+      q3.data.individualsConnection.edges = addedIndividuals.map(item=>({node: {...item}}));
+      q3.data.individualsConnection.edges.push({node: q1.data.addIndividual});
+      q3.data.individualsConnection.pageInfo.startCursor = individualsConnection.pageInfo.startCursor;
+      q3.data.individualsConnection.pageInfo.endCursor = individualsConnection.pageInfo.endCursor;
+      expect(datas).to.include.deep.members([q1, q2, q3]);
+      expect(recordsCount).to.eql(3);
+
+      //save
+      addedIndividuals.push({...q1.data.addIndividual});
+    });
+
+  });
+
+  describe('1.8 Find <individual> - pattern: /individual-2*/', function() {
+    //general timeout for each 'it'.
+    this.timeout(tt); //10s.
+    let n=1;
+
+    let q1= {
+      "data": {
+        "countIndividuals": 2
+      }
+    };
+    let q2 = {
+      "data": {
+        "individualsConnection": {
+          "pageInfo": {
+            "startCursor": "to_be_assigned",
+            "endCursor": "to_be_assigned",
+            "hasPreviousPage": false,
+            "hasNextPage": false
+          },
+          "edges": [
+            //to_be_assigned
+          ]
+        }
+      }
+    };
+
+    it(`${n++}. type on: input field - search`, async function () {
+      await page.click("input[id=IndividualEnhancedTableToolbar-textField-search]");
+      await page.type("input[id=IndividualEnhancedTableToolbar-textField-search]", 'individual-2');
+    });
+
+    it(`${n++}. click on: search`, async function() {
+      props = {
+        buttonId: 'IndividualEnhancedTableToolbar-iconButton-search',
+        visibleIds: [
+          'IndividualEnhancedTable-tableBody',
+          'IndividualEnhancedTableToolbar-button-add',
+          'IndividualEnhancedTableToolbar-button-import',
+          'IndividualEnhancedTableToolbar-button-downloadOptions',
+          'IndividualEnhancedTable-row-iconButton-detail-3',
+          'IndividualEnhancedTable-row-iconButton-edit-3',
+          'IndividualEnhancedTable-row-iconButton-delete-3',
+          'IndividualEnhancedTable-row-iconButton-detail-2',
+          'IndividualEnhancedTable-row-iconButton-edit-2',
+          'IndividualEnhancedTable-row-iconButton-delete-2',
+        ],
+        hiddenIds: [
+          'IndividualEnhancedTable-row-iconButton-detail-1',
+          'IndividualEnhancedTable-row-iconButton-edit-1',
+          'IndividualEnhancedTable-row-iconButton-delete-1',
+        ],
+        requests: ['http://localhost:3000/graphql'],
+        responses: [],
+        expectedResponses: 2,
+      };
+      await clickOn(props);
+      // evaluate
+      let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
+      let recordsCount = await page.$$eval('[id=IndividualEnhancedTable-tableBody] > tr', items => items.length);
+      let individualsConnection = datas.reduce((a, c) => {if(c&&c.data&&c.data.individualsConnection){ a=c.data.individualsConnection; return a; } else  {return a; }}, {});
+      q2.data.individualsConnection.edges.push({node: {...addedIndividuals[1]}});
+      q2.data.individualsConnection.edges.push({node: {...addedIndividuals[2]}});
+      q2.data.individualsConnection.pageInfo.startCursor = individualsConnection.pageInfo.startCursor;
+      q2.data.individualsConnection.pageInfo.endCursor = individualsConnection.pageInfo.endCursor;
+      expect(datas).to.include.deep.members([q1, q2]);
+      expect(recordsCount).to.eql(2);
+    });
+  });
+
+  describe('1.9 Find <individual> - pattern: /individual-1*/', function() {
+    //general timeout for each 'it'.
+    this.timeout(tt); //10s.
+    let n=1;
+
+    let q1= {
+      "data": {
+        "countIndividuals": 1
+      }
+    };
+    let q2 = {
+      "data": {
+        "individualsConnection": {
+          "pageInfo": {
+            "startCursor": "to_be_assigned",
+            "endCursor": "to_be_assigned",
+            "hasPreviousPage": false,
+            "hasNextPage": false
+          },
+          "edges": [
+            //to_be_assigned
+          ]
+        }
+      }
+    };
+
+    it(`${n++}. type on: input field - search`, async function () {
+      await page.click("input[id=IndividualEnhancedTableToolbar-textField-search]", { clickCount: 3 });
+      await page.type("input[id=IndividualEnhancedTableToolbar-textField-search]", 'individual-1');
+    });
+
+    it(`${n++}. click on: search`, async function() {
+      props = {
+        buttonId: 'IndividualEnhancedTableToolbar-iconButton-search',
+        visibleIds: [
+          'IndividualEnhancedTable-tableBody',
+          'IndividualEnhancedTableToolbar-button-add',
+          'IndividualEnhancedTableToolbar-button-import',
+          'IndividualEnhancedTableToolbar-button-downloadOptions',
+          'IndividualEnhancedTable-row-iconButton-detail-1',
+          'IndividualEnhancedTable-row-iconButton-edit-1',
+          'IndividualEnhancedTable-row-iconButton-delete-1',
+        ],
+        hiddenIds: [
+          'IndividualEnhancedTable-row-iconButton-detail-3',
+          'IndividualEnhancedTable-row-iconButton-edit-3',
+          'IndividualEnhancedTable-row-iconButton-delete-3',
+          'IndividualEnhancedTable-row-iconButton-detail-2',
+          'IndividualEnhancedTable-row-iconButton-edit-2',
+          'IndividualEnhancedTable-row-iconButton-delete-2',
+        ],
+        requests: ['http://localhost:3000/graphql'],
+        responses: [],
+        expectedResponses: 2,
+      };
+      await clickOn(props);
+      // evaluate
+      let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
+      let recordsCount = await page.$$eval('[id=IndividualEnhancedTable-tableBody] > tr', items => items.length);
+      let individualsConnection = datas.reduce((a, c) => {if(c&&c.data&&c.data.individualsConnection){ a=c.data.individualsConnection; return a; } else  {return a; }}, {});
+      q2.data.individualsConnection.edges.push({node: {...addedIndividuals[0]}});
+      q2.data.individualsConnection.pageInfo.startCursor = individualsConnection.pageInfo.startCursor;
+      q2.data.individualsConnection.pageInfo.endCursor = individualsConnection.pageInfo.endCursor;
+      expect(datas).to.include.deep.members([q1, q2]);
+      expect(recordsCount).to.eql(1);
+    });
+  });
+
+  describe('1.10 Clear search', function() {
+    //general timeout for each 'it'.
+    this.timeout(tt); //10s.
+    let n=1;
+
+    let q1= {
+      "data": {
+        "countIndividuals": 3
+      }
+    };
+    let q2 = {
+      "data": {
+        "individualsConnection": {
+          "pageInfo": {
+            "startCursor": "to_be_assigned",
+            "endCursor": "to_be_assigned",
+            "hasPreviousPage": false,
+            "hasNextPage": false
+          },
+          "edges": [
+            //to_be_assigned
+          ]
+        }
+      }
+    };
+
+    it(`${n++}. click on: clear search`, async function() {
+      props = {
+        buttonId: 'IndividualEnhancedTableToolbar-iconButton-clearSearch',
+        visibleIds: [
+          'IndividualEnhancedTable-tableBody',
+          'IndividualEnhancedTableToolbar-button-add',
+          'IndividualEnhancedTableToolbar-button-import',
+          'IndividualEnhancedTableToolbar-button-downloadOptions',
+          'IndividualEnhancedTable-row-iconButton-detail-1',
+          'IndividualEnhancedTable-row-iconButton-edit-1',
+          'IndividualEnhancedTable-row-iconButton-delete-1',
+          'IndividualEnhancedTable-row-iconButton-detail-3',
+          'IndividualEnhancedTable-row-iconButton-edit-3',
+          'IndividualEnhancedTable-row-iconButton-delete-3',
+          'IndividualEnhancedTable-row-iconButton-detail-2',
+          'IndividualEnhancedTable-row-iconButton-edit-2',
+          'IndividualEnhancedTable-row-iconButton-delete-2',
+        ],
+        requests: ['http://localhost:3000/graphql'],
+        responses: [],
+        expectedResponses: 2,
+      };
+      await clickOn(props);
+      // evaluate
+      let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
+      let recordsCount = await page.$$eval('[id=IndividualEnhancedTable-tableBody] > tr', items => items.length);
+      let individualsConnection = datas.reduce((a, c) => {if(c&&c.data&&c.data.individualsConnection){ a=c.data.individualsConnection; return a; } else  {return a; }}, {});
+      q2.data.individualsConnection.edges = addedIndividuals.map(item=>({node: {...item}}));
+      q2.data.individualsConnection.pageInfo.startCursor = individualsConnection.pageInfo.startCursor;
+      q2.data.individualsConnection.pageInfo.endCursor = individualsConnection.pageInfo.endCursor;
+      expect(datas).to.include.deep.members([q1, q2]);
+      expect(recordsCount).to.eql(3);
+    });
+  });
+  
+  describe('1.11 Delete <individual> - record-1', function() {
+    //general timeout for each 'it'.
+    this.timeout(tt); //10s.
+    let n=1;
+
+    let q1={
+      "data": {
+        "readOneIndividual": {
+          "cultivar": null
+        }
+      }
+    };
+    let q2={
+      "data": {
+        "deleteIndividual": "Item successfully deleted"
+      }
+    };
+    let q3={
+      "data": {
+        "countIndividuals": 2
+      }
+    };
+    let q4 = {
+      "data": {
+        "individualsConnection": {
+          "pageInfo": {
+            "startCursor": "to_be_assigned",
+            "endCursor": "to_be_assigned",
+            "hasPreviousPage": false,
+            "hasNextPage": false
+          },
+          "edges": [
+            //to_be_assigned
+          ]
+        }
+      }
+    };
+
+
+    it(`${n++}. click on: delete icon - <individual> - record-1`, async function() {
+      props = {
+        buttonId: 'IndividualEnhancedTable-row-iconButton-delete-1',
+        visibleIds: [
+          'IndividualAttributesFormView-div-root',
+          'IndividualAssociationsPage-div-root',
+          'IndividualDeleteConfirmationDialog-button-accept',
+          'IndividualDeleteConfirmationDialog-button-reject',
+        ],
+        requests: ['http://localhost:3000/graphql'],
+        responses: [],
+        expectedResponses: 1,
+      };
+      await clickOn(props);
+      // evaluate
+      let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
+      expect(datas).to.include.deep.members([q1]);
+      expect(await page.title()).to.eql('Zendro');
+    });
+
+    it(`${n++}. click on: delete confirmation button`, async function() {
+      props = {
+        buttonId: 'IndividualDeleteConfirmationDialog-button-accept',
+        visibleIds: [
+          'IndividualEnhancedTable-tableBody',
+          'IndividualEnhancedTableToolbar-button-add',
+          'IndividualEnhancedTableToolbar-button-import',
+          'IndividualEnhancedTableToolbar-button-downloadOptions',
+          'IndividualEnhancedTable-row-iconButton-detail-2',
+          'IndividualEnhancedTable-row-iconButton-detail-3',
+          'IndividualEnhancedTable-row-iconButton-edit-2',
+          'IndividualEnhancedTable-row-iconButton-edit-3',
+          'IndividualEnhancedTable-row-iconButton-delete-2',
+          'IndividualEnhancedTable-row-iconButton-delete-3',
+        ],
+        hiddenIds: [
+          'IndividualAttributesFormView-div-root',
+          'IndividualAssociationsPage-div-root',
+          'IndividualDeleteConfirmationDialog-button-accept',
+          'IndividualDeleteConfirmationDialog-button-reject',
+          'IndividualEnhancedTable-row-iconButton-detail-1',
+          'IndividualEnhancedTable-row-iconButton-edit-1',
+          'IndividualEnhancedTable-row-iconButton-delete-1',
+        ],
+        requests: ['http://localhost:3000/graphql'],
+        responses: [],
+        expectedResponses: 3,
+      };
+      await clickOn(props);
+      // evaluate
+      let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
+      let recordsCount = await page.$$eval('[id=IndividualEnhancedTable-tableBody] > tr', items => items.length);
+      let individualsConnection = datas.reduce((a, c) => {if(c&&c.data&&c.data.individualsConnection){ a=c.data.individualsConnection; return a; } else  {return a; }}, {});
+      q4.data.individualsConnection.edges.push({node: {...addedIndividuals[1]}});
+      q4.data.individualsConnection.edges.push({node: {...addedIndividuals[2]}});
+      q4.data.individualsConnection.pageInfo.startCursor = individualsConnection.pageInfo.startCursor;
+      q4.data.individualsConnection.pageInfo.endCursor = individualsConnection.pageInfo.endCursor;
+      expect(datas).to.include.deep.members([q2, q3, q4]);
+      expect(recordsCount).to.eql(2);
+      expect(await page.title()).to.eql('Zendro');
+    });
+  });
+
+  describe('1.12 Delete <individual> - record-2', function() {
+    //general timeout for each 'it'.
+    this.timeout(tt); //10s.
+    let n=1;
+
+    let q1={
+      "data": {
+        "readOneIndividual": {
+          "cultivar": null
+        }
+      }
+    };
+    let q2={
+      "data": {
+        "deleteIndividual": "Item successfully deleted"
+      }
+    };
+    let q3={
+      "data": {
+        "countIndividuals": 1
+      }
+    };
+    let q4 = {
+      "data": {
+        "individualsConnection": {
+          "pageInfo": {
+            "startCursor": "to_be_assigned",
+            "endCursor": "to_be_assigned",
+            "hasPreviousPage": false,
+            "hasNextPage": false
+          },
+          "edges": [
+            //to_be_assigned
+          ]
+        }
+      }
+    };
+
+    it(`${n++}. click on: delete icon - <individual> - record-2`, async function() {
+      props = {
+        buttonId: 'IndividualEnhancedTable-row-iconButton-delete-2',
+        visibleIds: [
+          'IndividualAttributesFormView-div-root',
+          'IndividualAssociationsPage-div-root',
+          'IndividualDeleteConfirmationDialog-button-accept',
+          'IndividualDeleteConfirmationDialog-button-reject',
+        ],
+        requests: ['http://localhost:3000/graphql'],
+        responses: [],
+        expectedResponses: 1,
+      };
+      await clickOn(props);
+      // evaluate
+      let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
+      expect(datas).to.include.deep.members([q1]);
+      expect(await page.title()).to.eql('Zendro');
+    });
+
+    it(`${n++}. click on: delete confirmation button`, async function() {
+      props = {
+        buttonId: 'IndividualDeleteConfirmationDialog-button-accept',
+        visibleIds: [
+          'IndividualEnhancedTable-tableBody',
+          'IndividualEnhancedTableToolbar-button-add',
+          'IndividualEnhancedTableToolbar-button-import',
+          'IndividualEnhancedTableToolbar-button-downloadOptions',
+          'IndividualEnhancedTable-row-iconButton-detail-3',
+          'IndividualEnhancedTable-row-iconButton-edit-3',
+          'IndividualEnhancedTable-row-iconButton-delete-3',
+        ],
+        hiddenIds: [
+          'IndividualAttributesFormView-div-root',
+          'IndividualAssociationsPage-div-root',
+          'IndividualDeleteConfirmationDialog-button-accept',
+          'IndividualDeleteConfirmationDialog-button-reject',
+          'IndividualEnhancedTable-row-iconButton-detail-2',
+          'IndividualEnhancedTable-row-iconButton-edit-2',
+          'IndividualEnhancedTable-row-iconButton-delete-2',
+        ],
+        requests: ['http://localhost:3000/graphql'],
+        responses: [],
+        expectedResponses: 3,
+      };
+      await clickOn(props);
+      // evaluate
+      let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
+      let recordsCount = await page.$$eval('[id=IndividualEnhancedTable-tableBody] > tr', items => items.length);
+      let individualsConnection = datas.reduce((a, c) => {if(c&&c.data&&c.data.individualsConnection){ a=c.data.individualsConnection; return a; } else  {return a; }}, {});
+      q4.data.individualsConnection.edges.push({node: {...addedIndividuals[2]}});
+      q4.data.individualsConnection.pageInfo.startCursor = individualsConnection.pageInfo.startCursor;
+      q4.data.individualsConnection.pageInfo.endCursor = individualsConnection.pageInfo.endCursor;
+      expect(datas).to.include.deep.members([q2, q3, q4]);
+      expect(recordsCount).to.eql(1);
+      expect(await page.title()).to.eql('Zendro');
+    });
+  });
+
+  describe('1.13 Delete <individual> - record-3', function() {
+    //general timeout for each 'it'.
+    this.timeout(tt); //10s.
+    let n=1;
+
+    let q1={
+      "data": {
+        "readOneIndividual": {
+          "cultivar": null
+        }
+      }
+    };
+    let q2={
+      "data": {
+        "deleteIndividual": "Item successfully deleted"
+      }
+    };
+    let q3={
+      "data": {
+        "countIndividuals": 0
+      }
+    };
+    let q4 = {
+      "data": {
+        "individualsConnection": {
+          "pageInfo": {
+            "startCursor": "to_be_assigned",
+            "endCursor": "to_be_assigned",
+            "hasPreviousPage": false,
+            "hasNextPage": false
+          },
+          "edges": [
+            //to_be_assigned
+          ]
+        }
+      }
+    };
+
+    it(`${n++}. click on: delete icon - <individual> - record-3`, async function() {
+      props = {
+        buttonId: 'IndividualEnhancedTable-row-iconButton-delete-3',
+        visibleIds: [
+          'IndividualAttributesFormView-div-root',
+          'IndividualAssociationsPage-div-root',
+          'IndividualDeleteConfirmationDialog-button-accept',
+          'IndividualDeleteConfirmationDialog-button-reject',
+        ],
+        requests: ['http://localhost:3000/graphql'],
+        responses: [],
+        expectedResponses: 1,
+      };
+      await clickOn(props);
+      // evaluate
+      let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
+      expect(datas).to.include.deep.members([q1]);
+      expect(await page.title()).to.eql('Zendro');
+    });
+
+    it(`${n++}. click on: delete confirmation button`, async function() {
+      props = {
+        buttonId: 'IndividualDeleteConfirmationDialog-button-accept',
+        visibleIds: [
+          'IndividualEnhancedTable-box-noData',
+          'IndividualEnhancedTableToolbar-button-add',
+          'IndividualEnhancedTableToolbar-button-import',
+          'IndividualEnhancedTableToolbar-button-downloadOptions',
+        ],
+        hiddenIds: [
+          'IndividualAttributesFormView-div-root',
+          'IndividualAssociationsPage-div-root',
+          'IndividualDeleteConfirmationDialog-button-accept',
+          'IndividualDeleteConfirmationDialog-button-reject',
+          'IndividualEnhancedTable-tableBody',
+          'IndividualEnhancedTable-row-iconButton-detail-3',
+          'IndividualEnhancedTable-row-iconButton-edit-3',
+          'IndividualEnhancedTable-row-iconButton-delete-3',
+        ],
+        requests: ['http://localhost:3000/graphql'],
+        responses: [],
+        expectedResponses: 3,
+      };
+      await clickOn(props);
+      // evaluate
+      let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
+      let recordsCount = await page.$$eval('[id=IndividualEnhancedTable-tableBody] > tr', items => items.length);
+      let individualsConnection = datas.reduce((a, c) => {if(c&&c.data&&c.data.individualsConnection){ a=c.data.individualsConnection; return a; } else  {return a; }}, {});
+      q4.data.individualsConnection.pageInfo.startCursor = individualsConnection.pageInfo.startCursor;
+      q4.data.individualsConnection.pageInfo.endCursor = individualsConnection.pageInfo.endCursor;
+      expect(datas).to.include.deep.members([q2, q3, q4]);
+      expect(recordsCount).to.eql(0);
+      expect(await page.title()).to.eql('Zendro');
+    });
+  });
 });
 
 /**
@@ -1796,8 +2886,6 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     expect(datas).to.deep.include({ individualsConnection: { pageInfo: {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false}, edges: [] } });
     expect(rowsCount_toAddB).to.eql(1);
     expect(assocId3).to.eql('3');
-    expect(await page.title()).to.eql('Zendro');
-
   });
 
 });
@@ -1988,6 +3076,42 @@ describe('3. AJV Validations', function() {
     }
   ];
   
+  describe('3.0 Logout/Login', function() {
+    //general timeout for each 'it'.
+    this.timeout(tt); //10s.
+    let n=1;
+
+    it(`${n++}. click on: logout`, async function() {
+      props = {
+        buttonId: 'MainPanel-button-logout',
+        visibleId: 'LoginPage-div-root',
+      };
+      await clickOn(props);
+      expect(await page.title()).to.eql('Zendro');
+    });
+
+    it(`${n++}. type on: input field - email`, async function () {
+      await page.click("input[id=LoginPage-textField-email]");
+      await page.type("input[id=LoginPage-textField-email]", 'admin@zen.dro');
+    });
+
+    it(`${n++}. type on: input field - password`, async function () {
+      await page.click("input[id=LoginPage-textField-password]");
+      await page.type("input[id=LoginPage-textField-password]", 'admin');
+    });
+
+    it(`${n++}. login: with admin user`, async function() {
+      props = {
+        buttonId: 'LoginPage-button-login',
+        visibleId: 'MainPanel-div-root',
+        hiddenId: 'LoginPage-div-root',
+      };
+      await clickOn(props);
+      //evaluate
+      expect(await page.title()).to.eql('Zendro');
+    });
+  });
+
   describe('3.1. Create panel', function () {
     let validationErrors = [...ajvValidationErrors];
     describe('3.1.1. <with_validations> table is empty', function() {
@@ -2824,6 +3948,7 @@ describe('3. AJV Validations', function() {
           requests: ['http://localhost:3000/graphql'],
           responses: [],
           expectedResponses: 1,
+          ttdelay: ttdelay*2,
         };
         await clickOn(props);
         // evaluate
@@ -3482,6 +4607,7 @@ describe('3. AJV Validations', function() {
  *   4.1 ACL - administrator.
  *    
  */
+if(true)
 describe('4. ACL Validations', function() {
   let adminModels = {
     namesCp: [ "Role", "Role_to_user", "User"],
@@ -4612,7 +5738,7 @@ describe('4. ACL Validations', function() {
         this.timeout(tt); //10s.
         let n=1;
 
-        it(`${n++}. click on: edit icon - <user> - record-6`, async function() {
+        it(`${n++}. click on: delete icon - <user> - record-6`, async function() {
           props = {
             buttonId: 'UserEnhancedTable-row-iconButton-delete-6',
             visibleIds: [
@@ -5651,6 +6777,12 @@ async function clickOn(props) {
       waitEvents.push(page.waitForSelector(`[id=${props.visibleIds[i]}]`,{ visible: true }).then(a=>a, r=>{throw r}));
     }
   }
+  if(props.visibleSelectors) {
+    for(let i=0; i<props.visibleSelectors.length; i++) {
+      waitEvents.push(page.waitForSelector(props.visibleSelectors[i],{ visible: true }).then(a=>a, r=>{throw r}));
+    }
+  }
+  
 
   //set hidden elements
   if(props.hiddenId) {
@@ -5659,6 +6791,11 @@ async function clickOn(props) {
   if(props.hiddenIds) {
     for(let i=0; i<props.hiddenIds.length; i++) {
       waitEvents.push(page.waitForSelector(`[id=${props.hiddenIds[i]}]`,{ hidden: true }).then(a=>a, r=>{throw r}));
+    }
+  }
+  if(props.hiddenSelectors) {
+    for(let i=0; i<props.hiddenSelectors.length; i++) {
+      waitEvents.push(page.waitForSelector(props.hiddenSelectors[i],{ visible: true }).then(a=>a, r=>{throw r}));
     }
   }
   
@@ -5675,14 +6812,18 @@ async function clickOn(props) {
       }).then(a=>a, r=>{throw r}));
   }
 
+  //set button selector
+  let buttonSelector = props.buttonSelector ? props.buttonSelector : `${elementType}[id=${props.buttonId}]`;
   //click
   await Promise.all([
     //wait for events
     ...waitEvents,
     //click
-    page.click(`${elementType}[id=${props.buttonId}]`).then(a=>a, r=>{throw r}),
+    page.click(buttonSelector).then(a=>a, r=>{throw r}),
   ]).then(a=>a, r=>{throw r});
 
   //delay
   await delay(lttdelay);
+  //evaluate
+  expect(await page.title()).to.eql('Zendro');
 }

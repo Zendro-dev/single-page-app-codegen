@@ -104,7 +104,12 @@ export default function TimeField(props) {
               InputProps={{
                 className: classnames({[classes.ajvError]: (valueAjv !== undefined && valueAjv.errors.length > 0)}),
               }}
-
+              InputAdornmentProps={{
+                id: 'TimeField-<%- nameOnPascal -%>-input-inputAdornment-'+name,
+              }}
+              KeyboardButtonProps={{
+                id: 'TimeField-<%- nameOnPascal -%>-input-inputAdornment-button-'+name,
+              }}
               onChange={(date, value) => {
                 setSelectedDate(date);
 
