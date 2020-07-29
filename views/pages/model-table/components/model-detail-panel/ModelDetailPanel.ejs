@@ -572,12 +572,13 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
               */}
               {
                 /* acl check */
-                (permissions&&permissions.user&&Array.isArray(permissions.user)
-                &&(permissions.user.includes('update') || permissions.user.includes('*')))
+                (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
+                &&(permissions.<%- nameLc -%>.includes('update') || permissions.<%- nameLc -%>.includes('*')))
                 &&(!deleted)&&(
                   
                     <Tooltip title={ t('modelPanels.edit') }>
                       <IconButton
+                        id='<%- nameOnPascal -%>DetailPanel-button-edit'
                         color='inherit'
                         onClick={(event) => {
                           event.stopPropagation();
@@ -592,12 +593,13 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
               }
               {
                 /* acl check */
-                (permissions&&permissions.user&&Array.isArray(permissions.user)
-                &&(permissions.user.includes('delete') || permissions.user.includes('*')))
+                (permissions&&permissions.<%- nameLc -%>&&Array.isArray(permissions.<%- nameLc -%>)
+                &&(permissions.<%- nameLc -%>.includes('delete') || permissions.<%- nameLc -%>.includes('*')))
                 &&(!deleted)&&(
                   
                     <Tooltip title={ t('modelPanels.delete') }>
                       <IconButton
+                        id='<%- nameOnPascal -%>DetailPanel-button-delete'
                         color='inherit'
                         onClick={(event) => {
                           event.stopPropagation();

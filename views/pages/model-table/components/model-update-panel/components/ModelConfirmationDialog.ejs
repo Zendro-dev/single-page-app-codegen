@@ -48,7 +48,7 @@ export default function <%- nameOnPascal _%>ConfirmationDialog(props) {
 
   return (
     <div>
-      <Dialog
+      <Dialog id='<%- nameOnPascal -%>ConfirmationDialog-update'
         open={open}
         TransitionComponent={Transition}
         keepMounted
@@ -67,6 +67,7 @@ export default function <%- nameOnPascal _%>ConfirmationDialog(props) {
           {/* Action: Accept */}
           {(acceptText !== '' && acceptText !== null && acceptText !== undefined) &&
             <Button
+              id='<%- nameOnPascal -%>ConfirmationDialog-update-button-accept'
               color="primary"
               variant='contained'
               onClick={(event) => onAccept(event, 400)} 
@@ -79,6 +80,7 @@ export default function <%- nameOnPascal _%>ConfirmationDialog(props) {
           {(rejectText !== '' && acceptText !== null && acceptText !== undefined) &&
             
             <Button
+              id='<%- nameOnPascal -%>ConfirmationDialog-update-button-reject'
               color="primary" 
               onClick={(event) => onReject(event, 400)} 
             >
