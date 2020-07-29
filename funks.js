@@ -286,11 +286,7 @@ exports.checkJsonFiles = function(jsonDir, jsonFiles, options){
         && !jsonFilesPaths.includes(path.resolve(file))) {
           result.pass = false;
           result.errors.push(`@@Error: json model file '${file}' is not in the json input directory.`);
-<<<<<<< HEAD
-        } 
-=======
         }
->>>>>>> origin/i57-acl-refactoring
       });
     }
   }
@@ -1195,7 +1191,6 @@ checkAssociations = function(fileData){
   Object.entries(ownTargetKeys).forEach((entry) => {
     //Case: not self-associated: target key appears more than once. 
     if(entry[1].count > 1) {
-<<<<<<< HEAD
       //error
       console.log(colors.red('@@Error on model:'), colors.blue(modelName), "- target keys should be unique for each association, but", colors.dim(entry[0]), "is used in",entry[1].count, "different associations as target key.");
       throw new Error("Inconsistent attributes found");
@@ -1206,18 +1201,6 @@ checkAssociations = function(fileData){
       console.log(colors.red('@@Error on model:'), colors.blue(modelName), "- target keys in a self-association should appears only twice, once in each of the two association's complementary definitions, but", colors.dim(entry[0]), "is used in",entry[1].selfAssociatedCount, "different self-association definitions as target key.");
       throw new Error("Inconsistent attributes found");
     }
-=======
-      //error
-      console.log(colors.red('@@Error on model:'), colors.blue(modelName), "- target keys should be unique for each association, but", colors.dim(entry[0]), "is used in",entry[1].count, "different associations as target key.");
-      throw new Error("Inconsistent attributes found");
-    }
-    //Case: self-associated: target key appears more than twice.
-    if(entry[1].selfAssociatedCount > 2) {
-      //error
-      console.log(colors.red('@@Error on model:'), colors.blue(modelName), "- target keys in a self-association should appears only twice, once in each of the two association's complementary definitions, but", colors.dim(entry[0]), "is used in",entry[1].selfAssociatedCount, "different self-association definitions as target key.");
-      throw new Error("Inconsistent attributes found");
-    }
->>>>>>> origin/i57-acl-refactoring
     //Case: self-associated: target key appears only once.
     if(entry[1].selfAssociatedCount === 1) {
       //warning
@@ -1591,10 +1574,7 @@ parseJsonModels = function(jsonFiles, baseDir, {plotlyOptions}, verbose) {
   let totalExcludedFiles = 0; //files excluded: either by JSON error parsing or by semantic errors.
   let totalWrongFiles = 0;    //files with semantic errors.
   let totalWarnings = 0;
-<<<<<<< HEAD
-=======
   let adminModels = getAdminModels();
->>>>>>> origin/i57-acl-refactoring
 
   /**
    * Add admin models
