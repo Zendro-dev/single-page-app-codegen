@@ -55,20 +55,20 @@ export default function <%- nameOnPascal -%>UploadFileDialog(props) {
       <Button color='inherit' variant='text' size='small' className={classes.notiErrorActionText} onClick={() => { closeSnackbar(key) }}>
         {actionText.current}
       </Button>
-    </> 
+    </>
   );
 
   const handleSubmit = (event) => {
     if(file.current !== undefined && file.current !== null) {
-      
+
       let formData = new FormData();
-      let query = 'mutation{ bulkAdd<%- nameCp -%>Csv{ <%- internalId _%> } }'
+      let query = 'mutation{ bulkAdd<%- nameCp -%>Csv }'
       formData.append('csv_file', file.current);
       formData.append('query', query)
 
       var token = localStorage.getItem('token');
       axios.defaults.headers.common['Authorization'] = 'Bearer ' + token;
-      
+
       axios.post(graphqlServerUrl, formData,  {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -124,7 +124,7 @@ export default function <%- nameOnPascal -%>UploadFileDialog(props) {
   }
 
   return (
-    <Dialog 
+    <Dialog
       open={open}
       onClose={(event) => {
         if(!isCanceling.current){
@@ -139,12 +139,12 @@ export default function <%- nameOnPascal -%>UploadFileDialog(props) {
           <Typography variant="subtitle1" color='textSecondary' noWrap={true}>
           { t('modelPanels.uploadHelper') }
           </Typography>
-        </div>  
+        </div>
       </DialogTitle>
 
       <DialogContent dividers>
-        <Input 
-          className={classes.input} 
+        <Input
+          className={classes.input}
           type="file"
           inputProps={{
             accept: ".csv"
@@ -176,7 +176,7 @@ export default function <%- nameOnPascal -%>UploadFileDialog(props) {
       </DialogContent>
 
       <DialogActions>
-        <Button 
+        <Button
           className={classes.button}
           color="secondary"
           onClick={(event) => {
@@ -189,9 +189,9 @@ export default function <%- nameOnPascal -%>UploadFileDialog(props) {
         >
           { t('modelPanels.cancel') }
         </Button>
-        <Button 
+        <Button
           className={classes.button}
-          variant="contained" 
+          variant="contained"
           color="primary"
           disabled={maxSizeError || !fileChosen}
           type="submit"
