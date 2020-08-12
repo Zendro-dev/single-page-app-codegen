@@ -8,7 +8,7 @@ const { extendWith } = require('lodash');
 let browser = {}, page = {};
 //test timeouts
 const tt = 10000;
-const ttmax = 20000;
+const ttmax = 40000;
 //delays
 const ttdelay = 600;
 //retries
@@ -1099,7 +1099,7 @@ describe('1. Basic functionality', function () {
       expect(recordsCount).to.eql(3);
     });
   });
-  
+
   describe('1.11 Delete <individual> - record-1', function() {
     //general timeout for each 'it'.
     this.timeout(tt); //10s.
@@ -1396,11 +1396,11 @@ describe('1. Basic functionality', function () {
 
 /**
  * Part 2: Associations
- * 
+ *
  * <one>(sql) to <many>(sql)
  *   2.1 Associations - one(sql) to many(sql) - add associations - create-panel.
  *   2.2 Associations - one(sql) to many(sql) - associations operations - update-panel.
- *    
+ *
  */
 
 if(false){
@@ -1459,11 +1459,11 @@ describe('2.1 Associations - one(sql) to many(sql) - add associations - create-p
       await Promise.all([
         //wait for events
         page.waitForSelector('div[id=TranscriptCountAttributesFormView-div-root]', { visible: true }),
-  
+
         //click
         page.click("button[id=TranscriptCountEnhancedTableToolbar-button-add]"),
       ]);
-  
+
       //add input
       await page.click("textarea[id=StringField-TranscriptCount-gene]");
       await page.type("textarea[id=StringField-TranscriptCount-gene]", inputNotOk.gene);
@@ -1473,7 +1473,7 @@ describe('2.1 Associations - one(sql) to many(sql) - add associations - create-p
       await page.type("input[id=FloatField-TranscriptCount-count]", inputNotOk.count);
       await page.click("textarea[id=StringField-TranscriptCount-tissue_or_condition]");
       await page.type("textarea[id=StringField-TranscriptCount-tissue_or_condition]", inputNotOk.tissue_or_condition);
-  
+
       let apiResponse = null;
       await Promise.all(lastEvents.concat([
         //wait for events
@@ -1698,9 +1698,9 @@ describe('2.1 Associations - one(sql) to many(sql) - add associations - create-p
      */
     data = await apiResponse;
     let newId = (data&&data.addIndividual) ? data.addIndividual.id : 0;
-    let cell = await page.$(`tr[id=IndividualEnhancedTable-row-${newId}] > td:nth-child(5)`); 
+    let cell = await page.$(`tr[id=IndividualEnhancedTable-row-${newId}] > td:nth-child(5)`);
     let text = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-    
+
     expect(text).to.eql('individual-1');
     expect(await data.addIndividual.name === 'individual-1').to.eql(true);
     expect(await page.title()).to.eql('Zendro');
@@ -1727,7 +1727,7 @@ describe('2.1 Associations - one(sql) to many(sql) - add associations - create-p
     rowsCountA = await page.$$eval('div[id=TranscriptCountsCompactView-list-listA] > div[role=listitem]', rows => rows.length).catch((e) => null);
     let assocId1 = await page.$eval('p[id=TranscriptCountsCompactView-listA-listItem-id-1]', cell => cell ? cell.textContent : null ).catch((e) => null);
     let assocId3 = await page.$eval('p[id=TranscriptCountsCompactView-listA-listItem-id-3]', cell => cell ? cell.textContent : null ).catch((e) => null);
-    
+
     expect(data.readOneIndividual.countFilteredTranscript_counts).to.eql(2);
     expect(rowsCountA).to.eql(2);
     expect(assocId1).to.eql('1');
@@ -1739,7 +1739,7 @@ describe('2.1 Associations - one(sql) to many(sql) - add associations - create-p
       //wait for events
       page.waitForSelector('div[id=IndividualAssociationsPage-div-root]', { hidden: true }),
       page.waitForSelector('tbody[id=IndividualEnhancedTable-tableBody]', { visible: true }),
-      
+
       //click
       page.click("button[id=IndividualDetailPanel-button-close]"),
     ]);
@@ -1754,7 +1754,7 @@ describe('2.1 Associations - one(sql) to many(sql) - add associations - create-p
 
 if(false){
 /**
- * 
+ *
  * 2.2 Associations - one(sql) to many(sql) - associations operations - update-panel.
  */
 describe('2.2 Associations - one(sql) to many(sql) - associations operations - update-panel.', function () {
@@ -1787,9 +1787,9 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     };
     await clickOn(props);
     // evaluate #2
-    let datas = (await Promise.all(props.responses)).map((data) => data.data); 
+    let datas = (await Promise.all(props.responses)).map((data) => data.data);
     let rowsCount_toAddA = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listA] > li', rows => rows.length);
-    let rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);    
+    let rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);
     expect(datas).to.deep.include({ countTranscript_counts: recordsCount_d2_it02-2 });
     expect(datas.reduce((a, c) => {
       if(c&&c.readOneIndividual&&c.readOneIndividual.countFilteredTranscript_counts) {
@@ -1884,7 +1884,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     await clickOn(props);
     // evaluate #5
     datas = (await Promise.all(props.responses)).map((data) => data.data);
-    let cell = await page.$(`tr[id=IndividualEnhancedTable-row-${individual_d2_it03.id}] > td:nth-child(5)`); 
+    let cell = await page.$(`tr[id=IndividualEnhancedTable-row-${individual_d2_it03.id}] > td:nth-child(5)`);
     let text = await page.evaluate(cell => cell ? cell.textContent : null , cell);
     expect(datas).to.deep.include({ updateIndividual: {id: individual_d2_it03.id, name: individual_d2_it03.name } });
     expect(datas).to.deep.include({ countIndividuals: 1 });
@@ -1909,7 +1909,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     let assocId3 = await page.$eval('p[id=TranscriptCountsCompactView-listA-listItem-id-3]', cell => cell ? cell.textContent : null ).catch((e) => null);
     let assocId4 = await page.$eval('p[id=TranscriptCountsCompactView-listA-listItem-id-4]', cell => cell ? cell.textContent : null ).catch((e) => null);
     let assocId5 = await page.$eval('p[id=TranscriptCountsCompactView-listA-listItem-id-5]', cell => cell ? cell.textContent : null ).catch((e) => null);
-    
+
     expect(datas[0].readOneIndividual.countFilteredTranscript_counts).to.eql(5);
     expect(rowsCountA).to.eql(5);
     expect(assocId1).to.eql('1');
@@ -1959,7 +1959,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     await clickOn(props);
     // evaluate #2
     let datas = (await Promise.all(props.responses)).map((data) => data.data);
-    let rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);    
+    let rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);
     expect(datas).to.deep.include({ countTranscript_counts: recordsCount_d2_it02-5 });
     expect(datas.reduce((a, c) => {
       if(c&&c.readOneIndividual&&c.readOneIndividual.countFilteredTranscript_counts) {
@@ -2232,7 +2232,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     await clickOn(props);
     // evaluate #9
     datas = (await Promise.all(props.responses)).map((data) => data.data);
-    let cell = await page.$(`tr[id=IndividualEnhancedTable-row-${individual_d2_it03.id}] > td:nth-child(5)`); 
+    let cell = await page.$(`tr[id=IndividualEnhancedTable-row-${individual_d2_it03.id}] > td:nth-child(5)`);
     let text = await page.evaluate(cell => cell ? cell.textContent : null , cell);
     expect(datas).to.deep.include({ updateIndividual: {id: individual_d2_it03.id, name: individual_d2_it03.name } });
     expect(datas).to.deep.include({ countIndividuals: 1 });
@@ -2254,7 +2254,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     let rowsCountA = await page.$$eval('div[id=TranscriptCountsCompactView-list-listA] > div[role=listitem]', rows => rows.length).catch((e) => null);
     let assocId1 = await page.$eval('p[id=TranscriptCountsCompactView-listA-listItem-id-1]', cell => cell ? cell.textContent : null ).catch((e) => null);
     let assocId5 = await page.$eval('p[id=TranscriptCountsCompactView-listA-listItem-id-5]', cell => cell ? cell.textContent : null ).catch((e) => null);
-    
+
     expect(datas[0].readOneIndividual.countFilteredTranscript_counts).to.eql(2);
     expect(rowsCountA).to.eql(2);
     expect(assocId1).to.eql('1');
@@ -2302,7 +2302,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     // evaluate #2
     let datas = (await Promise.all(props.responses)).map((data) => data.data);
     let rowsCount_toAddA = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listA] > li', rows => rows.length);
-    let rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);    
+    let rowsCount_toRemoveA = await page.$$eval('div[id=TranscriptCountsToRemoveTransferView-list-listA] > li', rows => rows.length);
     expect(datas).to.deep.include({ countTranscript_counts: recordsCount_d2_it02-2 });
     expect(datas.reduce((a, c) => {
       if(c&&c.readOneIndividual&&c.readOneIndividual.countFilteredTranscript_counts) {
@@ -2481,7 +2481,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     await clickOn(props);
     // evaluate #9
     datas = (await Promise.all(props.responses)).map((data) => data.data);
-    let cell = await page.$(`tr[id=IndividualEnhancedTable-row-${individual_d2_it03.id}] > td:nth-child(5)`); 
+    let cell = await page.$(`tr[id=IndividualEnhancedTable-row-${individual_d2_it03.id}] > td:nth-child(5)`);
     let text = await page.evaluate(cell => cell ? cell.textContent : null , cell);
     expect(datas).to.deep.include({ updateIndividual: {id: individual_d2_it03.id, name: individual_d2_it03.name } });
     expect(datas).to.deep.include({ countIndividuals: 1 });
@@ -2503,7 +2503,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     let rowsCountA = await page.$$eval('div[id=TranscriptCountsCompactView-list-listA] > div[role=listitem]', rows => rows.length).catch((e) => null);
     let assocId3 = await page.$eval('p[id=TranscriptCountsCompactView-listA-listItem-id-3]', cell => cell ? cell.textContent : null ).catch((e) => null);
     let assocId4 = await page.$eval('p[id=TranscriptCountsCompactView-listA-listItem-id-4]', cell => cell ? cell.textContent : null ).catch((e) => null);
-    
+
     expect(datas[0].readOneIndividual.countFilteredTranscript_counts).to.eql(2);
     expect(rowsCountA).to.eql(2);
     expect(assocId3).to.eql('3');
@@ -2523,7 +2523,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
 
     /**
      * Validate peer associated records:
-     * 
+     *
      * #12: click on <transcript_count>
      * #13 - #15: item 1
      * #16 - #18: item 2
@@ -2675,7 +2675,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     datas = (await Promise.all(props.responses)).map((data) => data.data);
     rowsCountA = await page.$$eval('div[id=IndividualCompactView-list-listA] > div[role=listitem]', rows => rows.length).catch((e) => null);
     assocId3 = await page.$eval('p[id=IndividualCompactView-listA-listItem-id-3]', cell => cell ? cell.textContent : null ).catch((e) => null);
-    
+
     expect(datas[0].readOneTranscript_count.individual.id).to.eql("3");
     expect(rowsCountA).to.eql(1);
     expect(assocId3).to.eql('3');
@@ -2727,7 +2727,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     datas = (await Promise.all(props.responses)).map((data) => data.data);
     rowsCountA = await page.$$eval('div[id=IndividualCompactView-list-listA] > div[role=listitem]', rows => rows.length).catch((e) => null);
     assocId3 = await page.$eval('p[id=IndividualCompactView-listA-listItem-id-3]', cell => cell ? cell.textContent : null ).catch((e) => null);
-    
+
     expect(datas[0].readOneTranscript_count.individual.id).to.eql("3");
     expect(rowsCountA).to.eql(1);
     expect(assocId3).to.eql('3');
@@ -2794,7 +2794,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
   });
 
   it('04. Add & Remove <individual> associations on <transcript_count>', async function () {
-    
+
     /**
      * Add association on <transcript_count> item 1
      */
@@ -2826,7 +2826,7 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
     let errors = (await Promise.all(props.responses)).map((data) => data.errors);
     expect(datas).to.deep.include({ readOneTranscript_count: {aminoacidsequence: null} });
     expect(datas.reduce((a, c) => {
-      if(c&&c.countAminoacidsequences === null) {return true} 
+      if(c&&c.countAminoacidsequences === null) {return true}
       else {return a}
     }, false)).to.eql(true);
     expect(errors.reduce((a, c) => {
@@ -2895,10 +2895,10 @@ describe('2.2 Associations - one(sql) to many(sql) - associations operations - u
 
 /**
  * Part 3: AJV Validations
- * 
+ *
  *   3.1 AJV Validations - create-panel.
  *   3.2 AJV Validations - update-panel.
- *    
+ *
  */
 if(true)
 describe('3. AJV Validations', function() {
@@ -3077,7 +3077,7 @@ describe('3. AJV Validations', function() {
       "message": "should be null"
     }
   ];
-  
+
   describe('3.0 Logout/Login', function() {
     //general timeout for each 'it'.
     this.timeout(tt); //10s.
@@ -3885,37 +3885,37 @@ describe('3. AJV Validations', function() {
         // evaluate
         datas = (await Promise.all(props.responses)).map((data) => data.data);
         let texts = {};
-        let cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(4)`); 
+        let cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(4)`);
         texts.id = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(5)`); 
+        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(5)`);
         texts.string_1 = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(6)`); 
+        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(6)`);
         texts.string_2 = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(7)`); 
+        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(7)`);
         texts.int_1 = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(8)`); 
+        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(8)`);
         texts.int_2 = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(9)`); 
+        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(9)`);
         texts.float_1 = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(10)`); 
+        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(10)`);
         texts.float_2 = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(11)`); 
+        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(11)`);
         texts.boolean_1 = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(12)`); 
+        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(12)`);
         texts.boolean_2 = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(13)`); 
+        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(13)`);
         texts.date_1 = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(14)`); 
+        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(14)`);
         texts.date_2 = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(15)`); 
+        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(15)`);
         texts.dateTime_1 = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(16)`); 
+        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(16)`);
         texts.dateTime_2 = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(17)`); 
+        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(17)`);
         texts.time_1 = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(18)`); 
+        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(18)`);
         texts.time_2 = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        expect(datas).to.deep.include({ 
+        expect(datas).to.deep.include({
           addWith_validations: {
             id: '1',
             string_1: 'abcde',
@@ -4711,37 +4711,37 @@ describe('3. AJV Validations', function() {
         // evaluate
         datas = (await Promise.all(props.responses)).map((data) => data.data);
         let texts = {};
-        let cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(4)`); 
+        let cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(4)`);
         texts.id = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(5)`); 
+        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(5)`);
         texts.string_1 = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(6)`); 
+        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(6)`);
         texts.string_2 = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(7)`); 
+        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(7)`);
         texts.int_1 = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(8)`); 
+        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(8)`);
         texts.int_2 = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(9)`); 
+        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(9)`);
         texts.float_1 = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(10)`); 
+        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(10)`);
         texts.float_2 = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(11)`); 
+        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(11)`);
         texts.boolean_1 = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(12)`); 
+        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(12)`);
         texts.boolean_2 = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(13)`); 
+        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(13)`);
         texts.date_1 = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(14)`); 
+        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(14)`);
         texts.date_2 = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(15)`); 
+        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(15)`);
         texts.dateTime_1 = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(16)`); 
+        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(16)`);
         texts.dateTime_2 = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(17)`); 
+        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(17)`);
         texts.time_1 = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(18)`); 
+        cell = await page.$(`tr[id=WithValidationsEnhancedTable-row-1] > td:nth-child(18)`);
         texts.time_2 = await page.evaluate(cell => cell ? cell.textContent : null , cell);
-        expect(datas).to.deep.include({ 
+        expect(datas).to.deep.include({
           updateWith_validations: {
             id: '1',
             string_1: 'abcde',
@@ -4784,9 +4784,9 @@ describe('3. AJV Validations', function() {
 
 /**
  * Part 4: ACL Validations
- * 
+ *
  *   4.1 ACL - administrator.
- *    
+ *
  */
 if(true)
 describe('4. ACL Validations', function() {
@@ -5795,7 +5795,7 @@ describe('4. ACL Validations', function() {
               'UserUpdatePanel-fabButton-save',
               'UserUpdatePanel-button-cancel',
             ],
-            
+
             requests: ['http://localhost:3000/graphql'],
             responses: [],
             expectedResponses: 4,
@@ -6558,7 +6558,7 @@ describe('4. ACL Validations', function() {
       let n=1;
 
       let modelsNames = [
-        'Accession', 
+        'Accession',
       ]
 
       let q1 = {
@@ -6942,7 +6942,7 @@ describe('4. ACL Validations', function() {
 async function clickOn(props) {
   //set delay timeout
   let lttdelay = (props.ttdelay) ? props.ttdelay : ttdelay;
-  
+
   //set button elementType
   let elementType = props.elementType ? props.elementType : '';
 
@@ -6952,7 +6952,7 @@ async function clickOn(props) {
   //set visible elements
   if(props.visibleId){
     waitEvents.push(page.waitForSelector(`[id=${props.visibleId}]`,{ visible: true }).then(a=>a, r=>{throw r}));
-  }  
+  }
   if(props.visibleIds) {
     for(let i=0; i<props.visibleIds.length; i++) {
       waitEvents.push(page.waitForSelector(`[id=${props.visibleIds[i]}]`,{ visible: true }).then(a=>a, r=>{throw r}));
@@ -6963,7 +6963,7 @@ async function clickOn(props) {
       waitEvents.push(page.waitForSelector(props.visibleSelectors[i],{ visible: true }).then(a=>a, r=>{throw r}));
     }
   }
-  
+
 
   //set hidden elements
   if(props.hiddenId) {
@@ -6979,12 +6979,12 @@ async function clickOn(props) {
       waitEvents.push(page.waitForSelector(props.hiddenSelectors[i],{ visible: true }).then(a=>a, r=>{throw r}));
     }
   }
-  
+
   //set requests
   if(props.requests && props.expectedResponses) {
     waitEvents.push(
       page.waitForResponse((res) => {
-        
+
         if([200, 500].includes(res.status()) && props.requests.includes(res.url())){
           props.responses.push(res.json().then((data) => data, (r)=>r));
         }
