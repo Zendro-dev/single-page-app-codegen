@@ -135,11 +135,11 @@ DOCKER_GQL_SERVER1=gql_science_db_graphql_server1
 DOCKER_GQL_SERVER2=gql_science_db_graphql_server2
 TEST_MODELS_INSTANCE1="./test/integration_test_models_instance1"
 TEST_MODELS_INSTANCE2="./test/integration_test_models_instance2"
-GQL_TEST_MODELS_INSTANCE1="./test/integration_test_models_instance1/gql"
-GQL_TEST_MODELS_INSTANCE2="./test/integration_test_models_instance2/gql"
+GQL_TEST_MODELS_INSTANCE1="./test/integration_test_models_instance1"
+GQL_TEST_MODELS_INSTANCE2="./test/integration_test_models_instance2"
 TARGET_DIR="./docker/integration_test_run"
 GQL_CODEGEN_DIR="./docker/graphql-server-model-codegen"
-GQL_CODEGEN_URL="https://github.com/ScienceDb/graphql-server-model-codegen.git"
+GQL_CODEGEN_URL="https://github.com/Zendro-dev/graphql-server-model-codegen.git"
 GQL_CODEGEN_BRANCH_TAG="master"
 TARGET_DIR="./docker/integration_test_run"
 TARGET_DIR_GQL_INSTANCE1=$TARGET_DIR"/gql-instance1"
@@ -327,6 +327,9 @@ restartContainers() {
   # Msg
   echo -e "@@ Containers restarted ... ${LGREEN}done${NC}"
   echo -e "${LGRAY}---------------------------- @@${NC}\n"
+
+  # Wait for all servers to respond
+  waitForAll
 }
 
 #
@@ -494,6 +497,40 @@ waitForSpa() {
 }
 
 #
+# Function: waitForAll()
+#
+# Waits for all servers to start.
+#
+waitForAll() {
+  # Msg
+  echo -e "\n${LGRAY}@@ ----------------------------${NC}"
+  echo -e "${LGRAY}@@ Waiting for servers...${NC}"
+
+  # Wait for graphql server
+  waitForGql
+
+  #Init dbs
+  # Instance 1
+  docker-compose -f ./docker/docker-compose-test.yml exec ${DOCKER_POSTGRES_SERVER1} \
+  bash -c "psql -U sciencedb -d sciencedb_development -P pager=off --single-transaction -f /usr/src/app/integration-test.sql"
+  # Msg
+  echo -e "@@ db1 init ... ${LGREEN}done${NC}"
+  
+  # Instance 2
+  docker-compose -f ./docker/docker-compose-test.yml exec ${DOCKER_POSTGRES_SERVER2} \
+  bash -c "psql -U sciencedb -d sciencedb_development -P pager=off --single-transaction -f /usr/src/app/integration-test.sql"
+  # Msg
+  echo -e "@@ db2 init ... ${LGREEN}done${NC}"
+
+  # Wait for spa server
+  waitForSpa
+
+  # Msg
+  echo -e "@@ All servers up! ... ${LGREEN}done${NC}"
+  echo -e "${LGRAY}---------------------------- @@${NC}\n"
+}
+
+#
 # Function: gqlCodegenSetup()
 #
 # Check the GraphQL Server codegen, clone it if necessary & install it.
@@ -566,6 +603,31 @@ genCode() {
   #Generate
   node ${GQL_CODEGEN_DIR}/index.js -f ${GQL_TEST_MODELS_INSTANCE1} -o ${TARGET_DIR_GQL_INSTANCE1}
   local gql1_status=$?
+  if [ $gql1_status -eq 0 ]; then  
+    # Patch
+    echo -e "${LGRAY}@ Patching required files...${NC}"
+    #
+    # path file: /validations/with_validations.js"
+    #
+    patch $TARGET_DIR_GQL_INSTANCE1"/validations/with_validations.js" "./test/patches/with_validations.js.patch"
+    if [ $? -eq 0 ]; then
+      echo -e "@ Patched: ${TARGET_DIR_GQL_INSTANCE1}/validations/with_validations.js ... ${LGREEN}done${NC}"
+    else
+      echo -e "!!${RED}ERROR${NC}: trying to patch: ${RED}${TARGET_DIR_GQL_INSTANCE1}/validations/with_validations.js${NC} fails ... ${YEL}exit${NC}"
+      exit 0
+    fi
+    #
+    # path file: /src/acl_rules.js"
+    #
+    patch $TARGET_DIR_SPA_INSTANCE1"/src/acl_rules.js" "./test/patches/acl_rules.js.patch"
+    if [ $? -eq 0 ]; then
+      echo -e "@ Patched: ${TARGET_DIR_SPA_INSTANCE1}/src/acl_rules.js ... ${LGREEN}done${NC}"
+    else
+      echo -e "!!${RED}ERROR${NC}: trying to patch: ${RED}${TARGET_DIR_SPA_INSTANCE1}/src/acl_rules.js${NC} fails ... ${YEL}exit${NC}"
+      exit 0
+    fi
+  fi
+
   node ${GQL_CODEGEN_DIR}/index.js -f ${GQL_TEST_MODELS_INSTANCE2} -o ${TARGET_DIR_GQL_INSTANCE2}
   local gql2_status=$?
   
@@ -782,6 +844,8 @@ if [ $# -gt 0 ]; then
               genCode
               # Ups containers
               upContainers
+              # Wait for all servers
+              waitForAll
 
               # Done
               exit 0

@@ -51,8 +51,10 @@ services:
       - ./integration_test_run/gql-instance1/migrations:/usr/src/app/generated/migrations
       - ./integration_test_run/gql-instance1/validations:/usr/src/app/generated/validations
       - ./integration_test_run/gql-instance1/patches:/usr/src/app/generated/patches
+      - ./integration_test_run/gql-instance1/acl_rules.js:/usr/src/app/acl_rules.js
       - ./sequelize_config_instance1.json:/usr/src/app/config/config.json
       - ./copy_generated_code.sh:/usr/src/app/copy_generated_code.sh
+      - ./migrateDbAndStartServer.sh:/usr/src/app/migrateDbAndStartServer.sh
 
     ports:
       - "3000:3000"
@@ -73,6 +75,7 @@ services:
         npm install
         chmod u+x ./copy_generated_code.sh
         ./copy_generated_code.sh
+        chmod u+x ./migrateDbAndStartServer.sh
         ./migrateDbAndStartServer.sh
 #
 # NCBI Simulated Server 1
@@ -175,6 +178,7 @@ services:
       - ./integration_test_run/gql-instance2/migrations:/usr/src/app/generated/migrations
       - ./integration_test_run/gql-instance2/validations:/usr/src/app/generated/validations
       - ./integration_test_run/gql-instance2/patches:/usr/src/app/generated/patches
+      - ./integration_test_run/gql-instance2/acl_rules.js:/usr/src/app/acl_rules.js
       - ./sequelize_config_instance2.json:/usr/src/app/config/config.json
       - ./copy_generated_code.sh:/usr/src/app/copy_generated_code.sh
 

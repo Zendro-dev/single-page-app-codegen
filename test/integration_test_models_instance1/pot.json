@@ -1,0 +1,21 @@
+{
+  "model": "pot",
+  "storageType": "sql",
+  "attributes": {
+    "pot": "String",
+    "greenhouse": "String",
+    "climate_chamber": "String",
+    "conditions": "String"
+  },
+  "associations": {
+    "individuals": {
+      "type" : "to_many",
+      "target" : "individual",
+      "targetKey" : "pot_id",
+      "keyIn": "individual",
+      "targetStorageType" : "sql",
+      "label" : "name",
+      "sublabel": "developmental_state"
+    }
+  }
+}
