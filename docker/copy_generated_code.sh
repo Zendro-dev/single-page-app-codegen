@@ -30,19 +30,6 @@ NC='\033[0m'
 echo -e "\n${LGRAY}@@ ----------------------------${NC}"
 echo -e "${LGRAY}@@ Copy generated code...${NC}"
 
-#adapters
-echo "@ models/adapters:"
-find ./models/adapters -type f \! -name 'index\.js' -exec ls -l '{}' \;
-
-echo "@ generated/models/adapters:"
-find ./generated/models/adapters -type f \! -name 'index\.js' -exec ls -l '{}' \;
-
-echo "@ generated/models/ "
-ls -al ./generated/models
-
-
-#remove
-
 for i in "${TARGET_DIRS[@]}"
 do
   if [ -d ./${i} ]; then
