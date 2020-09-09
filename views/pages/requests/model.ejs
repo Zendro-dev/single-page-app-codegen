@@ -183,7 +183,7 @@ export default {
       if (o != null) {
         
         query =
-          `query <%- namePlLc _%>Connection($pagination: paginationCursorInput!)
+          `query <%- namePlLc _%>Connection($pagination: paginationCursorInput)
             { <%- namePlLc _%>Connection( ${s}, ${o}, pagination: $pagination ) {
               ${qbody}
             }}`
@@ -191,7 +191,7 @@ export default {
       else {
 
         query =
-          `query <%- namePlLc _%>Connection($pagination: paginationCursorInput!)
+          `query <%- namePlLc _%>Connection($pagination: paginationCursorInput)
             { <%- namePlLc _%>Connection( ${s}, pagination: $pagination ) {
               ${qbody}
             }}`
@@ -202,7 +202,7 @@ export default {
       if (o != null) {
         
         query =
-          `query <%- namePlLc _%>Connection($pagination: paginationCursorInput!)
+          `query <%- namePlLc _%>Connection($pagination: paginationCursorInput)
           { <%- namePlLc _%>Connection( ${o}, pagination: $pagination ) {
             ${qbody}
           }}`
@@ -210,7 +210,7 @@ export default {
       else {
         
         query =
-          `query <%- namePlLc _%>Connection($pagination: paginationCursorInput!)
+          `query <%- namePlLc _%>Connection($pagination: paginationCursorInput)
           { <%- namePlLc _%>Connection( pagination: $pagination ) {
             ${qbody}
           }}`
@@ -568,14 +568,14 @@ export default {
           }`
 
     var query = (s) ?
-      `query readOne<%- nameCp %>($pagination: paginationCursorInput!) {
+      `query readOne<%- nameCp %>($pagination: paginationCursorInput) {
         readOne<%- nameCp %>(<%- internalId _%>:<%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%>) { 
           <%- sortedAssociations[i].relationNameLc _%>Connection( ${s}, pagination: $pagination ) { 
             ${qbody},
           },
           countFiltered<%- sortedAssociations[i].relationNameCp %>( ${s} ) 
       } }` :      
-      `query readOne<%- nameCp %>($pagination: paginationCursorInput!) {
+      `query readOne<%- nameCp %>($pagination: paginationCursorInput) {
         readOne<%- nameCp %>(<%- internalId _%>:<%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%>) { 
           <%- sortedAssociations[i].relationNameLc _%>Connection( pagination: $pagination ) { 
             ${qbody},

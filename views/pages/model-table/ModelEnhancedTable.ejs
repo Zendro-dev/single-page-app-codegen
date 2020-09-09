@@ -98,7 +98,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
   const [items, setItems] = useState([]);
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState(-1);
   const [search, setSearch] = useState('');
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('<%- internalId _%>');
@@ -111,6 +111,9 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   const isGettingFirstDataRef = useRef(true);
   const pageRef = useRef(0);
   const rowsPerPageRef = useRef(25);
+<%if(paginationType === 'limitOffset') {-%>
+  const [isCounting, setIsCounting] = useState(true);
+<%}-%>
 <%if(paginationType === 'cursorBased') {-%>
   const [hasPreviousPage, setHasPreviousPage] = useState(false);
   const [hasNextPage, setHasNextPage] = useState(false);
@@ -130,6 +133,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   const [uploadFileDialogOpen, setUploadFileDialogOpen] = useState(false);
 
   const cancelablePromises = useRef([]);
+  const cancelableCountingPromises = useRef([]);
 
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
   const changes = useSelector(state => state.changes);
@@ -138,6 +142,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   //snackbar
   const variant = useRef('info');
   const errors = useRef([]);
+  const errorsCounterA = useRef([]);
   const content = useRef((key, message) => (
     <Snackbar id={key} message={message} errors={errors.current}
     variant={variant.current} />
@@ -171,6 +176,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
    *  configurePagination
 <%}-%>
    *  clearRequestGetData
+   *  getCount
    *  getData
    */
 
@@ -308,7 +314,6 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     //configure pagination
     configurePagination('reset');
 
-    setCount(0);
     setItems([]);
     isOnApiRequestRef.current = false;
     isCursorPaginating.current = false;
@@ -316,7 +321,6 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   },[configurePagination])
 <%} else {-%>
   const clearRequestGetData = useCallback(() => {
-    setCount(0);
     setItems([]);
     isOnApiRequestRef.current = false;
     setIsOnApiRequest(false);
@@ -327,39 +331,69 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   /**
    * names
    */
-  let methodName1 = 'getData()';
+  let methodName1 = 'getCount()';
+  let methodName2 = 'getData()';
   let queryName1 = 'count'+namePlCp;
   let requestName1 = 'api.'+nameLc+'.getCountItems';
   let queryName2 = paginationType === 'limitOffset' ?  namePlLc : namePlLc+'Connection';
   let requestName2 = paginationType === 'limitOffset' ? 'api.'+nameLc+'.getItems' : 'api.'+nameLc+'.getItemsConnection';
 -%>
   /**
-    * getData
+    * getCount
     * 
-    * Get @items and @count from GrahpQL Server.
+    * Get @count from GrahpQL Server (async).
     * Uses current state properties to fill query request.
-    * Updates state to inform new @items and @count retreived.
+    * Updates state to inform new @count retreived.
     * 
     */
-  const getData = useCallback(() => {
-    updateSizes();
-    isOnApiRequestRef.current = true;
-    setIsOnApiRequest(true);
-    Boolean(dataTrigger); //avoid warning
-    errors.current = [];
+  const getCount = useCallback(async () => {
+    cancelCountingPromises();
+<%if(paginationType === 'limitOffset') {-%>
+    setIsCounting(true);
+<%}-%>
+    errorsCounterA.current = [];
 
-    /*
-      API Request: <%- queryName1 %>
-    */
-    let cancelableApiReq = makeCancelable(api.<%- nameLc -%>.getCountItems(graphqlServerUrl, search));
-    cancelablePromises.current.push(cancelableApiReq);
-    cancelableApiReq
+    let c1 = makeCancelable( new Promise(resolve => {
+      //set timeout
+      window.setTimeout(function() {
+        setDetailDialogOpen(false);
+        setDetailItem(undefined);
+        resolve("ok");
+      }, 3000);
+    }));
+    cancelableCountingPromises.current.push(c1);
+    await c1
       .promise
       .then(
       //resolved
       (response) => {
         //delete from cancelables
-        cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
+        cancelableCountingPromises.current.splice(cancelableCountingPromises.current.indexOf(c1), 1);
+      },
+      (err) => {
+        console.log("c1.rejected: err - timeout:", err);
+        if(err.isCanceled) return;
+        else throw err;
+      })
+      //error
+      .catch((err) => { //error: on api.individual.getCountItems
+        console.log("c1.catch: err - timeout:", err);
+        if(err.isCanceled) return;
+        else throw err;
+      });
+    
+    /*
+      API Request: <%- queryName1 %>
+    */
+    let cancelableApiReq = makeCancelable(api.<%- nameLc -%>.getCountItems(graphqlServerUrl, search));
+    cancelableCountingPromises.current.push(cancelableApiReq);
+    await cancelableApiReq
+      .promise
+      .then(
+      //resolved
+      (response) => {
+        //delete from cancelables
+        cancelableCountingPromises.current.splice(cancelableCountingPromises.current.indexOf(cancelableApiReq), 1);
         
         //check: response data
         if(!response.data ||!response.data.data) {
@@ -374,7 +408,6 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           console.log("Error: ", newError);
 
           showMessage(newError.message, withDetails);
-          clearRequestGetData();
           return;
         }
         
@@ -392,7 +425,6 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           console.log("Error: ", newError);
 
           showMessage(newError.message, withDetails);
-          clearRequestGetData();
           return;
         }
 
@@ -409,7 +441,6 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           console.log("Error: ", newError);
 
           showMessage(newError.message, withDetails);
-          clearRequestGetData();
           return;
         }
 
@@ -426,6 +457,9 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 
         //ok
         setCount(<%- queryName1 %>);
+<%if(paginationType === 'limitOffset') {-%>
+        setIsCounting(false);
+<%}-%>
 
 <%if(paginationType === 'limitOffset') {-%>
           /*
@@ -437,226 +471,22 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
             setPage(pageRef.current - 1);
             return;
           }
-<%}-%>
 
-<%if(paginationType === 'limitOffset') {-%>
           /*
-            API Request: <%- queryName2 %>
+            Check: page overflow
           */
-          let cancelableApiReqB = makeCancelable(api.<%- nameLc -%>.getItems(
-            graphqlServerUrl,
-            search,
-            orderBy,
-            order,
-            pageRef.current * rowsPerPage, //paginationOffset
-            rowsPerPageRef.current, //paginationLimit
-          ));
-<%} else if(paginationType === 'cursorBased') {-%>
-          /*
-            API Request: <%- queryName2 %>
-          */
-          let variables = {
-            pagination: {...paginationRef.current}
-          };
-          let cancelableApiReqB = makeCancelable(api.<%- nameLc -%>.getItemsConnection(
-            graphqlServerUrl,
-            search,
-            orderBy,
-            order,
-            variables
-          ));
+          if((pageRef.current * rowsPerPageRef.current) > <%- queryName1 %>) {
+            isOnApiRequestRef.current = false;
+            setIsOnApiRequest(false);
+            setPage(Math.floor(<%- queryName1 %> / rowsPerPageRef.current));
+            return;
+          }
 <%}-%>
-          cancelablePromises.current.push(cancelableApiReqB);
-          cancelableApiReqB
-            .promise
-            .then(
-            //resolved
-            (response) => {
-              //delete from cancelables
-              cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReqB), 1);
-              
-              //check: response data
-              if(!response.data ||!response.data.data) {
-                let newError = {};
-                let withDetails=true;
-                variant.current='error';
-                newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-                newError.locations=[{model: '<%- name -%>', query: '<%- queryName2 %>', method: '<%- methodName1 %>', request: '<%- requestName2 %>'}];
-                newError.path=['<%- namePlCp %>'];
-                newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-                errors.current.push(newError);
-                console.log("Error: ", newError);
-
-                showMessage(newError.message, withDetails);
-                clearRequestGetData();
-                return;
-              }
-
-              //check: <%- queryName2 %>
-              let <%- queryName2 %> = response.data.data.<%- queryName2 %>;
-              if(<%- queryName2 %> === null) {
-                let newError = {};
-                let withDetails=true;
-                variant.current='error';
-                newError.message = '<%- queryName2 %> ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
-                newError.locations=[{model: '<%- name -%>', query: '<%- queryName2 %>', method: '<%- methodName1 %>', request: '<%- requestName2 %>'}];
-                newError.path=['<%- namePlCp %>'];
-                newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-                errors.current.push(newError);
-                console.log("Error: ", newError);
-
-                showMessage(newError.message, withDetails);
-                clearRequestGetData();
-                return;
-              }
-
-<%if(paginationType === 'limitOffset') {-%>
-              //check: <%- queryName2 %> type
-              if(!Array.isArray(<%- queryName2 %>)) {
-                let newError = {};
-                let withDetails=true;
-                variant.current='error';
-                newError.message = '<%- queryName2 %> ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-                newError.locations=[{model: '<%- name -%>', query: '<%- queryName2 %>', method: '<%- methodName1 %>', request: '<%- requestName2 %>'}];
-                newError.path=['<%- namePlCp %>'];
-                newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-                errors.current.push(newError);
-                console.log("Error: ", newError);
-
-                showMessage(newError.message, withDetails);
-                clearRequestGetData();
-                return;
-              }
-              //get items
-              let its = <%- queryName2 %>;
-
-              //check: graphql errors
-              if(response.data.errors) {
-                let newError = {};
-                newError.message = '<%- queryName2 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-                newError.locations=[{model: '<%- name -%>', query: '<%- queryName2 %>', method: '<%- methodName1 %>', request: '<%- requestName2 %>'}];
-                newError.path=['<%- namePlCp %>'];
-                newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-                errors.current.push(newError);
-                console.log("Error: ", newError);
-              }
-<%} else if(paginationType === 'cursorBased') {-%>
-              //check: <%- queryName2 %> type
-              if(typeof <%- queryName2 %> !== 'object'
-              || !Array.isArray(<%- queryName2 %>.edges)
-              || typeof <%- queryName2 %>.pageInfo !== 'object' 
-              || <%- queryName2 %>.pageInfo === null) {
-                let newError = {};
-                let withDetails=true;
-                variant.current='error';
-                newError.message = '<%- queryName2 %> ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-                newError.locations=[{model: '<%- name -%>', query: '<%- queryName2 %>', method: '<%- methodName1 %>', request: '<%- requestName2 %>'}];
-                newError.path=['<%- namePlCp %>'];
-                newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-                errors.current.push(newError);
-                console.log("Error: ", newError);
-
-                showMessage(newError.message, withDetails);
-                clearRequestGetData();
-                return;
-              }
-              //get items
-              let its = <%- queryName2 %>.edges.map(o => o.node);
-              let pi = <%- queryName2 %>.pageInfo;
-
-              //check: graphql errors
-              if(response.data.errors) {
-                let newError = {};
-                newError.message = '<%- queryName2 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-                newError.locations=[{model: '<%- name -%>', query: '<%- queryName2 %>', method: '<%- methodName1 %>', request: '<%- requestName2 %>'}];
-                newError.path=['<%- namePlCp %>'];
-                newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-                errors.current.push(newError);
-                console.log("Error: ", newError);
-              }
-                
-              /*
-                Check: empty page
-              */
-              if( its.length === 0 && pi && pi.hasPreviousPage ) 
-              {
-                //configure
-                isOnApiRequestRef.current = false;
-                isCursorPaginating.current = false;
-                isForwardPagination.current = false;
-                setIsOnApiRequest(false);
-                
-                //reload
-                setDataTrigger(prevDataTrigger => !prevDataTrigger);
-                return;
-              }//else
-
-              //update pageInfo
-              pageInfo.current = pi;
-              setHasPreviousPage(pageInfo.current.hasPreviousPage);
-              setHasNextPage(pageInfo.current.hasNextPage);
-
-              //configure pagination (default)
-              configurePagination('reload');
-<%}-%>
-              
-              //ok
-              setItems([...its]);
-
-              //ends request
-              isOnApiRequestRef.current = false;
-<%if(paginationType === 'cursorBased') {-%>
-              isCursorPaginating.current = false;
-<%}-%>
-              setIsOnApiRequest(false);
-
-              /**
-               * Display graphql errors
-               */
-              if(errors.current.length > 0) {
-                let newError = {};
-                let withDetails=true;
-                variant.current='info';
-                newError.message = '<%- methodName1 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.') + ' ('+errors.current.length+')';
-                newError.locations=[{model: '<%- name -%>', method: '<%- methodName1 %>'}];
-                newError.path=['<%- namePlCp %>'];
-                newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-                errors.current.push(newError);
-                console.log("Error: ", newError);
-
-                showMessage(newError.message, withDetails);
-              }
-
-              return;
-            },
-            //rejected
-            (err) => {
-              throw err;
-            })
-            //error
-            .catch((err) => { //error: on <%- requestName2 %>
-              if(err.isCanceled) {
-                return;
-              } else {
-                let newError = {};
-                let withDetails=true;
-                variant.current='error';
-                newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-                newError.locations=[{model: '<%- name -%>', query: '<%- queryName2 %>', method: '<%- methodName1 %>', request: '<%- requestName2 %>'}];
-                newError.path=['<%- namePlCp %>'];
-                newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
-                errors.current.push(newError);
-                console.log("Error: ", newError);
-
-                showMessage(newError.message, withDetails);
-                clearRequestGetData();
-                return;
-              }
-            });
       },
       //rejected
       (err) => {
-        throw err;
+        if(err.isCanceled) return;
+        else throw err;
       })
       //error
       .catch((err) => { //error: on <%- requestName1 %>
@@ -674,11 +504,244 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           console.log("Error: ", newError);
 
           showMessage(newError.message, withDetails);
+          return;
+        }
+      });
+  }, [graphqlServerUrl, t, search, showMessage]);
+
+  /**
+    * getData
+    * 
+    * Get @items from GrahpQL Server.
+    * Uses current state properties to fill query request.
+    * Updates state to inform new @items retreived.
+    * 
+    */
+  const getData = useCallback(() => {
+    updateSizes();
+    isOnApiRequestRef.current = true;
+    setIsOnApiRequest(true);
+    Boolean(dataTrigger); //avoid warning
+    errors.current = [];
+
+    //count (async)
+    getCount();
+
+<%if(paginationType === 'limitOffset') {-%>
+    /*
+      API Request: <%- queryName2 %>
+    */
+    let cancelableApiReqB = makeCancelable(api.<%- nameLc -%>.getItems(
+      graphqlServerUrl,
+      search,
+      orderBy,
+      order,
+      pageRef.current * rowsPerPage, //paginationOffset
+      rowsPerPageRef.current, //paginationLimit
+    ));
+<%} else if(paginationType === 'cursorBased') {-%>
+    /*
+      API Request: <%- queryName2 %>
+    */
+    let variables = {
+      pagination: {...paginationRef.current}
+    };
+    let cancelableApiReqB = makeCancelable(api.<%- nameLc -%>.getItemsConnection(
+      graphqlServerUrl,
+      search,
+      orderBy,
+      order,
+      variables
+    ));
+<%}-%>
+    cancelablePromises.current.push(cancelableApiReqB);
+    cancelableApiReqB
+      .promise
+      .then(
+      //resolved
+      (response) => {
+        //delete from cancelables
+        cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReqB), 1);
+        
+        //check: response data
+        if(!response.data ||!response.data.data) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
+          newError.locations=[{model: '<%- name -%>', query: '<%- queryName2 %>', method: '<%- methodName2 %>', request: '<%- requestName2 %>'}];
+          newError.path=['<%- namePlCp %>'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestGetData();
+          return;
+        }
+
+        //check: <%- queryName2 %>
+        let <%- queryName2 %> = response.data.data.<%- queryName2 %>;
+        if(<%- queryName2 %> === null) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = '<%- queryName2 %> ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
+          newError.locations=[{model: '<%- name -%>', query: '<%- queryName2 %>', method: '<%- methodName2 %>', request: '<%- requestName2 %>'}];
+          newError.path=['<%- namePlCp %>'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestGetData();
+          return;
+        }
+
+<%if(paginationType === 'limitOffset') {-%>
+        //check: <%- queryName2 %> type
+        if(!Array.isArray(<%- queryName2 %>)) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = '<%- queryName2 %> ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
+          newError.locations=[{model: '<%- name -%>', query: '<%- queryName2 %>', method: '<%- methodName2 %>', request: '<%- requestName2 %>'}];
+          newError.path=['<%- namePlCp %>'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestGetData();
+          return;
+        }
+        //get items
+        let its = <%- queryName2 %>;
+
+        //check: graphql errors
+        if(response.data.errors) {
+          let newError = {};
+          newError.message = '<%- queryName2 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
+          newError.locations=[{model: '<%- name -%>', query: '<%- queryName2 %>', method: '<%- methodName2 %>', request: '<%- requestName2 %>'}];
+          newError.path=['<%- namePlCp %>'];
+          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+        }
+<%} else if(paginationType === 'cursorBased') {-%>
+        //check: <%- queryName2 %> type
+        if(typeof <%- queryName2 %> !== 'object'
+        || !Array.isArray(<%- queryName2 %>.edges)
+        || typeof <%- queryName2 %>.pageInfo !== 'object' 
+        || <%- queryName2 %>.pageInfo === null) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = '<%- queryName2 %> ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
+          newError.locations=[{model: '<%- name -%>', query: '<%- queryName2 %>', method: '<%- methodName2 %>', request: '<%- requestName2 %>'}];
+          newError.path=['<%- namePlCp %>'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestGetData();
+          return;
+        }
+        //get items
+        let its = <%- queryName2 %>.edges.map(o => o.node);
+        let pi = <%- queryName2 %>.pageInfo;
+
+        //check: graphql errors
+        if(response.data.errors) {
+          let newError = {};
+          newError.message = '<%- queryName2 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
+          newError.locations=[{model: '<%- name -%>', query: '<%- queryName2 %>', method: '<%- methodName2 %>', request: '<%- requestName2 %>'}];
+          newError.path=['<%- namePlCp %>'];
+          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+        }
+          
+        /*
+          Check: empty page
+        */
+        if( its.length === 0 && pi && pi.hasPreviousPage ) 
+        {
+          //configure
+          isOnApiRequestRef.current = false;
+          isCursorPaginating.current = false;
+          setIsOnApiRequest(false);
+          configurePagination('previousPage');
+          
+          //reload
+          setDataTrigger(prevDataTrigger => !prevDataTrigger);
+          return;
+        }//else
+
+        //update pageInfo
+        pageInfo.current = pi;
+        setHasPreviousPage(pageInfo.current.hasPreviousPage);
+        setHasNextPage(pageInfo.current.hasNextPage);
+
+        //configure pagination (default)
+        configurePagination('reload');
+<%}-%>
+        
+        //ok
+        setItems([...its]);
+
+        //ends request
+        isOnApiRequestRef.current = false;
+<%if(paginationType === 'cursorBased') {-%>
+        isCursorPaginating.current = false;
+<%}-%>
+        setIsOnApiRequest(false);
+
+        /**
+         * Display graphql errors
+         */
+        if(errors.current.length > 0) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='info';
+          newError.message = '<%- methodName2 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.') + ' ('+errors.current.length+')';
+          newError.locations=[{model: '<%- name -%>', method: '<%- methodName2 %>'}];
+          newError.path=['<%- namePlCp %>'];
+          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+        }
+
+        return;
+      },
+      //rejected
+      (err) => {
+        throw err;
+      })
+      //error
+      .catch((err) => { //error: on <%- requestName2 %>
+        if(err.isCanceled) {
+          return;
+        } else {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
+          newError.locations=[{model: '<%- name -%>', query: '<%- queryName2 %>', method: '<%- methodName2 %>', request: '<%- requestName2 %>'}];
+          newError.path=['<%- namePlCp %>'];
+          newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
           clearRequestGetData();
           return;
         }
       });
-  }, [graphqlServerUrl, t, dataTrigger, search, orderBy, order, showMessage, clearRequestGetData<%if(paginationType === 'cursorBased') {-%>, configurePagination<%}-%>]);
+  }, [graphqlServerUrl, t, dataTrigger, search, orderBy, order, getCount, showMessage, clearRequestGetData<%if(paginationType === 'cursorBased') {-%>, configurePagination<%}-%><%if(paginationType === 'limitOffset') {-%>, rowsPerPage<%}-%>]);
 
   /**
    * Effects
@@ -689,6 +752,8 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     return function cleanup() {
       cancelablePromises.current.forEach(p => p.cancel());
       cancelablePromises.current = [];
+      cancelableCountingPromises.current.forEach(p => p.cancel());
+      cancelableCountingPromises.current = [];
     };
   }, []);
 
@@ -723,7 +788,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
       //clear changes state
       dispatch(clearChanges());
     }
-  }, [changes, dispatch, configurePagination]);
+  }, [changes, dispatch<%if(paginationType === 'cursorBased') {-%>, configurePagination<%}-%>]);
 
   useEffect(() => {
     //return if this flag is set
@@ -751,7 +816,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     //reload
     if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
     else { isPendingApiRequestRef.current = true; }
-  }, [rowsPerPage, configurePagination]);
+  }, [rowsPerPage]);
 <%} else if(paginationType === 'cursorBased') {-%>
   useEffect(() => {
     //update ref
@@ -815,7 +880,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   /**
    * names
    */
-  let methodName2 = 'doDelete()';
+  let methodName3 = 'doDelete()';
   let queryName3 = 'delete'+nameCp;
   let requestName3 = 'api.'+nameLc+'.deleteItem';
 -%>
@@ -854,7 +919,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           let withDetails=true;
           variant.current='error';
           newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName3 %>', method: '<%- methodName2 %>', request: '<%- requestName3 %>'}];
+          newError.locations=[{model: '<%- name -%>', query: '<%- queryName3 %>', method: '<%- methodName3 %>', request: '<%- requestName3 %>'}];
           newError.path=['<%- namePlCp %>', `<%- internalId _%>:${item.<%- internalId _%>}`, 'delete'];
           newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
           errors.current.push(newError);
@@ -872,7 +937,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           let withDetails=true;
           variant.current='error';
           newError.message = '<%- queryName3 %> ' + t('modelPanels.errors.data.e5', 'could not be completed.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName3 %>', method: '<%- methodName2 %>', request: '<%- requestName3 %>'}];
+          newError.locations=[{model: '<%- name -%>', query: '<%- queryName3 %>', method: '<%- methodName3 %>', request: '<%- requestName3 %>'}];
           newError.path=['<%- namePlCp %>', `<%- internalId _%>:${item.<%- internalId _%>}` ,'delete'];
           newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
           errors.current.push(newError);
@@ -894,7 +959,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           let withDetails=true;
           variant.current='info';
           newError.message = '<%- queryName3 %> ' + t('modelPanels.errors.data.e6', 'completed with errors.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName3 %>', method: '<%- methodName2 %>', request: '<%- requestName3 %>'}];
+          newError.locations=[{model: '<%- name -%>', query: '<%- queryName3 %>', method: '<%- methodName3 %>', request: '<%- requestName3 %>'}];
           newError.path=['<%- namePlCp %>', `<%- internalId _%>:${item.<%- internalId _%>}` ,'delete'];
           newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
           errors.current.push(newError);
@@ -913,6 +978,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
             horizontal: 'left',
           },
         });
+        if(count > 0) setCount(count-1);
         reloadData();
         return;
       },
@@ -929,7 +995,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           let withDetails=true;
           variant.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName3 %>', method: '<%- methodName2 %>', request: '<%- requestName3 %>'}];
+          newError.locations=[{model: '<%- name -%>', query: '<%- queryName3 %>', method: '<%- methodName3 %>', request: '<%- requestName3 %>'}];
           newError.path=['<%- namePlCp %>', `<%- internalId _%>:${item.<%- internalId _%>}` ,'delete'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errors.current.push(newError);
@@ -946,7 +1012,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   /**
    * names
    */
-  let methodName3 = 'getCsvTemplate()';
+  let methodName4 = 'getCsvTemplate()';
   let queryName4 = 'csvTableTemplate'+nameCp;
   let requestName4 = 'api.'+nameLc+'.tableTemplate';
 -%>
@@ -980,7 +1046,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           let withDetails=true;
           variant.current='error';
           newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName4 %>', method: '<%- methodName3 %>', request: '<%- requestName4 %>'}];
+          newError.locations=[{model: '<%- name -%>', query: '<%- queryName4 %>', method: '<%- methodName4 %>', request: '<%- requestName4 %>'}];
           newError.path=['<%- namePlCp %>', 'csvTemplate'];
           newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
           errors.current.push(newError);
@@ -998,7 +1064,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           let withDetails=true;
           variant.current='error';
           newError.message = '<%- queryName4 %> ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName4 %>', method: '<%- methodName3 %>', request: '<%- requestName4 %>'}];
+          newError.locations=[{model: '<%- name -%>', query: '<%- queryName4 %>', method: '<%- methodName4 %>', request: '<%- requestName4 %>'}];
           newError.path=['<%- namePlCp %>', 'csvTemplate'];
           newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
           errors.current.push(newError);
@@ -1015,7 +1081,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           let withDetails=true;
           variant.current='error';
           newError.message = '<%- queryName4 %> ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName4 %>', method: '<%- methodName3 %>', request: '<%- requestName4 %>'}];
+          newError.locations=[{model: '<%- name -%>', query: '<%- queryName4 %>', method: '<%- methodName4 %>', request: '<%- requestName4 %>'}];
           newError.path=['<%- namePlCp %>', 'csvTemplate'];
           newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
           errors.current.push(newError);
@@ -1032,7 +1098,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           let withDetails=true;
           variant.current='info';
           newError.message = '<%- queryName4 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName4 %>', method: '<%- methodName3 %>', request: '<%- requestName4 %>'}];
+          newError.locations=[{model: '<%- name -%>', query: '<%- queryName4 %>', method: '<%- methodName4 %>', request: '<%- requestName4 %>'}];
           newError.path=['<%- namePlCp %>', 'csvTemplate'];
           newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
           errors.current.push(newError);
@@ -1075,7 +1141,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           let withDetails=true;
           variant.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName4 %>', method: '<%- methodName3 %>', request: '<%- requestName4 %>'}];
+          newError.locations=[{model: '<%- name -%>', query: '<%- queryName4 %>', method: '<%- methodName4 %>', request: '<%- requestName4 %>'}];
           newError.path=['<%- namePlCp %>', 'csvTemplate'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errors.current.push(newError);
@@ -1091,6 +1157,11 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   /**
     * Utils
     */
+
+  function cancelCountingPromises() {
+    cancelableCountingPromises.current.forEach(p => p.cancel());
+    cancelableCountingPromises.current = [];    
+  }
 
   function clearRequestDoDelete() {
     //nothing to do.
@@ -1220,6 +1291,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
         isGettingFirstDataRef.current = true; //avoids to get data on [page] effect
         setPage(0);
       }
+      setCount(-1);
       setSearch(text);
     }
   };
@@ -1280,6 +1352,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
         isGettingFirstDataRef.current = true; //avoids to get data on [page] effect
         setPage(0);
       }
+      setCount(-1);
       setSearch(text);
     }
   };
@@ -1419,6 +1492,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     }
 <%} else if(paginationType === 'cursorBased') {-%>
     if(status) {
+      setCount(count+1);
       reloadData();
     }
 <%}-%>
@@ -1610,14 +1684,14 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 
                       {/* No-data message */}
                       <Fade
-                        in={(!isOnApiRequest && count === 0)}
+                        in={(!isOnApiRequest && items.length === 0)}
                       >
                         <Box
                           id='<%- nameOnPascal -%>EnhancedTable-box-noData'
                           className={classes.tableBackdrop}
                           bgcolor='rgba(255, 255, 255, 0.0)'
-                          width={(!isOnApiRequest && count === 0)?'100%':0}
-                          height={(!isOnApiRequest && count === 0)?'100%':0}
+                          width={(!isOnApiRequest && items.length === 0)?'100%':0}
+                          height={(!isOnApiRequest && items.length === 0)?'100%':0}
                           p={0}
                           position="absolute"
                           top={0}
@@ -1640,13 +1714,13 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                           permissions={permissions}
                           order={order}
                           orderBy={orderBy}
-                          rowCount={count}
+                          rowCount={items.length}
                           onRequestSort={handleRequestSort}
                         />
 
                         {/* Table Body */}
                         <Fade
-                          in={(!isOnApiRequest && count > 0)}
+                          in={(!isOnApiRequest && items.length > 0)}
                         >
                           <TableBody id='<%- nameOnPascal -%>EnhancedTable-tableBody'>
                             {
@@ -1789,10 +1863,10 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                       rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
                       component="div"
                       count={count}
-                      rowsPerPage={(count <=10) ? '' : rowsPerPage}
+                      rowsPerPage={rowsPerPage}
                       page={page}
                       labelRowsPerPage = { t('modelPanels.rowsPerPage') }
-                      labelDisplayedRows = {({ from, to, count }) => `${from}-${to === -1 ? count : to} ${t('modelPanels.of')} ${count}`}
+                      labelDisplayedRows = {({ from, to }) => `${(count<0) ? '': from}${(count<0) ? '': '-'}${(count<0) ? '': to} ${(count<0) ? '': (isCounting) ? '' : t('modelPanels.of')} ${(count<0) ? '?': (isCounting) ? '' : count}`}
                       onChangePage={handleChangePage}
                       onChangeRowsPerPage={handleChangeRowsPerPage}
                     />

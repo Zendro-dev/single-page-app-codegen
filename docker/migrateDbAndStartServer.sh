@@ -57,4 +57,4 @@ done
 
 
 # Start GraphQL-server
-npm start # acl
+npm start acl

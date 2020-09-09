@@ -16,5 +16,6 @@
       "targetStorageType" : "sql"
     }
   },
-  "internalId": "river_id"
+  "internalId": "river_id",
+  "paginationType": "limitOffset"
 }

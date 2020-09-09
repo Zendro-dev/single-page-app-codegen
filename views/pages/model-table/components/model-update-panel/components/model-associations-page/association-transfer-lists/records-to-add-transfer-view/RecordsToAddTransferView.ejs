@@ -258,11 +258,11 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
    */
   let methodName1 = 'getData()';
   let queryName0 = 'readOne'+nameCp;
-  let requestName0 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.getAssociated'+sortedAssociations[aindex].relationNameCp : 'api.'+nameLc+'.getAssociated'+sortedAssociations[aindex].relationNameCp+'Connection';
+  let requestName0 =  sortedAssociations[aindex].paginationType === 'limitOffset' ? 'api.'+nameLc+'.getAssociated'+sortedAssociations[aindex].relationNameCp : 'api.'+nameLc+'.getAssociated'+sortedAssociations[aindex].relationNameCp+'Connection';
   let queryName1 = 'count'+sortedAssociations[aindex].targetModelPlCp;
   let requestName1 = 'api.'+sortedAssociations[aindex].targetModelLc+'.getCountItems'
-  let queryName2 = paginationType === 'limitOffset' ? sortedAssociations[aindex].targetModelPlLc : sortedAssociations[aindex].targetModelPlLc+'Connection';
-  let requestName2 =  paginationType === 'limitOffset' ? 'api.'+sortedAssociations[aindex].targetModelLc+'.getItems' : 'api.'+sortedAssociations[aindex].targetModelLc+'.getItemsConnection';
+  let queryName2 = sortedAssociations[aindex].paginationType === 'limitOffset' ? sortedAssociations[aindex].targetModelPlLc : sortedAssociations[aindex].targetModelPlLc+'Connection';
+  let requestName2 =  sortedAssociations[aindex].paginationType === 'limitOffset' ? 'api.'+sortedAssociations[aindex].targetModelLc+'.getItems' : 'api.'+sortedAssociations[aindex].targetModelLc+'.getItemsConnection';
 -%>
   /**
    * getData
@@ -860,8 +860,8 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   let methodName2 = 'getDataB()';
   let queryName3 = 'count'+sortedAssociations[aindex].targetModelPlCp;
   let requestName3 = 'api.'+sortedAssociations[aindex].targetModelLc+'.getCountItems'
-  let queryName4 = paginationType === 'limitOffset' ? sortedAssociations[aindex].targetModelPlLc : sortedAssociations[aindex].targetModelPlLc+'Connection';
-  let requestName4 =  paginationType === 'limitOffset' ? 'api.'+sortedAssociations[aindex].targetModelLc+'.getItems' : 'api.'+sortedAssociations[aindex].targetModelLc+'.getItemsConnection';
+  let queryName4 = sortedAssociations[aindex].paginationType === 'limitOffset' ? sortedAssociations[aindex].targetModelPlLc : sortedAssociations[aindex].targetModelPlLc+'Connection';
+  let requestName4 =  sortedAssociations[aindex].paginationType === 'limitOffset' ? 'api.'+sortedAssociations[aindex].targetModelLc+'.getItems' : 'api.'+sortedAssociations[aindex].targetModelLc+'.getItemsConnection';
 -%>
   /**
    * getDataB
@@ -1330,14 +1330,14 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 
           //reload
           updateHeights();
-<%if(paginationType === 'limitOffset') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
           //reload A
           if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
           else { isPendingApiRequestRef.current = true; }
           //reload B
           if (!isOnApiRequestRefB.current) { setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); } 
           else { isPendingApiRequestRefB.current = true; }
-<%} else if(paginationType === 'cursorBased') {-%>
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
           //strict contention
           if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
             //configure A
@@ -1399,14 +1399,14 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 
                   //reload
                   updateHeights();
-<%if(paginationType === 'limitOffset') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
                   //reload A
                   if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
                   else { isPendingApiRequestRef.current = true; }
                   //reload B
                   if (!isOnApiRequestRefB.current) { setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); } 
                   else { isPendingApiRequestRefB.current = true; }
-<%} else if(paginationType === 'cursorBased') {-%>
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
                   //strict contention
                   if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
                     //configure A
@@ -1453,14 +1453,14 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 
                   //reload
                   updateHeights();
-<%if(paginationType === 'limitOffset') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
                   //reload A
                   if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
                   else { isPendingApiRequestRef.current = true; }
                   //reload B
                   if (!isOnApiRequestRefB.current) { setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); } 
                   else { isPendingApiRequestRefB.current = true; }
-<%} else if(paginationType === 'cursorBased') {-%>
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
                   //strict contention
                   if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
                     //configure A
@@ -1569,14 +1569,14 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 
             //reload
             updateHeights();
-<%if(paginationType === 'limitOffset') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
             //reload A
             if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
             else { isPendingApiRequestRef.current = true; }
             //reload B
             if (!isOnApiRequestRefB.current) { setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); } 
             else { isPendingApiRequestRefB.current = true; }
-<%} else if(paginationType === 'cursorBased') {-%>
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
             //strict contention
             if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
               //configure A
@@ -1642,10 +1642,10 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   useEffect(() => {
     if (!isOnApiRequest && isPendingApiRequestRef.current) {
       isPendingApiRequestRef.current = false;
-<%if(paginationType === 'limitOffset') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
       //reload
       setDataTrigger(prevDataTrigger => !prevDataTrigger);
-<%} else if(paginationType === 'cursorBased') {-%>
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
       //configure
       isForwardPagination.current = true;
       pageInfo.current.endCursor = pageInfo.current.startCursor;
@@ -1660,10 +1660,10 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   useEffect(() => {
     if (!isOnApiRequestB && isPendingApiRequestRefB.current) {
       isPendingApiRequestRefB.current = false;
-<%if(paginationType === 'limitOffset') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
       //reload
       setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-<%} else if(paginationType === 'cursorBased') {-%>
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
       //configure
       isForwardPaginationB.current = true;
       pageInfoB.current.endCursor = pageInfoB.current.startCursor;
@@ -1759,7 +1759,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   }
 
   function resetPageRefs() {
-<%if(paginationType === 'cursorBased') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
     isForwardPagination.current = true;
     pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
     setHasPreviousPage(pageInfo.current.hasPreviousPage);
@@ -1770,7 +1770,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   }
 
   function resetPageRefsB() {
-<%if(paginationType === 'cursorBased') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
     isForwardPaginationB.current = true;
     pageInfoB.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
     setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
@@ -1781,12 +1781,12 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   }
 
   function resetReloadDataA() {
-<%if(paginationType === 'limitOffset') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
     //reload A
     resetPageRefs();
     if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
     else { isPendingApiRequestRef.current = true; }
-<%} else if(paginationType === 'cursorBased') {-%>
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
     //strict contention
     if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
 
@@ -1800,12 +1800,12 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   }
 
   function resetReloadDataB() {
-<%if(paginationType === 'limitOffset') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
     //reload B
     resetPageRefsB();
     if (!isOnApiRequestRefB.current) { setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); } 
     else { isPendingApiRequestRefB.current = true; }
-<%} else if(paginationType === 'cursorBased') {-%>
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
     //strict contention
     if (isOnApiRequestRefB.current || isCursorPaginatingB.current) { return; }
 
@@ -1819,11 +1819,11 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   }
 
   function reloadDataA() {
-<%if(paginationType === 'limitOffset') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
     //reload A
     if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
     else { isPendingApiRequestRef.current = true; }
-<%} else if(paginationType === 'cursorBased') {-%>
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
     //strict contention
     if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
 
@@ -1838,11 +1838,11 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   }
 
   function reloadDataB() {
-<%if(paginationType === 'limitOffset') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
     //reload B
     if (!isOnApiRequestRefB.current) { setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); } 
     else { isPendingApiRequestRefB.current = true; }
-<%} else if(paginationType === 'cursorBased') {-%>
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
     //strict contention
     if (isOnApiRequestRefB.current || isCursorPaginatingB.current) { return; }
     
