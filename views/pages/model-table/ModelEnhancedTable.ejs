@@ -352,35 +352,6 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     setIsCounting(true);
 <%}-%>
     errorsCounterA.current = [];
-
-    let c1 = makeCancelable( new Promise(resolve => {
-      //set timeout
-      window.setTimeout(function() {
-        setDetailDialogOpen(false);
-        setDetailItem(undefined);
-        resolve("ok");
-      }, 3000);
-    }));
-    cancelableCountingPromises.current.push(c1);
-    await c1
-      .promise
-      .then(
-      //resolved
-      (response) => {
-        //delete from cancelables
-        cancelableCountingPromises.current.splice(cancelableCountingPromises.current.indexOf(c1), 1);
-      },
-      (err) => {
-        console.log("c1.rejected: err - timeout:", err);
-        if(err.isCanceled) return;
-        else throw err;
-      })
-      //error
-      .catch((err) => { //error: on api.individual.getCountItems
-        console.log("c1.catch: err - timeout:", err);
-        if(err.isCanceled) return;
-        else throw err;
-      });
     
     /*
       API Request: <%- queryName1 %>
