@@ -847,7 +847,7 @@ function getSearchArgument(filterName, searchText, ops) {
               let va = v[vkeys[k]]; //values array
 
               //in
-              onlyOrs += `{field:${vkeys[k]}, valueType: "Array", value:"${va.join()}", operator:in},`
+              onlyOrs += `{field:${vkeys[k]}, valueType: Array, value:"${va.join()}", operator:in},`
 
             }//end: for earch key
           }//end: if type 'Int
@@ -904,7 +904,7 @@ function getSearchArgument(filterName, searchText, ops) {
               let va = v[vkeys[k]]; //values array
 
               //notIn
-              ands += `{field:${vkeys[k]}, valueType: "Array", value:"${va.join()}", operator:notIn},`
+              ands += `{field:${vkeys[k]}, valueType: Array, value:"${va.join()}", operator:notIn},`
 
             }//end: for earch key
           }//end: if type 'Int
@@ -971,7 +971,7 @@ function getSearchArgument(filterName, searchText, ops) {
               let va = v[vkeys[k]]; //values array
 
               //in
-              onlyOrs += `{field:${vkeys[k]}, valueType: "Array", value:"${va.join()}", operator:in},`
+              onlyOrs += `{field:${vkeys[k]}, valueType: Array, value:"${va.join()}", operator:in},`
 
             }//end: for earch key
           }//end: if type 'Int
@@ -1028,7 +1028,7 @@ function getSearchArgument(filterName, searchText, ops) {
               let va = v[vkeys[k]]; //values array
 
               //notIn
-              ands += `{field:${vkeys[k]}, valueType: "Array", value:"${va.join()}", operator:notIn},`
+              ands += `{field:${vkeys[k]}, valueType: Array, value:"${va.join()}", operator:notIn},`
 
             }//end: for earch key
           }//end: if type 'Int
