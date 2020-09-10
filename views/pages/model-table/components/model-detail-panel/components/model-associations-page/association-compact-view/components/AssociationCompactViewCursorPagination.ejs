@@ -85,13 +85,13 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
                 </Grow>
 
                 {/* Count */}
-                <Grow in={true}>
+                <Grow in={count !== -1}>
                   <Grid item>
                     <div className={classes.formControl}>
                       <InputLabel shrink>{ t('modelPanels.count', "Count") }</InputLabel>
                       <InputBase
                         className={classes.margin}
-                        value={count}
+                        value={count !== -1 ? count : ''}
                         disabled ={true}
                       />
                     </div>

@@ -96,6 +96,9 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
 <%}-%>
 
   const cancelablePromises = useRef([]);
+<%_if( sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many' ){-%>
+  const cancelableCountingPromises = useRef([]);
+<%}-%>
 
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
   const lastModelChanged = useSelector(state => state.changes.lastModelChanged);
@@ -121,9 +124,32 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
     </> 
   ));
 
+<%_if( sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many' ){-%>
+  //snackbar (for: getCount)
+  const variantB = useRef('info');
+  const errorsB = useRef([]);
+  const contentB = useRef((key, message) => (
+    <Snackbar id={key} message={message} errors={errorsB.current}
+    variant={variantB.current} />
+  ));
+  const actionTextB = useRef(t('modelPanels.gotIt', "Got it"));
+  const actionB = useRef((key) => (
+    <>
+      <Button color='inherit' variant='text' size='small' 
+      onClick={() => { closeSnackbar(key) }}>
+        {actionTextB.current}
+      </Button>
+    </> 
+  ));
+<%}-%>
+
    /**
     * Callbacks:
     *  showMessage
+    *  showMessageB
+<%_if( sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many' ){-%>
+    *  getCount
+<%}-%>
     *  getData
     */
 
@@ -143,13 +169,272 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
     });
   },[enqueueSnackbar]);
 
+<%_if( sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many' ){-%>
+  /**
+   * showMessageB
+   * 
+   * Show the given message in a notistack snackbar.
+   * 
+   */
+  const showMessageB = useCallback((message, withDetail) => {
+    enqueueSnackbar( message, {
+      variant: variantB.current,
+      preventDuplicate: false,
+      persist: true,
+      action: !withDetail ? actionB.current : undefined,
+      content: withDetail ? contentB.current : undefined,
+    });
+  },[enqueueSnackbar]);
+<%}-%>
+
 <%
   /**
    * names
    */
-  let methodName1 = 'getData()';
+  let methodName1 = 'getCount()';
   let queryName1 = 'readOne'+nameCp;
-  let requestName1 =  sortedAssociations[aindex].paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sortedAssociations[aindex].relationNameCp+'Filter' : 'api.'+nameLc+'.get'+sortedAssociations[aindex].relationNameCp+'Connection';
+  let requestName1 =  sortedAssociations[aindex].paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sortedAssociations[aindex].relationNameCp+'FilterCount' : 'api.'+nameLc+'.get'+sortedAssociations[aindex].relationNameCp+'ConnectionCount';
+-%>
+<%_if( sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many' ){-%>
+  /**
+   * getCount
+   * 
+   * Get @count from GrahpQL Server.
+   * Uses current state properties to fill query request.
+   * Updates state to inform new @count retreived.
+   * 
+   */
+  const getCount = useCallback(async () => {
+    cancelCountingPromises();
+<%if(paginationType === 'limitOffset') {-%>
+    setIsCounting(true);
+<%}-%>
+    errorsB.current = [];
+
+    let c1 = makeCancelable( new Promise(resolve => {
+      //set timeout
+      window.setTimeout(function() {
+        setDetailDialogOpen(false);
+        setDetailItem(undefined);
+        resolve("ok");
+      }, 3000);
+    }));
+    cancelableCountingPromises.current.push(c1);
+    await c1
+      .promise
+      .then(
+      //resolved
+      (response) => {
+        //delete from cancelables
+        cancelableCountingPromises.current.splice(cancelableCountingPromises.current.indexOf(c1), 1);
+      },
+      (err) => {
+        console.log("c1.rejected: err - timeout:", err);
+        if(err.isCanceled) return;
+        else throw err;
+      })
+      //error
+      .catch((err) => { //error: on api.individual.getCountItems
+        console.log("c1.catch: err - timeout:", err);
+        if(err.isCanceled) return;
+        else throw err;
+      });
+
+    /*
+      API Request: <%- queryName1 %>
+    */
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+    let cancelableApiReq = makeCancelable(api.<%- nameLc _%>.get<%- sortedAssociations[aindex].relationNameCp _%>FilterCount(
+      graphqlServerUrl, 
+      item.<%- internalId _%>,
+      search,
+    ));
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+    let cancelableApiReq = makeCancelable(api.<%- nameLc _%>.get<%- sortedAssociations[aindex].relationNameCp _%>ConnectionCount(
+      graphqlServerUrl, 
+      item.<%- internalId _%>,
+      search,
+    ));
+<%}-%>
+    cancelablePromises.current.push(cancelableApiReq);
+    await cancelableApiReq
+      .promise
+      .then(
+      //resolved
+      (response) => {
+        //delete from cancelables
+        cancelableCountingPromises.current.splice(cancelableCountingPromises.current.indexOf(cancelableApiReq), 1);
+        
+        //check: response data
+        if(!response.data ||!response.data.data) {
+          let newError = {};
+          let withDetails=true;
+          variantB.current='error';
+          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
+          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+          newError.path=['detail', `<%- internalId _%>:${item.<%- internalId _%>}`, '<%- sortedAssociations[aindex].relationName _%>'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errorsB.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessageB(newError.message, withDetails);
+          return;
+        }
+
+        //check: <%- queryName1 %>
+        let <%- queryName1 %> = response.data.data.<%- queryName1 %>;
+        if(<%- queryName1 %> === null) {
+          let newError = {};
+          let withDetails=true;
+          variantB.current='error';
+          newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
+          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+          newError.path=['detail', `<%- internalId _%>:${item.<%- internalId _%>}`, '<%- sortedAssociations[aindex].relationName _%>'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errorsB.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessageB(newError.message, withDetails);
+          return;
+        }
+
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+        //check: <%- queryName1 %> type
+        if(typeof <%- queryName1 %> !== 'object'
+        || !Number.isInteger(<%- queryName1 %>.countFiltered<%- sortedAssociations[aindex].relationNameCp %>)) {
+          let newError = {};
+          let withDetails=true;
+          variantB.current='error';
+          newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
+          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+          newError.path=['detail', `<%- internalId _%>:${item.<%- internalId _%>}`, '<%- sortedAssociations[aindex].relationName _%>'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errorsB.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessageB(newError.message, withDetails);
+          return;
+        }
+        //get count
+        let newCount = <%- queryName1 %>.countFiltered<%- sortedAssociations[aindex].relationNameCp _%>;
+
+        //ok
+        setCount(newCount);
+        setIsCounting(false);
+
+        /**
+         * Display graphql errors
+         */
+        if(response.data.errors) {
+          let newError = {};
+          let withDetails=true;
+          variantB.current='info';
+          newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
+          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+          newError.path=['detail', `<%- internalId _%>:${item.<%- internalId _%>}`, '<%- sortedAssociations[aindex].relationName _%>'];
+          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+          errorsB.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessageB(newError.message, withDetails);
+        }
+
+        /*
+          Check: empty page
+        */
+        if( (newCount === (pageRef.current * rowsPerPage)) && (pageRef.current > 0) ) 
+        {
+          isOnApiRequestRef.current = false;
+          setIsOnApiRequest(false);
+          setPage(pageRef.current - 1);
+          return;
+        }
+        /*
+          Check: page overflow
+        */
+        if((pageRef.current * rowsPerPage) > newCount) {
+          isOnApiRequestRef.current = false;
+          setIsOnApiRequest(false);
+          setPage(Math.floor(newCount / rowsPerPage));
+          return;
+        }
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+
+        //check: <%- queryName1 %> type
+        if(typeof <%- queryName1 %> !== 'object'
+        || !Number.isInteger(<%- queryName1 %>.countFiltered<%- sortedAssociations[aindex].relationNameCp _%>)) {
+          let newError = {};
+          let withDetails=true;
+          variantB.current='error';
+          newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
+          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+          newError.path=['detail', `<%- internalId _%>:${item.<%- internalId _%>}`, '<%- sortedAssociations[aindex].relationName _%>'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errorsB.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessageB(newError.message, withDetails);
+          return;
+        }
+        //get count
+        let newCount = <%- queryName1 %>.countFiltered<%- sortedAssociations[aindex].relationNameCp _%>;
+
+        //ok
+        setCount(newCount);
+
+        //check: graphql errors
+        if(response.data.errors) {
+          let newError = {};
+          let withDetails=true;
+          variantB.current='info';
+          newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
+          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+          newError.path=['detail', `<%- internalId _%>:${item.<%- internalId _%>}`, '<%- sortedAssociations[aindex].relationName _%>'];
+          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+          errorsB.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessageB(newError.message, withDetails);
+        }
+<%}-%>
+
+        return;
+      },
+      //rejected
+      (err) => {
+        if(err.isCanceled) return;
+        else throw err;
+      })
+      //error
+      .catch((err) => { //error: on <%- requestName1 %>
+        if(err.isCanceled) {
+          return;
+        } else {
+          let newError = {};
+          let withDetails=true;
+          variantB.current='error';
+          newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
+          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+          newError.path=['detail', `<%- internalId _%>:${item.<%- internalId _%>}`, '<%- sortedAssociations[aindex].relationName _%>'];
+          newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
+          errorsB.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessageB(newError.message, withDetails);
+          return;
+        }
+      });
+
+  }, [graphqlServerUrl, showMessageB, t, item.<%- internalId _%>, search, rowsPerPage]);
+<%}-%>
+
+<%
+  /**
+   * names
+   */
+  let methodName2 = 'getData()';
+  let queryName2 = 'readOne'+nameCp;
+  let requestName2 =  sortedAssociations[aindex].paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sortedAssociations[aindex].relationNameCp+'Filter' : 'api.'+nameLc+'.get'+sortedAssociations[aindex].relationNameCp+'Connection';
 -%>
   /**
    * getData
@@ -165,8 +450,13 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
     Boolean(dataTrigger); //avoid warning
     errors.current = [];
 
+<%_if( sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many' ){-%>
+    //count (async)
+    getCount();
+<%}-%>
+
     /*
-      API Request: <%- queryName1 %>
+      API Request: <%- queryName2 %>
     */
     let label = '<%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='') ? `${sortedAssociations[aindex].label}` : '' _%>';
     let sublabel = '<%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='') ? `${sortedAssociations[aindex].sublabel}` : '' _%>';
@@ -214,7 +504,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
           let withDetails=true;
           variant.current='error';
           newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName2 %>', method: '<%- methodName2 %>', request: '<%- requestName2 %>'}];
           newError.path=['detail', `<%- internalId _%>:${item.<%- internalId _%>}`, '<%- sortedAssociations[aindex].relationName _%>'];
           newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
           errors.current.push(newError);
@@ -225,14 +515,14 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
           return;
         }
 
-        //check: <%- queryName1 %>
-        let <%- queryName1 %> = response.data.data.<%- queryName1 %>;
-        if(<%- queryName1 %> === null) {
+        //check: <%- queryName2 %>
+        let <%- queryName2 %> = response.data.data.<%- queryName2 %>;
+        if(<%- queryName2 %> === null) {
           let newError = {};
           let withDetails=true;
           variant.current='error';
-          newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
-          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+          newError.message = '<%- queryName2 %> ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
+          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName2 %>', method: '<%- methodName2 %>', request: '<%- requestName2 %>'}];
           newError.path=['detail', `<%- internalId _%>:${item.<%- internalId _%>}`, '<%- sortedAssociations[aindex].relationName _%>'];
           newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
           errors.current.push(newError);
@@ -249,15 +539,14 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
  */ 
 -%>
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
-        //check: <%- queryName1 %> type
-        if(typeof <%- queryName1 %> !== 'object'
-        || !Number.isInteger(<%- queryName1 %>.countFiltered<%- sortedAssociations[aindex].relationNameCp %>)
-        || !Array.isArray(<%- queryName1 %>.<%- sortedAssociations[aindex].relationNameLc _%>Filter)) {
+        //check: <%- queryName2 %> type
+        if(typeof <%- queryName2 %> !== 'object'
+        || !Array.isArray(<%- queryName2 %>.<%- sortedAssociations[aindex].relationNameLc _%>Filter)) {
           let newError = {};
           let withDetails=true;
           variant.current='error';
-          newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+          newError.message = '<%- queryName2 %> ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
+          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName2 %>', method: '<%- methodName2 %>', request: '<%- requestName2 %>'}];
           newError.path=['detail', `<%- internalId _%>:${item.<%- internalId _%>}`, '<%- sortedAssociations[aindex].relationName _%>'];
           newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
           errors.current.push(newError);
@@ -268,16 +557,15 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
           return;
         }
         //get items
-        let newCount = <%- queryName1 %>.countFiltered<%- sortedAssociations[aindex].relationNameCp _%>;
-        let its = <%- queryName1 %>.<%- sortedAssociations[aindex].relationNameLc _%>Filter;
+        let its = <%- queryName2 %>.<%- sortedAssociations[aindex].relationNameLc _%>Filter;
 
         //check: graphql errors
         if(response.data.errors) {
           let newError = {};
           let withDetails=true;
           variant.current='info';
-          newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+          newError.message = '<%- queryName2 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
+          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName2 %>', method: '<%- methodName2 %>', request: '<%- requestName2 %>'}];
           newError.path=['detail', `<%- internalId _%>:${item.<%- internalId _%>}`, '<%- sortedAssociations[aindex].relationName _%>'];
           newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
           errors.current.push(newError);
@@ -285,31 +573,20 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
 
           showMessage(newError.message, withDetails);
         }
-        /*
-          Check: empty page
-        */
-        if( (newCount === (pageRef.current * rowsPerPage)) && (pageRef.current > 0) ) 
-        {
-          isOnApiRequestRef.current = false;
-          setIsOnApiRequest(false);
-          setPage(pageRef.current - 1);
-          return;
-        }
 <%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
 
-        //check: <%- queryName1 %> type
-        if(typeof <%- queryName1 %> !== 'object'
-        || !Number.isInteger(<%- queryName1 %>.countFiltered<%- sortedAssociations[aindex].relationNameCp %>)
-        || typeof <%- queryName1 %>.<%- sortedAssociations[aindex].relationNameLc _%>Connection !== 'object'
-        || <%- queryName1 %>.<%- sortedAssociations[aindex].relationNameLc _%>Connection === null
-        || !Array.isArray(<%- queryName1 %>.<%- sortedAssociations[aindex].relationNameLc _%>Connection.edges)
-        || typeof <%- queryName1 %>.<%- sortedAssociations[aindex].relationNameLc _%>Connection.pageInfo !== 'object'
-        || <%- queryName1 %>.<%- sortedAssociations[aindex].relationNameLc _%>Connection.pageInfo === null) {
+        //check: <%- queryName2 %> type
+        if(typeof <%- queryName2 %> !== 'object'
+        || typeof <%- queryName2 %>.<%- sortedAssociations[aindex].relationNameLc _%>Connection !== 'object'
+        || <%- queryName2 %>.<%- sortedAssociations[aindex].relationNameLc _%>Connection === null
+        || !Array.isArray(<%- queryName2 %>.<%- sortedAssociations[aindex].relationNameLc _%>Connection.edges)
+        || typeof <%- queryName2 %>.<%- sortedAssociations[aindex].relationNameLc _%>Connection.pageInfo !== 'object'
+        || <%- queryName2 %>.<%- sortedAssociations[aindex].relationNameLc _%>Connection.pageInfo === null) {
           let newError = {};
           let withDetails=true;
           variant.current='error';
-          newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+          newError.message = '<%- queryName2 %> ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
+          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName2 %>', method: '<%- methodName2 %>', request: '<%- requestName2 %>'}];
           newError.path=['detail', `<%- internalId _%>:${item.<%- internalId _%>}`, '<%- sortedAssociations[aindex].relationName _%>'];
           newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
           errors.current.push(newError);
@@ -320,17 +597,16 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
           return;
         }
         //get items
-        let newCount = <%- queryName1 %>.countFiltered<%- sortedAssociations[aindex].relationNameCp _%>;
-        let its = <%- queryName1 %>.<%- sortedAssociations[aindex].relationNameLc _%>Connection.edges.map(o => o.node);
-        let pi = <%- queryName1 %>.<%- sortedAssociations[aindex].relationNameLc _%>Connection.pageInfo;
+        let its = <%- queryName2 %>.<%- sortedAssociations[aindex].relationNameLc _%>Connection.edges.map(o => o.node);
+        let pi = <%- queryName2 %>.<%- sortedAssociations[aindex].relationNameLc _%>Connection.pageInfo;
 
         //check: graphql errors
         if(response.data.errors) {
           let newError = {};
           let withDetails=true;
           variant.current='info';
-          newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+          newError.message = '<%- queryName2 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
+          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName2 %>', method: '<%- methodName2 %>', request: '<%- requestName2 %>'}];
           newError.path=['detail', `<%- internalId _%>:${item.<%- internalId _%>}`, '<%- sortedAssociations[aindex].relationName _%>'];
           newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
           errors.current.push(newError);
@@ -362,7 +638,6 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
 <%}-%>
 
         //ok
-        setCount(newCount);
         setItems([...its]);
 
         //ends request
@@ -379,15 +654,15 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
  * Case: to_one
  */ 
 -%>
-        //check: <%- queryName1 %> type
-        if(typeof <%- queryName1 %> !== 'object'
-        || typeof <%- queryName1 %>.<%- sortedAssociations[aindex].relationName _%> !== 'object' //can be null
+        //check: <%- queryName2 %> type
+        if(typeof <%- queryName2 %> !== 'object'
+        || typeof <%- queryName2 %>.<%- sortedAssociations[aindex].relationName _%> !== 'object' //can be null
         ) {
           let newError = {};
           let withDetails=true;
           variant.current='error';
-          newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+          newError.message = '<%- queryName2 %> ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
+          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName2 %>', method: '<%- methodName2 %>', request: '<%- requestName2 %>'}];
           newError.path=['detail', `<%- internalId _%>:${item.<%- internalId _%>}`, '<%- sortedAssociations[aindex].relationName _%>'];
           newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
           errors.current.push(newError);
@@ -398,7 +673,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
           return;
         }
         //get item
-        let it = <%- queryName1 %>.<%- sortedAssociations[aindex].relationName _%>;
+        let it = <%- queryName2 %>.<%- sortedAssociations[aindex].relationName _%>;
 
         //ok
         setCount((it) ? 1 : 0);
@@ -417,7 +692,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
         throw err;
       })
       //error
-      .catch((err) => { //error: on <%- requestName1 %>
+      .catch((err) => { //error: on <%- requestName2 %>
         if(err.isCanceled) {
           return;
         } else {
@@ -425,7 +700,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
           let withDetails=true;
           variant.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName2 %>', method: '<%- methodName2 %>', request: '<%- requestName2 %>'}];
           newError.path=['detail', `<%- internalId _%>:${item.<%- internalId _%>}`, '<%- sortedAssociations[aindex].relationName _%>'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errors.current.push(newError);
@@ -445,6 +720,10 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
     return function cleanup() {
       cancelablePromises.current.forEach(p => p.cancel());
       cancelablePromises.current = [];
+<%_if( sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many' ){-%>
+      cancelableCountingPromises.current.forEach(p => p.cancel());
+      cancelableCountingPromises.current = [];
+<%}-%>
     };
   }, []);
   
@@ -706,7 +985,6 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
     setHasPreviousPage(pageInfo.current.hasPreviousPage);
     setHasNextPage(pageInfo.current.hasNextPage);
 <%}-%>          
-    setCount(0);
     setItems([]);
     isOnApiRequestRef.current = false;
 <%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
