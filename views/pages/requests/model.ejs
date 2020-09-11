@@ -2,7 +2,7 @@ import { requestGraphql } from '../utils'
 import getAttributes from './requests.attributes'
 
 export default {
-  
+
   tableTemplate(url) {
     let query = `query {csvTableTemplate<%- nameCp _%>}`
 
@@ -16,9 +16,9 @@ export default {
 
   /**
    * getCountItems
-   * 
+   *
    * Get count of items from GraphQL Server.
-   *  
+   *
    * @param {String} url GraphQL Server url
    * @param {String} searchText Text string currently on search bar.
    * @param {String} ops Object with adittional query options.
@@ -26,7 +26,7 @@ export default {
   getCountItems(url, searchText, ops) {
     //search
     var s = getSearchArgument('<%- nameLc _%>', searchText, ops);
-    
+
     var query = '';
 
     //if has search
@@ -48,9 +48,9 @@ export default {
 <%if(paginationType === 'limitOffset') {-%>
   /**
    * getItems
-   * 
-   * Get items from GraphQL Server. 
-   * 
+   *
+   * Get items from GraphQL Server.
+   *
    * @param {String} url GraphQL Server url
    * @param {String} searchText Text string currently on search bar.
    * @param {String} orderBy Order field string.
@@ -69,7 +69,7 @@ export default {
       let upOrderDirection = String(orderDirection).toUpperCase();
       o = `order: [ {field: ${orderBy}, order: ${upOrderDirection}} ]`;
     }
-    
+
     //pagination
     var p = `pagination: {offset: ${paginationOffset}, limit: ${paginationLimit}}`
 
@@ -90,7 +90,7 @@ export default {
     if (s !== null) {
       //if has order
       if (o != null) {
-        
+
         query =
           `{ <%- namePlLc _%>( ${s}, ${o}, ${p} ) {
             ${qbody}
@@ -107,14 +107,14 @@ export default {
     else {
       //if has order
       if (o != null) {
-        
+
         query =
           `{ <%- namePlLc _%>( ${o}, ${p} ) {
             ${qbody}
            }}`
       }
       else {
-        
+
         query =
           `{ <%- namePlLc _%>( ${p} ) {
             ${qbody}
@@ -133,14 +133,14 @@ export default {
 <%} else if(paginationType === 'cursorBased') {-%>
   /**
    * getItemsConnection
-   * 
-   * Get items from GraphQL Server using a cursor-based-connection. 
-   * 
+   *
+   * Get items from GraphQL Server using a cursor-based-connection.
+   *
    * @param {String} url GraphQL Server url
    * @param {String} searchText Text string currently on search bar.
    * @param {String} orderBy Order field string.
    * @param {String} orderDirection Text string: asc | desc.
-   * @param {Object} variables Object with cursor-based-pagination variables. 
+   * @param {Object} variables Object with cursor-based-pagination variables.
    * @param {String} ops Object with additional query options.
    */
   getItemsConnection(url, searchText, orderBy, orderDirection, variables, ops) {
@@ -153,7 +153,7 @@ export default {
       let upOrderDirection = String(orderDirection).toUpperCase();
       o = `order: [ {field: ${orderBy}, order: ${upOrderDirection}} ]`;
     }
-    
+
     var query = '';
     var qbody = `
           pageInfo {
@@ -181,7 +181,7 @@ export default {
     if (s !== null) {
       //if has order
       if (o != null) {
-        
+
         query =
           `query <%- namePlLc _%>Connection($pagination: paginationCursorInput)
             { <%- namePlLc _%>Connection( ${s}, ${o}, pagination: $pagination ) {
@@ -200,7 +200,7 @@ export default {
     else {
       //if has order
       if (o != null) {
-        
+
         query =
           `query <%- namePlLc _%>Connection($pagination: paginationCursorInput)
           { <%- namePlLc _%>Connection( ${o}, pagination: $pagination ) {
@@ -208,7 +208,7 @@ export default {
           }}`
       }
       else {
-        
+
         query =
           `query <%- namePlLc _%>Connection($pagination: paginationCursorInput)
           { <%- namePlLc _%>Connection( pagination: $pagination ) {
@@ -230,14 +230,14 @@ export default {
 
   /**
    * createItem
-   * 
+   *
    * Add new <%- nameCp %> item on GraphQL Server.
-   * 
+   *
    * @param {String} url GraphQL Server url.
-   * @param {Object} variables Object with values to create new <%- nameCp %> item. 
+   * @param {Object} variables Object with values to create new <%- nameCp %> item.
    */
   createItem(url, variables) {
-    var query = 
+    var query =
       `mutation
         add<%- nameCp %>(
 <%if(!isDefaultId){-%>
@@ -245,7 +245,7 @@ export default {
 <%}-%>
 <%_for( let i=0; i<attributesArr.length; i++ ){
   /*
-   * Render each attribute, except FK attributes and internalId. 
+   * Render each attribute, except FK attributes and internalId.
    */
 
   let a = attributesArr[i][0];
@@ -256,7 +256,7 @@ export default {
 <%}}-%>
 <%for( let i=0; i<sortedAssociations.length; i++ ){
   /*
-   * Render each toAdd attributes for to_one associations. 
+   * Render each toAdd attributes for to_one associations.
    */
 
   if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one') {
@@ -265,7 +265,7 @@ export default {
 <%}}-%>
 <%_for( let i=0; i<sortedAssociations.length; i++ ){
   /*
-   * Render each toAdd attributes for to_many associations. 
+   * Render each toAdd attributes for to_many associations.
    */
 
   if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many') {
@@ -289,7 +289,7 @@ export default {
 <%}}-%>
 <%for( let i=0; i<sortedAssociations.length; i++ ){
   /*
-   * Render each toAdd attributes for to_one associations. 
+   * Render each toAdd attributes for to_one associations.
    */
 
   if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one') {
@@ -298,7 +298,7 @@ export default {
 <%}}-%>
 <%_for( let i=0; i<sortedAssociations.length; i++ ){
   /*
-   * Render each toAdd attributes for to_many associations. 
+   * Render each toAdd attributes for to_many associations.
    */
 
   if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many') {
@@ -329,20 +329,20 @@ export default {
 
   /**
    * updateItem
-   * 
+   *
    * Update <%- nameCp %> item on GraphQL Server.
-   * 
+   *
    * @param {String} url GraphQL Server url.
-   * @param {Object} variables Object with values to update the given <%- nameCp %> item.  
+   * @param {Object} variables Object with values to update the given <%- nameCp %> item.
    */
   updateItem(url, variables) {
-    var query = 
+    var query =
       `mutation
         update<%- nameCp %>(
           $<%- internalId _%>:ID!
 <%_for( let i=0; i<attributesArr.length; i++ ){
   /*
-   * Render each attribute, except FK attributes and internalId. 
+   * Render each attribute, except FK attributes and internalId.
    */
 
   let a = attributesArr[i][0];
@@ -353,7 +353,7 @@ export default {
 <%}}-%>
 <%for( let i=0; i<sortedAssociations.length; i++ ){
   /*
-   * Render each toAdd & toRemove attributes for to_one associations. 
+   * Render each toAdd & toRemove attributes for to_one associations.
    */
 
   if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one') {
@@ -363,7 +363,7 @@ export default {
 <%}}-%>
 <%_for( let i=0; i<sortedAssociations.length; i++ ){
   /*
-   * Render each toAdd attributes for to_many associations. 
+   * Render each toAdd attributes for to_many associations.
    */
 
   if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many') {
@@ -390,7 +390,7 @@ export default {
 <%}}-%>
 <%for( let i=0; i<sortedAssociations.length; i++ ){
   /*
-   * Render each toAdd & toRemove attributes for to_one associations. 
+   * Render each toAdd & toRemove attributes for to_one associations.
    */
 
   if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one') {
@@ -400,7 +400,7 @@ export default {
 <%}}-%>
 <%_for( let i=0; i<sortedAssociations.length; i++ ){
   /*
-   * Render each toAdd attributes for to_many associations. 
+   * Render each toAdd attributes for to_many associations.
    */
 
   if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many') {
@@ -432,17 +432,17 @@ export default {
 
   /**
    * deleteItem
-   * 
+   *
    * Delete an item on GraphQL Server.
-   * 
+   *
    * @param {String} url GraphQL Server url.
-   * @param {Object} variables Object with values needed to delete the <%- nameCp %> item. 
+   * @param {Object} variables Object with values needed to delete the <%- nameCp %> item.
    */
   deleteItem(url, variables) {
-    var query = 
+    var query =
       `mutation
         delete<%- nameCp %>(
-          $<%- internalId _%>:ID! 
+          $<%- internalId _%>:ID!
         ) {
           delete<%- nameCp %>(
             <%- internalId _%>:$<%- internalId -%>
@@ -462,11 +462,11 @@ export default {
 <%if(sortedAssociations[i].paginationType === 'limitOffset') {-%>
   /**
    * get<%- sortedAssociations[i].relationNameCp %>Filter
-   * 
+   *
    * Get <%- sortedAssociations[i].targetModelPlLc %> filter records associated to the given <%- nameLc %> record
    * through association '<%- sortedAssociations[i].relationNameCp %>', from GraphQL Server.
-   * 
-   * 
+   *
+   *
    * @param {String} url GraphQL Server url
    * @param {Number} itemId Model item internalId.
    * @param {String} label Label name.
@@ -480,38 +480,38 @@ export default {
 <%_if( sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many' ){-%>
 
     //search
-    var s = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops); 
+    var s = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops);
 
     //pagination
     var p = `pagination: {offset: ${paginationOffset}, limit: ${paginationLimit}}`
 
     var query = (s) ?
-      `{ readOne<%- nameCp %>(<%- internalId _%>:<%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%>) { 
-        <%- sortedAssociations[i].relationNameLc _%>Filter( ${s}, ${p} ) { 
+      `{ readOne<%- nameCp %>(<%- internalId _%>:<%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%>) {
+        <%- sortedAssociations[i].relationNameLc _%>Filter( ${s}, ${p} ) {
 <%if(sortedAssociations[i].isDefaultId){-%>
           <%- internalId _%>,
 <%}-%>
 <%_for( let j=0; j<modelsAtts[sortedAssociations[i].targetModel].length; j++ ){-%>
           <%- modelsAtts[sortedAssociations[i].targetModel][j][0] -%>,
 <%}-%>
-        }, 
-        countFiltered<%- sortedAssociations[i].relationNameCp %>( ${s} ) 
-      } }` :      
-      `{ readOne<%- nameCp %>(<%- internalId _%>:<%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%>) { 
-        <%- sortedAssociations[i].relationNameLc _%>Filter( ${p} ) { 
+        },
+        countFiltered<%- sortedAssociations[i].relationNameCp %>( ${s} )
+      } }` :
+      `{ readOne<%- nameCp %>(<%- internalId _%>:<%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%>) {
+        <%- sortedAssociations[i].relationNameLc _%>Filter( ${p} ) {
 <%if(sortedAssociations[i].isDefaultId){-%>
           <%- internalId _%>,
 <%}-%>
 <%_for( let j=0; j<modelsAtts[sortedAssociations[i].targetModel].length; j++ ){-%>
           <%- modelsAtts[sortedAssociations[i].targetModel][j][0] -%>,
 <%}-%>
-        }, 
-        countFiltered<%- sortedAssociations[i].relationNameCp %> 
+        },
+        countFiltered<%- sortedAssociations[i].relationNameCp %>
       } }`;
 <%} else {-%>
-    var query = 
-      `{ readOne<%- nameCp %>(<%- internalId _%>:<%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%>) { 
-        <%- sortedAssociations[i].relationName _%> { 
+    var query =
+      `{ readOne<%- nameCp %>(<%- internalId _%>:<%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%>) {
+        <%- sortedAssociations[i].relationName _%> {
 <%if(sortedAssociations[i].isDefaultId){-%>
           <%- internalId _%>,
 <%}-%>
@@ -531,11 +531,11 @@ export default {
 <%} else if(sortedAssociations[i].paginationType === 'cursorBased') {-%>
   /**
    * get<%- sortedAssociations[i].relationNameCp %>Connection
-   * 
+   *
    * Get <%- sortedAssociations[i].targetModelPlLc %> connection (cursor based) records associated to the given <%- nameLc %> record
    * through association '<%- sortedAssociations[i].relationNameCp %>', from GraphQL Server.
-   * 
-   * 
+   *
+   *
    * @param {String} url GraphQL Server url
    * @param {Number} itemId Model item internalId.
    * @param {String} label Label name.
@@ -547,7 +547,7 @@ export default {
   get<%- sortedAssociations[i].relationNameCp %>Connection(url, itemId, label, sublabel, searchText, variables, ops) {
 <%_if( sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many' ){-%>
     //search
-    var s = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops); 
+    var s = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops);
 
     var qbody = `
           pageInfo {
@@ -569,23 +569,23 @@ export default {
 
     var query = (s) ?
       `query readOne<%- nameCp %>($pagination: paginationCursorInput) {
-        readOne<%- nameCp %>(<%- internalId _%>:<%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%>) { 
-          <%- sortedAssociations[i].relationNameLc _%>Connection( ${s}, pagination: $pagination ) { 
+        readOne<%- nameCp %>(<%- internalId _%>:<%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%>) {
+          <%- sortedAssociations[i].relationNameLc _%>Connection( ${s}, pagination: $pagination ) {
             ${qbody},
           },
-          countFiltered<%- sortedAssociations[i].relationNameCp %>( ${s} ) 
-      } }` :      
+          countFiltered<%- sortedAssociations[i].relationNameCp %>( ${s} )
+      } }` :
       `query readOne<%- nameCp %>($pagination: paginationCursorInput) {
-        readOne<%- nameCp %>(<%- internalId _%>:<%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%>) { 
-          <%- sortedAssociations[i].relationNameLc _%>Connection( pagination: $pagination ) { 
+        readOne<%- nameCp %>(<%- internalId _%>:<%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%>) {
+          <%- sortedAssociations[i].relationNameLc _%>Connection( pagination: $pagination ) {
             ${qbody},
           },
-          countFiltered<%- sortedAssociations[i].relationNameCp %> 
+          countFiltered<%- sortedAssociations[i].relationNameCp %>
       } }`;
 <%} else {-%>
-    var query = 
-      `{ readOne<%- nameCp %>(<%- internalId _%>:<%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%>) { 
-        <%- sortedAssociations[i].relationName _%> { 
+    var query =
+      `{ readOne<%- nameCp %>(<%- internalId _%>:<%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%>) {
+        <%- sortedAssociations[i].relationName _%> {
 <%if(sortedAssociations[i].isDefaultId){-%>
           <%- internalId _%>,
 <%}-%>
@@ -607,24 +607,24 @@ export default {
 
 <%if(sortedAssociations[i].paginationType === 'limitOffset') {-%>
   /**
-   * 
-   *  
+   *
+   *
    * getAssociated<%- sortedAssociations[i].relationNameCp %>
-   * 
-   * Get the <%- sortedAssociations[i].targetModelLc %>-ids associated to the given <%- nameLc %> record 
+   *
+   * Get the <%- sortedAssociations[i].targetModelLc %>-ids associated to the given <%- nameLc %> record
    * through association '<%- sortedAssociations[i].relationNameCp %>', from GraphQL Server.
-   * 
+   *
    * @param {String} url GraphQL Server url
    * @param {Number} itemId Model item internalId.
    */
   getAssociated<%- sortedAssociations[i].relationNameCp %>(url, itemId) {
 <%_if( sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many' ){-%>
-    var query = 
-      `{ readOne<%- nameCp %>( <%- internalId _%>: <%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%> ){ 
+    var query =
+      `{ readOne<%- nameCp %>( <%- internalId _%>: <%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%> ){
         <%- sortedAssociations[i].relationNameLc _%>Filter{ <%- sortedAssociations[i].internalId -%> } } }`;
 <%} else {-%>
-    var query = 
-    `{ readOne<%- nameCp %>( <%- internalId _%>: <%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%> ){ 
+    var query =
+    `{ readOne<%- nameCp %>( <%- internalId _%>: <%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%> ){
       <%- sortedAssociations[i].relationName _%>{ <%- sortedAssociations[i].internalId -%> } } }`;
 <%}-%>
     /**
@@ -636,24 +636,24 @@ export default {
   },
 <%} else if(sortedAssociations[i].paginationType === 'cursorBased') {-%>
   /**
-   * 
-   *  
+   *
+   *
    * getAssociated<%- sortedAssociations[i].relationNameCp %>Connection
-   * 
-   * Get the <%- sortedAssociations[i].targetModelLc %>-ids associated (by cursor based connection) to the given <%- nameLc %> record 
+   *
+   * Get the <%- sortedAssociations[i].targetModelLc %>-ids associated (by cursor based connection) to the given <%- nameLc %> record
    * through association '<%- sortedAssociations[i].relationNameCp %>', from GraphQL Server.
-   * 
+   *
    * @param {String} url GraphQL Server url
    * @param {Number} itemId Model item internalId.
    */
   getAssociated<%- sortedAssociations[i].relationNameCp %>Connection(url, itemId) {
 <%_if( sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many' ){-%>
-    var query = 
-      `{ readOne<%- nameCp %>( <%- internalId _%>: <%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%> ){ 
+    var query =
+      `{ readOne<%- nameCp %>( <%- internalId _%>: <%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%> ){
         <%- sortedAssociations[i].relationNameLc _%>Connection{ edges { node { <%- sortedAssociations[i].internalId -%> } } } } }`;
 <%} else {-%>
-    var query = 
-    `{ readOne<%- nameCp %>( <%- internalId _%>: <%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%> ){ 
+    var query =
+    `{ readOne<%- nameCp %>( <%- internalId _%>: <%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%> ){
       <%- sortedAssociations[i].relationName _%>{ <%- sortedAssociations[i].internalId -%> } } }`;
 <%}-%>
     /**
@@ -668,11 +668,11 @@ export default {
 
 /**
    * getItemsAttribute
-   * 
-   * Get all items from GraphQL Server using a cursor-based-connection. Get only the indicated 
-   * attribute. No search, order or pagination are specified in this function, so 
+   *
+   * Get all items from GraphQL Server using a cursor-based-connection. Get only the indicated
+   * attribute. No search, order or pagination are specified in this function, so
    * all items will be retrieved without a particular order or search filter.
-   * 
+   *
    * @param {String} url GraphQL Server url
    * @param {String} attribute Name of the attribute to be retrieved.
    */
@@ -690,7 +690,7 @@ export default {
      * Debug
      */
     console.log("getItemsAttribute.query: gql:\n", query);
-    
+
     return requestGraphql({ url, query });
 
   },
@@ -700,7 +700,7 @@ export default {
  * Utils
  */
 function getSearchArgument(filterName, searchText, ops) {
-  
+
   var filterAttributes = getAttributes(filterName);
   var modelAttributes = Object.keys(filterAttributes);
   var ors = '';
@@ -730,14 +730,14 @@ function getSearchArgument(filterName, searchText, ops) {
         switch (filterAttributes[modelAttributes[i]]) {
           case 'String':
             //add
-            ors += `{field:${modelAttributes[i]}, value:{value:"%${words[w]}%"}, operator:like},`
+            ors += `{field:${modelAttributes[i]}, value:"%${words[w]}%", operator:like},`
             break;
 
           case 'Int':
             num = parseInt(words[w]);
             //add if: word is an integer number
             if (!isNaN(num)) {
-              ors += `{field:${modelAttributes[i]}, value:{value:"${num}"}, operator:eq},`
+              ors += `{field:${modelAttributes[i]}, value:"${num}", operator:eq},`
             }
             break;
 
@@ -745,14 +745,14 @@ function getSearchArgument(filterName, searchText, ops) {
             num = parseFloat(words[w]);
             //add if: word is a float number
             if (!isNaN(num)) {
-              ors += `{field:${modelAttributes[i]}, value:{value:"${num}"}, operator:eq},`
+              ors += `{field:${modelAttributes[i]}, value:"${num}", operator:eq},`
             }
             break;
 
           case 'Boolean':
             //add if: word is 'true' or 'false'
             if (words[w] === 'true' || words[w] === 'false') {
-              ors += `{field:${modelAttributes[i]}, value:{value:"${words[w]}"}, operator:eq},`
+              ors += `{field:${modelAttributes[i]}, value:"${words[w]}", operator:eq},`
             }
             break;
 
@@ -760,7 +760,7 @@ function getSearchArgument(filterName, searchText, ops) {
             d = getIsoDate(words[w]);
             //add if: word is an ISO date
             if (d !== '') {
-              ors += `{field:${modelAttributes[i]}, value:{value:"${d}"}, operator:eq},`
+              ors += `{field:${modelAttributes[i]}, value:"${d}", operator:eq},`
             }
             break;
 
@@ -768,7 +768,7 @@ function getSearchArgument(filterName, searchText, ops) {
             t = getIsoTime(words[w]);
             //add if: word is an ISO time
             if (t !== '') {
-              ors += `{field:${modelAttributes[i]}, value:{value:"${t}"}, operator:eq},`
+              ors += `{field:${modelAttributes[i]}, value:"${t}", operator:eq},`
             }
             break;
 
@@ -776,7 +776,7 @@ function getSearchArgument(filterName, searchText, ops) {
             dt = getIsoDateTime(words[w]);
             //add if: word is an ISO datetime
             if (dt !== '') {
-              ors += `{field:${modelAttributes[i]}, value:{value:"${dt}"}, operator:eq},`
+              ors += `{field:${modelAttributes[i]}, value:"${dt}", operator:eq},`
             }
             break;
 
@@ -801,7 +801,7 @@ function getSearchArgument(filterName, searchText, ops) {
 
       /*
         -- 'only' option --
-        For each field name in only array, an AND search argument will be added to search string. 
+        For each field name in only array, an AND search argument will be added to search string.
 
         Format:
           {
@@ -847,7 +847,7 @@ function getSearchArgument(filterName, searchText, ops) {
               let va = v[vkeys[k]]; //values array
 
               //in
-              onlyOrs += `{field:${vkeys[k]}, value:{type: "Array", value:"${va.join()}"}, operator:in},`
+              onlyOrs += `{field:${vkeys[k]}, valueType: Array, value:"${va.join()}", operator:in},`
 
             }//end: for earch key
           }//end: if type 'Int
@@ -860,7 +860,7 @@ function getSearchArgument(filterName, searchText, ops) {
 
       /*
         -- 'exclude' option --
-        For each field name in exclude array, an AND search argument will be added to search string. 
+        For each field name in exclude array, an AND search argument will be added to search string.
 
         Format:
           {
@@ -904,7 +904,7 @@ function getSearchArgument(filterName, searchText, ops) {
               let va = v[vkeys[k]]; //values array
 
               //notIn
-              ands += `{field:${vkeys[k]}, value:{type: "Array", value:"${va.join()}"}, operator:notIn},`
+              ands += `{field:${vkeys[k]}, valueType: Array, value:"${va.join()}", operator:notIn},`
 
             }//end: for earch key
           }//end: if type 'Int
@@ -925,8 +925,8 @@ function getSearchArgument(filterName, searchText, ops) {
     if (ops !== undefined && ops !== null && typeof ops === 'object') {
       /*
         -- 'only' option --
-        For each field name in only array, an AND search argument will be added to search string. 
-  
+        For each field name in only array, an AND search argument will be added to search string.
+
         Format:
           {
             only: [
@@ -971,7 +971,7 @@ function getSearchArgument(filterName, searchText, ops) {
               let va = v[vkeys[k]]; //values array
 
               //in
-              onlyOrs += `{field:${vkeys[k]}, value:{type: "Array", value:"${va.join()}"}, operator:in},`
+              onlyOrs += `{field:${vkeys[k]}, valueType: Array, value:"${va.join()}", operator:in},`
 
             }//end: for earch key
           }//end: if type 'Int
@@ -984,8 +984,8 @@ function getSearchArgument(filterName, searchText, ops) {
 
       /*
         -- 'exclude' option --
-        For each field name in exclude array, an AND search argument will be added to search string. 
-  
+        For each field name in exclude array, an AND search argument will be added to search string.
+
         Format:
           {
             exclude: [
@@ -1028,7 +1028,7 @@ function getSearchArgument(filterName, searchText, ops) {
               let va = v[vkeys[k]]; //values array
 
               //notIn
-              ands += `{field:${vkeys[k]}, value:{type: "Array", value:"${va.join()}"}, operator:notIn},`
+              ands += `{field:${vkeys[k]}, valueType: Array, value:"${va.join()}", operator:notIn},`
 
             }//end: for earch key
           }//end: if type 'Int

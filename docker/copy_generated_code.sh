@@ -11,10 +11,10 @@ TARGET_DIRS=(
               "schemas" \
               "resolvers" \
               "models/sql" \
+              "models/adapters" \
               "migrations" \
               "validations" \
               "patches")
-GENERATED_CODE_DIR="./generated"
 GENERATED_CODE_DIR="./generated"
 RED='\033[0;31m'
 LGREEN='\033[1;32m'
@@ -35,7 +35,7 @@ do
   if [ -d ./${i} ]; then
     
     #remove
-    find ./${i} -type f \! -name '20200715195822-role\.js' \! -name 'role\.js' \! -name '20200715195823-role_to_user\.js' \! -name 'role_to_user\.js' \! -name '20200715195823-user\.js' \! -name 'user\.js' -exec rm -rf '{}' \;
+    find ./${i} -type f \! -name '20200715195822-role\.js' \! -name 'role\.js' \! -name '20200715195823-role_to_user\.js' \! -name 'role_to_user\.js' \! -name '20200715195823-user\.js' \! -name 'user\.js' \! -name 'index\.js' -exec rm -vrf '{}' \;
     if [ $? -eq 0 ]; then
         echo -e "@ Removed content in: ${i} ... ${LGREEN}done${NC}"
     else
@@ -44,7 +44,7 @@ do
     fi
 
     #copy
-    cp ${GENERATED_CODE_DIR}/${i}/* ./${i}/  
+    cp -r ${GENERATED_CODE_DIR}/${i}/* ./${i}/  
     if [ $? -eq 0 ]; then
         echo -e "@ Copied generated code into: ./${i} ... ${LGREEN}done${NC}"
     else
