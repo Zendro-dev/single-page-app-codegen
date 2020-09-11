@@ -14,23 +14,23 @@
 # DESCRIPTION
 #     Command line utility to perform single-page-app integration-test.
 #
-#     Intergation-test case creates a docker-compose ambient with three servers: 
-#     
+#     Intergation-test case creates a docker-compose ambient with three servers:
+#
 #     spa_postgres
-#     spa_science_db_graphql_server 
+#     spa_science_db_graphql_server
 #     spa_science_db_app_server
 #
 #     By default, after the test run, all corresponding Docker images will be completely removed from the docker; this cleanup step can be skiped with -k option as described below.
 #
 #     Default behavior performs the following actions:
 #
-#         1) Stop and removes Docker containers with docker-compose down command, also removes Docker images (--rmi) and named or anonymous volumes (-v). 
+#         1) Stop and removes Docker containers with docker-compose down command, also removes Docker images (--rmi) and named or anonymous volumes (-v).
 #         2) Removes any previously generated code located on current project's local directory: ./docker/integration_test_run.
 #         3) Re-generates the code from the test models located on current project's local directory: ./test/integration-test-input. The code is generated on local directory: ./docker/integration_test_run.
 #         4) Creates and start containers with docker-compose up command.
-#         5) Excecutes integration tests. The code should exists, otherwise the integration tests are not executed. 
+#         5) Excecutes integration tests. The code should exists, otherwise the integration tests are not executed.
 #         6) Do cleanup as described on 1) and 2) steps (use -k option to skip this step).
-#       
+#
 #     The options are as follows:
 #
 #     -h, --help
@@ -45,9 +45,9 @@
 #         2) Creates and start containers with docker-compose up command.
 #
 #     -g, --generate-code
-#         
+#
 #         This option performs the following actions:
-#         
+#
 #         1) Stop and removes containers with docker-compose down command (without removing images).
 #         2) Removes any previously generated code located on current project's local directory: ./docker/integration_test_run.
 #         3) Re-generates the code from the test models located on current project's local directory: ./test/integration-test-input. The code is generated on local directory: ./docker/integration_test_run.
@@ -56,7 +56,7 @@
 #     -t, --run-test-only
 #
 #         This option performs the following actions:
-#         
+#
 #         1) Stops and removes containers with docker-compose down command (without removing images).
 #         2) Creates and starts containers with docker-compose up command.
 #         3) Excecutes integration tests. The code should exists, otherwise the integration tests are not executed.
@@ -66,19 +66,19 @@
 #     -T, --generate-code-and-run-tests
 #
 #         This option performs the following actions:
-#         
+#
 #         1) Stops and removes containers with docker-compose down command (without removing images).
 #         2) Removes any previously generated code located on current project's local directory: ./docker/integration_test_run.
 #         3) Re-generates the code from the test models located on current project's local directory: ./test/integration-test-input. The code is generated on local directory: ./docker/integration_test_run.
 #         4) Creates and starts containers with docker-compose up command.
-#         5) Excecutes integration tests. The code should exists, otherwise the integration tests are not executed. 
+#         5) Excecutes integration tests. The code should exists, otherwise the integration tests are not executed.
 #
 #         If option -k is also specified, then cleanup step is skipped at the end of the integration-test-suite, otherwise, the cleanup step is performed at the end of the tests (see -c option).
 #
 #     -k, --keep-running
 #
 #         This option skips the cleanup step at the end of the integration-test-suite and keeps the Docker containers running.
-#         
+#
 #         This option can be used alone, or in conjunction with the options -t or -T.
 #
 #         If this option is not specified, then, by default, the cleanup step is performed at the end of the tests (see -c option).
@@ -86,38 +86,38 @@
 #     -c, --cleanup
 #
 #         This option performs the following actions:
-#         
+#
 #         1) Stops and removes Docker containers with docker-compose down command, also removes Docker images (--rmi) and named or anonymous volumes (-v).
 #         2) Removes any previously generated code located on current project's local directory: ./docker/integration_test_run.
 #
 # EXAMPLES
 #     Command line utility to perform graphql server's integration-test.
-#         
+#
 #     To see full test-integration info:
 #     $ npm run test-integration -- -h
-# 
+#
 #     To run default behavior (cleanup-genCode-doTests-cleanup):
 #     $ npm run test-integration
-# 
+#
 #     To run default behavior but skip final cleanup (cleanup-genCode-doTests):
 #     $ npm run test-integration -- -k
-# 
+#
 #     To restart containers:
 #     $ npm run test-integration -- -r
-# 
+#
 #     To generate code and start containers:
 #     $ npm run test-integration -- -g
-# 
+#
 #     To do the tests only and keep the containers running at end:
 #     $ npm run test-integration -- -t -k
-# 
+#
 #     To generate code and do the tests, removing all Docker images at end:
 #     $ npm run test-integration -- -T
 
 #     To do a full clean up (removes containers, images and code):
 #     $ npm run test-integration -- -c
-# 
-# 
+#
+#
 
 # exit on first error
 set -e
@@ -125,13 +125,13 @@ set -e
 #
 # Constants
 #
-DOCKER_POSTGRES_SERVER1=gql_postgres1 
+DOCKER_POSTGRES_SERVER1=gql_postgres1
 DOCKER_POSTGRES_SERVER2=gql_postgres2
-DOCKER_POSTGRES_CONTAINER1=postgres1 
-DOCKER_POSTGRES_CONTAINER2=postgres2 
+DOCKER_POSTGRES_CONTAINER1=postgres1
+DOCKER_POSTGRES_CONTAINER2=postgres2
 DOCKER_POSTGRES_VOLUME1=docker_sdb_db_data1
 DOCKER_POSTGRES_VOLUME2=docker_sdb_db_data2
-DOCKER_GQL_SERVER1=gql_science_db_graphql_server1 
+DOCKER_GQL_SERVER1=gql_science_db_graphql_server1
 DOCKER_GQL_SERVER2=gql_science_db_graphql_server2
 TEST_MODELS_INSTANCE1="./test/integration_test_models_instance1"
 TEST_MODELS_INSTANCE2="./test/integration_test_models_instance2"
@@ -140,7 +140,7 @@ GQL_TEST_MODELS_INSTANCE2="./test/integration_test_models_instance2"
 TARGET_DIR="./docker/integration_test_run"
 GQL_CODEGEN_DIR="./docker/graphql-server-model-codegen"
 GQL_CODEGEN_URL="https://github.com/Zendro-dev/graphql-server-model-codegen.git"
-GQL_CODEGEN_BRANCH_TAG="issue#140-refactor-search-input"
+GQL_CODEGEN_BRANCH_TAG="master"
 TARGET_DIR="./docker/integration_test_run"
 TARGET_DIR_GQL_INSTANCE1=$TARGET_DIR"/gql-instance1"
 TARGET_DIR_GQL_INSTANCE2=$TARGET_DIR"/gql-instance2"
@@ -302,7 +302,7 @@ restartContainers() {
   # Msg
   echo -e "\n${LGRAY}@@ ----------------------------${NC}"
   echo -e "${LGRAY}@@ Restarting containers...${NC}"
-  
+
   # Soft down
   docker-compose -f ./docker/docker-compose-test.yml down
   # Msg
@@ -315,12 +315,12 @@ restartContainers() {
   npm install
   # Msg
   echo -e "@@ Installing ... ${LGREEN}done${NC}"
-  
+
   # Up
   docker-compose -f ./docker/docker-compose-test.yml up -d
   # Msg
   echo -e "@@ Containers up ... ${LGREEN}done${NC}"
-  
+
   # List
   docker-compose -f ./docker/docker-compose-test.yml ps
 
@@ -346,17 +346,17 @@ cleanup() {
 
   # Hard down
   docker-compose -f ./docker/docker-compose-test.yml down -v --rmi all
-  
+
   # Delete code
   deleteGenCode
 
   #Delete gql-codegen
   deleteGqlCodegen
-  
+
   # Msg
   echo -e "@@ Cleanup ... ${LGREEN}done${NC}"
   echo -e "${LGRAY}---------------------------- @@${NC}\n"
-  
+
 }
 
 #
@@ -371,7 +371,7 @@ stopContainers() {
 
   # Stop
   docker-compose -f ./docker/docker-compose-test.yml stop
-  
+
   # Msg
   echo -e "@@ Containers restart ... ${LGREEN}done${NC}"
   echo -e "${LGRAY}---------------------------- @@${NC}\n"
@@ -400,7 +400,7 @@ removeVolumes() {
 
   # Remove db volumes
   docker volume rm ${DOCKER_POSTGRES_VOLUME1} ${DOCKER_POSTGRES_VOLUME2} -f
-  
+
   # Msg
   echo -e "@@ Volumes removed ... ${LGREEN}done${NC}"
   echo -e "${LGRAY}---------------------------- @@${NC}\n"
@@ -515,7 +515,7 @@ waitForAll() {
   bash -c "psql -U sciencedb -d sciencedb_development -P pager=off --single-transaction -f /usr/src/app/integration-test.sql"
   # Msg
   echo -e "@@ db1 init ... ${LGREEN}done${NC}"
-  
+
   # Instance 2
   docker-compose -f ./docker/docker-compose-test.yml exec ${DOCKER_POSTGRES_SERVER2} \
   bash -c "psql -U sciencedb -d sciencedb_development -P pager=off --single-transaction -f /usr/src/app/integration-test.sql"
@@ -603,7 +603,7 @@ genCode() {
   #Generate
   node ${GQL_CODEGEN_DIR}/index.js -f ${GQL_TEST_MODELS_INSTANCE1} -o ${TARGET_DIR_GQL_INSTANCE1}
   local gql1_status=$?
-  if [ $gql1_status -eq 0 ]; then  
+  if [ $gql1_status -eq 0 ]; then
     # Patch
     echo -e "${LGRAY}@ Patching required files...${NC}"
     #
@@ -630,7 +630,7 @@ genCode() {
 
   node ${GQL_CODEGEN_DIR}/index.js -f ${GQL_TEST_MODELS_INSTANCE2} -o ${TARGET_DIR_GQL_INSTANCE2}
   local gql2_status=$?
-  
+
   # Print summary
   echo ""
   echo ""
@@ -654,7 +654,7 @@ genCode() {
   else
   echo -e "@@ Code for GraphQL Server generated on ${LGRAY}${TARGET_DIR_GQL_INSTANCE2}${NC}: ... ${RED}done (with errors)${NC}"
   fi
-  
+
   # Msg
   echo ""
   echo -e "@@ Code generated ... ${LGREEN}done${NC}"
@@ -670,17 +670,17 @@ upContainers() {
   # Msg
   echo -e "\n${LGRAY}@@ ----------------------------${NC}"
   echo -e "${LGRAY}@@ Starting up containers...${NC}"
-  
+
   # Install
   npm install
   # Msg
   echo -e "@@ Installing ... ${LGREEN}done${NC}"
-  
+
   # Up
   docker-compose -f ./docker/docker-compose-test.yml up -d --no-recreate
   # Msg
   echo -e "@@ Containers up ... ${LGREEN}done${NC}"
-  
+
   # List
   docker-compose -f ./docker/docker-compose-test.yml ps
 
@@ -698,17 +698,17 @@ buildAll() {
   # Msg
   echo -e "\n${LGRAY}@@ ----------------------------${NC}"
   echo -e "${LGRAY}@@ Starting up containers...${NC}"
-  
+
   # Install
   npm install
   # Msg
   echo -e "@@ Installing ... ${LGREEN}done${NC}"
-  
+
   # Up
   docker-compose -f ./docker/docker-compose-test.yml up -d --build --force-recreate --renew-anon-volumes
   # Msg
   echo -e "@@ Containers built ... ${LGREEN}done${NC}"
-  
+
   # List
   docker-compose -f ./docker/docker-compose-test.yml ps
 
@@ -736,7 +736,7 @@ doTests() {
   bash -c "psql -U sciencedb -d sciencedb_development -P pager=off --single-transaction -f /usr/src/app/integration-test.sql"
   # Msg
   echo -e "@@ db1 init ... ${LGREEN}done${NC}"
-  
+
   # Instance 2
   docker-compose -f ./docker/docker-compose-test.yml exec ${DOCKER_POSTGRES_SERVER2} \
   bash -c "psql -U sciencedb -d sciencedb_development -P pager=off --single-transaction -f /usr/src/app/integration-test.sql"
@@ -748,7 +748,7 @@ doTests() {
 
   # Do tests
   mocha --trace-warnings ./test/integration-tests-mocha.js
-  
+
   # Msg
   echo -e "@@ Mocha tests ... ${LGREEN}done${NC}"
   echo -e "${LGRAY}---------------------------- @@${NC}\n"
@@ -758,7 +758,7 @@ doTests() {
 # Function: consumeArgs()
 #
 # Shift the remaining arguments on $# list, and sets the flag KEEP_RUNNING=true if
-# argument -k or --keep-running is found. 
+# argument -k or --keep-running is found.
 #
 consumeArgs() {
 
@@ -777,7 +777,7 @@ consumeArgs() {
           shift
           let "NUM_ARGS--"
         ;;
-        
+
         *)
           # Msg
           echo -e "@@ Discarting unknown option: ${RED}$a${NC}"
@@ -791,7 +791,7 @@ consumeArgs() {
 #
 # Function: man()
 #
-# Show man page of this script. 
+# Show man page of this script.
 #
 man() {
   # Show
@@ -813,7 +813,7 @@ if [ $# -gt 0 ]; then
               KEEP_RUNNING=true
               # Msg
               echo -e "@@ keep containers running at end: $KEEP_RUNNING"
-              
+
               # Past argument
               shift
               let "NUM_ARGS--"
