@@ -675,6 +675,14 @@ export default {
    *   - get<AssociatedModel>ConnectionCount
    */
 -%>
+<%_if( sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many' ){-%>
+<%
+  /**
+   * to_many
+   * to_many_through_sql_cross_table
+   * generic_to_many
+   */
+-%>
 <%
   /**
    * limitOffset
@@ -694,15 +702,6 @@ export default {
    * @param {String} ops Object with adittional query options.
    */
   get<%- sortedAssociations[i].relationNameCp %>FilterCount(url, itemId, searchText, ops) {
-<%
-  /**
-   * to_many
-   * to_many_through_sql_cross_table
-   * generic_to_many
-   */
--%>
-<%_if( sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many' ){-%>
-
     //search
     var s = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops); 
 
@@ -713,7 +712,6 @@ export default {
       `{ readOne<%- nameCp %>(<%- internalId _%>:<%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%>) {  
         countFiltered<%- sortedAssociations[i].relationNameCp %> 
       } }`;
-<%}-%>
 
     /**
      * Debug
@@ -741,14 +739,6 @@ export default {
    * @param {String} ops Object with adittional query options.
    */
   get<%- sortedAssociations[i].relationNameCp %>ConnectionCount(url, itemId, searchText, ops) {
-<%_if( sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many' ){-%>
-<%
-  /**
-   * to_many
-   * to_many_through_sql_cross_table
-   * generic_to_many
-   */
--%>
     //search
     var s = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops); 
 
@@ -761,16 +751,15 @@ export default {
         readOne<%- nameCp %>(<%- internalId _%>:<%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%>) { 
           countFiltered<%- sortedAssociations[i].relationNameCp %> 
       } }`;
-<%}-%>
 
     /**
      * Debug
      */
     console.log("getAssociationConnectionCount.query: gql:\n", query);
-    console.log("getAssociationConnectionCount.variables: gql:\n", variables);
 
     return requestGraphql({ url, query });
   },
+<%}-%>
 <%}-%>
 <%
   /**

@@ -15,5 +15,6 @@
         "targetStorageType" : "sql"
       }
     },
-    "internalId": "capital_id"
+    "internalId": "capital_id",
+    "paginationType": "limitOffset"
 }

@@ -114,6 +114,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 <%if(paginationType === 'limitOffset') {-%>
   const [isCounting, setIsCounting] = useState(true);
 <%}-%>
+  const isCountingRef = useRef(false);
 <%if(paginationType === 'cursorBased') {-%>
   const [hasPreviousPage, setHasPreviousPage] = useState(false);
   const [hasNextPage, setHasNextPage] = useState(false);
@@ -381,17 +382,19 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     * 
     */
   const getCount = useCallback(async () => {
+    //return if there is an active count operation
+    if(isCountingRef.current) return;
+    
     cancelCountingPromises();
 <%if(paginationType === 'limitOffset') {-%>
     setIsCounting(true);
 <%}-%>
+    isCountingRef.current = true;
     errorsB.current = [];
 
     let c1 = makeCancelable( new Promise(resolve => {
       //set timeout
       window.setTimeout(function() {
-        setDetailDialogOpen(false);
-        setDetailItem(undefined);
         resolve("ok");
       }, 3000);
     }));
@@ -494,6 +497,8 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 <%if(paginationType === 'limitOffset') {-%>
         setIsCounting(false);
 <%}-%>
+        isCountingRef.current = false;
+        
         /**
          * Display graphql errors
          */
@@ -842,6 +847,10 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     ) {
       //decrement count
       if(count > 0) setCount(count-1);
+      //count
+      cancelCountingPromises();
+      isCountingRef.current = false;
+      getCount();
     }
 
     /**
@@ -868,7 +877,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
       //clear changes state
       dispatch(clearChanges());
     }
-  }, [changes, count, dispatch<%if(paginationType === 'cursorBased') {-%>, configurePagination<%}-%>]);
+  }, [changes, count, getCount, dispatch<%if(paginationType === 'cursorBased') {-%>, configurePagination<%}-%>]);
 
   useEffect(() => {
     //return if this flag is set
@@ -1060,6 +1069,10 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
         });
         //decrement count
         if(count > 0) setCount(count-1);
+        //will count
+        cancelCountingPromises();
+        isCountingRef.current = false;
+        
         reloadData();
         return;
       },
@@ -1312,12 +1325,20 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
         let ncount = count+1;
         let nitems = Array.from(items);
         nitems.push(newItem);
-        setCount(ncount);
         setItems(nitems);
+        setCount(ncount);
+        //count
+        cancelCountingPromises();
+        isCountingRef.current = false;
+        getCount();
       } else {
         //add count
         let ncount = count+1;
         setCount(ncount);
+        //count
+        cancelCountingPromises();
+        isCountingRef.current = false;
+        getCount();
       }
     }
   }
@@ -1373,6 +1394,11 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
         setPage(0);
       }
       setCount(-1);
+      //will count
+      cancelCountingPromises();
+      isCountingRef.current = false;
+
+      //search
       setSearch(text);
     }
   };
@@ -1434,6 +1460,11 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
         setPage(0);
       }
       setCount(-1);
+      //will count
+      cancelCountingPromises();
+      isCountingRef.current = false;
+
+      //search
       setSearch(text);
     }
   };
