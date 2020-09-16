@@ -168,10 +168,10 @@ services:
       dockerfile: Dockerfile.graphql_server
 
     volumes:
-      - ./integration_test_run/gql-instance2/models/adapters:/usr/src/app/generated/models/adapters
       - ./integration_test_run/gql-instance2/schemas:/usr/src/app/generated/schemas
       - ./integration_test_run/gql-instance2/resolvers:/usr/src/app/generated/resolvers
       - ./integration_test_run/gql-instance2/models/sql:/usr/src/app/generated/models/sql
+      - ./integration_test_run/gql-instance2/models/adapters:/usr/src/app/generated/models/adapters
       - ./integration_test_run/gql-instance2/models/distributed:/usr/src/app/models/distributed
       - ./integration_test_run/gql-instance2/models/zendro-server:/usr/src/app/models/zendro-server
       - ./integration_test_run/gql-instance2/models/generic:/usr/src/app/models/generic
@@ -181,6 +181,7 @@ services:
       - ./integration_test_run/gql-instance2/acl_rules.js:/usr/src/app/acl_rules.js
       - ./sequelize_config_instance2.json:/usr/src/app/config/data_models_storage_config.json
       - ./copy_generated_code.sh:/usr/src/app/copy_generated_code.sh
+      - ./migrateDbAndStartServer.sh:/usr/src/app/migrateDbAndStartServer.sh
 
     ports:
       - "3030:3030"
@@ -200,7 +201,9 @@ services:
         npm install
         chmod u+x ./copy_generated_code.sh
         ./copy_generated_code.sh
+        chmod u+x ./migrateDbAndStartServer.sh
         ./migrateDbAndStartServer.sh
+
 #
 # SPA 2
 #

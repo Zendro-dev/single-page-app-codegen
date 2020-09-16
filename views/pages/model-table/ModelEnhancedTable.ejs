@@ -353,13 +353,13 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     isOnApiRequestRef.current = false;
     isCursorPaginating.current = false;
     setIsOnApiRequest(false);
-  },[configurePagination])
+  },[configurePagination]);
 <%} else {-%>
   const clearRequestGetData = useCallback(() => {
     setItems([]);
     isOnApiRequestRef.current = false;
     setIsOnApiRequest(false);
-  },[])
+  },[]);
 <%}-%>
 
 <%
@@ -481,17 +481,6 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           return;
         }
 
-        //check: graphql errors
-        if(response.data.errors) {
-          let newError = {};
-          newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
-          newError.path=['<%- namePlCp %>'];
-          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-        }
-
         //ok
         setCount(<%- queryName1 %>);
 <%if(paginationType === 'limitOffset') {-%>
@@ -499,15 +488,13 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 <%}-%>
         isCountingRef.current = false;
         
-        /**
-         * Display graphql errors
-         */
-        if(errorsB.current.length > 0) {
+        //check: graphql errors
+        if(response.data.errors) {
           let newError = {};
           let withDetails=true;
           variantB.current='info';
-          newError.message = '<%- methodName1 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-          newError.locations=[{model: '<%- name -%>', method: '<%- methodName1 %>'}];
+          newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
+          newError.locations=[{model: '<%- name -%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
           newError.path=['<%- namePlCp %>'];
           newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
           errorsB.current.push(newError);
@@ -591,7 +578,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
       search,
       orderBy,
       order,
-      pageRef.current * rowsPerPage, //paginationOffset
+      pageRef.current * rowsPerPageRef.current, //paginationOffset
       rowsPerPageRef.current, //paginationLimit
     ));
 <%} else if(paginationType === 'cursorBased') {-%>
@@ -676,13 +663,18 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
         //check: graphql errors
         if(response.data.errors) {
           let newError = {};
+          let withDetails=true;
+          variant.current='info';
           newError.message = '<%- queryName2 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
           newError.locations=[{model: '<%- name -%>', query: '<%- queryName2 %>', method: '<%- methodName2 %>', request: '<%- requestName2 %>'}];
           newError.path=['<%- namePlCp %>'];
           newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
         }
+
 <%} else if(paginationType === 'cursorBased') {-%>
         //check: <%- queryName2 %> type
         if(typeof <%- queryName2 %> !== 'object'
@@ -710,12 +702,16 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
         //check: graphql errors
         if(response.data.errors) {
           let newError = {};
+          let withDetails=true;
+          variant.current='info';
           newError.message = '<%- queryName2 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
           newError.locations=[{model: '<%- name -%>', query: '<%- queryName2 %>', method: '<%- methodName2 %>', request: '<%- requestName2 %>'}];
           newError.path=['<%- namePlCp %>'];
           newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
         }
           
         /*
@@ -753,23 +749,6 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 <%}-%>
         setIsOnApiRequest(false);
 
-        /**
-         * Display graphql errors
-         */
-        if(errors.current.length > 0) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='info';
-          newError.message = '<%- methodName2 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-          newError.locations=[{model: '<%- name -%>', method: '<%- methodName2 %>'}];
-          newError.path=['<%- namePlCp %>'];
-          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-        }
-
         return;
       },
       //rejected
@@ -796,7 +775,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           return;
         }
       });
-  }, [graphqlServerUrl, t, dataTrigger, search, orderBy, order, getCount, showMessage, clearRequestGetData<%if(paginationType === 'cursorBased') {-%>, configurePagination<%}-%><%if(paginationType === 'limitOffset') {-%>, rowsPerPage<%}-%>]);
+  }, [graphqlServerUrl, t, dataTrigger, search, orderBy, order, getCount, showMessage, clearRequestGetData<%if(paginationType === 'cursorBased') {-%>, configurePagination<%}-%>]);
 
   /**
    * Effects
@@ -1251,7 +1230,6 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   /**
     * Utils
     */
-
   function cancelCountingPromises() {
     cancelableCountingPromises.current.forEach(p => p.cancel());
     cancelableCountingPromises.current = [];    
@@ -1320,7 +1298,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
       //reload
       setDataTrigger(prevDataTrigger => !prevDataTrigger);
     } else {
-      if( (count - (page*rowsPerPage)) < rowsPerPage ){
+      if( (count - (page*rowsPerPageRef.current)) < rowsPerPageRef.current ){
         //add new item
         let ncount = count+1;
         let nitems = Array.from(items);

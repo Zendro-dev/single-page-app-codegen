@@ -96,7 +96,6 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
   const isOnApiRequestRef = useRef(false);
   const isGettingFirstDataRef = useRef(true);
   const pageRef = useRef(0);
-
 <%_if( isToMany ){-%>
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
   const [isCounting, setIsCounting] = useState(true);
@@ -161,8 +160,8 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
    /**
     * Callbacks:
     *  showMessage
-    *  showMessageB
 <%_if( isToMany ){-%>
+    *  showMessageB
     *  getCount
 <%}-%>
     *  getData
@@ -273,7 +272,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
       search,
     ));
 <%}-%>
-    cancelablePromises.current.push(cancelableApiReq);
+    cancelableCountingPromises.current.push(cancelableApiReq);
     await cancelableApiReq
       .promise
       .then(
@@ -299,7 +298,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
         }
 
         //check: <%- queryName1 %>
-        let <%- queryName1 %> = response.data.data.<%- queryName1 %>;
+        let <%- queryName1 %> = response.data.data["<%- queryName1 %>"];
         if(<%- queryName1 %> === null) {
           let newError = {};
           let withDetails=true;
@@ -318,7 +317,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
         //check: <%- queryName1 %> type
         if(typeof <%- queryName1 %> !== 'object'
-        || !Number.isInteger(<%- queryName1 %>.countFiltered<%- sortedAssociations[aindex].relationNameCp %>)) {
+        || !Number.isInteger(<%- queryName1 %>["countFiltered<%- sortedAssociations[aindex].relationNameCp %>"])) {
           let newError = {};
           let withDetails=true;
           variantB.current='error';
@@ -333,7 +332,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
           return;
         }
         //get count
-        let newCount = <%- queryName1 %>.countFiltered<%- sortedAssociations[aindex].relationNameCp _%>;
+        let newCount = <%- queryName1 %>["countFiltered<%- sortedAssociations[aindex].relationNameCp _%>"];
 
         //ok
         setCount(newCount);
@@ -458,9 +457,9 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
   /**
    * getData
    * 
-   * Get @items and @count from GrahpQL Server.
+   * Get @items from GrahpQL Server.
    * Uses current state properties to fill query request.
-   * Updates state to inform new @items and @count retreived.
+   * Updates state to inform new @items retreived.
    * 
    */
   const getData = useCallback(() => {
@@ -811,12 +810,21 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
               if(idsRemoved) {
                 let iof = idsRemoved.indexOf(item.<%- internalId _%>);
                 if(iof !== -1) {
+<%_if( isToMany ){-%>
+                  //will count
+                  cancelCountingPromises();
+                  isCountingRef.current = false;
+<%}-%>
                   //reload
                   updateHeights();
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
                   //reload
-                  if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
+                  if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); }
+<%_if( isToMany ){-%>
+                  else { isPendingApiRequestRef.current = true; getCount(); }
+<%} else {-%>
                   else { isPendingApiRequestRef.current = true; }
+<%}-%> 
 <%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
                   //strict contention
 <%_if( isToMany ){-%>
@@ -825,12 +833,19 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
                     isForwardPagination.current = true;
                     pageInfo.current.endCursor = pageInfo.current.startCursor;
                     includeCursor.current = true;
+
+                    //reload
+                    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+                  } else {
+                    getCount();
+                  }
 <%} else {-%>
                   if (!isOnApiRequestRef.current) {
-<%}-%>
+
                     //reload
                     setDataTrigger(prevDataTrigger => !prevDataTrigger);
                   }
+<%}-%>
 <%}-%>
                   return;
                 }
@@ -847,8 +862,12 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
                   updateHeights();
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
                   //reload
-                  if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
+                  if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); }
+<%_if( isToMany ){-%>
+                  else { isPendingApiRequestRef.current = true; getCount(); }
+<%} else {-%>
                   else { isPendingApiRequestRef.current = true; }
+<%}-%> 
 <%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
                   //strict contention
 <%_if( isToMany ){-%>
@@ -857,12 +876,19 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
                     isForwardPagination.current = true;
                     pageInfo.current.endCursor = pageInfo.current.startCursor;
                     includeCursor.current = true;
+
+                    //reload
+                    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+                  } else {
+                    getCount();
+                  }
 <%} else {-%>
                   if (!isOnApiRequestRef.current) {
-<%}-%>
+
                     //reload
                     setDataTrigger(prevDataTrigger => !prevDataTrigger);
                   }
+<%}-%>
 <%}-%>
                   return;
                 }
