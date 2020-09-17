@@ -1,26 +1,25 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { 
   Switch,
   Route
 } from 'react-router-dom'
 import PropTypes from 'prop-types';
-
-<%for( let i=0; i<models.length; i++ ){-%>
-import <%- models[i].nameOnPascal %>Table from './models-tables/<%- models[i].nameLc _%>-table/<%- models[i].nameCp _%>EnhancedTable'
-<%}-%>
-<%for( let i=0; i<adminModels.length; i++ ){-%>
-import <%- adminModels[i].nameOnPascal %>Table from './admin-tables/<%- adminModels[i].nameLc _%>-table/<%- adminModels[i].nameCp _%>EnhancedTable'
-<%}-%>
 import NotFoundSection from '../pages/NotFoundSectionPage'
 import NoPermissionSectionPage from '../pages/NoPermissionSectionPage'
+<%for( let i=0; i<models.length; i++ ){-%>
+const <%- models[i].nameOnPascal %>Table = lazy(() => import('./models-tables/<%- models[i].nameLc _%>-table/<%- models[i].nameCp _%>EnhancedTable'));
+<%}-%>
+<%for( let i=0; i<adminModels.length; i++ ){-%>
+const <%- adminModels[i].nameOnPascal %>Table = lazy(() => import('./admin-tables/<%- adminModels[i].nameLc _%>-table/<%- adminModels[i].nameCp _%>EnhancedTable'));
+<%}-%>
 
 export default function TablesSwitch(props) {
   const { permissions } = props;
 
   return (
     
-    <Switch>
-
+    <Suspense fallback={<div>Loading...</div>}>
+      <Switch>
         {/* Models */}
 <%for( let i=0; i<models.length; i++ ){-%>
         <Route exact path="/main/model/<%- models[i].nameLc _%>" 
@@ -45,8 +44,8 @@ export default function TablesSwitch(props) {
 
         {/* Default */}
         <Route path="/main/" component={NotFoundSection} />
-
-    </Switch>
+      </Switch>
+    </Suspense>
   );
 }
 
