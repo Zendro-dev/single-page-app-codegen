@@ -2150,7 +2150,6 @@ const cancelableCountingPromisesB = useRef([]);
   };
 <%}-%>
   
-
   /*
    * Items handlers
    */
@@ -2163,8 +2162,20 @@ const cancelableCountingPromisesB = useRef([]);
     if(lidsToAdd.current.indexOf(item.<%- sortedAssociations[aindex].internalId _%>) === -1) {
       lidsToAdd.current.push(item.<%- sortedAssociations[aindex].internalId _%>);
       setThereAreItemsToAdd(true);
+      
+      //decrement count A
+      setCount(count-1);
+      //will count
+      cancelCountingPromises();
+      isCountingRef.current = false;
       //reload A
       reloadDataA();
+
+      //increment count B
+      if(countB > 0) setCountB(countB+1);
+      //will count
+      cancelCountingPromisesB();
+      isCountingRefB.current = false;
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
       //reset B
       resetReloadDataB();
@@ -2178,9 +2189,18 @@ const cancelableCountingPromisesB = useRef([]);
     }
 <%} else {-%>
     if(lidsToAdd.current.indexOf(item.<%- sortedAssociations[aindex].internalId _%>) === -1) {
+      let hasItem = (lidsToAdd.current&&lidsToAdd.current.length > 0);
       lidsToAdd.current = [];
       lidsToAdd.current.push(item.<%- sortedAssociations[aindex].internalId _%>);
       setThereAreItemsToAdd(true);
+
+      if(!hasItem) {
+        //decrement count A
+        setCount(count-1);
+        //will count
+        cancelCountingPromises();
+        isCountingRef.current = false;
+      }
       //reload A
       reloadDataA();
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
@@ -2204,6 +2224,12 @@ const cancelableCountingPromisesB = useRef([]);
       if(lidsToAdd.current.length === 0) {
         setThereAreItemsToAdd(false);
       }
+
+      //increment count A
+      setCount(count+1);
+      //will count
+      cancelCountingPromises();
+      isCountingRef.current = false;
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
       //reset A
       resetReloadDataA();
@@ -2213,14 +2239,29 @@ const cancelableCountingPromisesB = useRef([]);
       //reload A
       setDataTrigger(prevDataTrigger => !prevDataTrigger);
 <%}-%>
+
+      //decrement count B
+      if(countB > 0) setCountB(countB-1);
+      //will count
+      cancelCountingPromisesB();
+      isCountingRefB.current = false;
       //reload B
       reloadDataB();
       handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', item.<%- sortedAssociations[aindex].internalId _%>);
     }
 <%} else {-%>
     if(lidsToAdd.current.length > 0) {
+      let hasItem = (lidsToAdd.current&&lidsToAdd.current.length > 0);
       lidsToAdd.current = [];
       setThereAreItemsToAdd(false);
+
+      if(hasItem) {
+        //increment count A
+        setCount(count+1);
+        //will count
+        cancelCountingPromises();
+        isCountingRef.current = false;
+      }
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
       //reset A
       resetReloadDataA();
@@ -2398,7 +2439,7 @@ const cancelableCountingPromisesB = useRef([]);
               count={count}
               rowsPerPage={rowsPerPage}
               page={page}
-              labelRowsPerPage = { t('modelPanels.rowsPerPage') }
+              labelRowsPerPage = { t('modelPanels.rows') }
               labelDisplayedRows = {({ from, to }) => `${(count<0) ? '': from}${(count<0) ? '': '-'}${(count<0) ? '': to} ${(count<0) ? '': (isCounting) ? '' : t('modelPanels.of')} ${(count<0) ? '?': (isCounting) ? '' : count}`}
               onChangePage={handleChangePage}
               onChangeRowsPerPage={handleChangeRowsPerPage}
@@ -2659,7 +2700,7 @@ const cancelableCountingPromisesB = useRef([]);
               count={countB}
               rowsPerPage={rowsPerPageB}
               page={pageB}
-              labelRowsPerPage = { t('modelPanels.rowsPerPage') }
+              labelRowsPerPage = { t('modelPanels.rows') }
               labelDisplayedRows = {({ from, to }) => `${(countB<0) ? '': from}${(countB<0) ? '': '-'}${(countB<0) ? '': to} ${(countB<0) ? '': (isCountingB) ? '' : t('modelPanels.of')} ${(countB<0) ? '?': (isCountingB) ? '' : countB}`}
               onChangePage={handleChangePageB}
               onChangeRowsPerPage={handleChangeRowsPerPageB}

@@ -1388,7 +1388,7 @@ function resetReloadData() {
                 count={count}
                 rowsPerPage={rowsPerPage}
                 page={page}
-                labelRowsPerPage = { t('modelPanels.rowsPerPage') }
+                labelRowsPerPage = { t('modelPanels.rows') }
                 labelDisplayedRows = {({ from, to }) => `${(count<0) ? '': from}${(count<0) ? '': '-'}${(count<0) ? '': to} ${(count<0) ? '': (isCounting) ? '' : t('modelPanels.of')} ${(count<0) ? '?': (isCounting) ? '' : count}`}
                 onChangePage={handleChangePage}
                 onChangeRowsPerPage={handleChangeRowsPerPage}

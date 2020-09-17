@@ -825,7 +825,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     &&(changes.lastModelChanged['<%- name _%>'][Object.keys(changes.lastModelChanged['<%- name _%>'])[0]].op === "delete")
     ) {
       //decrement count
-      if(count > 0) setCount(count-1);
+      setCount(count-1);
       //count
       cancelCountingPromises();
       isCountingRef.current = false;
@@ -1047,7 +1047,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           },
         });
         //decrement count
-        if(count > 0) setCount(count-1);
+        setCount(count-1);
         //will count
         cancelCountingPromises();
         isCountingRef.current = false;
@@ -1955,7 +1955,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                       count={count}
                       rowsPerPage={rowsPerPage}
                       page={page}
-                      labelRowsPerPage = { t('modelPanels.rowsPerPage') }
+                      labelRowsPerPage = { t('modelPanels.rows') }
                       labelDisplayedRows = {({ from, to }) => `${(count<0) ? '': from}${(count<0) ? '': '-'}${(count<0) ? '': to} ${(count<0) ? '': (isCounting) ? '' : t('modelPanels.of')} ${(count<0) ? '?': (isCounting) ? '' : count}`}
                       onChangePage={handleChangePage}
                       onChangeRowsPerPage={handleChangeRowsPerPage}
