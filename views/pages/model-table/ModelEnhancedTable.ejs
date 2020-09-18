@@ -1955,7 +1955,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                       count={count}
                       rowsPerPage={rowsPerPage}
                       page={page}
-                      labelRowsPerPage = { t('modelPanels.rows') }
+                      labelRowsPerPage = { t('modelPanels.rows', 'Rows') }
                       labelDisplayedRows = {({ from, to }) => `${(count<0) ? '': from}${(count<0) ? '': '-'}${(count<0) ? '': to} ${(count<0) ? '': (isCounting) ? '' : t('modelPanels.of')} ${(count<0) ? '?': (isCounting) ? '' : count}`}
                       onChangePage={handleChangePage}
                       onChangeRowsPerPage={handleChangeRowsPerPage}
@@ -1965,7 +1965,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                       count={count}
                       rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
                       rowsPerPage={(count <=10) ? '' : rowsPerPage}
-                      labelRowsPerPage = { t('modelPanels.rows') }
+                      labelRowsPerPage = { t('modelPanels.rows', 'Rows') }
                       hasNextPage={hasNextPage}
                       hasPreviousPage={hasPreviousPage}
                       handleFirstPageButtonClick={handleFirstPageButtonClick}

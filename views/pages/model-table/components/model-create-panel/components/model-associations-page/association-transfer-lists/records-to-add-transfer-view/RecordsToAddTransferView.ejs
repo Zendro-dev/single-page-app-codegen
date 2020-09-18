@@ -174,7 +174,7 @@ const cancelableCountingPromises = useRef([]);
   const isForwardPaginationB = useRef(true);
   const isCursorPaginatingB = useRef(false);
 <%}-%>
-const cancelableCountingPromisesB = useRef([]);
+  const cancelableCountingPromisesB = useRef([]);
 <%}-%>
 
   const [thereAreItemsToAdd, setThereAreItemsToAdd] = useState((idsToAdd && Array.isArray(idsToAdd) && idsToAdd.length > 0));
@@ -268,6 +268,12 @@ const cancelableCountingPromisesB = useRef([]);
     *  showMessageC
 <%_if( isToMany ){-%>
     *  showMessageD
+<%}-%>
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+  *  configurePagination
+<%}-%>
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased' && isToMany) {-%>
+  *  configurePaginationB
 <%}-%>
     * clearRequestGetData
     * clearRequestGetDataB
@@ -1161,17 +1167,6 @@ const cancelableCountingPromisesB = useRef([]);
           return;
         }
 
-        //check: graphql errors
-        if(response.data.errors) {
-          let newError = {};
-          newError.message = '<%- queryName6 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-          newError.locations=[{model: '<%- name -%>', association: '<%- sortedAssociations[aindex].relationName _%>', table:'B', query: '<%- queryName6 %>', method: '<%- methodName6 %>', request: '<%- requestName6 %>'}];
-          newError.path=['add', '<%- sortedAssociations[aindex].relationName _%>'];
-          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-          errorsB.current.push(newError);
-          console.log("Error: ", newError);
-        }
-
         //ok
         setCountB(<%- queryName6 %>);
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
@@ -1193,8 +1188,8 @@ const cancelableCountingPromisesB = useRef([]);
 
           showMessageD(newError.message, withDetails);
         }
-  
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+
         /*
           Check: empty page
         */
@@ -1212,11 +1207,12 @@ const cancelableCountingPromisesB = useRef([]);
        if((pageRefB.current * rowsPerPageRefB.current) > <%- queryName6 %>) {
         isOnApiRequestRefB.current = false;
         setIsOnApiRequestB(false);
-        setPage(Math.floor(<%- queryName6 %> / rowsPerPageRefB.current));
+        setPageB(Math.floor(<%- queryName6 %> / rowsPerPageRefB.current));
         return;
       }
-
 <%}-%>
+
+      return;
     },
     //rejected
     (err) => {
@@ -1275,7 +1271,7 @@ const cancelableCountingPromisesB = useRef([]);
 
     //set ops: only ids
     let ops = null;
-    if(lidsToAdd.current !== undefined && lidsToAdd.current.length > 0) {
+    if(lidsToAdd.current && lidsToAdd.current.length > 0) {
       ops = {
         only: [{
           type: '<%- sortedAssociations[aindex].internalIdType _%>',
@@ -1481,11 +1477,9 @@ const cancelableCountingPromisesB = useRef([]);
 <%_if( isToMany ){-%>
 <%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
         isCursorPaginatingB.current = false;
-        isForwardPaginationB.current = false;
 <%}-%>
 <%}-%>
         setIsOnApiRequestB(false);
-
         return;
 
       },
@@ -1649,15 +1643,21 @@ const cancelableCountingPromisesB = useRef([]);
             }
             handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', idRemoved);
 
+            //decrement A
+            if(iofA !== -1) {
+              setCount(count-1);
+            }
             //will count A
             cancelCountingPromises();
             isCountingRef.current = false;
-            setCount(-1);
 <%_if( isToMany ){-%>
+            //decrement B
+            if(iofB !== -1) {
+              setCountB(countB-1);
+            }
             //will count B
             cancelCountingPromisesB();
             isCountingRefB.current = false;
-            setCountB(-1);
 <%}-%>
 
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
@@ -1703,7 +1703,7 @@ const cancelableCountingPromisesB = useRef([]);
         }
       });
     }//end: Case 1
-  }, [lastModelChanged, lastChangeTimestamp, items, itemsB, handleUntransfer, getCount<%_if( isToMany ){-%>, getCountB<%}-%><%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>, configurePagination<%}-%><%if(sortedAssociations[aindex].paginationType === 'cursorBased' && isToMany) {-%>, configurePaginationB<%}-%>]);
+  }, [lastModelChanged, lastChangeTimestamp, items, itemsB, handleUntransfer, getCount, count<%_if( isToMany ){-%>, getCountB, countB<%}-%><%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>, configurePagination<%}-%><%if(sortedAssociations[aindex].paginationType === 'cursorBased' && isToMany) {-%>, configurePaginationB<%}-%>]);
   
   useEffect(() => {
     //return if this flag is set
@@ -1995,6 +1995,7 @@ const cancelableCountingPromisesB = useRef([]);
     //reload A
     setDataTrigger(prevDataTrigger => !prevDataTrigger);
   };
+
 <%_if( isToMany ){-%>
   const handleFirstPageButtonClickB = (event) => {
     //strict contention
@@ -2165,7 +2166,7 @@ const cancelableCountingPromisesB = useRef([]);
       
       //decrement count A
       setCount(count-1);
-      //will count
+      //will count A
       cancelCountingPromises();
       isCountingRef.current = false;
       //reload A
@@ -2173,7 +2174,7 @@ const cancelableCountingPromisesB = useRef([]);
 
       //increment count B
       if(countB > 0) setCountB(countB+1);
-      //will count
+      //will count B
       cancelCountingPromisesB();
       isCountingRefB.current = false;
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
@@ -2197,7 +2198,7 @@ const cancelableCountingPromisesB = useRef([]);
       if(!hasItem) {
         //decrement count A
         setCount(count-1);
-        //will count
+        //will count A
         cancelCountingPromises();
         isCountingRef.current = false;
       }
@@ -2227,7 +2228,7 @@ const cancelableCountingPromisesB = useRef([]);
 
       //increment count A
       setCount(count+1);
-      //will count
+      //will count A
       cancelCountingPromises();
       isCountingRef.current = false;
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
@@ -2242,7 +2243,7 @@ const cancelableCountingPromisesB = useRef([]);
 
       //decrement count B
       if(countB > 0) setCountB(countB-1);
-      //will count
+      //will count B
       cancelCountingPromisesB();
       isCountingRefB.current = false;
       //reload B
@@ -2258,7 +2259,7 @@ const cancelableCountingPromisesB = useRef([]);
       if(hasItem) {
         //increment count A
         setCount(count+1);
-        //will count
+        //will count A
         cancelCountingPromises();
         isCountingRef.current = false;
       }
@@ -2439,7 +2440,7 @@ const cancelableCountingPromisesB = useRef([]);
               count={count}
               rowsPerPage={rowsPerPage}
               page={page}
-              labelRowsPerPage = { t('modelPanels.rows') }
+              labelRowsPerPage = { t('modelPanels.rows', 'Rows') }
               labelDisplayedRows = {({ from, to }) => `${(count<0) ? '': from}${(count<0) ? '': '-'}${(count<0) ? '': to} ${(count<0) ? '': (isCounting) ? '' : t('modelPanels.of')} ${(count<0) ? '?': (isCounting) ? '' : count}`}
               onChangePage={handleChangePage}
               onChangeRowsPerPage={handleChangeRowsPerPage}
@@ -2449,7 +2450,7 @@ const cancelableCountingPromisesB = useRef([]);
               count={count}
               rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
               rowsPerPage={(count <=10) ? '' : rowsPerPage}
-              labelRowsPerPage = { t('modelPanels.rows') }
+              labelRowsPerPage = { t('modelPanels.rows', 'Rows') }
               hasNextPage={hasNextPage}
               hasPreviousPage={hasPreviousPage}
               handleFirstPageButtonClick={handleFirstPageButtonClick}
@@ -2700,7 +2701,7 @@ const cancelableCountingPromisesB = useRef([]);
               count={countB}
               rowsPerPage={rowsPerPageB}
               page={pageB}
-              labelRowsPerPage = { t('modelPanels.rows') }
+              labelRowsPerPage = { t('modelPanels.rows', 'Rows') }
               labelDisplayedRows = {({ from, to }) => `${(countB<0) ? '': from}${(countB<0) ? '': '-'}${(countB<0) ? '': to} ${(countB<0) ? '': (isCountingB) ? '' : t('modelPanels.of')} ${(countB<0) ? '?': (isCountingB) ? '' : countB}`}
               onChangePage={handleChangePageB}
               onChangeRowsPerPage={handleChangeRowsPerPageB}
@@ -2710,7 +2711,7 @@ const cancelableCountingPromisesB = useRef([]);
               count={countB}
               rowsPerPageOptions={(countB <=10) ? [] : (countB <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
               rowsPerPage={(countB <=10) ? '' : rowsPerPageB}
-              labelRowsPerPage = { t('modelPanels.rows') }
+              labelRowsPerPage = { t('modelPanels.rows', 'Rows') }
               hasNextPage={hasNextPageB}
               hasPreviousPage={hasPreviousPageB}
               handleFirstPageButtonClick={handleFirstPageButtonClickB}

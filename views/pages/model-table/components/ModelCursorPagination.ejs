@@ -85,7 +85,7 @@ export default function <%- nameOnPascal -%>CursorPagination(props) {
                   </Grow>
 
                   {/* Count */}
-                  <Grow in={count !== -1}>
+                  <Grow in={count > -1}>
                     <Grid item>
                       <div>
                         <InputLabel shrink>{ t('modelPanels.count', "Count") }</InputLabel>

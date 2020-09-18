@@ -85,7 +85,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                 </Grow>
 
                 {/* Count */}
-                <Grow in={count !== -1}>
+                <Grow in={count > -1}>
                   <Grid item>
                     <div className={classes.formControl}>
                       <InputLabel shrink>{ t('modelPanels.count', "Count") }</InputLabel>
