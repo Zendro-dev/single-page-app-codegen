@@ -779,11 +779,11 @@ export default {
    * @param {String} url GraphQL Server url
    * @param {Number} itemId Model item internalId.
    */
-  getAssociated<%- sortedAssociations[i].relationNameCp %>(url, itemId) {
+  getAssociated<%- sortedAssociations[i].relationNameCp _%>(url, itemId) {
 <%_if( sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many' ){-%>
     var query =
-      `{ readOne<%- nameCp %>( <%- internalId _%>: <%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%> ){
-        <%- sortedAssociations[i].relationNameLc _%>Filter{ <%- sortedAssociations[i].internalId -%> } } }`;
+    `{ readOne<%- nameCp %>( <%- internalId _%>: <%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%> ){
+      <%- sortedAssociations[i].relationNameLc _%>Filter{ <%- sortedAssociations[i].internalId -%> } } }`;
 <%} else {-%>
     var query =
     `{ readOne<%- nameCp %>( <%- internalId _%>: <%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%> ){
@@ -808,7 +808,7 @@ export default {
    * @param {String} url GraphQL Server url
    * @param {Number} itemId Model item internalId.
    */
-  getAssociated<%- sortedAssociations[i].relationNameCp %>Connection(url, itemId) {
+  getAssociated<%- sortedAssociations[i].relationNameCp _%>Connection(url, itemId) {
 <%_if( sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many' ){-%>
     var query =
       `{ readOne<%- nameCp %>( <%- internalId _%>: <%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%> ){
@@ -826,6 +826,104 @@ export default {
     return requestGraphql({ url, query });
   },
 <%}-%>
+
+<%
+  /**
+   * Filters: 
+   *   - not associated items count.
+   * 
+   */
+-%>
+ /**
+   * getCountItemsNotAssociated
+   *
+   * Get count of not associated items from GraphQL Server.
+   *
+   * @param {String} url GraphQL Server url
+   * @param {String} searchText Text string currently on search bar.
+   * @param {String} itemId Model item internalId.
+   * @param {String} ops Object with adittional query options.
+   */
+  async function getNotAssociated<%- sortedAssociations[i].relationNamePlCp %>Count(url, searchText, itemId, ops) {
+    let query = '';
+    //get ands search filters
+    let ands = getSearchArgument('<%- nameLc _%>', searchText, ops, true);
+
+<%
+  /**
+   * to_one
+   * generic_to_one
+   */
+-%>
+<%_if( sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one' ){-%>
+    //get associated item
+<%if(sortedAssociations[i].paginationType === 'limitOffset') {-%>
+    let associatedItem = await getAssociated<%- sortedAssociations[i].relationNameCp _%>(url, itemId);
+
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+    let associatedItem = await getAssociated<%- sortedAssociations[i].relationNameCp _%>Connection(url, itemId);  
+<%}-%>
+
+    /**
+     * Case: has associated item
+     */
+    if(associatedItem) {
+      //make filter to exclude associated item & include null's
+
+      /**
+       * toDo: replace internalId by FK.
+       */
+      let f1 = `{field: <%- sortedAssociations[i].internalId _%>, valueType: <%- sortedAssociations[i].internalIdType _%>, value: "${itemId}", operator: ne}`;
+      let f2 = `{field: <%- sortedAssociations[i].internalId _%>, valueType: <%- sortedAssociations[i].internalIdType _%>, value: null, operator: eq}`;
+      let nf = `{operator: or, search: [ ${f1}, ${f2} ]}`;
+
+      //add new filter to ands
+      ands += nf;
+
+      //make search
+      let s = `search: {operator:and, search: [ ${ands} ]}`;
+      //set query
+      query = `{ count<%- sortedAssociations[i].relationNamePlCp _%>(${s}) }`;
+      
+    } else {
+      /**
+       * Case: has not associated item
+       */
+      if(ands !== '') {
+        let s = `search: {operator:and, search: [ ${ands} ]}`;
+        query = `{ count<%- sortedAssociations[i].relationNamePlCp _%>(${s}) }`;
+      }
+      else {
+        query = `{ count<%- sortedAssociations[i].relationNamePlCp _%> }`;
+      }
+    }
+<%}-%>
+<%
+  /**
+   * to_many
+   * generic_to_many
+   */
+-%>
+<%_if( sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'generic_to_many' ){-%>
+
+<%}-%>
+<%
+  /**
+   * to_many_through_sql_cross_table
+   */
+-%>
+<%_if( sortedAssociations[i].type === 'to_many_through_sql_cross_table' ){-%>
+
+<%}-%>
+
+    /**
+     * Debug
+     */
+    console.log("getCountItems.query: gql:\n", query);
+
+    return requestGraphql({ url, query });
+  },
+
 <%}-%>
 
 /**
@@ -861,7 +959,7 @@ export default {
 /**
  * Utils
  */
-function getSearchArgument(filterName, searchText, ops) {
+function getSearchArgument(filterName, searchText, ops, justAnds) {
 
   var filterAttributes = getAttributes(filterName);
   var modelAttributes = Object.keys(filterAttributes);
@@ -1202,7 +1300,7 @@ function getSearchArgument(filterName, searchText, ops) {
     }//end: if has 'ops'
   }//end: if !searchText
 
-  return andSearch;
+  return justAnds ? ands : andSearch;
 }
 
 function getIsoDate(text) {

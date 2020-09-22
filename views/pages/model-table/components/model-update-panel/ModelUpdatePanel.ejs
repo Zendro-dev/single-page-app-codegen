@@ -108,15 +108,11 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
   const changedAssociations = useRef({});
   
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
-<%if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one'){-%>
-  const <%- sortedAssociations[i].relationNameLc _%>IdsToAdd = useRef((item.<%- sortedAssociations[i].relationName _%> && item.<%- sortedAssociations[i].relationName _%>.<%- sortedAssociations[i].internalId _%>) ? [item.<%- sortedAssociations[i].relationName _%>.<%- sortedAssociations[i].internalId _%>] : []);
-  const [<%- sortedAssociations[i].relationNameLc _%>IdsToAddState, set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState] = useState((item.<%- sortedAssociations[i].relationName _%> && item.<%- sortedAssociations[i].relationName _%>.<%- sortedAssociations[i].internalId _%>) ? [item.<%- sortedAssociations[i].relationName _%>.<%- sortedAssociations[i].internalId _%>] : []);
-<%} else {-%>
   const [<%- sortedAssociations[i].relationNameLc _%>IdsToAddState, set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState] = useState([]);
   const <%- sortedAssociations[i].relationNameLc _%>IdsToAdd = useRef([]);
   const [<%- sortedAssociations[i].relationNameLc _%>IdsToRemoveState, set<%- sortedAssociations[i].relationNameCp _%>IdsToRemoveState] = useState([]);
   const <%- sortedAssociations[i].relationNameLc _%>IdsToRemove = useRef([]);
-<%}}-%>
+<%}-%>
 
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
   const [<%- sortedAssociatedModels[i].targetModelLc _%>DetailDialogOpen, set<%- sortedAssociatedModels[i].targetModelCp _%>DetailDialogOpen] = useState(false);
@@ -378,70 +374,73 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
 
 <%for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one') {
-    /*
-     * Following lines apply only to to_one associations
-     */
 -%>
-  function setAddRemove<%- sortedAssociations[i].relationNameCp %>(variables) {
+  function setAddRemoveOne<%- sortedAssociations[i].relationNameCp %>(variables) {
     //data to notify changes
     if(!changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>) changedAssociations.current.<%- sortedAssociations[i].keyRelationName %> = {};
     
-    /*
-     * Case I: Currently, this record is associated.
+    /**
+     * Case: The toAdd list isn't empty.
      */
-    if(item.<%- sortedAssociations[i].relationName %>&&item.<%- sortedAssociations[i].relationName _%>.<%- sortedAssociations[i].internalId _%>) {
-      /*
-       * Case I.a: The toAdd list isn't empty.
-       */      
-      if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.length>0) {
-        /*
-         * Case I.a.1: There is a new ID (current association changed).
-         */
-        if(item.<%- sortedAssociations[i].relationName %>.<%- sortedAssociations[i].internalId _%> !== <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current[0]) {
-          //set id to add
-          variables.add<%- sortedAssociations[i].relationNameCp %> = <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current[0];
-          
-          changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.added = true;
-          changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.idsAdded = [<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current[0]];
-          changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.removed = true;
-          changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.idsRemoved = [item.<%- sortedAssociations[i].relationName %>.<%- sortedAssociations[i].internalId _%>];
-        } else {
-          /*
-           * Case I.a.2: The ID on toAdd list es equal to the current associated ID.
-           */
-          //do nothing here (nothing changes).
-        }
+    if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.length>0) {
+      //set id to add
+      variables.add<%- sortedAssociations[i].relationNameCp %> = <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current[0];      
+      //changes to nofity
+      changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.added = true;
+      changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.idsAdded = [<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current[0]];
+    }
+    /**
+     * Case: The toRemove list isn't empty.
+     */
+    if(<%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current.length>0) {
+      //set id to remove
+      variables.remove<%- sortedAssociations[i].relationNameCp %> = <%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current[0];
+      //changes to nofity
+      changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.removed = true;
+      changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.idsRemoved = [<%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current[0]];
+    }
+
+    return;
+  }
+<%}}-%>
+
+<%for( let i=0; i<sortedAssociations.length; i++ ){
+  if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many') {
+-%>
+  function setAddRemoveMany<%- sortedAssociations[i].relationNameCp %>(variables) {
+    //data to notify changes
+    if(!changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>) changedAssociations.current.<%- sortedAssociations[i].keyRelationName %> = {};
+
+    /**
+     * Case: The toAdd list isn't empty.
+     */
+    if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.length>0) {
+      //set ids to add
+      variables.add<%- sortedAssociations[i].relationNameCp %> = [ ...<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current];
+      //changes to nofity
+      changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.added = true;
+      if(changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.idsAdded){
+        <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.forEach((it) => {if(!changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.idsAdded.includes(it)) changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.idsAdded.push(it);});
       } else {
-        /*
-         * Case I.b: The toAdd list is empty (current association removed).
-         */
-        //set id to remove
-        variables.remove<%- sortedAssociations[i].relationNameCp %> = item.<%- sortedAssociations[i].relationName %>.<%- sortedAssociations[i].internalId _%>;
-        
-        changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.removed = true;
-        changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.idsRemoved = [item.<%- sortedAssociations[i].relationName %>.<%- sortedAssociations[i].internalId _%>];
-      }
-    } else { //currently not to-one-associated
-      /*
-       * Case II: Currently, this record is not associated.
-       */
-      
-      /*
-       * Case II.a: The toAdd list isn't empty (has new id to add).
-       */
-      if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.length>0) {
-        //set id to add
-        variables.add<%- sortedAssociations[i].relationNameCp %> = <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current[0];
-        
-        changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.added = true;
-        changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.idsAdded = [<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current[0]];
-      } else {
-        /*
-         * Case II.b: The toAdd list is empty.
-         */
-        //do nothing here (nothing changes).
+        changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.idsAdded = [...<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current];
       }
     }
+    /**
+     * Case: The toRemove list isn't empty.
+     */
+    if(<%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current.length>0) {
+      //set ids to remove
+      variables.remove<%- sortedAssociations[i].relationNameCp %> = [ ...<%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current];
+      //changes to nofity
+      changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.removed = true;
+      if(changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.idsRemoved){
+        <%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current.forEach((it) => {if(!changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.idsRemoved.includes(it)) changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.idsRemoved.push(it);});
+      } else {
+        changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.idsRemoved = [...<%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current];
+      }
+    }
+    
+    return;
   }
 <%}}-%>
 
@@ -545,36 +544,14 @@ function setAjvErrors(err) {
 <%for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one') {
 -%>
-    setAddRemove<%- sortedAssociations[i].relationNameCp %>(variables);
+    setAddRemoveOne<%- sortedAssociations[i].relationNameCp %>(variables);
 <%}}-%>
 
     //add & remove: to_many's
 <%for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many') {
 -%>
-    //data to notify changes
-    if(!changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>) changedAssociations.current.<%- sortedAssociations[i].keyRelationName %> = {};
-
-    if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.length>0) {
-      variables.add<%- sortedAssociations[i].relationNameCp %> = [ ...<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current];
-      
-      changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.added = true;
-      if(changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.idsAdded){
-        <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.forEach((it) => {if(!changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.idsAdded.includes(it)) changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.idsAdded.push(it);});
-      } else {
-        changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.idsAdded = [...<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current];
-      }
-    }
-    if(<%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current.length>0) {
-      variables.remove<%- sortedAssociations[i].relationNameCp %> = [ ...<%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current];
-      
-      changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.removed = true;
-      if(changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.idsRemoved){
-        <%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current.forEach((it) => {if(!changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.idsRemoved.includes(it)) changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.idsRemoved.push(it);});
-      } else {
-        changedAssociations.current.<%- sortedAssociations[i].keyRelationName %>.idsRemoved = [...<%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current];
-      }
-    }
+    setAddRemoveMany<%- sortedAssociations[i].relationNameCp %>(variables);
 <%}}-%>
 
     /*
@@ -821,25 +798,17 @@ function setAjvErrors(err) {
     switch(associationKey) {
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
       case '<%- sortedAssociations[i].relationName _%>':
-<%if(sortedAssociations[i].sqlType === 'belongsTo'){-%>
+<%if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one') {-%>
         <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
         <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.push(itemId);
-        set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current);
+        set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState([itemId]);
 <%if(hasOwnForeingKeys && sortedAssociations[i].foreignKey){-%>
         handleSetValue(itemId, -2, '<%- sortedAssociations[i].foreignKey _%>');
         setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: itemId});
 <%}-%>
-<%} else if((sortedAssociations[i].sqlType === 'hasOne')){-%>
-        <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
+<%} else if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many') {-%>
         <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.push(itemId);
-        set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current);
-<%if(hasOwnForeingKeys && sortedAssociations[i].foreignKey){-%>
-        handleSetValue(itemId, -2, '<%- sortedAssociations[i].foreignKey _%>');
-        setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: itemId});
-<%}-%>
-<%} else {-%>
-        <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.push(itemId);
-        set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current);
+        set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState([...<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current]);
 <%}-%>
         break;
 <%}-%>
@@ -852,26 +821,19 @@ function setAjvErrors(err) {
   const handleUntransferFromAdd =(associationKey, itemId) => {
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
     if(associationKey === '<%- sortedAssociations[i].relationName _%>') {
-<%if(sortedAssociations[i].sqlType === 'belongsTo'){-%>
+<%if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one') {-%>
       <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
       set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState([]);
 <%if(hasOwnForeingKeys && sortedAssociations[i].foreignKey){-%>
       handleSetValue(null, -2, '<%- sortedAssociations[i].foreignKey _%>');
       setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: null});
 <%}-%>
-<%} else if((sortedAssociations[i].sqlType === 'hasOne')){-%>
-      <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
-      set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState([]);
-<%if(hasOwnForeingKeys && sortedAssociations[i].foreignKey){-%>
-      handleSetValue(null, -2, '<%- sortedAssociations[i].foreignKey _%>');
-      setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: null});
-<%}-%>
-<%} else {-%>
+<%} else if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many') {-%>
       for(let i=0; i<<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.length; ++i)
       {
         if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current[i] === itemId) {
           <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.splice(i, 1);
-          set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current);
+          set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState([...<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current]);
           return;
         }
       }
@@ -881,17 +843,24 @@ function setAjvErrors(err) {
 <%}-%>
   }
 
-<%if(hasToManyAssociations) {-%>
   const handleTransferToRemove = (associationKey, itemId) => {
     switch(associationKey) {
-<%for( let i=0; i<sortedAssociations.length; i++ ){
-  if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many') {
--%>
-      case '<%- sortedAssociations[i].relationName _%>':
+<%for( let i=0; i<sortedAssociations.length; i++ ){-%>
+        case '<%- sortedAssociations[i].relationName _%>':
+<%if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one') {-%>
+          <%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current = [];
+          <%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current.push(itemId);
+          set<%- sortedAssociations[i].relationNameCp _%>IdsToRemoveState([itemId]);
+<%if(hasOwnForeingKeys && sortedAssociations[i].foreignKey){-%>
+          handleSetValue(null, -2, '<%- sortedAssociations[i].foreignKey _%>');
+          setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: null});
+<%}-%>
+<%} else if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many') {-%>  
         <%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current.push(itemId);
-        set<%- sortedAssociations[i].relationNameCp _%>IdsToRemoveState(<%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current);
+        set<%- sortedAssociations[i].relationNameCp _%>IdsToRemoveState([...<%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current]);
+<%}-%>
         break;
-<%}}-%>
+<%}-%>
 
       default:
         break;
@@ -899,15 +868,21 @@ function setAjvErrors(err) {
   }
 
   const handleUntransferFromRemove =(associationKey, itemId) => {
-<%for( let i=0; i<sortedAssociations.length; i++ ){
-  if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many') {
--%>
+<%for( let i=0; i<sortedAssociations.length; i++ ){-%>
     if(associationKey === '<%- sortedAssociations[i].relationName _%>') {
+<%if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one') {-%>
+      <%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current = [];
+      set<%- sortedAssociations[i].relationNameCp _%>IdsToRemoveState([]);
+<%if(hasOwnForeingKeys && sortedAssociations[i].foreignKey){-%>
+      handleSetValue(itemId, -2, '<%- sortedAssociations[i].foreignKey _%>');
+      setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: itemId});
+<%}-%>
+<%} else if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many') {-%>
       for(let i=0; i<<%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current.length; ++i)
       {
         if(<%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current[i] === itemId) {
           <%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current.splice(i, 1);
-          set<%- sortedAssociations[i].relationNameCp _%>IdsToRemoveState(<%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current);
+          set<%- sortedAssociations[i].relationNameCp _%>IdsToRemoveState([...<%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current]);
           return;
         }
       }
@@ -915,7 +890,6 @@ function setAjvErrors(err) {
     }//end: case '<%- sortedAssociations[i].relationName _%>'
 <%}}-%>
   }
-<%}-%>
 
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
   const handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row = (event, item) => {
@@ -1091,15 +1065,11 @@ function setAjvErrors(err) {
                 item={item}
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
                 <%- sortedAssociations[i].relationNameLc _%>IdsToAdd={<%- sortedAssociations[i].relationNameLc _%>IdsToAddState}
-<%if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many'){-%>
                 <%- sortedAssociations[i].relationNameLc _%>IdsToRemove={<%- sortedAssociations[i].relationNameLc _%>IdsToRemoveState}
-<%}}-%>
                 handleTransferToAdd={handleTransferToAdd}
                 handleUntransferFromAdd={handleUntransferFromAdd}
-<%if(hasToManyAssociations) {-%>
                 handleTransferToRemove={handleTransferToRemove}
                 handleUntransferFromRemove={handleUntransferFromRemove}
-<%}-%>
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
                 handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row}
 <%}-%>

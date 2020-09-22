@@ -2,6 +2,7 @@
 /**
  * variables
  */
+let isToOne = ( sortedAssociations[aindex].type === 'to_one' || sortedAssociations[aindex].type === 'generic_to_one' );
 let isToMany = ( sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many' );
 -%>
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -270,13 +271,13 @@ const cancelableCountingPromises = useRef([]);
     *  showMessageD
 <%}-%>
 <%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
-  *  configurePagination
+    *  configurePagination
 <%}-%>
 <%if(sortedAssociations[aindex].paginationType === 'cursorBased' && isToMany) {-%>
-  *  configurePaginationB
+    *  configurePaginationB
 <%}-%>
-    * clearRequestGetData
-    * clearRequestGetDataB
+    *  clearRequestGetData
+    *  clearRequestGetDataB
     *  getCount
 <%_if( isToMany ){-%>
     *  getCountB
@@ -1510,6 +1511,9 @@ const cancelableCountingPromises = useRef([]);
       });
   }, [graphqlServerUrl, showMessageB, clearRequestGetDataB, t, dataTriggerB, searchB<%if( isToMany ) {-%>, getCountB<%}-%><%if(sortedAssociations[aindex].paginationType === 'cursorBased' && isToMany) {-%>, configurePaginationB<%}-%>]);
 
+  /**
+   * Effects
+   */
   useEffect(() => {
 
     //cleanup on unmounted.
@@ -1628,36 +1632,46 @@ const cancelableCountingPromises = useRef([]);
         if(entry[1].op === "delete") {
           let idRemoved = entry[1].item.<%- sortedAssociations[aindex].internalId _%>;
 
-          //lookup item on any tables
+          //lookup item on table A
           let iofA = items.findIndex((item) => item.<%- sortedAssociations[aindex].internalId _%>===idRemoved);
-          let iofB = itemsB.findIndex((item) => item.<%- sortedAssociations[aindex].internalId _%>===idRemoved);
-          if(iofA !== -1 || iofB !== -1) {
-            
-            //remove deleted item from lidsToAdd
-            let iofD = lidsToAdd.current.indexOf(idRemoved);
-            if(iofD !== -1) {
-              lidsToAdd.current.splice(iofD, 1);
-              if(lidsToAdd.current.length === 0) {
-                setThereAreItemsToAdd(false);
-              }
-            }
-            handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', idRemoved);
-
+          if(iofA !== -1) {
             //decrement A
-            if(iofA !== -1) {
-              setCount(count-1);
-            }
-            //will count A
-            cancelCountingPromises();
-            isCountingRef.current = false;
+            setCount(count-1);
+          }
+
 <%_if( isToMany ){-%>
+          //lookup item on table B
+          let iofB = itemsB.findIndex((item) => item.<%- sortedAssociations[aindex].internalId _%>===idRemoved);
+          if(iofB !== -1) {
             //decrement B
-            if(iofB !== -1) {
+            setCountB(countB-1);
+          }
+<%}-%>
+
+          //lookup item on ids to add
+          let iofD = lidsToAdd.current.indexOf(idRemoved);
+          //remove deleted item from lidsToAdd
+          if(iofD !== -1) {
+            lidsToAdd.current.splice(iofD, 1);
+            if(lidsToAdd.current.length === 0) {
+              setThereAreItemsToAdd(false);
+            }
+<%_if( isToMany ){-%>
+            if(iofB === -1) {
+              //decrement B
               setCountB(countB-1);
             }
-            //will count B
-            cancelCountingPromisesB();
-            isCountingRefB.current = false;
+<%}-%>
+          }
+          handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', idRemoved);
+
+          //will count A
+          cancelCountingPromises();
+          isCountingRef.current = false;
+<%_if( isToMany ){-%>
+          //will count B
+          cancelCountingPromisesB();
+          isCountingRefB.current = false;
 <%}-%>
 
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
@@ -1672,34 +1686,33 @@ const cancelableCountingPromises = useRef([]);
             else { isPendingApiRequestRefB.current = true; }
 <%}-%> 
 <%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
-            //strict contention
-            if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
-              //configure A
-              configurePagination('reload');
-              //reload A
-              setDataTrigger(prevDataTrigger => !prevDataTrigger);
-            } else {
-              getCount();
-            }
-            //strict contention
-<%_if( isToMany ){-%>
-            if (!isOnApiRequestRefB.current && !isCursorPaginatingB.current) {
-              //configure B
-              configurePaginationB('reload');
-              //reload B
-              setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-            } else {
-              getCountB();
-            }
-<%} else {-%>
-            if (!isOnApiRequestRefB.current) {
-              //reload B
-              setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-            }
-<%}-%>
-<%}-%>
-            return;
+          //strict contention
+          if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
+            //configure A
+            configurePagination('reload');
+            //reload A
+            setDataTrigger(prevDataTrigger => !prevDataTrigger);
+          } else {
+            getCount();
           }
+          //strict contention
+<%_if( isToMany ){-%>
+          if (!isOnApiRequestRefB.current && !isCursorPaginatingB.current) {
+            //configure B
+            configurePaginationB('reload');
+            //reload B
+            setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+          } else {
+            getCountB();
+          }
+<%} else {-%>
+          if (!isOnApiRequestRefB.current) {
+            //reload B
+            setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+          }
+<%}-%>
+<%}-%>
+          return;
         }
       });
     }//end: Case 1
@@ -1965,6 +1978,7 @@ const cancelableCountingPromises = useRef([]);
       cancelCountingPromisesB();
       isCountingRefB.current = false;
 <%}-%>
+
       setSearchB(text);
     }
   };
@@ -2141,12 +2155,12 @@ const cancelableCountingPromises = useRef([]);
     //configure pagination
     configurePaginationB('reset');
     //reload
-    setDataTriggerB(prevDataTrigger => !prevDataTrigger);
+    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
 <%} else {-%>
     //check strict contention
     if(isOnApiRequestRefB.current) { return; }
     //reload
-    setDataTriggerB(prevDataTrigger => !prevDataTrigger);
+    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
 <%}-%>
   };
 <%}-%>
@@ -2525,10 +2539,10 @@ const cancelableCountingPromises = useRef([]);
 
             {/* Toolbar */}
             <<%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferViewToolbar 
-              title={'<%- (sortedAssociations[aindex].type === 'to_one' || sortedAssociations[aindex].type === 'generic_to_one') ? sortedAssociations[aindex].targetModelCp : sortedAssociations[aindex].targetModelPlCp %>'}
+              title={'<%- (isToOne) ? sortedAssociations[aindex].targetModelCp : sortedAssociations[aindex].targetModelPlCp %>'}
               titleIcon={2}
               search={searchB}
-<%if(sortedAssociations[aindex].type === 'to_one' || sortedAssociations[aindex].type === 'generic_to_one') {-%>
+<%if(isToOne) {-%>
               searchDisabled={true}
 <%}-%>
               onSearchEnter={handleSearchEnterB}

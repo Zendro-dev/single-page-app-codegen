@@ -1573,7 +1573,8 @@ let requestName1 = sortedAssociations[aindex].paginationType === 'limitOffset' ?
     /*
      * Case 1: 
      * The relation '<%- sortedAssociations[aindex].relationName _%>' for this item was updated.
-     * That is to say that the current item was associated or dis-associated with some '<%- sortedAssociations[aindex].targetModelPlLc _%>' (from another place).
+     * That is to say that the current item was associated or dis-associated with some '<%- sortedAssociations[aindex].targetModelPlLc _%>' 
+     * (from another place).
      * 
      * Actions:
      * - remove any dis-associated internalId from idsToRemove[]
@@ -1587,7 +1588,7 @@ let requestName1 = sortedAssociations[aindex].paginationType === 'limitOffset' ?
         (lastModelChanged.<%- name _%>[String(item.<%- internalId _%>)].changedAssociations.<%- sortedAssociations[aindex].keyRelationName _%>.added ||
          lastModelChanged.<%- name _%>[String(item.<%- internalId _%>)].changedAssociations.<%- sortedAssociations[aindex].keyRelationName _%>.removed)) {
           
-          //remove any dis-associated id from idsToRemove[]
+          //remove any dis-associated id from idsToRemove[] & update counts
           let idsRemoved = lastModelChanged.<%- name _%>[String(item.<%- internalId _%>)].changedAssociations.<%- sortedAssociations[aindex].keyRelationName _%>.idsRemoved;
           if(idsRemoved) {
             idsRemoved.forEach( (idRemoved) => {
@@ -1602,7 +1603,17 @@ let requestName1 = sortedAssociations[aindex].paginationType === 'limitOffset' ?
                 setCountB(countB-1);
               }
               handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', idRemoved);
+
+              //decrement A
+              setCount(count-1);
             });
+          }
+
+          //update count for each associated internalId
+          let idsAdded = lastModelChanged.<%- name _%>[String(item.<%- internalId _%>)].changedAssociations.<%- sortedAssociations[aindex].keyRelationName _%>.idsAdded;
+          if(idsAdded) {
+            //increment A
+            setCount(count+idsAdded.length);
           }
 
           //will count A
@@ -1733,8 +1744,8 @@ let requestName1 = sortedAssociations[aindex].paginationType === 'limitOffset' ?
                 let iof = idsAdded.indexOf(item.<%- internalId _%>);
                 if(iof !== -1) {
 
-                  //increment B
-                  setCountB(countB+1);
+                  //increment A
+                  setCount(count+1);
 
                   //will count A
                   cancelCountingPromises();
@@ -1837,66 +1848,74 @@ let requestName1 = sortedAssociations[aindex].paginationType === 'limitOffset' ?
         if(entry[1].op === "delete") {
           let idRemoved = entry[1].item.<%- sortedAssociations[aindex].internalId _%>;
 
-          //lookup item on any tables
+          //lookup item on table A
           let iofA = items.findIndex((item) => item.<%- sortedAssociations[aindex].internalId _%>===idRemoved);
-          let iofB = itemsB.findIndex((item) => item.<%- sortedAssociations[aindex].internalId _%>===idRemoved);
-          if(iofA !== -1 || iofB !== -1) {
-            
-            //remove deleted item from lidsToRemove
-            let iofD = lidsToRemove.current.indexOf(idRemoved);
-            if(iofD !== -1) {
-              lidsToRemove.current.splice(iofD, 1);
-              if(lidsToRemove.current.length === 0) {
-                setThereAreItemsToAdd(false);
-              }
-            }
-            handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', idRemoved);
+          if(iofA !== -1) {
+            //decrement A
+            setCount(count-1);
+          }
 
+          //lookup item on table B
+          let iofB = itemsB.findIndex((item) => item.<%- sortedAssociations[aindex].internalId _%>===idRemoved);
+          if(iofB !== -1) {
             //decrement B
-            if(iofB !== -1) {
+            setCountB(countB-1);
+          }
+
+          //lookup item on ids to remove
+          let iofD = lidsToRemove.current.indexOf(idRemoved);
+          //remove deleted item from lidsToAdd
+          if(iofD !== -1) {
+            lidsToRemove.current.splice(iofD, 1);
+            if(lidsToRemove.current.length === 0) {
+              setThereAreItemsToAdd(false);
+            }
+            if(iofB === -1) {
+              //decrement B
               setCountB(countB-1);
             }
+          }
+          handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', idRemoved);
 
-            //will count A
-            cancelCountingPromises();
-            isCountingRef.current = false;
-            //will count B
-            cancelCountingPromisesB();
-            isCountingRefB.current = false;
+          //will count A
+          cancelCountingPromises();
+          isCountingRef.current = false;
+          //will count B
+          cancelCountingPromisesB();
+          isCountingRefB.current = false;
 
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
-            //reload A
-            if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
-            else { isPendingApiRequestRef.current = true; getCount(); }
-            //reload B
-            if (!isOnApiRequestRefB.current) { setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); } 
-            else { isPendingApiRequestRefB.current = true; getCountB(); }
+          //reload A
+          if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
+          else { isPendingApiRequestRef.current = true; getCount(); }
+          //reload B
+          if (!isOnApiRequestRefB.current) { setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); } 
+          else { isPendingApiRequestRefB.current = true; getCountB(); }
 <%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
-            //strict contention
-            if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
-              //configure A
-              configurePagination('reload');
-              //reload A
-              setDataTrigger(prevDataTrigger => !prevDataTrigger);
-            } else {
-              getCount();
-            }
-            //strict contention
-            if (!isOnApiRequestRefB.current && !isCursorPaginatingB.current) {
-              //configure B
-              configurePaginationB('reload');
-              //reload B
-              setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-            } else {
-              getCountB();
-            }
-<%}-%>
-            return;
+          //strict contention
+          if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
+            //configure A
+            configurePagination('reload');
+            //reload A
+            setDataTrigger(prevDataTrigger => !prevDataTrigger);
+          } else {
+            getCount();
           }
+          //strict contention
+          if (!isOnApiRequestRefB.current && !isCursorPaginatingB.current) {
+            //configure B
+            configurePaginationB('reload');
+            //reload B
+            setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+          } else {
+            getCountB();
+          }
+<%}-%>
+          return;
         }
       });
     }//end: Case 3
-  }, [lastModelChanged, lastChangeTimestamp, items, itemsB, item.<%- internalId _%>, handleUntransfer, getCount, getCountB, countB<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>, configurePagination, configurePaginationB<%}-%>]);
+  }, [lastModelChanged, lastChangeTimestamp, items, itemsB, item.<%- internalId _%>, handleUntransfer, getCount, count, getCountB, countB<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>, configurePagination, configurePaginationB<%}-%>]);
 
   useEffect(() => {
     //return if this flag is set
