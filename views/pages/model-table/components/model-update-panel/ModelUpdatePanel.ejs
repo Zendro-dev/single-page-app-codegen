@@ -86,9 +86,9 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
   const [valueOkStates, setValueOkStates] = useState(getInitialValueOkStates());
   const [valueAjvStates, setValueAjvStates] = useState(getInitialValueAjvStates());
   const lastFetchTime = useRef(Date.now());
-  <%if(hasOwnForeingKeys){-%>
+<%if(hasOwnForeingKeys){-%>
   const [foreignKeys, setForeignKeys] = useState(getInitialForeignKeys());
-  <%}-%>
+<%}-%>
 
   const [updated, setUpdated] = useState(false);
   const [deleted, setDeleted] = useState(false);
@@ -357,7 +357,7 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
 
   function areThereChangedFields() {
 <%for( let i=0; i<attributesArr.length; i++ ){-%>
-<% if(attributesArr[i][1] === 'DateTime') {-%>
+<%if(attributesArr[i][1] === 'DateTime') {-%>
     if((values.current.<%- attributesArr[i][0] %> === null || item.<%- attributesArr[i][0] %> === null) && item.<%- attributesArr[i][0] %> !== values.current.<%- attributesArr[i][0] %>) { return true; }
     if(values.current.<%- attributesArr[i][0] %> !== null && item.<%- attributesArr[i][0] %> !== null && !moment(values.current.<%- attributesArr[i][0] %>).isSame(item.<%- attributesArr[i][0] %>)) { return true; }
 <%} else if(attributesArr[i][1] === 'Time'){-%>
@@ -886,9 +886,10 @@ function setAjvErrors(err) {
           return;
         }
       }
+<%}-%>
       return;
     }//end: case '<%- sortedAssociations[i].relationName _%>'
-<%}}-%>
+<%}-%>
   }
 
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
@@ -1066,6 +1067,7 @@ function setAjvErrors(err) {
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
                 <%- sortedAssociations[i].relationNameLc _%>IdsToAdd={<%- sortedAssociations[i].relationNameLc _%>IdsToAddState}
                 <%- sortedAssociations[i].relationNameLc _%>IdsToRemove={<%- sortedAssociations[i].relationNameLc _%>IdsToRemoveState}
+<%}-%>
                 handleTransferToAdd={handleTransferToAdd}
                 handleUntransferFromAdd={handleUntransferFromAdd}
                 handleTransferToRemove={handleTransferToRemove}
