@@ -863,16 +863,16 @@ export default {
     let response = await this.getAssociated<%- sortedAssociations[i].relationNameCp _%>Connection(url, itemId);  
 <%}-%>
     //check
-    let check = checkResponse(response, graphqlErrors, "readOne<%- sortedAssociations[i].relationNameCp _%>");
+    let check = checkResponse(response, graphqlErrors, "readOne<%- nameCp _%>");
     if(check === 'ok') {
-      if( response.data.data["readOne<%- sortedAssociations[i].relationNameCp _%>"] ){
+      if( response.data.data["readOne<%- nameCp _%>"] ){
           //check types
-          if(typeof response.data.data["readOne<%- sortedAssociations[i].relationNameCp _%>"] !== 'object'
-          || typeof response.data.data["readOne<%- sortedAssociations[i].relationNameCp _%>"]["<%- sortedAssociations[i].relationName _%>"] !== 'object' //can be null
+          if(typeof response.data.data["readOne<%- nameCp _%>"] !== 'object'
+          || typeof response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[i].relationName _%>"] !== 'object' //can be null
           ) return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
           
           //get value
-          associatedItem = response.data.data["readOne<%- sortedAssociations[i].relationNameCp _%>"]["<%- sortedAssociations[i].relationName _%>"];
+          associatedItem = response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[i].relationName _%>"];
           //ok
 
         } else return {data: response.data.data, value: null, message: 'bad_format', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
@@ -917,7 +917,7 @@ export default {
     //check
     check = checkResponse(response, graphqlErrors, "count<%- sortedAssociations[i].targetModelPlCp _%>");
     if(check === 'ok') {
-      if( response.data.data["count<%- sortedAssociations[i].targetModelPlCp _%>"] ) {
+      if( response.data.data["count<%- sortedAssociations[i].targetModelPlCp _%>"] !== undefined ) {
         //check type
         if(!Number.isInteger(response.data.data["count<%- sortedAssociations[i].targetModelPlCp _%>"])) 
         return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
@@ -963,7 +963,7 @@ export default {
     //check
     let check = checkResponse(response, graphqlErrors, "count<%- sortedAssociations[i].targetModelPlCp _%>");
     if(check === 'ok') {
-      if( response.data.data["count<%- sortedAssociations[i].targetModelPlCp _%>"] ) {
+      if( response.data.data["count<%- sortedAssociations[i].targetModelPlCp _%>"] !== undefined ) {
         //check type
         if(!Number.isInteger(response.data.data["count<%- sortedAssociations[i].targetModelPlCp _%>"])) 
         return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
@@ -1003,7 +1003,7 @@ export default {
     //check
     let check = checkResponse(response, graphqlErrors, "count<%- sortedAssociations[i].targetModelPlCp _%>");
     if(check === 'ok') {
-      if( response.data.data["count<%- sortedAssociations[i].targetModelPlCp _%>"] ) {
+      if( response.data.data["count<%- sortedAssociations[i].targetModelPlCp _%>"] !== undefined ) {
         //check type
         if(!Number.isInteger(response.data.data["count<%- sortedAssociations[i].targetModelPlCp _%>"])) 
         return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
@@ -1023,16 +1023,16 @@ export default {
     response = await this.get<%- sortedAssociations[i].relationNameCp _%>ConnectionCount(url, itemId, searchText, ops);
 <%}-%>
     //check
-    check = checkResponse(response, graphqlErrors, "readOne<%- sortedAssociations[i].relationNameCp _%>");
+    check = checkResponse(response, graphqlErrors, "readOne<%- nameCp _%>");
     if(check === 'ok') {
-      if( response.data.data["readOne<%- sortedAssociations[i].relationNameCp _%>"] ){
+      if( response.data.data["readOne<%- nameCp _%>"] ){
           //check types
-          if(typeof response.data.data["readOne<%- sortedAssociations[i].relationNameCp _%>"] !== 'object'
-          || !Number.isInteger(response.data.data["readOne<%- sortedAssociations[i].relationNameCp _%>"]["countFiltered<%- sortedAssociations[i].relationNameCp _%>"])
+          if(typeof response.data.data["readOne<%- nameCp _%>"] !== 'object'
+          || !Number.isInteger(response.data.data["readOne<%- nameCp _%>"]["countFiltered<%- sortedAssociations[i].relationNameCp _%>"])
           ) return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
           
           //get value
-          associatedCount = response.data.data["readOne<%- sortedAssociations[i].relationNameCp _%>"]["countFiltered<%- sortedAssociations[i].relationNameCp _%>"];
+          associatedCount = response.data.data["readOne<%- nameCp _%>"]["countFiltered<%- sortedAssociations[i].relationNameCp _%>"];
 
           /**
            * Debug
@@ -1067,8 +1067,9 @@ export default {
    * @param {Number} paginationLimit Max number of items to retreive.
    * @param {String} itemId Model item internalId.
    * @param {String} ops Object with adittional query options.
+   * @param {Int}    batchSize Max number of records to fetch in batch from GraphQL Server.
    */
-  async getNotAssociated<%- sortedAssociations[i].relationNameCp %>(url, searchText, orderBy, orderDirection, paginationOffset, paginationLimit, itemId, ops) {
+  async getNotAssociated<%- sortedAssociations[i].relationNameCp %>(url, searchText, orderBy, orderDirection, paginationOffset, paginationLimit, itemId, ops, batchSize) {
 <%}-%>
 <%if(sortedAssociations[i].paginationType === 'cursorBased') {-%>
    * Get not associated <%- sortedAssociations[i].relationNameCp %> items from GraphQL Server using a cursor-based-connection.
@@ -1080,8 +1081,9 @@ export default {
    * @param {Object} variables Object with cursor-based-pagination variables.
    * @param {String} itemId Model item internalId.
    * @param {String} ops Object with additional query options.
+   * @param {Int}    batchSize Max number of records to fetch in batch from GraphQL Server.
    */
-  async getNotAssociated<%- sortedAssociations[i].relationNameCp %>(url, searchText, orderBy, orderDirection, variables, itemId, ops) {
+  async getNotAssociated<%- sortedAssociations[i].relationNameCp %>(url, searchText, orderBy, orderDirection, variables, itemId, ops, batchSize) {
 <%}-%>
     let graphqlErrors = [];
     let attributes = getAttributes('<%- sortedAssociations[i].targetModelLc _%>');
@@ -1098,7 +1100,7 @@ export default {
     //get ands search filters
     let ands = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops, true);
 
-    //get associated item
+    //get associated items
     let associatedItem = null;
 <%if(sortedAssociations[i].paginationType === 'limitOffset') {-%>
     let response = await this.getAssociated<%- sortedAssociations[i].relationNameCp _%>(url, itemId);
@@ -1106,21 +1108,20 @@ export default {
     let response = await this.getAssociated<%- sortedAssociations[i].relationNameCp _%>Connection(url, itemId);  
 <%}-%>
     //check
-    let check = checkResponse(response, graphqlErrors, "readOne<%- sortedAssociations[i].relationNameCp _%>");
+    let check = checkResponse(response, graphqlErrors, "readOne<%- nameCp _%>");
     if(check === 'ok') {
-      if( response.data.data["readOne<%- sortedAssociations[i].relationNameCp _%>"] ){
+      if( response.data.data["readOne<%- nameCp _%>"] ){
           //check types
-          if(typeof response.data.data["readOne<%- sortedAssociations[i].relationNameCp _%>"] !== 'object'
-          || typeof response.data.data["readOne<%- sortedAssociations[i].relationNameCp _%>"]["<%- sortedAssociations[i].relationName _%>"] !== 'object' //can be null
+          if(typeof response.data.data["readOne<%- nameCp _%>"] !== 'object'
+          || typeof response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[i].relationName _%>"] !== 'object' //can be null
           ) return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
           
           //get value
-          associatedItem = response.data.data["readOne<%- sortedAssociations[i].relationNameCp _%>"]["<%- sortedAssociations[i].relationName _%>"];
+          associatedItem = response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[i].relationName _%>"];
           //ok
 
         } else return {data: response.data.data, value: null, message: 'bad_format', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
     } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-
 
 <%if(sortedAssociations[i].paginationType === 'limitOffset') {-%>
     let p = `pagination: {offset: ${paginationOffset}, limit: ${paginationLimit}}`;
@@ -1175,7 +1176,49 @@ export default {
 <%}-%>
     }
 
+    /**
+     * Debug
+     */
+    console.log("getNotAssociated<%- sortedAssociations[i].relationNameCp %>.query: gql:\n", query);
 
+<%if(sortedAssociations[i].paginationType === 'limitOffset') {-%>
+    response = await requestGraphql({ url, query });
+    //check
+    check = checkResponse(response, graphqlErrors, "<%- sortedAssociations[i].targetModelPlLc _%>");
+    if(check === 'ok') {
+      if( response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>"] ) {
+        //check type
+        if(!Array.isArray(response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>"])) 
+        return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+        //get value
+        let items = response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>"];
+        //ok
+        return {value: items, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+      } else return {data: response.data.data, value: null, message: 'bad_format', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+    response = await requestGraphql({ url, query });
+    //check
+    check = checkResponse(response, graphqlErrors, "<%- sortedAssociations[i].targetModelPlLc _%>Connection");
+    if(check === 'ok') {
+      if( response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"] ) {
+        //check type
+        if(typeof response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"] !== 'object'
+        || !Array.isArray(response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"].edges)
+        || typeof response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"].pageInfo !== 'object' 
+        || response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"].pageInfo === null)
+        return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+        //get value
+        let connection = response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"];
+        //ok
+        return {value: connection, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+      } else return {data: response.data.data, value: null, message: 'bad_format', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+<%}-%>
 <%}-%>
 <%
   /**
@@ -1184,7 +1227,90 @@ export default {
    */
 -%>
 <%_if( sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'generic_to_many' ){-%>
-    
+    let query = '';
+    //get ands search filters
+    let ands = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops, true);
+  
+    //make filter to exclude itemId on FK & include null's
+    let f1 = `{field: <%- sortedAssociations[i].targetKey _%>, valueType: <%- internalIdType _%>, value: "${itemId}", operator: ne}`;
+    let f2 = `{field: <%- sortedAssociations[i].targetKey _%>, valueType: <%- internalIdType _%>, value: null, operator: eq}`;
+    let nf = `{operator: or, search: [ ${f1}, ${f2} ]}`;
+
+    //add new filter to ands
+    ands += nf;
+
+<%if(sortedAssociations[i].paginationType === 'limitOffset') {-%>
+    let p = `pagination: {offset: ${paginationOffset}, limit: ${paginationLimit}}`;
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+    let qbody = 
+      `pageInfo {
+          startCursor
+          endCursor
+          hasPreviousPage
+          hasNextPage
+        }
+        edges {
+          node {
+            ${qattributes}
+          }
+        }`;
+<%}-%> 
+
+    //make search
+    let s = `search: {operator:and, search: [ ${ands} ]}`;
+<%if(sortedAssociations[i].paginationType === 'limitOffset') {-%>
+      query = `{ <%- sortedAssociations[i].targetModelPlLc _%>( ${s}, ${p} ) { ${qattributes} }}`;
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+      query =
+        `query <%- sortedAssociations[i].targetModelPlLc _%>Connection($pagination: paginationCursorInput)
+          { <%- sortedAssociations[i].targetModelPlLc _%>Connection( ${s}, pagination: $pagination ) {
+            ${qbody}
+          }}`;
+<%}-%>
+
+    /**
+     * Debug
+     */
+    console.log("getNotAssociated<%- sortedAssociations[i].relationNameCp %>.query: gql:\n", query);
+
+<%if(sortedAssociations[i].paginationType === 'limitOffset') {-%>
+    let response = await requestGraphql({ url, query });
+    //check
+    let check = checkResponse(response, graphqlErrors, "<%- sortedAssociations[i].targetModelPlLc _%>");
+    if(check === 'ok') {
+      if( response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>"] ) {
+        //check type
+        if(!Array.isArray(response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>"])) 
+        return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+        //get value
+        let items = response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>"];
+        //ok
+        return {value: items, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+      } else return {data: response.data.data, value: null, message: 'bad_format', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+    let response = await requestGraphql({ url, query });
+    //check
+    let check = checkResponse(response, graphqlErrors, "<%- sortedAssociations[i].targetModelPlLc _%>Connection");
+    if(check === 'ok') {
+      if( response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"] ) {
+        //check type
+        if(typeof response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"] !== 'object'
+        || !Array.isArray(response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"].edges)
+        || typeof response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"].pageInfo !== 'object' 
+        || response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"].pageInfo === null)
+        return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+        //get value
+        let connection = response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"];
+        //ok
+        return {value: connection, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+      } else return {data: response.data.data, value: null, message: 'bad_format', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+<%}-%>
 <%}-%>
 <%
   /**
@@ -1192,11 +1318,323 @@ export default {
    */
 -%>
 <%_if( sortedAssociations[i].type === 'to_many_through_sql_cross_table' ){-%>
-    
-<%}-%>
-  },
-<%}-%>
+<%if(sortedAssociations[i].paginationType === 'limitOffset') {-%>
+    /**
+     * Recursive fetch of not associated items algorithm (limit-offset-pagination):
+     *  1 Until @requiredItems are fetched, do:
+     *    1.2 Get @requiredItems ( equal to @limit ) minus lenght.of( @notAssociatedItems already fetched) items, 
+     *        where each item will be fetchet with the correspondent associationFilter, which in turn will be 
+     *        filtered by the current itemId. The resulting associationFilter will contain a non-empty array if
+     *        the current item is associated or an empty array otherwise.
+     *    1.3 Join fetched items in 1.2 with previous ones if any: in @notAssociatedItemsEdges array.
+     *        Only the items with an empty array in its associationFilter will be added.
+     *    1.4 Check number of items fetched:
+     *        1.4.1  If: fetched items are less than the requested number of items in 1.2 and the current 
+     *                   result is non empty:
+     *               1.4.1.1 Adjust pagination to get the next batch of items.
+     *               1.4.1.2 @continue with next iteration.
+     *        1.4.2  If: fetched items are equal to the requested number of items in 1.2 or the current 
+     *               result is empty:
+     *               1.4.2.1 Return items. 
+     *               1.4.2.2 @done
+     */
+    //set required number of items
+    let requiredItems = paginationLimit;
 
+    //initialize variables to fetch the first batch of items
+    let batchPagination = `pagination: {offset: ${paginationOffset}, limit: ${paginationLimit}}`;
+    let batchSearch = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops);
+    let batchQuery = '';
+    let nonaItems = [];
+
+    /**
+     * Recursive fetch of not associated items algorithm (limit-offset-pagination):
+     *  1 Until @requiredItems are fetched, do:
+     * 
+     */
+    // while(nonaItems.length < requiredItems) {
+
+    //   if(batchSearch) {
+    //     batchQuery = 
+    //       `{ <%- sortedAssociations[i].targetModelPlLc _%>( ${batchSearch}, ${batchPagination} ) { 
+    //           ${qattributes}
+    //           <%- sortedAssociations[i].targetModelPlLc _%>Filter
+    //         }}`;
+          
+    //       `{ <%- sortedAssociations[i].targetModelPlLc _%>(${batchPagination}) {
+    //           <%- sortedAssociations[i].targetModelPlLc _%>Connection( ${nonaSearch}, pagination: $pagination ) {
+    //             pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
+    //             edges {node {${qattributes}}}
+    //         }}`;
+    //   } else {
+    //     nonaQuery =
+    //       `query <%- sortedAssociations[i].targetModelPlLc _%>Connection($pagination: paginationCursorInput) {
+    //         <%- sortedAssociations[i].targetModelPlLc _%>Connection( pagination: $pagination ) {
+    //           pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
+    //           edges {node {${qattributes}}}
+    //       }}`;
+    //   }
+
+
+      // {
+      //   users(pagination: {limit: 10}) {
+      //     id
+      //     email
+      //     rolesFilter(search: {field: id value: "2" valueType: Int operator: eq}){
+      //       id
+      //     }
+      //   }
+      // }
+
+    //}
+
+
+
+
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+    //checks
+    if(!variables&&!variables.pagination&&typeof variables.pagination !== 'object' ) throw new Error("internal_error: pagination object expected");
+    if(!variables.pagination.first&&!variables.pagination.last ) throw new Error("internal_error: pagination first or last positive argument expected");
+
+    /**
+     * Recursive fetch of not associated items algorithm (cursor-based-pagination):
+     *  1 Until @requiredItems are fetched, do:
+     *    1.1 Get @batchSize associated ids.
+     *    1.2 Get @requiredItems ( equal to @first or @last ) minus lenght.of( @notAssociatedItems already fetched) items, 
+     *        with a search filter excluding the set of associated ids fetched at 1.1 and not exceeding the last (or first) 
+     *        associated id in this set.
+     *    1.3 Join fetched items in 1.2 with previous ones if any: in @notAssociatedItemsEdges array.
+     *    1.4 Check number of items fetched:
+     *        1.4.1  If: fetched items are less than the requested number of items in 1.2 and there are more items:
+     *               1.4.1.1 Adjust pagination to get the next batch of associated ids and next not-associated items page.
+     *               1.4.1.2 @continue with next iteration.
+     *        1.4.2  If: fetched items are equal to the requested number of items in 1.2 or there are no more items:
+     *               1.4.2.1 Return Connection with edges and pageInfo properly configured. 
+     *               1.4.2.2 @done
+     */
+
+    //set direction
+    let isForward = variables.pagination.first ? true : false;
+    //set required number of items
+    let requiredItems = isForward ? variables.pagination.first : variables.pagination.last;
+
+    //initialize pagination for batch associated ids
+    let batchPagination = {...variables.pagination, first: isForward ? batchSize : null, last: !isForward ? batchSize : null, includeCursor: false};
+    let batchVariables = {pagination: batchPagination};
+    let batchSearch = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops);
+    let batchQuery = '';
+
+    //initialize pagination for non-associated items
+    let nonaPagination = {...variables.pagination};
+    let nonaVariables = {pagination: nonaPagination};
+    let nonaPageInfo = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+    let nonaEdges = [];
+    let nonaQuery = '';
+
+    //general search ands filters
+    let sands = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops, true);
+
+    /**
+     * Recursive fetch of not associated items algorithm (cursor-based-pagination):
+     *  1 Until @requiredItems are fetched, do:
+     * 
+     */
+    while(nonaEdges.length < requiredItems) {
+
+      /**
+       * 1.1 Get @batchSize associated ids.
+       * 
+       */
+      if(batchSearch) {
+        batchQuery =
+          `query readOne<%- nameCp _%>($pagination: paginationCursorInput) {
+            readOne<%- nameCp _%>(<%- internalId _%>: "${itemId}") {
+              <%- sortedAssociations[i].targetModelPlLc _%>Connection( ${batchSearch}, pagination: $pagination ) {
+                pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
+                edges {node {<%- sortedAssociations[i].internalId _%>}}
+            }}}`;
+      } else {
+        batchQuery =
+          `query readOne<%- nameCp _%>($pagination: paginationCursorInput) {
+            readOne<%- nameCp _%>(<%- internalId _%>: "${itemId}") {
+              <%- sortedAssociations[i].targetModelPlLc _%>Connection( pagination: $pagination ) {
+                pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
+                edges {node {<%- sortedAssociations[i].internalId _%>}}
+            }}}`;
+      }
+
+      /**
+       * Debug
+       */
+      console.log("getNotAssociated<%- sortedAssociations[i].relationNameCp %>.batchQuery: gql:\n", batchQuery);
+      
+      let batchConnection = null;
+      let response = await requestGraphql({ url, query:batchQuery, variables:batchVariables });
+      //check
+      let check = checkResponse(response, graphqlErrors, "readOne<%- nameCp _%>");
+      if(check === 'ok') {
+        if( response.data.data["readOne<%- nameCp _%>"] ) {
+          //check type
+          if(typeof response.data.data["readOne<%- nameCp _%>"] !== 'object'
+          || response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[i].targetModelPlLc _%>Connection"] === null
+          || typeof response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[i].targetModelPlLc _%>Connection"] !== 'object'
+          || !Array.isArray(response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[i].targetModelPlLc _%>Connection"].edges)
+          || typeof response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[i].targetModelPlLc _%>Connection"].pageInfo !== 'object' 
+          || response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[i].targetModelPlLc _%>Connection"].pageInfo === null)
+          return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+          //get value
+          batchConnection = response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[i].targetModelPlLc _%>Connection"];
+
+        } else return {data: response.data.data, value: null, message: 'bad_format', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+      } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+      
+      //get ids to exclude
+      let idsToExclude = batchConnection.edges.map(o => o.node.<%- sortedAssociations[i].internalId _%>);
+
+      /**
+       * 1.2 Get @requiredItems ( equal to @first or @last ) minus lenght.of( @notAssociatedItems already fetched) items, 
+       *      with a search filter excluding the set of associated ids fetched at 1.1 and not exceeding the last (or first) 
+       *      associated id in this set.
+       */
+      //case: there are associated items to exclude...
+      if(idsToExclude.length > 0) {
+        //add exclusions
+        let nonaOps = {
+          exclude: [{
+            type: '<%- sortedAssociations[i].internalIdType _%>',
+            values: {"<%- sortedAssociations[i].internalId _%>": idsToExclude}
+          }]
+        };
+        
+        //get search ands filters
+        let nonaSearchAnds = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, nonaOps, true);
+        //add exclusion filters to general search ands
+        sands += nonaSearchAnds;
+
+        if(isForward) {
+          //case: there are more associated ids...
+          if(batchConnection.pageInfo.hasNextPage) {
+            //make filter to limit results to before the last associated id.
+            let f1 = `{field: <%- sortedAssociations[i].internalId _%>, valueType: <%- sortedAssociations[i].internalIdType _%>, value: "${idsToExclude[idsToExclude.length-1]}", operator: lt}`;
+            let nf = `{operator: or, search: [ ${f1} ]}`;
+
+            //add new filter to general search ands
+            sands += nf;
+          }
+        } else { //isBackward
+          //case: there are more associated ids...
+          if(batchConnection.pageInfo.hasPreviousPage) {
+            //make filter to limit results to after the first associated id.
+            let f1 = `{field: <%- sortedAssociations[i].internalId _%>, valueType: <%- sortedAssociations[i].internalIdType _%>, value: "${idsToExclude[0]}", operator: gt}`;
+            let nf = `{operator: or, search: [ ${f1} ]}`;
+
+            //add new filter to general search ands
+            sands += nf;
+          }
+        }
+      } 
+
+      if(sands !== '') {
+        //make search
+        let nonaSearch = `search: {operator:and, search: [ ${sands} ]}`;
+        nonaQuery =
+          `query <%- sortedAssociations[i].targetModelPlLc _%>Connection($pagination: paginationCursorInput) {
+              <%- sortedAssociations[i].targetModelPlLc _%>Connection( ${nonaSearch}, pagination: $pagination ) {
+                pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
+                edges {node {${qattributes}}}
+            }}`;
+      } else {
+        nonaQuery =
+          `query <%- sortedAssociations[i].targetModelPlLc _%>Connection($pagination: paginationCursorInput) {
+            <%- sortedAssociations[i].targetModelPlLc _%>Connection( pagination: $pagination ) {
+              pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
+              edges {node {${qattributes}}}
+          }}`;
+      }
+
+      /**
+       * Debug
+       */
+      console.log("getNotAssociated<%- sortedAssociations[i].relationNameCp %>.nonaQuery: gql:\n", nonaQuery);
+      
+      let nonaConnection = null;
+      response = await requestGraphql({ url, query:nonaQuery, variables:nonaVariables });
+      //check
+      check = checkResponse(response, graphqlErrors, "<%- sortedAssociations[i].targetModelPlLc _%>Connection");
+      if(check === 'ok') {
+        if( response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"] ) {
+          //check type
+          if(typeof response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"] !== 'object'
+          || !Array.isArray(response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"].edges)
+          || typeof response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"].pageInfo !== 'object' 
+          || response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"].pageInfo === null)
+          return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+          //get value
+          nonaConnection = response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"];
+
+        } else return {data: response.data.data, value: null, message: 'bad_format', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+      } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+      /**
+       * 1.3 Join fetched items in 1.2 with previous ones if any: in @notAssociatedItemsEdges array.
+       */
+      if(nonaConnection.edges.length > 0) { //if there are new items...
+        //adjust pageInfo for the first non associated items
+        if(nonaEdges.length === 0) {
+          nonaPageInfo = { ...nonaConnection.pageInfo};
+        } else {  //adjust pageInfo for the last non associated items
+          if(isForward) {
+            nonaPageInfo.endCursor = nonaConnection.pageInfo.endCursor;
+            nonaPageInfo.hasNextPage = nonaConnection.pageInfo.hasNextPage;
+          } else {
+            nonaPageInfo.startCursor = nonaConnection.pageInfo.startCursor;
+            nonaPageInfo.hasPreviousPage = nonaConnection.pageInfo.hasPreviousPage;
+          }
+        } 
+        //join new items      
+        if(isForward) nonaEdges = [...nonaEdges, ...nonaConnection.edges ];
+        else          nonaEdges = [...nonaConnection.edges, ...nonaEdges ];
+      }
+
+      /**
+       * 1.4 Check number of items fetched:
+       *    1.4.1  If: fetched items are less than the requested number of items in 1.2 and there are more items:
+       *           1.4.1.1 Adjust pagination to get the next batch of associated ids and next not-associated items page.
+       *           1.4.1.2 @continue with next iteration.
+       *    1.4.2  If: fetched items are equal to the requested number of items in 1.2 or there are no more items:
+       *           1.4.2.1 Return Connection with edges and pageInfo properly configured. 
+       *           1.4.2.2 @done
+       */
+      let thereAreMoreItems = isForward ? batchConnection.hasNextPage : batchConnection.hasPreviousPage;
+
+      if(nonaEdges.length < requiredItems && thereAreMoreItems) {
+        //adjust pagination for next batch associated ids
+        batchPagination.after = isForward ? batchConnection.pageInfo.endCursor : null;
+        batchPagination.before = !isForward ? batchConnection.pageInfo.startCursor : null;
+        batchVariables = {pagination: batchPagination};
+        
+        //adjust pagination for the next non-associated items
+        nonaPagination.first = isForward ? (requiredItems - nonaEdges.length) : null;
+        nonaPagination.last = !isForward ? (requiredItems - nonaEdges.length) : null;
+        nonaPagination.after = isForward ? batchConnection.pageInfo.endCursor : null;
+        nonaPagination.before = !isForward ? batchConnection.pageInfo.startCursor : null;
+        nonaPagination.includeCursor = false;
+        nonaVariables = {pagination: nonaPagination};
+
+        //continue with next iteration...
+      } else {        
+        let connection = {pageInfo: nonaPageInfo, edges: nonaEdges};
+        //ok
+        return {value: connection, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+      }
+    }//end: while()
+<%}-%>
+<%}-%> 
+  },
+<%}-%>  
+  
 /**
    * getItemsAttribute
    *

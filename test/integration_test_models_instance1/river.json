@@ -7,7 +7,7 @@
     "river_id": "String"
   },
   "associations": {
-    "countries": {
+    "countries_mm": {
       "type" : "to_many_through_sql_cross_table",
       "target": "country",
       "sourceKey": "river_id",

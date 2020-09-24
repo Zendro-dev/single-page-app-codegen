@@ -206,6 +206,9 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
   const lastModelChanged = useSelector(state => state.changes.lastModelChanged);
   const lastChangeTimestamp = useSelector(state => state.changes.lastChangeTimestamp);
+<%_if( isManyToMany ){-%>
+  const maxRecordLimit = useSelector(state => state.limits.maxRecordLimit);
+<%}-%>
 
   const lref = useRef(null);
   const lrefB = useRef(null);
@@ -1008,7 +1011,10 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
       pageRef.current * rowsPerPageRef.current, //paginationOffset
       rowsPerPageRef.current, //paginationLimit
       item.<%- internalId _%>,
-      ops
+      ops,
+<%_if( isManyToMany ){-%>
+      maxRecordLimit ? Math.floor(maxRecordLimit/2) : 5000, //batch size
+<%}-%>
     ));
 <%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
     let variables = {
@@ -1021,7 +1027,10 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
       null, //orderDirection
       variables,
       item.<%- internalId _%>,
-      ops
+      ops,
+<%_if( isManyToMany ){-%>
+      maxRecordLimit ? Math.floor(maxRecordLimit/2) : 5000, //batch size
+<%}-%>
     ));
 <%}-%>
     cancelablePromises.current.push(cancelableApiReq);
@@ -1135,7 +1144,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
           return;
         }
       });
-  }, [graphqlServerUrl, showMessage, clearRequestGetData, getCount, t, item.<%- internalId _%>, dataTrigger, search<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>, configurePagination<%}-%><%if(isToOne) {-%>, getAssociatedItem<%}-%>]);
+  }, [graphqlServerUrl, showMessage, clearRequestGetData, getCount, t, item.<%- internalId _%>, dataTrigger, search<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>, configurePagination<%}-%><%if(isToOne) {-%>, getAssociatedItem<%}-%><%if(isManyToMany) {-%>, maxRecordLimit<%}-%>]);
 
 <%_if( isToMany ){-%>
 <%
@@ -1147,7 +1156,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   let requestName6 = 'api.'+sortedAssociations[aindex].targetModelLc+'.getCountItems'
 -%>
   /**
-   * getDataB
+   * getCountB
    * 
    * Get @count from GrahpQL Server.
    * Uses current state properties to fill query request.
