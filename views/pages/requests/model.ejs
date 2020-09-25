@@ -853,7 +853,7 @@ export default {
 <%_if( sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one' ){-%>
     let query = '';
     //get ands search filters
-    let ands = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops, true);
+    let ands = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops, 'ands');
 
     //get associated item
     let associatedItem = null;
@@ -939,7 +939,7 @@ export default {
 <%_if( sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'generic_to_many' ){-%>
     let query = '';
     //get ands search filters
-    let ands = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops, true);
+    let ands = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops, 'ands');
   
     //make filter to exclude itemId on FK & include null's
     let f1 = `{field: <%- sortedAssociations[i].targetKey _%>, valueType: <%- internalIdType _%>, value: "${itemId}", operator: ne}`;
@@ -1098,7 +1098,7 @@ export default {
 <%_if( sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one' ){-%>
     let query = '';
     //get ands search filters
-    let ands = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops, true);
+    let ands = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops, 'ands');
 
     //get associated items
     let associatedItem = null;
@@ -1229,7 +1229,7 @@ export default {
 <%_if( sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'generic_to_many' ){-%>
     let query = '';
     //get ands search filters
-    let ands = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops, true);
+    let ands = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops, 'ands');
   
     //make filter to exclude itemId on FK & include null's
     let f1 = `{field: <%- sortedAssociations[i].targetKey _%>, valueType: <%- internalIdType _%>, value: "${itemId}", operator: ne}`;
@@ -1323,14 +1323,14 @@ export default {
      * Recursive fetch of not associated items algorithm (limit-offset-pagination):
      *  1 Until @requiredItems are fetched, do:
      *    1.2 Get @requiredItems ( equal to @limit ) minus lenght.of( @notAssociatedItems already fetched) items, 
-     *        where each item will be fetchet with the correspondent associationFilter, which in turn will be 
+     *        where each item will be fetched with the correspondent associationFilter, which in turn will be 
      *        filtered by the current itemId. The resulting associationFilter will contain a non-empty array if
      *        the current item is associated or an empty array otherwise.
      *    1.3 Join fetched items in 1.2 with previous ones if any: in @notAssociatedItemsEdges array.
      *        Only the items with an empty array in its associationFilter will be added.
      *    1.4 Check number of items fetched:
      *        1.4.1  If: fetched items are less than the requested number of items in 1.2 and the current 
-     *                   result is non empty:
+     *               result is non empty:
      *               1.4.1.1 Adjust pagination to get the next batch of items.
      *               1.4.1.2 @continue with next iteration.
      *        1.4.2  If: fetched items are equal to the requested number of items in 1.2 or the current 
@@ -1339,29 +1339,468 @@ export default {
      *               1.4.2.2 @done
      */
     //set required number of items
-    let requiredItems = paginationLimit;
+    // let requiredItems = paginationLimit;
 
-    //initialize variables to fetch the first batch of items
-    let batchPagination = `pagination: {offset: ${paginationOffset}, limit: ${paginationLimit}}`;
-    let batchSearch = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops);
-    let batchQuery = '';
-    let nonaItems = [];
+    // //initialize variables to fetch the first batch of items
+    // let batchPaginationOffset = paginationOffset;
+    // let batchPagination = `pagination: {offset: ${batchPaginationOffset}, limit: ${batchSize}}`;
+    // let batchSearch = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops);
+    // let batchQuery = '';
+    // let nonaItems = [];
 
-    /**
-     * Recursive fetch of not associated items algorithm (limit-offset-pagination):
-     *  1 Until @requiredItems are fetched, do:
-     * 
-     */
+    // /**
+    //  * Recursive fetch of not associated items algorithm (limit-offset-pagination):
+    //  *  1 Until @requiredItems are fetched, do:
+    //  * 
+    //  */
     // while(nonaItems.length < requiredItems) {
 
     //   if(batchSearch) {
     //     batchQuery = 
     //       `{ <%- sortedAssociations[i].targetModelPlLc _%>( ${batchSearch}, ${batchPagination} ) { 
     //           ${qattributes}
-    //           <%- sortedAssociations[i].targetModelPlLc _%>Filter
+    //           <%- sortedAssociations[i].peerAssociationNameLc _%>Filter(
+    //             search: {field: <%- internalId _%>, value: "${itemId}", valueType: <%- internalIdType _%>, operator: eq },
+    //             pagination: {limit: 1}){ <%- internalId _%> }
     //         }}`;
+    //   } else {
+    //     batchQuery = 
+    //       `{ <%- sortedAssociations[i].targetModelPlLc _%>( ${batchPagination} ) { 
+    //           ${qattributes}
+    //           <%- sortedAssociations[i].peerAssociationNameLc _%>Filter(
+    //             search: {field: <%- internalId _%>, value: "${itemId}", valueType: <%- internalIdType _%>, operator: eq },
+    //             pagination: {limit: 1}){ <%- internalId _%> }
+    //         }}`;
+    //   }
+
+    //   /**
+    //    * Debug
+    //    */
+    //   console.log("getNotAssociated<%- sortedAssociations[i].relationNameCp %>.batchQuery: gql:\n", batchQuery);
+      
+    //   let batchItems = null;
+    //   let response = await requestGraphql({ url, query:batchQuery });
+    //   //check
+    //   let check = checkResponse(response, graphqlErrors, "<%- sortedAssociations[i].targetModelPlLc _%>");
+    //   if(check === 'ok') {
+    //     if( response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>"] ) {
+    //       //check type
+    //       if(!Array.isArray(response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>"]))
+    //       return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+    //       //get value
+    //       batchItems = response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>"];
+
+    //     } else return {data: response.data.data, value: null, message: 'bad_format', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+    //   } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+      
+
+    //   /**
+    //    *    1.3 Join fetched items in 1.2 with previous ones if any: in @notAssociatedItemsEdges array.
+    //    *        Only the items with an empty array in its associationFilter will be added.
+    //    * 
+    //    */
+    //   for(let i=0; (i<batchItems.length && nonaItems.length<requiredItems); i++) {
+    //     if(Array.isArray(batchItems[i]["<%- sortedAssociations[i].peerAssociationNameLc _%>Filter"])
+    //     && batchItems[i]["<%- sortedAssociations[i].peerAssociationNameLc _%>Filter"].length === 0) {
           
-    //       `{ <%- sortedAssociations[i].targetModelPlLc _%>(${batchPagination}) {
+    //       //new non-associated item
+    //       let it = {...batchItems[i]};
+    //       //delete filter
+    //       delete it["<%- sortedAssociations[i].peerAssociationNameLc _%>Filter"];
+    //       //add item
+    //       nonaItems.push(it);
+    //     }
+    //   }
+
+    //   /**
+    //    *    1.4 Check number of items fetched:
+    //    *        1.4.1  If: fetched items are less than the requested number of items in 1.2 and the current 
+    //    *               result is non empty:
+    //    *               1.4.1.1 Adjust pagination to get the next batch of items.
+    //    *               1.4.1.2 @continue with next iteration.
+    //    *        1.4.2  If: fetched items are equal to the requested number of items in 1.2 or the current 
+    //    *               result is empty:
+    //    *               1.4.2.1 Return items. 
+    //    *               1.4.2.2 @done
+    //    * 
+    //    */
+    //   if(nonaItems.length < requiredItems && batchItems.length > 0) {
+    //     //Adjust pagination to get the next batch of items.
+    //     batchPaginationOffset += batchItems.length;
+    //     batchPagination = `pagination: {offset: ${batchPaginationOffset}, limit: ${batchSize}}`;
+
+    //     //continue...
+    //   } else {
+    //     //ok
+    //     return {value: nonaItems, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+    //   }
+    }//end: while()
+
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+    // //checks
+    if(!variables&&!variables.pagination&&typeof variables.pagination !== 'object' ) throw new Error("internal_error: pagination object expected");
+    if(!variables.pagination.first&&!variables.pagination.last ) throw new Error("internal_error: pagination first or last positive argument expected");
+
+    /**
+     * Recursive fetch of not associated items algorithm (cursor-based-pagination):
+     *  1 Until @requiredItems are fetched, do:
+     *    1.2 Get @requiredItems ( equal to @first or @last ) minus lenght.of( @notAssociatedItems already fetched) items, 
+     *        where each item will be fetched with the correspondent associationConnection, which in turn will be 
+     *        filtered by the current itemId. The resulting associationConnection will contain a non-empty edges-array if
+     *        the current item is associated or an empty edges-array otherwise.
+     *    1.3 Join fetched items in 1.2 with previous ones if any: in @notAssociatedItemsEdges array.
+     *        Only the items with an empty edges-array in its associationConnection will be added.
+     *    1.4 Check number of fetched items:
+     *        1.4.1  If: fetched items are less than the requested number of items in 1.2 and there are more items:
+     *               1.4.1.1 Adjust pagination to get the next batch of items.
+     *               1.4.1.2 @continue with next iteration.
+     *        1.4.2  Else: fetched items are equal to the requested number of items in 1.2 or there are no more items: 
+     *               1.4.2.1 Return Connection with edges and pageInfo properly configured.  
+     *               1.4.2.2 @done
+     */
+    //set direction
+    let isForward = variables.pagination.first ? true : false;
+    //set required number of items
+    let requiredItems = isForward ? variables.pagination.first : variables.pagination.last;
+
+    //initialize pagination for batch query
+    let batchPagination = {...variables.pagination, first: isForward ? batchSize : null, last: !isForward ? batchSize : null};
+    let batchVariables = {pagination: batchPagination};
+    let batchSearch = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops);
+    let batchQuery = '';
+
+    let nonaPageInfo = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+    let nonaEdges = [];
+    
+     /**
+     * Recursive fetch of not associated items algorithm (cursor-based-pagination):
+     *  1 Until @requiredItems are fetched, do:
+     * 
+     */
+    while(nonaEdges.length < requiredItems) {
+
+      if(batchSearch) {
+        batchQuery = 
+          `query <%- sortedAssociations[i].targetModelPlLc _%>Connection($pagination: paginationCursorInput) {
+            <%- sortedAssociations[i].targetModelPlLc _%>Connection(${batchSearch}, pagination: $pagination) {
+              pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
+              edges {node {
+                ${qattributes}
+                <%- sortedAssociations[i].peerAssociationNameLc _%>Connection(
+                  search: {field: <%- internalId _%>, value: "${itemId}", valueType: <%- internalIdType _%>, operator: eq },
+                  pagination: {first: 1}){ edges {node {<%- internalId _%> }}}
+            }}}}`;
+
+      } else {
+        batchQuery = 
+          `query <%- sortedAssociations[i].targetModelPlLc _%>Connection($pagination: paginationCursorInput) {
+            <%- sortedAssociations[i].targetModelPlLc _%>Connection(pagination: $pagination) {
+              pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
+              edges {cursor node {
+                ${qattributes}
+                <%- sortedAssociations[i].peerAssociationNameLc _%>Connection(
+                  search: {field: <%- internalId _%>, value: "${itemId}", valueType: <%- internalIdType _%>, operator: eq },
+                  pagination: {first: 1}){ edges {node {<%- internalId _%> }}}
+            }}}}`;
+      }
+
+      /**
+       * Debug
+       */
+      console.log("getNotAssociated<%- sortedAssociations[i].relationNameCp %>.batchQuery: gql:\n", batchQuery);
+      console.log("getNotAssociated<%- sortedAssociations[i].relationNameCp %>.batchVariables: gql:\n", batchVariables);
+      
+      /**
+       *    1.2 Get @requiredItems ( equal to @first or @last ) minus lenght.of( @notAssociatedItems already fetched) items, 
+       *        where each item will be fetched with the correspondent associationConnection, which in turn will be 
+       *        filtered by the current itemId. The resulting associationConnection will contain a non-empty edges-array if
+       *        the current item is associated or an empty edges-array otherwise.
+       * 
+       */
+      let batchConnection = null;
+      let response = await requestGraphql({ url, query:batchQuery, variables:batchVariables });
+      //check
+      let check = checkResponse(response, graphqlErrors, "<%- sortedAssociations[i].targetModelPlLc _%>Connection");
+      if(check === 'ok') {
+        if( response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"] ) {
+          //check type
+          if(typeof response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"] !== 'object'
+          || !Array.isArray(response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"].edges)
+          || typeof response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"].pageInfo !== 'object'
+          || response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"].pageInfo === null)
+          return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+          //get value
+          batchConnection = response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"];
+
+        } else return {data: response.data.data, value: null, message: 'bad_format', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+      } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+      
+      /**
+       *    1.3 Join fetched items in 1.2 with previous ones if any: in @notAssociatedItemsEdges array.
+       *        Only the items with an empty edges-array in its associationConnection will be added.
+       * 
+       */
+      
+      //get all not associated in current batch
+      let batchEdges = [];
+      for(let i=0; (i<batchConnection.edges.length && nonaEdges.length<requiredItems); i++) {          
+          //check: not associated item
+          if(batchConnection.edges[i].node["<%- sortedAssociations[i].peerAssociationNameLc _%>Connection"].edges.length === 0) {
+          
+            //new non-associated edge
+            let edge = {...batchConnection.edges[i]};
+  
+            //push new edge
+            batchEdges.push(edge);
+          }
+      }
+
+      let thereAreMoreNonaItems = (batchEdges.length > (requiredItems - nonaEdges.length));
+
+      //join new items
+      if(batchEdges.length > 0) { //if there are new non-associated items... 
+        
+        //adjust pageInfo (start)
+        if(nonaEdges.length === 0) {
+          if(isForward) {
+            nonaPageInfo.startCursor = batchEdges[0].cursor;
+            nonaPageInfo.hasPreviousPage = batchConnection.pageInfo.hasPreviousPage;
+          } else {
+            nonaPageInfo.endCursor = batchEdges[batchEdges.length-1].cursor;
+            nonaPageInfo.hasNextPage = batchConnection.pageInfo.hasNextPage;
+          }
+        } 
+
+        if(isForward) nonaEdges = [...nonaEdges, ...batchEdges.slice(0, (requiredItems - nonaEdges.length)) ];
+        else          nonaEdges = [...batchEdges.slice(-(requiredItems - nonaEdges.length)), ...nonaEdges ];
+      }
+
+      /**
+       *    1.4 Check number of fetched items:
+       *        1.4.1  If: fetched items are less than the requested number of items in 1.2 and there are more items:
+       *               1.4.1.1 Adjust pagination to get the next batch of items.
+       *               1.4.1.2 @continue with next iteration.
+       *        1.4.2  Else: fetched items are equal to the requested number of items in 1.2 or there are no more items: 
+       *               1.4.2.1 Return Connection with edges and pageInfo properly configured.  
+       *               1.4.2.2 @done
+       * 
+       */
+      let thereAreMoreItems = isForward ? batchConnection.pageInfo.hasNextPage : batchConnection.pageInfo.hasPreviousPage;
+
+      if(nonaEdges.length < requiredItems && thereAreMoreItems) {
+        //adjust pagination for next batch associated ids
+        batchPagination.after = isForward ? batchConnection.pageInfo.endCursor : null;
+        batchPagination.before = !isForward ? batchConnection.pageInfo.startCursor : null;
+        batchPagination.includeCursor = false;
+        batchVariables = {pagination: batchPagination};
+
+        //continue with next iteration...
+      } else {
+        
+        //adjust pagination info (end)
+        if(nonaEdges.length > 0) {
+          if(isForward) {
+            nonaPageInfo.endCursor = nonaEdges[nonaEdges.length - 1].cursor;
+            nonaPageInfo.hasNextPage = batchConnection.pageInfo.hasNextPage || thereAreMoreNonaItems;
+          } else {
+            nonaPageInfo.startCursor = nonaEdges[0].cursor;
+            nonaPageInfo.hasPreviousPage = batchConnection.pageInfo.hasPreviousPage || thereAreMoreNonaItems;
+          }
+        }
+
+        //delete innerConnecton and cursor
+        for(let i=0; i<nonaEdges.length; i++) {
+          delete nonaEdges[i].node["<%- sortedAssociations[i].peerAssociationNameLc _%>Connection"];
+          delete nonaEdges[i].cursor;
+        }
+
+        //set final connection
+        let connection = {pageInfo: nonaPageInfo, edges: nonaEdges};
+        //ok
+        return {value: connection, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+      }
+    }//end: while()
+
+    /////////////////////////////
+    /**
+     * Alternative algorithm.
+     */
+
+    // //checks
+    // if(!variables&&!variables.pagination&&typeof variables.pagination !== 'object' ) throw new Error("internal_error: pagination object expected");
+    // if(!variables.pagination.first&&!variables.pagination.last ) throw new Error("internal_error: pagination first or last positive argument expected");
+
+    // /**
+    //  * Alternative Algorithm: fetch not associated items excluding associated ones in batches.
+    //  * 
+    //  * Recursive fetch of not associated items algorithm (cursor-based-pagination):
+    //  *  1 Until @requiredItems are fetched, do:
+    //  *    1.1 Get @batchSize associated ids.
+    //  *    1.2 Get @requiredItems ( equal to @first or @last ) minus lenght.of( @notAssociatedItems already fetched) items, 
+    //  *        with a search filter excluding the set of associated ids fetched at 1.1 and not exceeding the last (or first) 
+    //  *        associated id in this set.
+    //  *    1.3 Join fetched items in 1.2 with previous ones if any: in @notAssociatedItemsEdges array.
+    //  *    1.4 Check number of items fetched:
+    //  *        1.4.1  If: fetched items are less than the requested number of items in 1.2 and there are more items:
+    //  *               1.4.1.1 Adjust pagination to get the next batch of associated ids and next not-associated items page.
+    //  *               1.4.1.2 @continue with next iteration.
+    //  *        1.4.2  Else: fetched items are equal to the requested number of items in 1.2 or there are no more items:
+    //  *               1.4.2.1 Return Connection with edges and pageInfo properly configured. 
+    //  *               1.4.2.2 @done
+    //  */
+
+    // //set direction
+    // let isForward = variables.pagination.first ? true : false;
+    // //set required number of items
+    // let requiredItems = isForward ? variables.pagination.first : variables.pagination.last;
+
+    // //initialize pagination for batch associated ids
+    // let batchPagination = {...variables.pagination, first: isForward ? batchSize : null, last: !isForward ? batchSize : null, includeCursor: false};
+    // let batchVariables = {pagination: batchPagination};
+    // let batchSearch = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops);
+    // let batchQuery = '';
+
+    // //initialize pagination for non-associated items
+    // let nonaPagination = {...variables.pagination};
+    // let nonaVariables = {pagination: nonaPagination};
+    // let nonaPageInfo = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+    // let nonaEdges = [];
+    // let nonaQuery = '';
+
+    // //general search ands filters
+    // let sands = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops, 'ands');
+
+    // /**
+    //  * Recursive fetch of not associated items algorithm (cursor-based-pagination):
+    //  *  1 Until @requiredItems are fetched, do:
+    //  * 
+    //  */
+    // let iteration = 0;
+    // let nonaSands = '';
+    // while(nonaEdges.length < requiredItems) {
+    //   //init with general search ands filters
+    //   nonaSands = sands;
+
+    //   /**
+    //    * 1.1 Get @batchSize associated ids.
+    //    * 
+    //    */
+    //   if(batchSearch) {
+    //     batchQuery =
+    //       `query readOne<%- nameCp _%>($pagination: paginationCursorInput) {
+    //         readOne<%- nameCp _%>(<%- internalId _%>: "${itemId}") {
+    //           <%- sortedAssociations[i].relationNameLc _%>Connection( ${batchSearch}, pagination: $pagination ) {
+    //             pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
+    //             edges {node {<%- sortedAssociations[i].internalId _%>}}
+    //         }}}`;
+    //   } else {
+    //     batchQuery =
+    //       `query readOne<%- nameCp _%>($pagination: paginationCursorInput) {
+    //         readOne<%- nameCp _%>(<%- internalId _%>: "${itemId}") {
+    //           <%- sortedAssociations[i].relationNameLc _%>Connection( pagination: $pagination ) {
+    //             pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
+    //             edges {node {<%- sortedAssociations[i].internalId _%>}}
+    //         }}}`;
+    //   }
+
+    //   /**
+    //    * Debug
+    //    */
+    //   console.log("getNotAssociated<%- sortedAssociations[i].relationNameCp %>.batchQuery: gql:\n", batchQuery);
+    //   console.log("getNotAssociated<%- sortedAssociations[i].relationNameCp %>.batchVariables: gql:\n", batchVariables);
+      
+    //   let batchConnection = null;
+    //   let response = await requestGraphql({ url, query:batchQuery, variables:batchVariables });
+    //   //check
+    //   let check = checkResponse(response, graphqlErrors, "readOne<%- nameCp _%>");
+    //   if(check === 'ok') {
+    //     if( response.data.data["readOne<%- nameCp _%>"] ) {
+    //       //check type
+    //       if(typeof response.data.data["readOne<%- nameCp _%>"] !== 'object'
+    //       || response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[i].relationNameLc _%>Connection"] === null
+    //       || typeof response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[i].relationNameLc _%>Connection"] !== 'object'
+    //       || !Array.isArray(response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[i].relationNameLc _%>Connection"].edges)
+    //       || typeof response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[i].relationNameLc _%>Connection"].pageInfo !== 'object' 
+    //       || response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[i].relationNameLc _%>Connection"].pageInfo === null)
+    //       return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+    //       //get value
+    //       batchConnection = response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[i].relationNameLc _%>Connection"];
+
+    //     } else return {data: response.data.data, value: null, message: 'bad_format', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+    //   } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+      
+    //   //get ids to exclude
+    //   let idsToExclude = batchConnection.edges.map(o => o.node.<%- sortedAssociations[i].internalId _%>);
+
+    //   /**
+    //    * Debug
+    //    */
+    //   console.log("@@-- iteration: ", iteration);
+    //   console.log("@@-- requiredItems: ", requiredItems);
+    //   console.log("@@-- batchConnection: ", batchConnection);
+    //   console.log("@@-- idsToExclude: ", idsToExclude);
+
+    //   /**
+    //    * 1.2 Get @requiredItems ( equal to @first or @last ) minus lenght.of( @notAssociatedItems already fetched) items, 
+    //    *      with a search filter excluding the set of associated ids fetched at 1.1 and not exceeding the last (or first) 
+    //    *      associated id in this set.
+    //    */
+    //   //case: there are associated items to exclude...
+    //   if(idsToExclude.length > 0) {
+    //     //add exclusions
+    //     let nonaOps = {
+    //       exclude: [{
+    //         type: '<%- sortedAssociations[i].internalIdType _%>',
+    //         values: {"<%- sortedAssociations[i].internalId _%>": idsToExclude}
+    //       }]
+    //     };
+        
+    //     //get search ands filters
+    //     let nonaSearchAnds = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, nonaOps, 'ands');
+    //     //add exclusion filters to general search ands
+    //     nonaSands += nonaSearchAnds;
+
+    //     if(isForward) {
+    //       //case: there are more associated ids...
+    //       if(batchConnection.pageInfo.hasNextPage) {
+    //         /**
+    //          * Debug
+    //          */
+    //         console.log("@@-- forward: limit next result to:  idsToExclude[last]: ", idsToExclude[idsToExclude.length-1]);
+
+    //         //make filter to limit results to before the last associated id.
+    //         let f1 = `{field: <%- sortedAssociations[i].internalId _%>, valueType: <%- sortedAssociations[i].internalIdType _%>, value: "${idsToExclude[idsToExclude.length-1]}", operator: lt}`;
+    //         let nf = `{operator: or, search: [ ${f1} ]}`;
+
+    //         //add new filter to general search ands
+    //         nonaSands += nf;
+    //       }
+    //     } else { //isBackward
+    //       //case: there are more associated ids...
+    //       if(batchConnection.pageInfo.hasPreviousPage) {
+    //         /**
+    //          * Debug
+    //          */
+    //         console.log("@@-- backward: limit next result to:  idsToExclude[first]: ", idsToExclude[0]);
+          
+    //         //make filter to limit results to after the first associated id.
+    //         let f1 = `{field: <%- sortedAssociations[i].internalId _%>, valueType: <%- sortedAssociations[i].internalIdType _%>, value: "${idsToExclude[0]}", operator: gt}`;
+    //         let nf = `{operator: or, search: [ ${f1} ]}`;
+
+    //         //add new filter to general search ands
+    //         nonaSands += nf;
+    //       }
+    //     }
+    //   } 
+
+    //   if(nonaSands !== '') {
+    //     //make search
+    //     let nonaSearch = `search: {operator:and, search: [ ${nonaSands} ]}`;
+    //     nonaQuery =
+    //       `query <%- sortedAssociations[i].targetModelPlLc _%>Connection($pagination: paginationCursorInput) {
     //           <%- sortedAssociations[i].targetModelPlLc _%>Connection( ${nonaSearch}, pagination: $pagination ) {
     //             pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
     //             edges {node {${qattributes}}}
@@ -1375,261 +1814,103 @@ export default {
     //       }}`;
     //   }
 
-
-      // {
-      //   users(pagination: {limit: 10}) {
-      //     id
-      //     email
-      //     rolesFilter(search: {field: id value: "2" valueType: Int operator: eq}){
-      //       id
-      //     }
-      //   }
-      // }
-
-    //}
-
-
-
-
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
-    //checks
-    if(!variables&&!variables.pagination&&typeof variables.pagination !== 'object' ) throw new Error("internal_error: pagination object expected");
-    if(!variables.pagination.first&&!variables.pagination.last ) throw new Error("internal_error: pagination first or last positive argument expected");
-
-    /**
-     * Recursive fetch of not associated items algorithm (cursor-based-pagination):
-     *  1 Until @requiredItems are fetched, do:
-     *    1.1 Get @batchSize associated ids.
-     *    1.2 Get @requiredItems ( equal to @first or @last ) minus lenght.of( @notAssociatedItems already fetched) items, 
-     *        with a search filter excluding the set of associated ids fetched at 1.1 and not exceeding the last (or first) 
-     *        associated id in this set.
-     *    1.3 Join fetched items in 1.2 with previous ones if any: in @notAssociatedItemsEdges array.
-     *    1.4 Check number of items fetched:
-     *        1.4.1  If: fetched items are less than the requested number of items in 1.2 and there are more items:
-     *               1.4.1.1 Adjust pagination to get the next batch of associated ids and next not-associated items page.
-     *               1.4.1.2 @continue with next iteration.
-     *        1.4.2  If: fetched items are equal to the requested number of items in 1.2 or there are no more items:
-     *               1.4.2.1 Return Connection with edges and pageInfo properly configured. 
-     *               1.4.2.2 @done
-     */
-
-    //set direction
-    let isForward = variables.pagination.first ? true : false;
-    //set required number of items
-    let requiredItems = isForward ? variables.pagination.first : variables.pagination.last;
-
-    //initialize pagination for batch associated ids
-    let batchPagination = {...variables.pagination, first: isForward ? batchSize : null, last: !isForward ? batchSize : null, includeCursor: false};
-    let batchVariables = {pagination: batchPagination};
-    let batchSearch = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops);
-    let batchQuery = '';
-
-    //initialize pagination for non-associated items
-    let nonaPagination = {...variables.pagination};
-    let nonaVariables = {pagination: nonaPagination};
-    let nonaPageInfo = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-    let nonaEdges = [];
-    let nonaQuery = '';
-
-    //general search ands filters
-    let sands = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, ops, true);
-
-    /**
-     * Recursive fetch of not associated items algorithm (cursor-based-pagination):
-     *  1 Until @requiredItems are fetched, do:
-     * 
-     */
-    while(nonaEdges.length < requiredItems) {
-
-      /**
-       * 1.1 Get @batchSize associated ids.
-       * 
-       */
-      if(batchSearch) {
-        batchQuery =
-          `query readOne<%- nameCp _%>($pagination: paginationCursorInput) {
-            readOne<%- nameCp _%>(<%- internalId _%>: "${itemId}") {
-              <%- sortedAssociations[i].targetModelPlLc _%>Connection( ${batchSearch}, pagination: $pagination ) {
-                pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
-                edges {node {<%- sortedAssociations[i].internalId _%>}}
-            }}}`;
-      } else {
-        batchQuery =
-          `query readOne<%- nameCp _%>($pagination: paginationCursorInput) {
-            readOne<%- nameCp _%>(<%- internalId _%>: "${itemId}") {
-              <%- sortedAssociations[i].targetModelPlLc _%>Connection( pagination: $pagination ) {
-                pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
-                edges {node {<%- sortedAssociations[i].internalId _%>}}
-            }}}`;
-      }
-
-      /**
-       * Debug
-       */
-      console.log("getNotAssociated<%- sortedAssociations[i].relationNameCp %>.batchQuery: gql:\n", batchQuery);
+    //   /**
+    //    * Debug
+    //    */
+    //   console.log("getNotAssociated<%- sortedAssociations[i].relationNameCp %>.nonaQuery: gql:\n", nonaQuery);
+    //   console.log("getNotAssociated<%- sortedAssociations[i].relationNameCp %>.nonaVariables: gql:\n", nonaVariables);
       
-      let batchConnection = null;
-      let response = await requestGraphql({ url, query:batchQuery, variables:batchVariables });
-      //check
-      let check = checkResponse(response, graphqlErrors, "readOne<%- nameCp _%>");
-      if(check === 'ok') {
-        if( response.data.data["readOne<%- nameCp _%>"] ) {
-          //check type
-          if(typeof response.data.data["readOne<%- nameCp _%>"] !== 'object'
-          || response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[i].targetModelPlLc _%>Connection"] === null
-          || typeof response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[i].targetModelPlLc _%>Connection"] !== 'object'
-          || !Array.isArray(response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[i].targetModelPlLc _%>Connection"].edges)
-          || typeof response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[i].targetModelPlLc _%>Connection"].pageInfo !== 'object' 
-          || response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[i].targetModelPlLc _%>Connection"].pageInfo === null)
-          return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+    //   /**
+    //    * Request
+    //    */
+    //   let nonaConnection = null;
+    //   response = await requestGraphql({ url, query:nonaQuery, variables:nonaVariables });
+    //   //check
+    //   check = checkResponse(response, graphqlErrors, "<%- sortedAssociations[i].targetModelPlLc _%>Connection");
+    //   if(check === 'ok') {
+    //     if( response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"] ) {
+    //       //check type
+    //       if(typeof response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"] !== 'object'
+    //       || !Array.isArray(response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"].edges)
+    //       || typeof response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"].pageInfo !== 'object' 
+    //       || response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"].pageInfo === null)
+    //       return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
 
-          //get value
-          batchConnection = response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[i].targetModelPlLc _%>Connection"];
+    //       //get value
+    //       nonaConnection = response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"];
 
-        } else return {data: response.data.data, value: null, message: 'bad_format', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-      } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-      
-      //get ids to exclude
-      let idsToExclude = batchConnection.edges.map(o => o.node.<%- sortedAssociations[i].internalId _%>);
+    //     } else return {data: response.data.data, value: null, message: 'bad_format', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+    //   } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
 
-      /**
-       * 1.2 Get @requiredItems ( equal to @first or @last ) minus lenght.of( @notAssociatedItems already fetched) items, 
-       *      with a search filter excluding the set of associated ids fetched at 1.1 and not exceeding the last (or first) 
-       *      associated id in this set.
-       */
-      //case: there are associated items to exclude...
-      if(idsToExclude.length > 0) {
-        //add exclusions
-        let nonaOps = {
-          exclude: [{
-            type: '<%- sortedAssociations[i].internalIdType _%>',
-            values: {"<%- sortedAssociations[i].internalId _%>": idsToExclude}
-          }]
-        };
+    //   /**
+    //    * Debug
+    //    */
+    //   console.log("@@-- nonaConnection: ", nonaConnection);
+
+    //   /**
+    //    * 1.3 Join fetched items in 1.2 with previous ones if any: in @notAssociatedItemsEdges array.
+    //    */
+    //   if(nonaConnection.edges.length > 0) { //if there are new items...
+    //     //adjust pageInfo for the first non associated items
+    //     if(nonaEdges.length === 0) {
+    //       nonaPageInfo = { ...nonaConnection.pageInfo};
+    //     } else {  //adjust pageInfo for the last non associated items
+    //       if(isForward) {
+    //         nonaPageInfo.endCursor = nonaConnection.pageInfo.endCursor;
+    //         nonaPageInfo.hasNextPage = nonaConnection.pageInfo.hasNextPage;
+    //       } else {
+    //         nonaPageInfo.startCursor = nonaConnection.pageInfo.startCursor;
+    //         nonaPageInfo.hasPreviousPage = nonaConnection.pageInfo.hasPreviousPage;
+    //       }
+    //     } 
+    //     //join new items      
+    //     if(isForward) nonaEdges = [...nonaEdges, ...nonaConnection.edges ];
+    //     else          nonaEdges = [...nonaConnection.edges, ...nonaEdges ];
+    //   }
+
+    //   /**
+    //    * Debug
+    //    */
+    //   console.log("@@-- nonaEdges: ", nonaEdges);
+
+    //   /**
+    //    * 1.4 Check number of items fetched:
+    //    *    1.4.1  If: fetched items are less than the requested number of items in 1.2 and there are more items:
+    //    *           1.4.1.1 Adjust pagination to get the next batch of associated ids and next not-associated items page.
+    //    *           1.4.1.2 @continue with next iteration.
+    //    *    1.4.2  If: fetched items are equal to the requested number of items in 1.2 or there are no more items:
+    //    *           1.4.2.1 Return Connection with edges and pageInfo properly configured. 
+    //    *           1.4.2.2 @done
+    //    */
+    //   let thereAreMoreItems = isForward ? batchConnection.pageInfo.hasNextPage : batchConnection.pageInfo.hasPreviousPage;
+
+    //   /**
+    //    * Debug
+    //    */
+    //   console.log("@@-- thereAreMoreItems: ", thereAreMoreItems);
+    //   console.log("@@-- nonaEdges.length : ", nonaEdges.length);
+
+    //   if(nonaEdges.length < requiredItems && thereAreMoreItems) {
+    //     //adjust pagination for next batch associated ids
+    //     batchPagination.after = isForward ? batchConnection.pageInfo.endCursor : null;
+    //     batchPagination.before = !isForward ? batchConnection.pageInfo.startCursor : null;
+    //     batchVariables = {pagination: batchPagination};
         
-        //get search ands filters
-        let nonaSearchAnds = getSearchArgument('<%- sortedAssociations[i].targetModelLc _%>', searchText, nonaOps, true);
-        //add exclusion filters to general search ands
-        sands += nonaSearchAnds;
+    //     //adjust pagination for the next non-associated items
+    //     nonaPagination.first = isForward ? (requiredItems - nonaEdges.length) : null;
+    //     nonaPagination.last = !isForward ? (requiredItems - nonaEdges.length) : null;
+    //     nonaPagination.after = isForward ? batchConnection.pageInfo.endCursor : null;
+    //     nonaPagination.before = !isForward ? batchConnection.pageInfo.startCursor : null;
+    //     nonaPagination.includeCursor = false;
+    //     nonaVariables = {pagination: nonaPagination};
 
-        if(isForward) {
-          //case: there are more associated ids...
-          if(batchConnection.pageInfo.hasNextPage) {
-            //make filter to limit results to before the last associated id.
-            let f1 = `{field: <%- sortedAssociations[i].internalId _%>, valueType: <%- sortedAssociations[i].internalIdType _%>, value: "${idsToExclude[idsToExclude.length-1]}", operator: lt}`;
-            let nf = `{operator: or, search: [ ${f1} ]}`;
-
-            //add new filter to general search ands
-            sands += nf;
-          }
-        } else { //isBackward
-          //case: there are more associated ids...
-          if(batchConnection.pageInfo.hasPreviousPage) {
-            //make filter to limit results to after the first associated id.
-            let f1 = `{field: <%- sortedAssociations[i].internalId _%>, valueType: <%- sortedAssociations[i].internalIdType _%>, value: "${idsToExclude[0]}", operator: gt}`;
-            let nf = `{operator: or, search: [ ${f1} ]}`;
-
-            //add new filter to general search ands
-            sands += nf;
-          }
-        }
-      } 
-
-      if(sands !== '') {
-        //make search
-        let nonaSearch = `search: {operator:and, search: [ ${sands} ]}`;
-        nonaQuery =
-          `query <%- sortedAssociations[i].targetModelPlLc _%>Connection($pagination: paginationCursorInput) {
-              <%- sortedAssociations[i].targetModelPlLc _%>Connection( ${nonaSearch}, pagination: $pagination ) {
-                pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
-                edges {node {${qattributes}}}
-            }}`;
-      } else {
-        nonaQuery =
-          `query <%- sortedAssociations[i].targetModelPlLc _%>Connection($pagination: paginationCursorInput) {
-            <%- sortedAssociations[i].targetModelPlLc _%>Connection( pagination: $pagination ) {
-              pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
-              edges {node {${qattributes}}}
-          }}`;
-      }
-
-      /**
-       * Debug
-       */
-      console.log("getNotAssociated<%- sortedAssociations[i].relationNameCp %>.nonaQuery: gql:\n", nonaQuery);
-      
-      let nonaConnection = null;
-      response = await requestGraphql({ url, query:nonaQuery, variables:nonaVariables });
-      //check
-      check = checkResponse(response, graphqlErrors, "<%- sortedAssociations[i].targetModelPlLc _%>Connection");
-      if(check === 'ok') {
-        if( response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"] ) {
-          //check type
-          if(typeof response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"] !== 'object'
-          || !Array.isArray(response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"].edges)
-          || typeof response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"].pageInfo !== 'object' 
-          || response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"].pageInfo === null)
-          return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-
-          //get value
-          nonaConnection = response.data.data["<%- sortedAssociations[i].targetModelPlLc _%>Connection"];
-
-        } else return {data: response.data.data, value: null, message: 'bad_format', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-      } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-
-      /**
-       * 1.3 Join fetched items in 1.2 with previous ones if any: in @notAssociatedItemsEdges array.
-       */
-      if(nonaConnection.edges.length > 0) { //if there are new items...
-        //adjust pageInfo for the first non associated items
-        if(nonaEdges.length === 0) {
-          nonaPageInfo = { ...nonaConnection.pageInfo};
-        } else {  //adjust pageInfo for the last non associated items
-          if(isForward) {
-            nonaPageInfo.endCursor = nonaConnection.pageInfo.endCursor;
-            nonaPageInfo.hasNextPage = nonaConnection.pageInfo.hasNextPage;
-          } else {
-            nonaPageInfo.startCursor = nonaConnection.pageInfo.startCursor;
-            nonaPageInfo.hasPreviousPage = nonaConnection.pageInfo.hasPreviousPage;
-          }
-        } 
-        //join new items      
-        if(isForward) nonaEdges = [...nonaEdges, ...nonaConnection.edges ];
-        else          nonaEdges = [...nonaConnection.edges, ...nonaEdges ];
-      }
-
-      /**
-       * 1.4 Check number of items fetched:
-       *    1.4.1  If: fetched items are less than the requested number of items in 1.2 and there are more items:
-       *           1.4.1.1 Adjust pagination to get the next batch of associated ids and next not-associated items page.
-       *           1.4.1.2 @continue with next iteration.
-       *    1.4.2  If: fetched items are equal to the requested number of items in 1.2 or there are no more items:
-       *           1.4.2.1 Return Connection with edges and pageInfo properly configured. 
-       *           1.4.2.2 @done
-       */
-      let thereAreMoreItems = isForward ? batchConnection.hasNextPage : batchConnection.hasPreviousPage;
-
-      if(nonaEdges.length < requiredItems && thereAreMoreItems) {
-        //adjust pagination for next batch associated ids
-        batchPagination.after = isForward ? batchConnection.pageInfo.endCursor : null;
-        batchPagination.before = !isForward ? batchConnection.pageInfo.startCursor : null;
-        batchVariables = {pagination: batchPagination};
-        
-        //adjust pagination for the next non-associated items
-        nonaPagination.first = isForward ? (requiredItems - nonaEdges.length) : null;
-        nonaPagination.last = !isForward ? (requiredItems - nonaEdges.length) : null;
-        nonaPagination.after = isForward ? batchConnection.pageInfo.endCursor : null;
-        nonaPagination.before = !isForward ? batchConnection.pageInfo.startCursor : null;
-        nonaPagination.includeCursor = false;
-        nonaVariables = {pagination: nonaPagination};
-
-        //continue with next iteration...
-      } else {        
-        let connection = {pageInfo: nonaPageInfo, edges: nonaEdges};
-        //ok
-        return {value: connection, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-      }
-    }//end: while()
+    //     //continue with next iteration...
+    //   } else {        
+    //     let connection = {pageInfo: nonaPageInfo, edges: nonaEdges};
+    //     //ok
+    //     return {value: connection, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+    //   }
+    // }//end: while()
 <%}-%>
 <%}-%> 
   },

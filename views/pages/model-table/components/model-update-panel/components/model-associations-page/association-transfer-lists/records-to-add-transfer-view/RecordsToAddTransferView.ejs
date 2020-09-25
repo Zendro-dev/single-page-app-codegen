@@ -1013,7 +1013,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
       item.<%- internalId _%>,
       ops,
 <%_if( isManyToMany ){-%>
-      maxRecordLimit ? Math.floor(maxRecordLimit/2) : 5000, //batch size
+      maxRecordLimit ? Math.floor(maxRecordLimit/2) : 5, //batch size
 <%}-%>
     ));
 <%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
@@ -1029,7 +1029,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
       item.<%- internalId _%>,
       ops,
 <%_if( isManyToMany ){-%>
-      maxRecordLimit ? Math.floor(maxRecordLimit/2) : 5000, //batch size
+      maxRecordLimit ? Math.floor(maxRecordLimit/2) : 5, //batch size
 <%}-%>
     ));
 <%}-%>

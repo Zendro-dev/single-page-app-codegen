@@ -639,6 +639,11 @@ exports.addKeyRelationName = function(opts, status) {
                */
               if(opts[i].sortedAssociations[j].keysIn === association.keysIn) {
                 foundPeerAssociation = true;
+                
+                association.peerAssociationName = opts[i].sortedAssociations[j].relationName;
+                association.peerAssociationNameCp = opts[i].sortedAssociations[j].relationNameCp;
+                association.peerAssociationNameLc = opts[i].sortedAssociations[j].relationNameLc;
+                association.peerAssociationNameOnPascal = opts[i].sortedAssociations[j].relationNameOnPascal;
 
                 /**
                  * Check: crossed attributes
