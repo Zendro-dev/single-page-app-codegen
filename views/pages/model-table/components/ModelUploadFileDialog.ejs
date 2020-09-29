@@ -43,7 +43,7 @@ export default function <%- nameOnPascal -%>UploadFileDialog(props) {
   const [maxSizeError, setMaxSizeError] = useState(false);
   const file = useRef(null);
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl);
-  const appMaxUploadSize = useSelector(state => state.limits.appMaxUploadSize);
+  const maxUploadSize = useSelector(state => state.limits.maxUploadSize);
 
   //debouncing & event contention
   const isUploading = useRef(false);
@@ -151,7 +151,7 @@ export default function <%- nameOnPascal -%>UploadFileDialog(props) {
           }}
           onChange={(event) => {
             if(event.target.files.length > 0) {
-              if( (event.target.files[0].size / (1024*1024)) > appMaxUploadSize ) {
+              if( (event.target.files[0].size / (1024*1024)) > maxUploadSize ) {
                 setMaxSizeError(true);
                 setFileChosen(true);
                 file.current = null;
@@ -170,7 +170,7 @@ export default function <%- nameOnPascal -%>UploadFileDialog(props) {
 
         {(maxSizeError) && (
           <Typography className={classes.text} color="secondary" variant="overline">
-              {t('modelPanels.messages.msg3') + String(appMaxUploadSize) + ' MB'}
+              {t('modelPanels.messages.msg3') + String(maxUploadSize) + ' MB'}
           </Typography>
         )}
       </DialogContent>

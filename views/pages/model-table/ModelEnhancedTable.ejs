@@ -881,9 +881,11 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     //update ref
     rowsPerPageRef.current = rowsPerPage;
     
+    //check strict contention
+    if(isOnApiRequestRef.current) { return; }
+
     //reload
-    if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
-    else { isPendingApiRequestRef.current = true; }
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
   }, [rowsPerPage]);
 <%} else if(paginationType === 'cursorBased') {-%>
   useEffect(() => {

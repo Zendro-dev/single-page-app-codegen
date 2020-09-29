@@ -1759,9 +1759,11 @@ const cancelableCountingPromises = useRef([]);
     //update ref
     rowsPerPageRef.current = rowsPerPage;
     
+    //check strict contention
+    if(isOnApiRequestRef.current) { return; }
+
     //reload
-    if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
-    else { isPendingApiRequestRef.current = true; }
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
   }, [rowsPerPage]);
 <%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
   useEffect(() => {
@@ -1785,10 +1787,12 @@ const cancelableCountingPromises = useRef([]);
   useEffect(() => {
     //update ref
     rowsPerPageRefB.current = rowsPerPageB;
-    
+
+    //check strict contention
+    if(isOnApiRequestRefB.current) { return; }
+
     //reload
-    if (!isOnApiRequestRefB.current) { setDataTriggerB(prevDataTrigger => !prevDataTrigger); } 
-    else { isPendingApiRequestRefB.current = true; }
+    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
   }, [rowsPerPageB]);
 <%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
   useEffect(() => {
@@ -1803,7 +1807,7 @@ const cancelableCountingPromises = useRef([]);
     //configure pagination
     configurePaginationB('reset');
     //reload    
-    setDataTriggerB(prevDataTrigger => !prevDataTrigger);
+    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
   }, [rowsPerPageB, configurePaginationB]);
 <%}-%>
 <%}-%>

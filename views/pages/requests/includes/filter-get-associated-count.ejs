@@ -1,0 +1,39 @@
+/**
+ * Filter:
+ *  Get count of associated <%- sortedAssociations[aindex].relationNameCp %> items.
+ * 
+ */
+<%_if( sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many' ){-%>
+  /**
+   * get<%- sortedAssociations[aindex].relationNameCp %>Count
+   * 
+   * Get <%- sortedAssociations[aindex].targetModelPlLc %> records count associated to the given <%- nameLc %> record
+   * through association '<%- sortedAssociations[aindex].relationNameCp %>', from GraphQL Server.
+   * 
+   * 
+   * @param {String} url GraphQL Server url
+   * @param {Number} itemId Model item internalId.
+   * @param {String} searchText Text string currently on search bar.
+   * @param {String} ops Object with adittional query options.
+   */
+  get<%- sortedAssociations[aindex].relationNameCp %>Count(url, itemId, searchText, ops) {
+    let variables = {};
+    //id
+    variables["<%- internalId _%>"] = itemId;
+    //search
+    let s = getSearchArgument('<%- sortedAssociations[aindex].targetModelLc _%>', searchText, ops, 'object');
+    if(s) variables.search = s.search;
+    //query
+    let query =
+      `query readOne<%- nameCp _%>($<%- internalId _%>:ID!, $search: search<%- sortedAssociations[aindex].targetModelCp _%>Input) { 
+             readOne<%- nameCp _%>(<%- internalId _%>:$<%- internalId _%>) {
+              countFiltered<%- sortedAssociations[aindex].relationNameCp %>(search: $search) 
+       }}`
+
+    /**
+     * Debug
+     */
+    if(globals.REQUEST_LOGGER) logRequest('get<%- sortedAssociations[aindex].relationNameCp %>Count', query, variables);
+    return requestGraphql({ url, query, variables });
+  },
+<%}-%>

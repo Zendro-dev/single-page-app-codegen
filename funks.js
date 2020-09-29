@@ -555,6 +555,8 @@ exports.addKeyRelationName = function(opts, status) {
   let errorsC = []; //check C: peerA.model should be = peerB.targetModel
   let errorsD = []; //check D: peerA.targetKey should be = peerB.sourceKey
   let errorsE = []; //check E: peerA.sourceKey should be = peerB.targetKey
+  let errorsF = []; //check F: target model not found && is many_to_many
+  let errorsG = []; //check G: peer association not found && is many_to_many
   
   //for each model
   opts.forEach( (opt) => {
@@ -640,6 +642,7 @@ exports.addKeyRelationName = function(opts, status) {
               if(opts[i].sortedAssociations[j].keysIn === association.keysIn) {
                 foundPeerAssociation = true;
                 
+                //set peer association names
                 association.peerAssociationName = opts[i].sortedAssociations[j].relationName;
                 association.peerAssociationNameCp = opts[i].sortedAssociations[j].relationNameCp;
                 association.peerAssociationNameLc = opts[i].sortedAssociations[j].relationNameLc;
@@ -692,17 +695,47 @@ exports.addKeyRelationName = function(opts, status) {
             }
           }//end: for each association on target model: find peer
 
-          //check
+          /**
+           * Checks: peer association not found
+           * 
+           * (B) peer association not found on to_one or to_many: warning
+           * (G) peer association not found on many_to_many:      error
+           */
           if(!foundPeerAssociation) {
-            warningsB.push({model: opt.name, association: association.relationName, targetKey: association.targetKey, targetModel: association.targetModel});
+            if(association.type === 'to_many_through_sql_cross_table') {
+              //error: on check: (G)
+              errorsG.push({
+                model: opt.name, 
+                association: association.relationName,
+                keysIn: association.keysIn, 
+                targetModel: association.targetModel,
+              });
+            }else {//warning: on check (B)
+              warningsB.push({model: opt.name, association: association.relationName, targetKey: association.targetKey, targetModel: association.targetModel});
+            }
           }
 
         }//end: Case: target model found
 
       }//end: for each model: find target model
-      //check
+      /**
+       * Checks: target model not found
+       * 
+       * (A) target model not found on to_one or to_many: warning
+       * (F) target model not found on many_to_many:      error
+       */
       if(!foundTargetModel) {
-        warningsA.push({model: opt.name, association: association.relationName, targetModel: association.targetModel});
+        if(association.type === 'to_many_through_sql_cross_table') {
+          //error: on check: (F)
+          errorsG.push({
+            model: opt.name, 
+            association: association.relationName,
+            keysIn: association.keysIn, 
+            targetModel: association.targetModel,
+          });
+        }else {//warning: on check (A)
+          warningsA.push({model: opt.name, association: association.relationName, targetModel: association.targetModel});
+        }
       }
     }); //end: for each association: add keyRelationName & do checks.
   }); //end: for each model: add keyRelationName & do checks on each association.
@@ -745,9 +778,19 @@ exports.addKeyRelationName = function(opts, status) {
   errorsE.forEach((e) => {
     console.log(colors.yellow('@@Error: Incorrect association definitions peer'), 'on model:', colors.blue(e.model), 'on associaton:', colors.blue(e.association), 'with <sourceKey>:', colors.blue(e.sourceKey), '- <targetKey> in peer association should be equal to <sourceKey> in this association, but got: <targetKey>:', colors.yellow(e.peerAssociationTargetKey), 'in peer:', colors.yellow(e.targetModel+'-'+e.peerAssociationName));
   });
+
+  //errorsF: target model not found on many_to_many
+  errorsF.forEach((e) => {
+    console.log(colors.yellow('@@Error: Incomplete association definition'), 'on model:', colors.blue(e.model), 'on associaton:', colors.blue(e.association), 'with <keysIn>:', colors.blue(e.keysIn), '- Association target model:', colors.yellow(e.targetModel), 'not found.');
+  });
+
+  //errorsG: peer association not found on many_to_many
+  errorsG.forEach((e) => {
+    console.log(colors.yellow('@@Error: Incomplete association definition'), 'on model:', colors.blue(e.model), 'on associaton:', colors.blue(e.association), 'with <keysIn>:', colors.blue(e.keysIn), '- Peer association on keysIn:', colors.yellow(e.keysIn), 'not found on target model:', colors.yellow(e.targetModel));
+  });
  
   //throws if there is any error
-  if(errorsA.length > 0 || errorsB.length > 0 || errorsC.length > 0 || errorsD.length > 0 || errorsE.length > 0) {
+  if(errorsA.length > 0 || errorsB.length > 0 || errorsC.length > 0 || errorsD.length > 0 || errorsE.length > 0 || errorsF.length > 0 || errorsG.length > 0) {
     throw new Error("Incorrect association definition");
   }
 }

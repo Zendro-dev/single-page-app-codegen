@@ -6,6 +6,8 @@ let isToOne = ( sortedAssociations[aindex].type === 'to_one' || sortedAssociatio
 let isToMany = ( sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many' );
 let isOneToMany = ( sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'generic_to_many' );
 let isManyToMany = ( sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' );
+let isCursorBased = ( sortedAssociations[aindex].paginationType === 'cursorBased' || isManyToMany );
+let isLimitOffset = ( sortedAssociations[aindex].paginationType === 'limitOffset' && !isManyToMany );
 -%>
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -19,9 +21,9 @@ import PropTypes from 'prop-types';
 import api from '../../../../../../../../../../../requests/requests.index.js';
 import { makeCancelable } from '../../../../../../../../../../../utils'
 import <%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferViewToolbar from './components/<%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferViewToolbar';
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%if(isCursorBased) {-%>
 import <%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferViewCursorPagination from './components/<%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferViewCursorPagination';
-<%} else if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%} else if(isLimitOffset) {-%>
 import TablePagination from '@material-ui/core/TablePagination';
 <%}-%>
 import Typography from '@material-ui/core/Typography';
@@ -138,11 +140,11 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   const pageRef = useRef(0);
   const rowsPerPageRef = useRef(10);
   const lastFetchTime = useRef(null);
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
   const [isCounting, setIsCounting] = useState(true);
 <%}-%>
   const isCountingRef = useRef(false);
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%if(isCursorBased) {-%>
   const [hasPreviousPage, setHasPreviousPage] = useState(false);
   const [hasNextPage, setHasNextPage] = useState(false);
   const pageInfo = useRef({startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false});
@@ -176,11 +178,11 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 <%}-%>
   const lastFetchTimeB = useRef(null);
 <%_if( isToMany ){-%>
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
   const [isCountingB, setIsCountingB] = useState(true);
 <%}-%>
   const isCountingRefB = useRef(false);
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%if(isCursorBased) {-%>
   const [hasPreviousPageB, setHasPreviousPageB] = useState(false);
   const [hasNextPageB, setHasNextPageB] = useState(false);
   const pageInfoB = useRef({startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false});
@@ -315,10 +317,10 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 <%_if( isToOne ){-%>
     *  showMessageE
 <%}-%>
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%if(isCursorBased) {-%>
     *  configurePagination
 <%}-%>
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased' && isToMany) {-%>
+<%if(isCursorBased && isToMany) {-%>
     *  configurePaginationB
 <%}-%>
     *  clearRequestGetData
@@ -418,7 +420,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   },[enqueueSnackbar]);
 <%}-%>
 
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%if(isCursorBased) {-%>
   /**
    * configurePagination
    * 
@@ -526,7 +528,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 <%}-%>
 
 <%_if( isToMany ){-%>
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%if(isCursorBased) {-%>
   /**
    * configurePaginationB
    * 
@@ -635,24 +637,24 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 <%}-%>
 
   const clearRequestGetData = useCallback(() => {
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%if(isCursorBased) {-%>
     //configure pagination
     configurePagination('reset');
 <%}-%>          
     setItems([]);
     isOnApiRequestRef.current = false;
     setIsOnApiRequest(false);
-  },[<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>configurePagination<%}-%>]);
+  },[<%if(isCursorBased) {-%>configurePagination<%}-%>]);
 
   const clearRequestGetDataB = useCallback(() => {
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased' && isToMany) {-%>
+<%if(isCursorBased && isToMany) {-%>
     //configure pagination
     configurePaginationB('reset');
 <%}-%>  
     setItemsB([]);
     isOnApiRequestRefB.current = false;
     setIsOnApiRequestB(false);
-  },[<%if(sortedAssociations[aindex].paginationType === 'cursorBased' && isToMany) {-%>configurePaginationB<%}-%>]);
+  },[<%if(isCursorBased && isToMany) {-%>configurePaginationB<%}-%>]);
 
 <%# 
 /**
@@ -666,7 +668,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
    */
   let methodName0 = 'getAssociatedItem()';
   let queryName0 = 'readOne'+nameCp;
-  let requestName0 =  sortedAssociations[aindex].paginationType === 'limitOffset' ? 'api.'+nameLc+'.getAssociated'+sortedAssociations[aindex].relationNameCp : 'api.'+nameLc+'.getAssociated'+sortedAssociations[aindex].relationNameCp+'Connection';
+  let requestName0 =  isLimitOffset ? 'api.'+nameLc+'.getAssociated'+sortedAssociations[aindex].relationNameCp : 'api.'+nameLc+'.getAssociated'+sortedAssociations[aindex].relationNameCp+'Connection';
 -%>
   /**
    * getAssociatedItem
@@ -682,9 +684,9 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
     /*
       API Request: <%- queryName0 %>
     */
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
     let cancelableApiReq = makeCancelable(api.<%- nameLc _%>.getAssociated<%- sortedAssociations[aindex].relationNameCp _%>(graphqlServerUrl, item.<%- internalId _%>));
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
     let cancelableApiReq = makeCancelable(api.<%- nameLc _%>.getAssociated<%- sortedAssociations[aindex].relationNameCp _%>Connection(graphqlServerUrl, item.<%- internalId _%>));  
 <%}-%>
     cancelablePromises.current.push(cancelableApiReq);
@@ -815,7 +817,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
     if(isCountingRef.current) return;
 
     cancelCountingPromises();
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
     setIsCounting(true);
 <%}-%>
     isCountingRef.current = true;
@@ -890,12 +892,12 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 
           //ok
           setCount(response.value);
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
           setIsCounting(false);
 <%}-%>
           isCountingRef.current = false;
 
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
           /*
             Check: empty page
           */
@@ -1002,7 +1004,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
     /*
       API Request: <%- requestName1 %>
     */
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
     let cancelableApiReq = makeCancelable(api.<%- nameLc _%>.getNotAssociated<%- sortedAssociations[aindex].relationNameCp _%>(
       graphqlServerUrl,
       search,
@@ -1016,7 +1018,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
       maxRecordLimit ? Math.floor(maxRecordLimit/2) : 5, //batch size
 <%}-%>
     ));
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
     let variables = {
       pagination: {...paginationRef.current}
     };
@@ -1059,10 +1061,10 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
             showMessage(newError.message, withDetails);
           }
 
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
           //get items
           let its = response.value;
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
           //get items
           let its = response.value.edges.map(o => o.node);
           let pi = response.value.pageInfo;
@@ -1097,7 +1099,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 
           //ends request
           isOnApiRequestRef.current = false;
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%if(isCursorBased) {-%>
           isCursorPaginating.current = false;
 <%}-%>
           setIsOnApiRequest(false);
@@ -1144,7 +1146,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
           return;
         }
       });
-  }, [graphqlServerUrl, showMessage, clearRequestGetData, getCount, t, item.<%- internalId _%>, dataTrigger, search<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>, configurePagination<%}-%><%if(isToOne) {-%>, getAssociatedItem<%}-%><%if(isManyToMany) {-%>, maxRecordLimit<%}-%>]);
+  }, [graphqlServerUrl, showMessage, clearRequestGetData, getCount, t, item.<%- internalId _%>, dataTrigger, search<%if(isCursorBased) {-%>, configurePagination<%}-%><%if(isToOne) {-%>, getAssociatedItem<%}-%><%if(isManyToMany) {-%>, maxRecordLimit<%}-%>]);
 
 <%_if( isToMany ){-%>
 <%
@@ -1168,7 +1170,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
     if(isCountingRefB.current) return;
 
     cancelCountingPromisesB();
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
     setIsCountingB(true);
 <%}-%>
     isCountingRefB.current = true;
@@ -1211,7 +1213,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
         }]
       };
     } else {
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
       setIsCountingB(false);
 <%}-%>
       isCountingRefB.current = false;
@@ -1282,7 +1284,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 
         //ok
         setCountB(<%- queryName6 %>);
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
         setIsCountingB(false);
 <%}-%>
         isCountingRefB.current = false;
@@ -1301,7 +1303,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 
           showMessageD(newError.message, withDetails);
         }
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
 
         /*
           Check: empty page
@@ -1359,8 +1361,8 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
    * names
    */
   let methodName4 = 'getDataB()';
-  let queryName4 = sortedAssociations[aindex].paginationType === 'limitOffset' ? sortedAssociations[aindex].targetModelPlLc : sortedAssociations[aindex].targetModelPlLc+'Connection';
-  let requestName4 =  sortedAssociations[aindex].paginationType === 'limitOffset' ? 'api.'+sortedAssociations[aindex].targetModelLc+'.getItems' : 'api.'+sortedAssociations[aindex].targetModelLc+'.getItemsConnection';
+  let queryName4 = isLimitOffset ? sortedAssociations[aindex].targetModelPlLc : sortedAssociations[aindex].targetModelPlLc+'Connection';
+  let requestName4 =  isLimitOffset ? 'api.'+sortedAssociations[aindex].targetModelLc+'.getItems' : 'api.'+sortedAssociations[aindex].targetModelLc+'.getItemsConnection';
 -%>
   /**
    * getDataB
@@ -1397,7 +1399,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
       return;
     }
 
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
     /*
       API Request: <%- queryName4 %>
     */
@@ -1415,7 +1417,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 <%}-%>
       ops
     ));
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
     /*
       API Request: <%- queryName4 %>
     */
@@ -1479,7 +1481,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
           return;
         }
         
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
         //check: <%- queryName4 %> type
         if(!Array.isArray(<%- queryName4 %>)) {
           let newError = {};
@@ -1514,7 +1516,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
           showMessageB(newError.message, withDetails);
         }
 
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
         //check: <%- queryName4 %> type
         if(typeof <%- queryName4 %> !== 'object'
         || !Array.isArray(<%- queryName4 %>.edges)
@@ -1588,7 +1590,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
         //ends request
         isOnApiRequestRefB.current = false;
 <%_if( isToMany ){-%>
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%if(isCursorBased) {-%>
         isCursorPaginatingB.current = false;
 <%}-%>
 <%}-%>
@@ -1621,7 +1623,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
           return;
         }
       });
-  }, [graphqlServerUrl, showMessageB, clearRequestGetDataB, t, item.<%- internalId _%>, dataTriggerB, searchB<%if( isToMany ) {-%>, getCountB<%}-%><%if(sortedAssociations[aindex].paginationType === 'cursorBased' && isToMany) {-%>, configurePaginationB<%}-%>]);
+  }, [graphqlServerUrl, showMessageB, clearRequestGetDataB, t, item.<%- internalId _%>, dataTriggerB, searchB<%if( isToMany ) {-%>, getCountB<%}-%><%if(isCursorBased && isToMany) {-%>, configurePaginationB<%}-%>]);
 
   /**
    * Effects
@@ -1743,7 +1745,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
           isCountingRefB.current = false;
 <%}-%>
 
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
           //reload A
           if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); }
           else { isPendingApiRequestRef.current = true; getCount(); }
@@ -1754,7 +1756,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 <%} else {-%>
           else { isPendingApiRequestRefB.current = true; }
 <%}-%> 
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
           //strict contention
           if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
             //configure A
@@ -1831,7 +1833,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                   isCountingRefB.current = false;
 <%}-%>
 
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
                   //reload A
                   if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); }
                   else { isPendingApiRequestRef.current = true; getCount(); }
@@ -1842,7 +1844,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 <%} else {-%>
                   else { isPendingApiRequestRefB.current = true; }
 <%}-%> 
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
                   //strict contention
                   if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
                     //configure A
@@ -1907,7 +1909,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                   isCountingRefB.current = false;
 <%}-%>
 
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
                   //reload A
                   if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); }
                   else { isPendingApiRequestRef.current = true; getCount(); }
@@ -1918,7 +1920,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 <%} else {-%>
                   else { isPendingApiRequestRefB.current = true; }
 <%}-%> 
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
                   //strict contention
                   if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
                     //configure A
@@ -2072,7 +2074,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
           isCountingRefB.current = false;
 <%}-%>
 
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
           //reload A
           if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); }
           else { isPendingApiRequestRef.current = true; getCount(); }
@@ -2083,7 +2085,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 <%} else {-%>
           else { isPendingApiRequestRefB.current = true; }
 <%}-%> 
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
           //strict contention
           if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
             //configure A
@@ -2114,7 +2116,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
         }
       });
     }//end: Case 3
-  }, [lastModelChanged, lastChangeTimestamp, items, itemsB, item.<%- internalId _%>, handleUntransfer, getCount, count<%_if( isToMany ){-%>, getCountB, countB<%}-%><%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>, configurePagination<%}-%><%if(sortedAssociations[aindex].paginationType === 'cursorBased' && isToMany) {-%>, configurePaginationB<%}-%><%_if( isToOne ){-%>, associatedItem<%}-%>]);
+  }, [lastModelChanged, lastChangeTimestamp, items, itemsB, item.<%- internalId _%>, handleUntransfer, getCount, count<%_if( isToMany ){-%>, getCountB, countB<%}-%><%if(isCursorBased) {-%>, configurePagination<%}-%><%if(isCursorBased && isToMany) {-%>, configurePaginationB<%}-%><%_if( isToOne ){-%>, associatedItem<%}-%>]);
 
   useEffect(() => {
     //return if this flag is set
@@ -2152,16 +2154,18 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
     }
   }, [pageB]);
 
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
   useEffect(() => {
     //update ref
     rowsPerPageRef.current = rowsPerPage;
-    
+
+    //check strict contention
+    if(isOnApiRequestRef.current) { return; }
+
     //reload
-    if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
-    else { isPendingApiRequestRef.current = true; }
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
   }, [rowsPerPage]);
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
   useEffect(() => {
     //update ref
     rowsPerPageRef.current = rowsPerPage;
@@ -2179,16 +2183,18 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 <%}-%>
 
 <%_if( isToMany ){-%>
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
   useEffect(() => {
     //update ref
     rowsPerPageRefB.current = rowsPerPageB;
-    
+
+    //check strict contention
+    if(isOnApiRequestRefB.current) { return; }
+
     //reload
-    if (!isOnApiRequestRefB.current) { setDataTriggerB(prevDataTrigger => !prevDataTrigger); } 
-    else { isPendingApiRequestRefB.current = true; }
+    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
   }, [rowsPerPageB]);
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
   useEffect(() => {
     //update ref
     rowsPerPageRefB.current = rowsPerPageB;
@@ -2201,7 +2207,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
     //configure pagination
     configurePaginationB('reset');
     //reload    
-    setDataTriggerB(prevDataTrigger => !prevDataTrigger);
+    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
   }, [rowsPerPageB, configurePaginationB]);
 <%}-%>
 <%}-%>
@@ -2210,10 +2216,10 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   useEffect(() => {
     if (!isOnApiRequest && isPendingApiRequestRef.current) {
       isPendingApiRequestRef.current = false;
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
       //reload
       setDataTrigger(prevDataTrigger => !prevDataTrigger);
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
       //configure
       configurePagination('reload');
       //reload
@@ -2221,15 +2227,15 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 <%}-%>
     }
     updateHeights();
-  }, [isOnApiRequest<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>, configurePagination<%}-%>]);
+  }, [isOnApiRequest<%if(isCursorBased) {-%>, configurePagination<%}-%>]);
 
   useEffect(() => {
     if (!isOnApiRequestB && isPendingApiRequestRefB.current) {
       isPendingApiRequestRefB.current = false;
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
       //reload
       setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
 <%_if( isToMany ){-%>
       //configure
       configurePaginationB('reload');
@@ -2239,7 +2245,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 <%}-%>
     }
     updateHeights();
-  }, [isOnApiRequestB<%if(sortedAssociations[aindex].paginationType === 'cursorBased' && isToMany) {-%>, configurePaginationB<%}-%>]);
+  }, [isOnApiRequestB<%if(isCursorBased && isToMany) {-%>, configurePaginationB<%}-%>]);
 
   useEffect(() => {
     if(Array.isArray(items) && items.length > 0) { 
@@ -2285,7 +2291,7 @@ function updateHeights() {
   }
 }
 
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
   function resetPageRefs() {
     pageRef.current = 0;
   }
@@ -2310,10 +2316,10 @@ function updateHeights() {
 <%}-%>
 
   function reloadDataA() {
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
     //reload A
     setDataTrigger(prevDataTrigger => !prevDataTrigger); 
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
     //configure A
     configurePagination('reload');
     //reload A
@@ -2322,10 +2328,10 @@ function updateHeights() {
   }
 
   function reloadDataB() {
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
     //reload B
     setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
 <%_if( isToMany ){-%>
     //configure B
     configurePaginationB('reload');    
@@ -2345,7 +2351,7 @@ function updateHeights() {
   const handleSearchEnter = text => {
     if(text !== search)
     {
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
       resetPageRefs();
 <%}-%>
       if(page !== 0) {
@@ -2365,7 +2371,7 @@ function updateHeights() {
   const handleSearchEnterB = text => {
     if(text !== searchB)
     {
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
       resetPageRefsB();
 <%}-%>
       if(pageB !== 0) {
@@ -2385,7 +2391,7 @@ function updateHeights() {
   /*
    * Pagination handlers
    */
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -2397,7 +2403,7 @@ function updateHeights() {
 <%}-%>
 <%}-%>
 
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%if(isCursorBased) {-%>
   const handleFirstPageButtonClick = (event) => {
     //strict contention
     if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
@@ -2500,7 +2506,7 @@ function updateHeights() {
 const handleChangeRowsPerPage = event => {
   if(event.target.value !== rowsPerPage)
   {
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
     resetPageRefs();
 <%}-%>
     if(page !== 0) {
@@ -2516,7 +2522,7 @@ const handleChangeRowsPerPage = event => {
 const handleChangeRowsPerPageB = event => {
   if(event.target.value !== rowsPerPageB)
   {
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
     resetPageRefsB();
 <%}-%>
     if(pageB !== 0) {
@@ -2528,14 +2534,14 @@ const handleChangeRowsPerPageB = event => {
 };
 <%}-%>
 
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
 const handleReloadClick = (event) => {
   resetReloadDataA();
 };
 const handleReloadClickB = (event) => {
   resetReloadDataB();
 };
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
 const handleReloadClick = (event) => {
   //check strict contention
   if(isOnApiRequestRef.current || isCursorPaginating.current) { return; }
@@ -2591,10 +2597,10 @@ const handleReloadClickB = (event) => {
       //will count B
       cancelCountingPromisesB();
       isCountingRefB.current = false;
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
       //reset B
       resetReloadDataB();
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
       //configure B
       configurePaginationB('reset');
       //reload B
@@ -2624,10 +2630,10 @@ const handleReloadClickB = (event) => {
 
       //reload A
       reloadDataA();
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
       //reset B
       resetReloadDataB();
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
       //reload B
       setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
 <%}-%>
@@ -2651,10 +2657,10 @@ const handleReloadClickB = (event) => {
       //will count A
       cancelCountingPromises();
       isCountingRef.current = false;
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
       //reset A
       resetReloadDataA();
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
       //configure A
       configurePaginationB('reset');
       //reload A
@@ -2683,10 +2689,10 @@ const handleReloadClickB = (event) => {
         cancelCountingPromises();
         isCountingRef.current = false;
       }
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
       //reset A
       resetReloadDataA();
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
       //reload A
       setDataTrigger(prevDataTrigger => !prevDataTrigger);
 <%}-%>
@@ -2872,7 +2878,7 @@ const handleReloadClickB = (event) => {
               )}
 
               {/* Pagination */}
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
               <TablePagination
                 rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
                 component="div"
@@ -2884,7 +2890,7 @@ const handleReloadClickB = (event) => {
                 onChangePage={handleChangePage}
                 onChangeRowsPerPage={handleChangeRowsPerPage}
             />
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
               <<%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferViewCursorPagination
                 count={count}
                 rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
@@ -3155,7 +3161,7 @@ const handleReloadClickB = (event) => {
 
 <%if( isToMany ) {-%>
               {/* Pagination */}
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
               <TablePagination
                 rowsPerPageOptions={(countB <=10) ? [] : (countB <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
                 component="div"
@@ -3167,7 +3173,7 @@ const handleReloadClickB = (event) => {
                 onChangePage={handleChangePageB}
                 onChangeRowsPerPage={handleChangeRowsPerPageB}
               />
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>                
+<%} else if(isCursorBased) {-%>                
               <<%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferViewCursorPagination
                 count={countB}
                 rowsPerPageOptions={(countB <=10) ? [] : (countB <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
