@@ -1,0 +1,37 @@
+/**
+ * Root query
+ * ----------
+ */
+  /**
+   * tableTemplate
+   *
+   * Get <%- nameLc _%> table template from GraphQL Server.
+   * (root query)
+   *
+   * @param {String} url GraphQL Server url
+   */
+  async tableTemplate(url) {
+    let query = `query {csvTableTemplate<%- nameCp _%>}`;
+
+    /**
+     * Debug
+     */
+    if(globals.REQUEST_LOGGER) logRequest('tableTemplate', query );
+
+    //request
+    let response = await requestGraphql({ url, query });
+    let headers = null;
+    //check
+    check = checkResponse(response, graphqlErrors, "csvTableTemplate<%- nameCp _%>");
+    if(check === 'ok') {
+      //check type
+      if(!Array.isArray(response.data.data["csvTableTemplate<%- nameCp _%>"])) 
+      return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+      //get value
+      headers = response.data.data["csvTableTemplate<%- nameCp _%>"];
+    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+    //return value
+    return {value: headers, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+  },

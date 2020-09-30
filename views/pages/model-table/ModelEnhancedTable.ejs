@@ -367,11 +367,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
    * names
    */
   let methodName1 = 'getCount()';
-  let methodName2 = 'getData()';
-  let queryName1 = 'count'+namePlCp;
   let requestName1 = 'api.'+nameLc+'.getCountItems';
-  let queryName2 = paginationType === 'limitOffset' ?  namePlLc : namePlLc+'Connection';
-  let requestName2 = paginationType === 'limitOffset' ? 'api.'+nameLc+'.getItems' : 'api.'+nameLc+'.getItemsConnection';
 -%>
   /**
     * getCount
@@ -420,7 +416,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
       });
     
     /*
-      API Request: <%- queryName1 %>
+      API Request: <%- requestName1 %>
     */
     let cancelableApiReq = makeCancelable(api.<%- nameLc -%>.getCountItems(graphqlServerUrl, search));
     cancelableCountingPromises.current.push(cancelableApiReq);
@@ -431,99 +427,67 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
       (response) => {
         //delete from cancelables
         cancelableCountingPromises.current.splice(cancelableCountingPromises.current.indexOf(cancelableApiReq), 1);
-        
-        //check: response data
-        if(!response.data ||!response.data.data) {
+        //check: response
+        if(response.message === 'ok') {
+          //check: graphql errors
+          if(response.graphqlErrors) {
+            let newError = {};
+            let withDetails=true;
+            variantB.current='info';
+            newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
+            newError.locations=[{model: '<%- name -%>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+            newError.path=['<%- namePlCp %>'];
+            newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
+            errorsB.current.push(newError);
+            console.log("Error: ", newError);
+
+            showMessageB(newError.message, withDetails);
+          }
+        } else { //not ok
+          //show error
           let newError = {};
           let withDetails=true;
           variantB.current='error';
-          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+          newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
+          newError.locations=[{model: '<%- name -%>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
           newError.path=['<%- namePlCp %>'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errorsB.current.push(newError);
           console.log("Error: ", newError);
-
-          showMessageB(newError.message, withDetails);
-          return;
-        }
-        
-        //check: <%- queryName1 %>
-        let <%- queryName1 %> = response.data.data.<%- queryName1 %>;
-        if(<%- queryName1 %> === null) {
-          let newError = {};
-          let withDetails=true;
-          variantB.current='error';
-          newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
-          newError.path=['<%- namePlCp %>'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errorsB.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessageB(newError.message, withDetails);
-          return;
-        }
-
-        //check: <%- queryName1 %> type
-        if(!Number.isInteger(<%- queryName1 %>)) {
-          let newError = {};
-          let withDetails=true;
-          variantB.current='error';
-          newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
-          newError.path=['<%- namePlCp %>'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errorsB.current.push(newError);
-          console.log("Error: ", newError);
-
+ 
           showMessageB(newError.message, withDetails);
           return;
         }
 
         //ok
-        setCount(<%- queryName1 %>);
+        setCount(response.value);
 <%if(paginationType === 'limitOffset') {-%>
         setIsCounting(false);
 <%}-%>
         isCountingRef.current = false;
-        
-        //check: graphql errors
-        if(response.data.errors) {
-          let newError = {};
-          let withDetails=true;
-          variantB.current='info';
-          newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
-          newError.path=['<%- namePlCp %>'];
-          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-          errorsB.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessageB(newError.message, withDetails);
-        }
 
 <%if(paginationType === 'limitOffset') {-%>
-          /*
-            Check: empty page
-          */
-          if((<%- queryName1 %> === (pageRef.current * rowsPerPageRef.current)) && (pageRef.current > 0)) {
-            isOnApiRequestRef.current = false;
-            setIsOnApiRequest(false);
-            setPage(pageRef.current - 1);
-            return;
-          }
+        /*
+          Check: empty page
+        */
+        if((response.value === (pageRef.current * rowsPerPageRef.current)) && (pageRef.current > 0)) {
+          isOnApiRequestRef.current = false;
+          setIsOnApiRequest(false);
+          setPage(pageRef.current - 1);
+          return;
+        }
 
-          /*
-            Check: page overflow
-          */
-          if((pageRef.current * rowsPerPageRef.current) > <%- queryName1 %>) {
-            isOnApiRequestRef.current = false;
-            setIsOnApiRequest(false);
-            setPage(Math.floor(<%- queryName1 %> / rowsPerPageRef.current));
-            return;
-          }
+        /*
+          Check: page overflow
+        */
+        if((pageRef.current * rowsPerPageRef.current) > response.value) {
+          isOnApiRequestRef.current = false;
+          setIsOnApiRequest(false);
+          setPage(Math.floor(response.value / rowsPerPageRef.current));
+          return;
+        }
 <%}-%>
+        return;
       },
       //rejected
       (err) => {
@@ -539,7 +503,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           let withDetails=true;
           variantB.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+          newError.locations=[{model: '<%- name -%>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
           newError.path=['<%- namePlCp %>'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errorsB.current.push(newError);
@@ -551,6 +515,13 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
       });
   }, [graphqlServerUrl, t, search, showMessageB]);
 
+<%
+  /**
+   * names
+   */
+  let methodName2 = 'getData()';
+  let requestName2 = 'api.'+nameLc+'.getItems';
+-%>
   /**
     * getData
     * 
@@ -559,7 +530,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     * Updates state to inform new @items retreived.
     * 
     */
-  const getData = useCallback(() => {
+  const getData = useCallback(async () => {
     updateSizes();
     isOnApiRequestRef.current = true;
     setIsOnApiRequest(true);
@@ -569,166 +540,83 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     //count (async)
     getCount();
 
-<%if(paginationType === 'limitOffset') {-%>
-    /*
-      API Request: <%- queryName2 %>
-    */
-    let cancelableApiReqB = makeCancelable(api.<%- nameLc -%>.getItems(
-      graphqlServerUrl,
-      search,
-      orderBy,
-      order,
-      pageRef.current * rowsPerPageRef.current, //paginationOffset
-      rowsPerPageRef.current, //paginationLimit
-    ));
-<%} else if(paginationType === 'cursorBased') {-%>
-    /*
-      API Request: <%- queryName2 %>
-    */
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+    let variables = {
+      pagination: {offset: (pageRef.current * rowsPerPageRef.current), limit: rowsPerPageRef.current}
+    };
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
     let variables = {
       pagination: {...paginationRef.current}
     };
-    let cancelableApiReqB = makeCancelable(api.<%- nameLc -%>.getItemsConnection(
+<%}-%>
+    /*
+      API Request: <%- requestName2 %>
+    */
+    let cancelableApiReq = makeCancelable(api.<%- nameLc -%>.getItems(
       graphqlServerUrl,
       search,
       orderBy,
       order,
       variables
     ));
-<%}-%>
-    cancelablePromises.current.push(cancelableApiReqB);
-    cancelableApiReqB
+    cancelablePromises.current.push(cancelableApiReq);
+    await cancelableApiReq
       .promise
       .then(
       //resolved
       (response) => {
         //delete from cancelables
-        cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReqB), 1);
-        
-        //check: response data
-        if(!response.data ||!response.data.data) {
+        cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
+        //check: response
+        if(response.message === 'ok') {
+          //check: graphql errors
+          if(response.graphqlErrors) {
+            let newError = {};
+            let withDetails=true;
+            variant.current='info';
+            newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
+            newError.locations=[{model: '<%- name -%>', method: '<%- methodName2 %>', request: '<%- requestName2 %>'}];
+            newError.path=['<%- namePlCp %>'];
+            newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
+            errors.current.push(newError);
+            console.log("Error: ", newError);
+
+            showMessage(newError.message, withDetails);
+          }
+        } else { //not ok
+          //show error
           let newError = {};
           let withDetails=true;
           variant.current='error';
-          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName2 %>', method: '<%- methodName2 %>', request: '<%- requestName2 %>'}];
+          newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
+          newError.locations=[{model: '<%- name -%>', method: '<%- methodName2 %>', request: '<%- requestName2 %>'}];
           newError.path=['<%- namePlCp %>'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestGetData();
-          return;
-        }
-
-        //check: <%- queryName2 %>
-        let <%- queryName2 %> = response.data.data.<%- queryName2 %>;
-        if(<%- queryName2 %> === null) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = '<%- queryName2 %> ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName2 %>', method: '<%- methodName2 %>', request: '<%- requestName2 %>'}];
-          newError.path=['<%- namePlCp %>'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
+ 
           showMessage(newError.message, withDetails);
           clearRequestGetData();
           return;
         }
 
 <%if(paginationType === 'limitOffset') {-%>
-        //check: <%- queryName2 %> type
-        if(!Array.isArray(<%- queryName2 %>)) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = '<%- queryName2 %> ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName2 %>', method: '<%- methodName2 %>', request: '<%- requestName2 %>'}];
-          newError.path=['<%- namePlCp %>'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestGetData();
-          return;
-        }
         //get items
-        let its = <%- queryName2 %>;
-
-        //check: graphql errors
-        if(response.data.errors) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='info';
-          newError.message = '<%- queryName2 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName2 %>', method: '<%- methodName2 %>', request: '<%- requestName2 %>'}];
-          newError.path=['<%- namePlCp %>'];
-          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-        }
+        let its = response.value;
 
 <%} else if(paginationType === 'cursorBased') {-%>
-        //check: <%- queryName2 %> type
-        if(typeof <%- queryName2 %> !== 'object'
-        || !Array.isArray(<%- queryName2 %>.edges)
-        || typeof <%- queryName2 %>.pageInfo !== 'object' 
-        || <%- queryName2 %>.pageInfo === null) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = '<%- queryName2 %> ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName2 %>', method: '<%- methodName2 %>', request: '<%- requestName2 %>'}];
-          newError.path=['<%- namePlCp %>'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestGetData();
-          return;
-        }
         //get items
-        let its = <%- queryName2 %>.edges.map(o => o.node);
-        let pi = <%- queryName2 %>.pageInfo;
-
-        //check: graphql errors
-        if(response.data.errors) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='info';
-          newError.message = '<%- queryName2 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName2 %>', method: '<%- methodName2 %>', request: '<%- requestName2 %>'}];
-          newError.path=['<%- namePlCp %>'];
-          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-        }
+        let its = response.value.edges.map(o => o.node);
+        let pi =  response.value.pageInfo;
           
         /*
           Check: empty page
         */
-        if( its.length === 0 && pi && pi.hasPreviousPage ) 
+        if( its.length === 0 ) 
         {
-          //configure
-          isOnApiRequestRef.current = false;
-          isCursorPaginating.current = false;
-          setIsOnApiRequest(false);
-          configurePagination('previousPage');
-          
-          //reload
-          setDataTrigger(prevDataTrigger => !prevDataTrigger);
+          onEmptyPage(pi);
           return;
-        }//else
+        }
 
         //update pageInfo
         pageInfo.current = pi;
@@ -738,7 +626,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
         //configure pagination (default)
         configurePagination('reload');
 <%}-%>
-        
+      
         //ok
         setItems([...its]);
 
@@ -748,7 +636,6 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
         isCursorPaginating.current = false;
 <%}-%>
         setIsOnApiRequest(false);
-
         return;
       },
       //rejected
@@ -764,7 +651,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           let withDetails=true;
           variant.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName2 %>', method: '<%- methodName2 %>', request: '<%- requestName2 %>'}];
+          newError.locations=[{model: '<%- name -%>', method: '<%- methodName2 %>', request: '<%- requestName2 %>'}];
           newError.path=['<%- namePlCp %>'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errors.current.push(newError);
@@ -951,7 +838,6 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
    * names
    */
   let methodName3 = 'doDelete()';
-  let queryName3 = 'delete'+nameCp;
   let requestName3 = 'api.'+nameLc+'.deleteItem';
 -%>
   /**
@@ -962,7 +848,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     * Updates state to inform new @item deleted.
     * 
     */
-  function doDelete(event, item) {
+  async function doDelete(event, item) {
     errors.current = [];
 
     let variables = {};
@@ -970,11 +856,11 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     variables.<%- internalId %> = item.<%- internalId _%>;
 
     /*
-      API Request: <%- queryName3 %>
+      API Request: <%- requestName3 %>
     */
     let cancelableApiReq = makeCancelable(api.<%- nameLc -%>.deleteItem(graphqlServerUrl, variables));
     cancelablePromises.current.push(cancelableApiReq);
-    cancelableApiReq
+    await cancelableApiReq
       .promise
       .then(
       //resolved
@@ -982,60 +868,36 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
         //delete from cancelables
         cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
         //check response
+        if(response.message === 'ok') {
+          //check: graphql errors
+          if(response.graphqlErrors) {
+            let newError = {};
+            let withDetails=true;
+            variant.current='info';
+            newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
+            newError.locations=[{model: '<%- name -%>', method: '<%- methodName3 %>', request: '<%- requestName3 %>'}];
+            newError.path=['<%- namePlCp %>', `<%- internalId _%>:${item.<%- internalId _%>}`, 'delete'];
+            newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
+            errors.current.push(newError);
+            console.log("Error: ", newError);
 
-        //check: response data
-        if(!response.data ||!response.data.data) {
+            showMessage(newError.message, withDetails);
+          }
+        } else { //not ok
+          //show error
           let newError = {};
           let withDetails=true;
           variant.current='error';
-          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName3 %>', method: '<%- methodName3 %>', request: '<%- requestName3 %>'}];
+          newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
+          newError.locations=[{model: '<%- name -%>', method: '<%- methodName3 %>', request: '<%- requestName3 %>'}];
           newError.path=['<%- namePlCp %>', `<%- internalId _%>:${item.<%- internalId _%>}`, 'delete'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
-
+  
           showMessage(newError.message, withDetails);
           clearRequestDoDelete();
           return;
-        }
-
-        //check: <%- queryName3 %>
-        let <%- queryName3 %> = response.data.data.<%- queryName3 %>;
-        if(<%- queryName3 %> === null) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = '<%- queryName3 %> ' + t('modelPanels.errors.data.e5', 'could not be completed.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName3 %>', method: '<%- methodName3 %>', request: '<%- requestName3 %>'}];
-          newError.path=['<%- namePlCp %>', `<%- internalId _%>:${item.<%- internalId _%>}` ,'delete'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestDoDelete();
-          return;
-        }
-
-        /**
-         * Type of <%- queryName3 %> is not validated. Only not null is
-         * checked above to confirm successfull operation.
-         */
-
-        //check: graphql errors
-        if(response.data.errors) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='info';
-          newError.message = '<%- queryName3 %> ' + t('modelPanels.errors.data.e6', 'completed with errors.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName3 %>', method: '<%- methodName3 %>', request: '<%- requestName3 %>'}];
-          newError.path=['<%- namePlCp %>', `<%- internalId _%>:${item.<%- internalId _%>}` ,'delete'];
-          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
         }
 
         //ok
@@ -1070,7 +932,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           let withDetails=true;
           variant.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName3 %>', method: '<%- methodName3 %>', request: '<%- requestName3 %>'}];
+          newError.locations=[{model: '<%- name -%>', method: '<%- methodName3 %>', request: '<%- requestName3 %>'}];
           newError.path=['<%- namePlCp %>', `<%- internalId _%>:${item.<%- internalId _%>}` ,'delete'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errors.current.push(newError);
@@ -1088,7 +950,6 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
    * names
    */
   let methodName4 = 'getCsvTemplate()';
-  let queryName4 = 'csvTableTemplate'+nameCp;
   let requestName4 = 'api.'+nameLc+'.tableTemplate';
 -%>
   /**
@@ -1099,87 +960,52 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     * Updates state to inform new @item received.
     * 
     */
-  function getCsvTemplate() {
+  async function getCsvTemplate() {
     errors.current = [];
 
     /*
-      API Request: <%- queryName4 %>
+      API Request: <%- requestName4 %>
     */
     let cancelableApiReq = makeCancelable(api.<%- nameLc -%>.tableTemplate(graphqlServerUrl));
     cancelablePromises.current.push(cancelableApiReq);
-    cancelableApiReq
+    await cancelableApiReq
       .promise
       .then(
       //resolved
       (response) => {
         //delete from cancelables
         cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
-        
-        //check: response data
-        if(!response.data ||!response.data.data) {
+        //check: response
+        if(response.message === 'ok') {
+          //check: graphql errors
+          if(response.graphqlErrors) {
+            let newError = {};
+            let withDetails=true;
+            variant.current='info';
+            newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
+            newError.locations=[{model: '<%- name -%>', method: '<%- methodName4 %>', request: '<%- requestName4 %>'}];
+            newError.path=['<%- namePlCp %>', 'csvTemplate'];
+            newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
+            errors.current.push(newError);
+            console.log("Error: ", newError);
+
+            showMessage(newError.message, withDetails);
+          }
+        } else { //not ok
+          //show error
           let newError = {};
           let withDetails=true;
           variant.current='error';
-          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName4 %>', method: '<%- methodName4 %>', request: '<%- requestName4 %>'}];
+          newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
+          newError.locations=[{model: '<%- name -%>', method: '<%- methodName4 %>', request: '<%- requestName4 %>'}];
           newError.path=['<%- namePlCp %>', 'csvTemplate'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
-
-          clearRequestGetCsvTemplate();
-          showMessage(newError.message, withDetails);
-          return;
-        }
-
-        //check: <%- queryName4 %>
-        let <%- queryName4 %> = response.data.data.<%- queryName4 %>;
-        if(<%- queryName4 %> === null) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = '<%- queryName4 %> ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName4 %>', method: '<%- methodName4 %>', request: '<%- requestName4 %>'}];
-          newError.path=['<%- namePlCp %>', 'csvTemplate'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
+  
           showMessage(newError.message, withDetails);
           clearRequestGetCsvTemplate();
           return;
-        }
-
-        //check: <%- queryName4 %> type
-        if(!Array.isArray(<%- queryName4 %>)) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = '<%- queryName4 %> ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName4 %>', method: '<%- methodName4 %>', request: '<%- requestName4 %>'}];
-          newError.path=['<%- namePlCp %>', 'csvTemplate'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestGetCsvTemplate();
-          return;
-        }
-        
-        //check: graphql errors
-        if(response.data.errors) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='info';
-          newError.message = '<%- queryName4 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName4 %>', method: '<%- methodName4 %>', request: '<%- requestName4 %>'}];
-          newError.path=['<%- namePlCp %>', 'csvTemplate'];
-          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
         }
 
         //ok
@@ -1201,7 +1027,6 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
         document.body.appendChild(link);
         link.click();
         return;
-
       },
       //rejected
       (err) => {
@@ -1216,7 +1041,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           let withDetails=true;
           variant.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName4 %>', method: '<%- methodName4 %>', request: '<%- requestName4 %>'}];
+          newError.locations=[{model: '<%- name -%>', method: '<%- methodName4 %>', request: '<%- requestName4 %>'}];
           newError.path=['<%- namePlCp %>', 'csvTemplate'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errors.current.push(newError);
@@ -1356,6 +1181,67 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
         return 0;
     }
   }
+  
+<%if(paginationType === 'cursorBased') {-%>
+  function onEmptyPage(pi) {
+    //case: forward
+    if(isForwardPagination.current) {
+      if(pi && pi.hasPreviousPage) {
+        //configure
+        isOnApiRequestRef.current = false;
+        isCursorPaginating.current = false;
+        setIsOnApiRequest(false);
+        configurePagination('previousPage');
+        
+        //reload
+        setDataTrigger(prevDataTrigger => !prevDataTrigger);
+        return;
+      } else {
+        //disable nextPage
+        pageInfo.current.hasNextPage = false;
+        setHasNextPage(pageInfo.current.hasNextPage);
+
+        //configure pagination (default)
+        configurePagination('reload');
+
+        //ends request
+        isOnApiRequestRef.current = false;
+        isCursorPaginating.current = false;
+        setIsOnApiRequest(false);
+
+        //do not update items...
+        return;
+      }
+    } else {//case: backward
+      if(pi && pi.hasNextPage) {
+        //configure
+        isOnApiRequestRef.current = false;
+        isCursorPaginating.current = false;
+        setIsOnApiRequest(false);
+        configurePagination('nextPage');
+        
+        //reload
+        setDataTrigger(prevDataTrigger => !prevDataTrigger);
+        return;
+      } else {
+        //disable previousPage
+        pageInfo.current.hasPreviousPage = false;
+        setHasPreviousPage(pageInfo.current.hasPreviousPage);
+
+        //configure pagination (default)
+        configurePagination('reload');
+
+        //ends request
+        isOnApiRequestRef.current = false;
+        isCursorPaginating.current = false;
+        setIsOnApiRequest(false);
+
+        //do not update items...
+        return;
+      }
+    }
+  }
+<%}-%>
 
   /**
    * Handlers

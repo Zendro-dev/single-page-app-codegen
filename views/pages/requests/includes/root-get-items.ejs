@@ -1,0 +1,102 @@
+/**
+ * Root query
+ * ----------
+ */
+
+  /**
+   * getItems
+   *
+   * Get items from GraphQL Server.
+   *
+   * @param {String} url GraphQL Server url
+   * @param {String} searchText Text string currently on search bar.
+   * @param {String} orderBy Order field string.
+   * @param {String} orderDirection Text string: asc | desc.
+   * @param {Object} variables Object with cursor-based-pagination variables.
+   * @param {String} ops Object with additional query options.
+   */
+  async getItems(url, searchText, orderBy, orderDirection, variables, ops) {
+    //internal checks
+    if(!variables||typeof variables !== 'object') throw new Error("internal_error: expected object 'variables' argument");
+    if(!variables.pagination||typeof variables.pagination !== 'object' ) throw new Error("internal_error: pagination object expected in variables");
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+    if(!variables.pagination.first&&!variables.pagination.last ) throw new Error("internal_error: pagination first or last positive argument expected");
+<%}-%>
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+    if(!variables.pagination.limit) throw new Error("internal_error: pagination limit positive argument expected");
+<%}-%>
+
+    //search
+    let s = getSearchArgument('<%- nameLc _%>', searchText, ops, 'object');
+    if(s) variables.search = s.search;
+    //order
+    if(orderBy && orderDirection) {
+      let upOrderDirection = String(orderDirection).toUpperCase();
+      variables.order = [ {field: orderBy, order: upOrderDirection} ]
+    }
+
+    //set attributes
+    let qattributes = 
+      `<%- internalId _%>,
+<%_for( let i=0; i<attributesArr.length; i++ ){
+  if(attributesArr[i][0] !== internalId) {
+-%>
+       <%- attributesArr[i][0] _%>,
+<%}}-%>`;
+
+<%if(paginationType === 'limitOffset') {-%>
+    //query
+    let query =
+      `query <%- namePlLc _%>($order: [order<%- nameCp _%>Input], $search: search<%- nameCp _%>Input, $pagination: paginationInput) { 
+             <%- namePlLc _%>( order: $order, search: $search, pagination: $pagination ) {
+                ${qattributes} }
+       }`;
+<%} else if(paginationType === 'cursorBased') {-%>
+    //query
+    let query =
+      `query <%- namePlLc _%>Connection($order: [order<%- nameCp _%>Input], $search: search<%- nameCp _%>Input, $pagination: paginationCursorInput) { 
+             <%- namePlLc _%>Connection( order: $order, search: $search, pagination: $pagination ) {
+                pageInfo { startCursor, endCursor, hasPreviousPage, hasNextPage }
+                edges { node { ${qattributes} }}
+       }}`
+<%}-%>
+
+    /**
+     * Debug
+     */
+    if(globals.REQUEST_LOGGER) logRequest('getItems', query, variables);
+
+    //request
+    let response = await requestGraphql({ url, query, variables });
+    let items = null;
+<%if(paginationType === 'limitOffset') {-%>
+    //check
+    let check = checkResponse(response, graphqlErrors, "<%- namePlLc _%>");
+    if(check === 'ok') {
+        //check type
+        if(!Array.isArray(response.data.data["<%- namePlLc _%>"])) 
+        return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+        //get value
+        items = response.data.data["<%- namePlLc _%>"];
+    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+<%} else if(paginationType === 'cursorBased') {-%>
+    //check
+    let check = checkResponse(response, graphqlErrors, "<%- namePlLc _%>Connection");
+    if(check === 'ok') {
+      //check type
+      if(!response.data.data["<%- namePlLc _%>Connection"]
+      || typeof response.data.data["<%- namePlLc _%>Connection"] !== 'object'
+      || !Array.isArray(response.data.data["<%- namePlLc _%>Connection"].edges)
+      || typeof response.data.data["<%- namePlLc _%>Connection"].pageInfo !== 'object' 
+      || response.data.data["<%- namePlLc _%>Connection"].pageInfo === null)
+      return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+      //get value
+      items = response.data.data["<%- namePlLc _%>Connection"];
+    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+<%}-%>
+
+    //return value
+    return {value: items, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+  },

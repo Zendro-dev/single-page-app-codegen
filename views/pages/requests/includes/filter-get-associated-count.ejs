@@ -1,8 +1,8 @@
 /**
- * Filter:
- *  Get count of associated <%- sortedAssociations[aindex].relationNameCp %> items.
- * 
+ * Filter
+ * ------
  */
+
 <%_if( sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many' ){-%>
   /**
    * get<%- sortedAssociations[aindex].relationNameCp %>Count

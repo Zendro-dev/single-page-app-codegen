@@ -1,11 +1,8 @@
-<%
 /**
- * variables
+ * Filter
+ * ------
  */
-let isManyToMany = ( sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' );
-let isCursorBased = ( sortedAssociations[aindex].paginationType === 'cursorBased' );
-let isLimitOffset = ( sortedAssociations[aindex].paginationType === 'limitOffset' );
--%>
+
 /**
  * getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>
  *
@@ -19,6 +16,21 @@ let isLimitOffset = ( sortedAssociations[aindex].paginationType === 'limitOffset
  * @param {Int}    batchSize Max number of records to fetch in batch from GraphQL Server.
  */
 async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, itemId, searchText, variables, ops, batchSize) {
+    //internal checks
+    if(!variables||typeof variables !== 'object') throw new Error("internal_error: expected object 'variables' argument");
+    if(!variables.pagination||typeof variables.pagination !== 'object' ) throw new Error("internal_error: pagination object expected in variables");
+<%_if( sortedAssociations[aindex].type === 'to_many' ){-%>
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+    if(!variables.pagination.first&&!variables.pagination.last ) throw new Error("internal_error: pagination first or last positive argument expected");
+<%}-%>
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+    if(!variables.pagination.limit) throw new Error("internal_error: pagination limit positive argument expected");
+<%}-%>
+<%}-%>
+<%if( sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many' ) {-%>
+  if(!variables.pagination.first&&!variables.pagination.last ) throw new Error("internal_error: pagination first or last positive argument expected");
+<%}-%>
+
   let graphqlErrors = [];
 
   //set attributes
@@ -36,14 +48,6 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
    */
 -%>
 <%_if( sortedAssociations[aindex].type === 'to_one' || sortedAssociations[aindex].type === 'generic_to_one' ){-%>
-    // //internal checks
-    if(!variables&&!variables.pagination&&typeof variables.pagination !== 'object' ) throw new Error("internal_error: pagination object expected");
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
-    if(!variables.pagination.first&&!variables.pagination.last ) throw new Error("internal_error: pagination first or last positive argument expected");
-<%}-%>
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
-    if(!variables.pagination.limit) throw new Error("internal_error: pagination limit positive argument expected");
-<%}-%>
     /**
      * Algorithm:
      *    1. get associated item id.
@@ -128,6 +132,7 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
    */
 -%>
 <%if(sortedAssociations[aindex].paginationType === 'cursorBased'){-%>
+    //set query
     let qbody = `
           pageInfo {startCursor, endCursor, hasPreviousPage, hasNextPage},
           edges {
@@ -135,7 +140,6 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
               ${qattributes}
             }
           }`;
-
     query =
       `query <%- sortedAssociations[aindex].targetModelPlLc _%>Connection($search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationCursorInput) {
              <%- sortedAssociations[aindex].targetModelPlLc _%>Connection(search: $search, pagination: $pagination) {
@@ -231,6 +235,7 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
    */
 -%>
 <%if(sortedAssociations[aindex].paginationType === 'cursorBased'){-%>
+    //set query
     let qbody = `
           pageInfo {startCursor, endCursor, hasPreviousPage, hasNextPage},
           edges {
@@ -238,7 +243,6 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
               ${qattributes}
             }
           }`;
-
     query =
       `query <%- sortedAssociations[aindex].targetModelPlLc _%>Connection($search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationCursorInput) {
              <%- sortedAssociations[aindex].targetModelPlLc _%>Connection(search: $search, pagination: $pagination) {
@@ -263,7 +267,7 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
         return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
 
         //get value
-        let items = response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>"];
+        items = response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>"];
     } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
 <%} else if(isCursorBased) {-%>
     //check
@@ -278,7 +282,7 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
       return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
 
       //get value
-      let items = response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"];
+      items = response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"];
     } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
 <%}-%>
 
@@ -295,10 +299,6 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
  */
 -%>
 <%_if( sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many' ){-%>
-  // //internal checks
-  if(!variables&&!variables.pagination&&typeof variables.pagination !== 'object' ) throw new Error("internal_error: pagination object expected");
-  if(!variables.pagination.first&&!variables.pagination.last ) throw new Error("internal_error: pagination first or last positive argument expected");
-
   /**
    * Recursive fetch of not associated items algorithm (cursor-based-pagination):
    *  1 Until @requiredItems are fetched, do:
@@ -321,53 +321,42 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
   //set required number of items
   let requiredItems = isForward ? variables.pagination.first : variables.pagination.last;
 
-  //initialize pagination for batch query
+  /**
+   * Initialize batch query
+   * 
+   */
+  //pagination
   let batchPagination = {...variables.pagination, first: isForward ? batchSize : null, last: !isForward ? batchSize : null};
-  let batchVariables = {pagination: batchPagination};
-  let batchSearch = getSearchArgument('<%- sortedAssociations[aindex].targetModelLc _%>', searchText, ops);
-  let batchQuery = '';
+  //search
+  let batchSearch = getSearchArgument('<%- sortedAssociations[aindex].targetModelLc _%>', searchText, ops, 'object');
+  //variables
+  let batchVariables = {"<%- internalId _%>": itemId, pagination: batchPagination};
+  if(batchSearch) batchVariables.search = batchSearch.search;
+  
+  let batchQuery = 
+        `query <%- sortedAssociations[aindex].targetModelPlLc _%>Connection($<%- internalId _%>:ID!, $search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationCursorInput) {
+               <%- sortedAssociations[aindex].targetModelPlLc _%>Connection(search: $search, pagination: $pagination) {
+                  pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
+                  edges {node {
+                    ${qattributes}
+                    <%- sortedAssociations[aindex].peerAssociationNameLc _%>Connection(
+                      search: {field: <%- internalId _%>, value: $<%- internalId _%>, valueType: <%- internalIdType _%>, operator: eq },
+                      pagination: {first: 1}){ edges {node {<%- internalId _%> }}}
+          }}}}`;
 
+  //initialize results
   let nonaPageInfo = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
   let nonaEdges = [];
+
+  //batch counter
+  let iteration = 1;
   
    /**
    * Recursive fetch of not associated items algorithm (cursor-based-pagination):
    *  1 Until @requiredItems are fetched, do:
    * 
    */
-  while(nonaEdges.length < requiredItems) {
-    //set batch query
-    if(batchSearch) {
-      batchQuery = 
-        `query <%- sortedAssociations[aindex].targetModelPlLc _%>Connection($pagination: paginationCursorInput) {
-          <%- sortedAssociations[aindex].targetModelPlLc _%>Connection(${batchSearch}, pagination: $pagination) {
-            pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
-            edges {node {
-              ${qattributes}
-              <%- sortedAssociations[aindex].peerAssociationNameLc _%>Connection(
-                search: {field: <%- internalId _%>, value: "${itemId}", valueType: <%- internalIdType _%>, operator: eq },
-                pagination: {first: 1}){ edges {node {<%- internalId _%> }}}
-          }}}}`;
-
-    } else {
-      batchQuery = 
-        `query <%- sortedAssociations[aindex].targetModelPlLc _%>Connection($pagination: paginationCursorInput) {
-          <%- sortedAssociations[aindex].targetModelPlLc _%>Connection(pagination: $pagination) {
-            pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
-            edges {cursor node {
-              ${qattributes}
-              <%- sortedAssociations[aindex].peerAssociationNameLc _%>Connection(
-                search: {field: <%- internalId _%>, value: "${itemId}", valueType: <%- internalIdType _%>, operator: eq },
-                pagination: {first: 1}){ edges {node {<%- internalId _%> }}}
-          }}}}`;
-    }
-
-    /**
-     * Debug
-     */
-    console.log("getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>.batchQuery: gql:\n", batchQuery);
-    console.log("getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>.batchVariables: gql:\n", batchVariables);
-    
+  while(nonaEdges.length < requiredItems) {    
     /**
      *    1.2 Get @requiredItems ( equal to @first or @last ) minus lenght.of( @notAssociatedItems already fetched) items, 
      *        where each item will be fetched with the correspondent associationConnection, which in turn will be 
@@ -375,23 +364,27 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
      *        the current item is associated or an empty edges-array otherwise.
      * 
      */
-    let batchConnection = null;
+    /**
+     * Debug
+     */
+    if(globals.REQUEST_LOGGER) logRequest(`getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>.batch.${iteration}`, batchQuery, batchVariables);
+
+    //request
     let response = await requestGraphql({ url, query:batchQuery, variables:batchVariables });
+    let batchConnection = null;
     //check
     let check = checkResponse(response, graphqlErrors, "<%- sortedAssociations[aindex].targetModelPlLc _%>Connection");
     if(check === 'ok') {
-      if( response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"] ) {
-        //check type
-        if(typeof response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"] !== 'object'
-        || !Array.isArray(response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"].edges)
-        || typeof response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"].pageInfo !== 'object'
-        || response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"].pageInfo === null)
-        return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+      //check type
+      if(!response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"]
+      || typeof response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"] !== 'object'
+      || !Array.isArray(response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"].edges)
+      || typeof response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"].pageInfo !== 'object'
+      || response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"].pageInfo === null)
+      return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
 
-        //get value
-        batchConnection = response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"];
-
-      } else return {data: response.data.data, value: null, message: 'bad_format', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+      //get value
+      batchConnection = response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"];
     } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
     
     /**
@@ -414,7 +407,6 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
     }
     let thereAreMoreNonaItems = (batchEdges.length > (requiredItems - nonaEdges.length));
 
-    //join new items
     if(batchEdges.length > 0) { //if there are new non-associated items... 
       //adjust pageInfo (start)
       if(nonaEdges.length === 0) {
@@ -426,7 +418,7 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
           nonaPageInfo.hasNextPage = batchConnection.pageInfo.hasNextPage;
         }
       } 
-
+      //join new items
       if(isForward) nonaEdges = [...nonaEdges, ...batchEdges.slice(0, (requiredItems - nonaEdges.length)) ];
       else          nonaEdges = [...batchEdges.slice(-(requiredItems - nonaEdges.length)), ...nonaEdges ];
     }
@@ -448,9 +440,10 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
       batchPagination.after = isForward ? batchConnection.pageInfo.endCursor : null;
       batchPagination.before = !isForward ? batchConnection.pageInfo.startCursor : null;
       batchPagination.includeCursor = false;
-      batchVariables = {pagination: batchPagination};
+      batchVariables.pagination = batchPagination;
 
       //continue with next iteration...
+      iteration++;
     } else {
       
       //adjust pagination info (end)
@@ -470,10 +463,8 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
         delete nonaEdges[i].cursor;
       }
 
-      //set final connection
-      let connection = {pageInfo: nonaPageInfo, edges: nonaEdges};
-      //ok
-      return {value: connection, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+      //return value
+      return {value: {pageInfo: nonaPageInfo, edges: nonaEdges}, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
     }
   }//end: while()
 
@@ -484,11 +475,6 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
    * Fetch not associated items excluding associated ones in batches.
    */
   /////////////////////////////
-
-  // //checks
-  // if(!variables&&!variables.pagination&&typeof variables.pagination !== 'object' ) throw new Error("internal_error: pagination object expected");
-  // if(!variables.pagination.first&&!variables.pagination.last ) throw new Error("internal_error: pagination first or last positive argument expected");
-
   // /**
   //  * Recursive fetch of not associated items algorithm (cursor-based-pagination):
   //  *  1 Until @requiredItems are fetched, do:
@@ -510,77 +496,86 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
   // let isForward = variables.pagination.first ? true : false;
   // //set required number of items
   // let requiredItems = isForward ? variables.pagination.first : variables.pagination.last;
+  // //set general search filters
+  // let s = getSearchArgument('<%- sortedAssociations[aindex].targetModelLc _%>', searchText, ops, 'object');
 
-  // //initialize pagination for batch associated ids
+  // /**
+  //  * Initialize batch query
+  //  * 
+  //  */
+  // //pagination
   // let batchPagination = {...variables.pagination, first: isForward ? batchSize : null, last: !isForward ? batchSize : null, includeCursor: false};
-  // let batchVariables = {pagination: batchPagination};
-  // let batchSearch = getSearchArgument('<%- sortedAssociations[aindex].targetModelLc _%>', searchText, ops);
-  // let batchQuery = '';
+  // //search
+  // let batchSearch = s ? {...s} : null;
+  // //variables
+  // let batchVariables = {"<%- internalId _%>": itemId, pagination: batchPagination};
+  // if(batchSearch) batchVariables.search = batchSearch.search;
+  // //query
+  // let batchQuery = 
+  //       `query readOne<%- nameCp _%>($<%- internalId _%>:ID!, $search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationCursorInput) {
+  //              readOne<%- nameCp _%>(<%- internalId _%>: $<%- internalId _%>) {
+  //                 <%- sortedAssociations[aindex].relationNameLc _%>Connection( search: $search, pagination: $pagination ) {
+  //                   pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
+  //                   edges {node {<%- sortedAssociations[aindex].internalId _%>}}
+  //         }}}`;
 
-  // //initialize pagination for non-associated items
+  // /**
+  //  * Initialize non-associated items query
+  //  * 
+  //  */
+  // //pagination
   // let nonaPagination = {...variables.pagination};
+  // //search
+  // let nonaSearch = null; //will be set in each iteration
+  // //variables
   // let nonaVariables = {pagination: nonaPagination};
+  // //query
+  // let nonaQuery =
+  //       `query <%- sortedAssociations[aindex].targetModelPlLc _%>Connection($search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationCursorInput) {
+  //              <%- sortedAssociations[aindex].targetModelPlLc _%>Connection( search: $search, pagination: $pagination ) {
+  //                 pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
+  //                 edges {node {${qattributes}}}
+  //         }}`;
+
+  // //initialize final results
   // let nonaPageInfo = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
   // let nonaEdges = [];
-  // let nonaQuery = '';
-
-  // //general search ands filters
-  // let sands = getSearchArgument('<%- sortedAssociations[aindex].targetModelLc _%>', searchText, ops, 'ands');
 
   // /**
   //  * Recursive fetch of not associated items algorithm (cursor-based-pagination):
   //  *  1 Until @requiredItems are fetched, do:
   //  * 
   //  */
-  // let iteration = 0;
+  // let iteration = 1;
   // while(nonaEdges.length < requiredItems) {
   //   /**
   //    * 1.1 Get @batchSize associated ids.
   //    * 
   //    */
-  //   if(batchSearch) {
-  //     batchQuery =
-  //       `query readOne<%- nameCp _%>($pagination: paginationCursorInput) {
-  //         readOne<%- nameCp _%>(<%- internalId _%>: "${itemId}") {
-  //           <%- sortedAssociations[aindex].relationNameLc _%>Connection( ${batchSearch}, pagination: $pagination ) {
-  //             pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
-  //             edges {node {<%- sortedAssociations[aindex].internalId _%>}}
-  //         }}}`;
-  //   } else {
-  //     batchQuery =
-  //       `query readOne<%- nameCp _%>($pagination: paginationCursorInput) {
-  //         readOne<%- nameCp _%>(<%- internalId _%>: "${itemId}") {
-  //           <%- sortedAssociations[aindex].relationNameLc _%>Connection( pagination: $pagination ) {
-  //             pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
-  //             edges {node {<%- sortedAssociations[aindex].internalId _%>}}
-  //         }}}`;
-  //   }
 
   //   /**
   //    * Debug
   //    */
-  //   console.log("getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>.batchQuery: gql:\n", batchQuery);
-  //   console.log("getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>.batchVariables: gql:\n", batchVariables);
-    
-  //   let batchConnection = null;
+  //   if(globals.REQUEST_LOGGER) logRequest(`getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>.batch.${iteration}`, batchQuery, batchVariables);
+
+  //   //request
   //   let response = await requestGraphql({ url, query:batchQuery, variables:batchVariables });
+  //   let batchConnection = null;
   //   //check
   //   let check = checkResponse(response, graphqlErrors, "readOne<%- nameCp _%>");
   //   if(check === 'ok') {
-  //     if( response.data.data["readOne<%- nameCp _%>"] ) {
-  //       //check type
-  //       if(typeof response.data.data["readOne<%- nameCp _%>"] !== 'object'
-  //       || response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationNameLc _%>Connection"] === null
-  //       || typeof response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationNameLc _%>Connection"] !== 'object'
-  //       || !Array.isArray(response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationNameLc _%>Connection"].edges)
-  //       || typeof response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationNameLc _%>Connection"].pageInfo !== 'object' 
-  //       || response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationNameLc _%>Connection"].pageInfo === null)
-  //       return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+  //     //check type
+  //     if(!response.data.data["readOne<%- nameCp _%>"]
+  //     || typeof response.data.data["readOne<%- nameCp _%>"] !== 'object'
+  //     || response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationNameLc _%>Connection"] === null
+  //     || typeof response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationNameLc _%>Connection"] !== 'object'
+  //     || !Array.isArray(response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationNameLc _%>Connection"].edges)
+  //     || typeof response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationNameLc _%>Connection"].pageInfo !== 'object' 
+  //     || response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationNameLc _%>Connection"].pageInfo === null)
+  //     return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
 
-  //       //get value
-  //       batchConnection = response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationNameLc _%>Connection"];
-
-  //     } else return {data: response.data.data, value: null, message: 'bad_format', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+  //     //get value
+  //     batchConnection = response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationNameLc _%>Connection"];
   //   } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
     
   //   //get ids to exclude
@@ -599,9 +594,9 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
   //    *      with a search filter excluding the set of associated ids fetched at 1.1 and not exceeding the last (or first) 
   //    *      associated id in this set.
   //    */
-  //   //init with general search ands filters
-  //   let nonaSands = sands;
-  //
+  //   //init with general search
+  //   nonaSearch = s ? {...s} : null;
+  
   //   //case: there are associated items to exclude...
   //   if(idsToExclude.length > 0) {
   //     //add exclusions
@@ -612,88 +607,56 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
   //       }]
   //     };
       
-  //     //get search ands filters
-  //     let nonaSearchAnds = getSearchArgument('<%- sortedAssociations[aindex].targetModelLc _%>', searchText, nonaOps, 'ands');
-  //     //add exclusion filters to general search ands
-  //     nonaSands += nonaSearchAnds;
+  //     //set exclusion filters (ands)
+  //     let nonaSearchB = getSearchArgument('<%- sortedAssociations[aindex].targetModelLc _%>', null, nonaOps, 'object');
 
+  //     //set filter to limit results
   //     if(isForward) {
   //       //case: there are more associated ids...
   //       if(batchConnection.pageInfo.hasNextPage) {
-  //         /**
-  //          * Debug
-  //          */
-  //         console.log("@@-- forward: limit next result to:  idsToExclude[last]: ", idsToExclude[idsToExclude.length-1]);
-
   //         //make filter to limit results to before the last associated id.
-  //         let f1 = `{field: <%- sortedAssociations[aindex].internalId _%>, valueType: <%- sortedAssociations[aindex].internalIdType _%>, value: "${idsToExclude[idsToExclude.length-1]}", operator: lt}`;
-  //         let nf = `{operator: or, search: [ ${f1} ]}`;
-
-  //         //add new filter to general search ands
-  //         nonaSands += nf;
+  //         let f1 = {field: <%- sortedAssociations[aindex].internalId _%>, valueType: <%- sortedAssociations[aindex].internalIdType _%>, value: idsToExclude[idsToExclude.length-1], operator: "lt"};
+  //         //add filter
+  //         nonaSearchB.search.search.push(f1);
   //       }
   //     } else { //isBackward
   //       //case: there are more associated ids...
   //       if(batchConnection.pageInfo.hasPreviousPage) {
-  //         /**
-  //          * Debug
-  //          */
-  //         console.log("@@-- backward: limit next result to:  idsToExclude[first]: ", idsToExclude[0]);
-        
   //         //make filter to limit results to after the first associated id.
-  //         let f1 = `{field: <%- sortedAssociations[aindex].internalId _%>, valueType: <%- sortedAssociations[aindex].internalIdType _%>, value: "${idsToExclude[0]}", operator: gt}`;
-  //         let nf = `{operator: or, search: [ ${f1} ]}`;
-
-  //         //add new filter to general search ands
-  //         nonaSands += nf;
+  //         let f1 = {field: <%- sortedAssociations[aindex].internalId _%>, valueType: <%- sortedAssociations[aindex].internalIdType _%>, value: idsToExclude[0], operator: "gt"};
+  //         //add filter
+  //         nonaSearchB.search.search.push(f1);
   //       }
   //     }
-  //   } 
 
-  //   if(nonaSands !== '') {
-  //     //make search
-  //     let nonaSearch = `search: {operator:and, search: [ ${nonaSands} ]}`;
-  //     nonaQuery =
-  //       `query <%- sortedAssociations[aindex].targetModelPlLc _%>Connection($pagination: paginationCursorInput) {
-  //           <%- sortedAssociations[aindex].targetModelPlLc _%>Connection( ${nonaSearch}, pagination: $pagination ) {
-  //             pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
-  //             edges {node {${qattributes}}}
-  //         }}`;
-  //   } else {
-  //     nonaQuery =
-  //       `query <%- sortedAssociations[aindex].targetModelPlLc _%>Connection($pagination: paginationCursorInput) {
-  //         <%- sortedAssociations[aindex].targetModelPlLc _%>Connection( pagination: $pagination ) {
-  //           pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
-  //           edges {node {${qattributes}}}
-  //       }}`;
+  //     //join search filters
+  //     if(nonaSearch) nonaSearch.search.search = [...nonaSearch.search.search, ...nonaSearchB.search.search];
+  //     else           nonaSearch = nonaSearchB;
   //   }
+  //   //add search to variables
+  //   if(nonaSearch) nonaVariables.search = nonaSearch.search;
 
   //   /**
   //    * Debug
   //    */
-  //   console.log("getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>.nonaQuery: gql:\n", nonaQuery);
-  //   console.log("getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>.nonaVariables: gql:\n", nonaVariables);
+  //   if(globals.REQUEST_LOGGER) logRequest(`getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>.nonAssociatedBatch.${iteration}`, nonaQuery, nonaVariables);
     
-  //   /**
-  //    * Request
-  //    */
-  //   let nonaConnection = null;
+  //   //request
   //   response = await requestGraphql({ url, query:nonaQuery, variables:nonaVariables });
+  //   let nonaConnection = null;
   //   //check
   //   check = checkResponse(response, graphqlErrors, "<%- sortedAssociations[aindex].targetModelPlLc _%>Connection");
   //   if(check === 'ok') {
-  //     if( response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"] ) {
-  //       //check type
-  //       if(typeof response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"] !== 'object'
-  //       || !Array.isArray(response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"].edges)
-  //       || typeof response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"].pageInfo !== 'object' 
-  //       || response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"].pageInfo === null)
-  //       return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+  //     //check type
+  //     if(!response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"]
+  //     || typeof response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"] !== 'object'
+  //     || !Array.isArray(response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"].edges)
+  //     || typeof response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"].pageInfo !== 'object' 
+  //     || response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"].pageInfo === null)
+  //     return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
 
-  //       //get value
-  //       nonaConnection = response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"];
-
-  //     } else return {data: response.data.data, value: null, message: 'bad_format', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+  //     //get value
+  //     nonaConnection = response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"];
   //   } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
 
   //   /**
@@ -748,7 +711,7 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
   //     //adjust pagination for next batch associated ids
   //     batchPagination.after = isForward ? batchConnection.pageInfo.endCursor : null;
   //     batchPagination.before = !isForward ? batchConnection.pageInfo.startCursor : null;
-  //     batchVariables = {pagination: batchPagination};
+  //     batchVariables.pagination = batchPagination;
       
   //     //adjust pagination for the next non-associated items
   //     nonaPagination.first = isForward ? (requiredItems - nonaEdges.length) : null;
@@ -756,26 +719,14 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
   //     nonaPagination.after = isForward ? batchConnection.pageInfo.endCursor : null;
   //     nonaPagination.before = !isForward ? batchConnection.pageInfo.startCursor : null;
   //     nonaPagination.includeCursor = false;
-  //     nonaVariables = {pagination: nonaPagination};
+  //     nonaVariables = {pagination: nonaPagination}; //search will be set in next iteration
 
   //     //continue with next iteration...
+  //     iteration++;
   //   } else {        
-  //     let connection = {pageInfo: nonaPageInfo, edges: nonaEdges};
-  //     //ok
-  //     return {value: connection, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+  //     //return value
+  //     return {value: {pageInfo: nonaPageInfo, edges: nonaEdges}, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
   //   }
   // }//end: while()
-<%}-%>
-<%
-/**
- * generic_to_one
- * generic_to_many
- */
--%>
-<%_if( sortedAssociations[aindex].type === 'generic_to_one' || sortedAssociations[aindex].type === 'generic_to_many' ){-%>
-  /*
-  YOUR CODE GOES HERE
-   */
-  throw new Error('getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>() is not implemented for model <%- name -%>');
 <%}-%>
 },

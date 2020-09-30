@@ -4,10 +4,11 @@
  */
 let isToOne = ( sortedAssociations[aindex].type === 'to_one' || sortedAssociations[aindex].type === 'generic_to_one' );
 let isToMany = ( sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many' );
+let isGenericToMany = ( sortedAssociations[aindex].type === 'generic_to_many' );
 let isOneToMany = ( sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'generic_to_many' );
 let isManyToMany = ( sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' );
-let isCursorBased = ( sortedAssociations[aindex].paginationType === 'cursorBased' || isManyToMany );
-let isLimitOffset = ( sortedAssociations[aindex].paginationType === 'limitOffset' && !isManyToMany );
+let isCursorBased = ( sortedAssociations[aindex].paginationType === 'cursorBased' || isManyToMany || isGenericToMany );
+let isLimitOffset = ( sortedAssociations[aindex].paginationType === 'limitOffset' && !isManyToMany && !isGenericToMany );
 -%>
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -919,7 +920,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
           }
 <%}-%>
           return;
-        } else {
+        } else { //not ok
           //show error
           let newError = {};
           let withDetails=true;
