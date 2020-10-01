@@ -91,7 +91,7 @@
     if(s) {
       if(associatedItem) {
         //make filter to exclude associated item
-        let f1 = {field: <%- sortedAssociations[aindex].internalId _%>, valueType: <%- sortedAssociations[aindex].internalIdType _%>, value: associatedItem["<%- sortedAssociations[aindex].internalId _%>"], operator: "ne"};
+        let f1 = {field: "<%- sortedAssociations[aindex].internalId _%>", valueType: "<%- sortedAssociations[aindex].internalIdType _%>", value: associatedItem["<%- sortedAssociations[aindex].internalId _%>"], operator: "ne"};
         //add new filter to ands array
         s.search.search.push(f1)        
       }
@@ -144,9 +144,9 @@
     let s = getSearchArgument('<%- sortedAssociations[aindex].targetModelLc _%>', searchText, ops, 'object');
   
     //make filter to exclude itemId on FK & include null's
-    let f1 = {field: <%- sortedAssociations[aindex].targetKey _%>, valueType: <%- internalIdType _%>, value: itemId, operator: "ne"};
-    let f2 = {field: <%- sortedAssociations[aindex].targetKey _%>, valueType: <%- internalIdType _%>, value: null, operator: "eq"};
-    let nf = {operator: or, search: [ f1, f2 ]};
+    let f1 = {field: "<%- sortedAssociations[aindex].targetKey _%>", valueType: "<%- internalIdType _%>", value: itemId, operator: "ne"};
+    let f2 = {field: "<%- sortedAssociations[aindex].targetKey _%>", valueType: "<%- internalIdType _%>", value: null, operator: "eq"};
+    let nf = {operator: "or", search: [ f1, f2 ]};
     
     //add new filter to ands array
     if(s) s.search.search.push(nf);
@@ -236,10 +236,9 @@
     //id
     variables["<%- internalId _%>"] = itemId;
     //search
-    let s = getSearchArgument('<%- sortedAssociations[aindex].targetModelLc _%>', searchText, ops, 'object');
     if(s) variables.search = s.search;
     //query
-    let query =
+    query =
       `query readOne<%- nameCp _%>($<%- internalId _%>:ID!, $search: search<%- sortedAssociations[aindex].targetModelCp _%>Input) { 
              readOne<%- nameCp _%>(<%- internalId _%>:$<%- internalId _%>) {
               countFiltered<%- sortedAssociations[aindex].relationNameCp %>(search: $search) 
@@ -250,7 +249,7 @@
      */
     if(globals.REQUEST_LOGGER) logRequest('get<%- sortedAssociations[aindex].relationNameCp %>Count.query2', query, variables);
     //request
-    let response = await requestGraphql({ url, query, variables });
+    response = await requestGraphql({ url, query, variables });
     let countB = null;
     //check
     check = checkResponse(response, graphqlErrors, "readOne<%- nameCp _%>");

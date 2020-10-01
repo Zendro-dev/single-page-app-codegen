@@ -15,6 +15,7 @@
   async createItem(url, variables) {
     //internal checks
     if(!variables||typeof variables !== 'object') throw new Error("internal_error: expected object 'variables' argument");
+    let graphqlErrors = [];
 
     //set variables declarations
     let qvariables = `

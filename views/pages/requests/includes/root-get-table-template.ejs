@@ -11,6 +11,7 @@
    * @param {String} url GraphQL Server url
    */
   async tableTemplate(url) {
+    let graphqlErrors = [];
     let query = `query {csvTableTemplate<%- nameCp _%>}`;
 
     /**
@@ -22,7 +23,7 @@
     let response = await requestGraphql({ url, query });
     let headers = null;
     //check
-    check = checkResponse(response, graphqlErrors, "csvTableTemplate<%- nameCp _%>");
+    let check = checkResponse(response, graphqlErrors, "csvTableTemplate<%- nameCp _%>");
     if(check === 'ok') {
       //check type
       if(!Array.isArray(response.data.data["csvTableTemplate<%- nameCp _%>"])) 

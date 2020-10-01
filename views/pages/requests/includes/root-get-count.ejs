@@ -14,14 +14,13 @@
    * @param {String} ops Object with adittional query options.
    */
   async getCountItems(url, searchText, ops) {
+    let graphqlErrors = [];
     let variables = {};
     //search
     let s = getSearchArgument('<%- nameLc _%>', searchText, ops, 'object');
     if(s) variables.search = s.search;
 
     //query
-    let attributes = getAttributes('<%- nameLc _%>');
-    let qattributes = Object.keys(attributes).join();
     let query =
       `query count<%- namePlCp _%>($search: search<%- nameCp _%>Input) { 
              count<%- namePlCp _%>( search: $search ) }`
@@ -34,7 +33,7 @@
     let response = await requestGraphql({ url, query, variables });
     let count = null;
     //check
-    check = checkResponse(response, graphqlErrors, "count<%- namePlCp _%>");
+    let check = checkResponse(response, graphqlErrors, "count<%- namePlCp _%>");
     if(check === 'ok') {
       //check type
       if(!Number.isInteger(response.data.data["count<%- namePlCp _%>"])) 

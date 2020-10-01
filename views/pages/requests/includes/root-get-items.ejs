@@ -19,12 +19,13 @@
     //internal checks
     if(!variables||typeof variables !== 'object') throw new Error("internal_error: expected object 'variables' argument");
     if(!variables.pagination||typeof variables.pagination !== 'object' ) throw new Error("internal_error: pagination object expected in variables");
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%if(paginationType === 'cursorBased') {-%>
     if(!variables.pagination.first&&!variables.pagination.last ) throw new Error("internal_error: pagination first or last positive argument expected");
 <%}-%>
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(paginationType === 'limitOffset') {-%>
     if(!variables.pagination.limit) throw new Error("internal_error: pagination limit positive argument expected");
 <%}-%>
+    let graphqlErrors = [];
 
     //search
     let s = getSearchArgument('<%- nameLc _%>', searchText, ops, 'object');

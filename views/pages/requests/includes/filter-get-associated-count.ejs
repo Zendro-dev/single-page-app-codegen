@@ -16,10 +16,10 @@
    * @param {String} searchText Text string currently on search bar.
    * @param {String} ops Object with adittional query options.
    */
-  get<%- sortedAssociations[aindex].relationNameCp %>Count(url, itemId, searchText, ops) {
-    let variables = {};
-    //id
-    variables["<%- internalId _%>"] = itemId;
+  async get<%- sortedAssociations[aindex].relationNameCp %>Count(url, itemId, searchText, ops) {
+    let graphqlErrors = [];
+
+    let variables = {"<%- internalId _%>": itemId};
     //search
     let s = getSearchArgument('<%- sortedAssociations[aindex].targetModelLc _%>', searchText, ops, 'object');
     if(s) variables.search = s.search;
@@ -34,6 +34,24 @@
      * Debug
      */
     if(globals.REQUEST_LOGGER) logRequest('get<%- sortedAssociations[aindex].relationNameCp %>Count', query, variables);
-    return requestGraphql({ url, query, variables });
+    
+    //request
+    let response = await requestGraphql({ url, query, variables });
+    let count = null;
+    //check
+    let check = checkResponse(response, graphqlErrors, "readOne<%- nameCp _%>");
+    if(check === 'ok') {
+      //check type
+      if(!response.data.data["readOne<%- nameCp _%>"]
+      || typeof response.data.data["readOne<%- nameCp _%>"] !== 'object'
+      || !Number.isInteger(response.data.data["readOne<%- nameCp _%>"]["countFiltered<%- sortedAssociations[aindex].relationNameCp %>"])) 
+      return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+      //get value
+      count = response.data.data["readOne<%- nameCp _%>"]["countFiltered<%- sortedAssociations[aindex].relationNameCp %>"];
+    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+    //return value
+    return {value: count, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
   },
 <%}-%>

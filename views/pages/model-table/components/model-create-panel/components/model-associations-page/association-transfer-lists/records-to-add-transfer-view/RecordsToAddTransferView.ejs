@@ -4,6 +4,8 @@
  */
 let isToOne = ( sortedAssociations[aindex].type === 'to_one' || sortedAssociations[aindex].type === 'generic_to_one' );
 let isToMany = ( sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many' );
+let isCursorBased = ( sortedAssociations[aindex].paginationType === 'cursorBased' );
+let isLimitOffset = ( sortedAssociations[aindex].paginationType === 'limitOffset' );
 -%>
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSelector } from 'react-redux';
@@ -16,9 +18,9 @@ import PropTypes from 'prop-types';
 import api from '../../../../../../../../../../../requests/requests.index.js';
 import { makeCancelable } from '../../../../../../../../../../../utils'
 import <%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferViewToolbar from './components/<%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferViewToolbar';
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%if(isCursorBased) {-%>
 import <%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferViewCursorPagination from './components/<%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferViewCursorPagination';
-<%} else if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%} else if(isLimitOffset) {-%>
 import TablePagination from '@material-ui/core/TablePagination';
 <%}-%>
 import Typography from '@material-ui/core/Typography';
@@ -125,11 +127,11 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
   const pageRef = useRef(0);
   const rowsPerPageRef = useRef(10);
   const lastFetchTime = useRef(null);
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
   const [isCounting, setIsCounting] = useState(true);
 <%}-%>
   const isCountingRef = useRef(false);
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%if(isCursorBased) {-%>
   const [hasPreviousPage, setHasPreviousPage] = useState(false);
   const [hasNextPage, setHasNextPage] = useState(false);
   const pageInfo = useRef({startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false});
@@ -163,11 +165,11 @@ const cancelableCountingPromises = useRef([]);
 <%}-%>
   const lastFetchTimeB = useRef(null);
 <%_if( isToMany ){-%>
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
   const [isCountingB, setIsCountingB] = useState(true);
 <%}-%>
   const isCountingRefB = useRef(false);
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%if(isCursorBased) {-%>
   const [hasPreviousPageB, setHasPreviousPageB] = useState(false);
   const [hasNextPageB, setHasNextPageB] = useState(false);
   const pageInfoB = useRef({startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false});
@@ -270,11 +272,17 @@ const cancelableCountingPromises = useRef([]);
 <%_if( isToMany ){-%>
     *  showMessageD
 <%}-%>
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%if(isCursorBased) {-%>
     *  configurePagination
 <%}-%>
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased' && isToMany) {-%>
+<%if(isCursorBased && isToMany) {-%>
     *  configurePaginationB
+<%}-%>
+<%if(isCursorBased) {-%>
+    *  onEmptyPage
+<%}-%>
+<%if(isCursorBased && isToMany) {-%>
+    *  onEmptyPageB
 <%}-%>
     *  clearRequestGetData
     *  clearRequestGetDataB
@@ -352,7 +360,7 @@ const cancelableCountingPromises = useRef([]);
   },[enqueueSnackbar]);
 <%}-%>
 
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%if(isCursorBased) {-%>
   /**
    * configurePagination
    * 
@@ -460,7 +468,7 @@ const cancelableCountingPromises = useRef([]);
 <%}-%>
 
 <%_if( isToMany ){-%>
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%if(isCursorBased) {-%>
   /**
    * configurePaginationB
    * 
@@ -568,25 +576,147 @@ const cancelableCountingPromises = useRef([]);
 <%}-%>
 <%}-%>
 
+<%if(isCursorBased) {-%>
+  const onEmptyPage = useCallback((pi) => {
+    //case: forward
+    if(isForwardPagination.current) {
+      if(pi && pi.hasPreviousPage) {
+        //configure
+        isOnApiRequestRef.current = false;
+        isCursorPaginating.current = false;
+        setIsOnApiRequest(false);
+        configurePagination('previousPage');
+        
+        //reload
+        setDataTrigger(prevDataTrigger => !prevDataTrigger);
+        return;
+      } else {
+        //disable nextPage
+        pageInfo.current.hasNextPage = false;
+        setHasNextPage(pageInfo.current.hasNextPage);
+
+        //configure pagination (default)
+        configurePagination('reload');
+
+        //ends request
+        isOnApiRequestRef.current = false;
+        isCursorPaginating.current = false;
+        setIsOnApiRequest(false);
+
+        //do not update items...
+        return;
+      }
+    } else {//case: backward
+      if(pi && pi.hasNextPage) {
+        //configure
+        isOnApiRequestRef.current = false;
+        isCursorPaginating.current = false;
+        setIsOnApiRequest(false);
+        configurePagination('nextPage');
+        
+        //reload
+        setDataTrigger(prevDataTrigger => !prevDataTrigger);
+        return;
+      } else {
+        //disable previousPage
+        pageInfo.current.hasPreviousPage = false;
+        setHasPreviousPage(pageInfo.current.hasPreviousPage);
+
+        //configure pagination (default)
+        configurePagination('reload');
+
+        //ends request
+        isOnApiRequestRef.current = false;
+        isCursorPaginating.current = false;
+        setIsOnApiRequest(false);
+
+        //do not update items...
+        return;
+      }
+    }
+  }, [configurePagination]);
+
+<%_if( isToMany ){-%>
+  const onEmptyPageB = useCallback((pi) => {
+    //case: forward
+    if(isForwardPaginationB.current) {
+      if(pi && pi.hasPreviousPage) {
+        //configure
+        isOnApiRequestRefB.current = false;
+        isCursorPaginatingB.current = false;
+        setIsOnApiRequestB(false);
+        configurePaginationB('previousPage');
+        
+        //reload
+        setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+        return;
+      } else {
+        //disable nextPage
+        pageInfoB.current.hasNextPage = false;
+        setHasNextPageB(pageInfoB.current.hasNextPage);
+
+        //configure pagination (default)
+        configurePaginationB('reload');
+
+        //ends request
+        isOnApiRequestRefB.current = false;
+        isCursorPaginatingB.current = false;
+        setIsOnApiRequestB(false);
+
+        //do not update items...
+        return;
+      }
+    } else {//case: backward
+      if(pi && pi.hasNextPage) {
+        //configure
+        isOnApiRequestRefB.current = false;
+        isCursorPaginatingB.current = false;
+        setIsOnApiRequestB(false);
+        configurePaginationB('nextPage');
+        
+        //reload
+        setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+        return;
+      } else {
+        //disable previousPage
+        pageInfoB.current.hasPreviousPage = false;
+        setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
+
+        //configure pagination (default)
+        configurePaginationB('reload');
+
+        //ends request
+        isOnApiRequestRefB.current = false;
+        isCursorPaginatingB.current = false;
+        setIsOnApiRequestB(false);
+
+        //do not update items...
+        return;
+      }
+    }
+  }, [configurePaginationB]);
+<%}-%>
+<%}-%>
+
   const clearRequestGetData = useCallback(() => {
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%if(isCursorBased) {-%>
     //configure pagination
     configurePagination('reset');
 <%}-%>          
     setItems([]);
     isOnApiRequestRef.current = false;
     setIsOnApiRequest(false);
-  },[<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>configurePagination<%}-%>]);
+  },[<%if(isCursorBased) {-%>configurePagination<%}-%>]);
 
   const clearRequestGetDataB = useCallback(() => {
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased' && isToMany) {-%>
+<%if(isCursorBased && isToMany) {-%>
     //configure pagination
     configurePaginationB('reset');
 <%}-%>  
     setItemsB([]);
     isOnApiRequestRefB.current = false;
     setIsOnApiRequestB(false);
-  },[<%if(sortedAssociations[aindex].paginationType === 'cursorBased' && isToMany) {-%>configurePaginationB<%}-%>]);
+  },[<%if(isCursorBased && isToMany) {-%>configurePaginationB<%}-%>]);
 
 <%
   /**
@@ -608,7 +738,7 @@ const cancelableCountingPromises = useRef([]);
     if(isCountingRef.current) return;
 
     cancelCountingPromises();
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
     setIsCounting(true);
 <%}-%>
     isCountingRef.current = true;
@@ -697,12 +827,12 @@ const cancelableCountingPromises = useRef([]);
 
         //ok
         setCount(response.value);
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
         setIsCounting(false);
 <%}-%>
         isCountingRef.current = false;
       
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
         /*
           Check: empty page
         */
@@ -786,11 +916,11 @@ const cancelableCountingPromises = useRef([]);
       };
     }
     
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
     let variables = {
       pagination: {offset: (pageRef.current * rowsPerPageRef.current), limit: rowsPerPageRef.current}
     };
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
     let variables = {
       pagination: {...paginationRef.current}
     };
@@ -847,10 +977,10 @@ const cancelableCountingPromises = useRef([]);
           return;
         }
 
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
         //get items
         let its = response.value;
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
         //get items
         let its = response.value.edges.map(o => o.node);
         let pi = response.value.pageInfo;
@@ -862,7 +992,7 @@ const cancelableCountingPromises = useRef([]);
         {
           onEmptyPage(pi);
           return;
-        }//else
+        }
 
         //update pageInfo
         pageInfo.current = pi;
@@ -878,7 +1008,7 @@ const cancelableCountingPromises = useRef([]);
 
         //ends request
         isOnApiRequestRef.current = false;
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%if(isCursorBased) {-%>
         isCursorPaginating.current = false;
 <%}-%>
         setIsOnApiRequest(false);
@@ -909,7 +1039,7 @@ const cancelableCountingPromises = useRef([]);
           return;
         }
       });
-  }, [graphqlServerUrl, showMessage, clearRequestGetData, getCount, t, dataTrigger, search<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>, configurePagination<%}-%>]);
+  }, [graphqlServerUrl, showMessage, clearRequestGetData, getCount, t, dataTrigger, search<%if(isCursorBased) {-%>, configurePagination, onEmptyPage<%}-%>]);
 
 <%_if( isToMany ){-%>
 <%
@@ -932,7 +1062,7 @@ const cancelableCountingPromises = useRef([]);
     if(isCountingRefB.current) return;
 
     cancelCountingPromisesB();
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
     setIsCountingB(true);
 <%}-%>
     isCountingRefB.current = true;
@@ -975,7 +1105,7 @@ const cancelableCountingPromises = useRef([]);
         }]
       };
     } else {
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
       setIsCountingB(false);
 <%}-%>
       isCountingRefB.current = false;
@@ -1028,11 +1158,11 @@ const cancelableCountingPromises = useRef([]);
 
         //ok
         setCountB(response.value);
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
         setIsCountingB(false);
 <%}-%>
         isCountingRefB.current = false;
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
         /*
           Check: empty page
         */
@@ -1124,7 +1254,7 @@ const cancelableCountingPromises = useRef([]);
       return;
     }
 
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
 <%_if( isToMany ){-%>
     let variables = {
       pagination: {offset: (pageRefB.current * rowsPerPageRefB.current), limit: rowsPerPageRefB.current}
@@ -1134,13 +1264,13 @@ const cancelableCountingPromises = useRef([]);
       pagination: {offset: 0, limit: 1}
     };
 <%}-%>
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
 <%_if( isToMany ){-%>
     let variables = {
       pagination: {...paginationRefB.current}
     };
 <%} else {-%>
-    let variables = {};
+    let variables = {pagination: {first: 1}};
 <%}-%>
 <%}-%>
     /*
@@ -1195,10 +1325,10 @@ const cancelableCountingPromises = useRef([]);
           return;
         }
 
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
         //get items
         let its = response.value;
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
         //get items
         let its = response.value.edges.map(o => o.node);
 <%_if( isToMany ){-%>
@@ -1230,7 +1360,7 @@ const cancelableCountingPromises = useRef([]);
         //ends request
         isOnApiRequestRefB.current = false;
 <%_if( isToMany ){-%>
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%if(isCursorBased) {-%>
         isCursorPaginatingB.current = false;
 <%}-%>
 <%}-%>
@@ -1262,7 +1392,7 @@ const cancelableCountingPromises = useRef([]);
           return;
         }
       });
-  }, [graphqlServerUrl, showMessageB, clearRequestGetDataB, t, dataTriggerB, searchB<%if( isToMany ) {-%>, getCountB<%}-%><%if(sortedAssociations[aindex].paginationType === 'cursorBased' && isToMany) {-%>, configurePaginationB<%}-%>]);
+  }, [graphqlServerUrl, showMessageB, clearRequestGetDataB, t, dataTriggerB, searchB<%if( isToMany ) {-%>, getCountB<%}-%><%if(isCursorBased && isToMany) {-%>, configurePaginationB, onEmptyPageB<%}-%>]);
 
   /**
    * Effects
@@ -1427,7 +1557,7 @@ const cancelableCountingPromises = useRef([]);
           isCountingRefB.current = false;
 <%}-%>
 
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
             //reload A
             if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); }
             else { isPendingApiRequestRef.current = true; getCount(); }
@@ -1438,7 +1568,7 @@ const cancelableCountingPromises = useRef([]);
 <%} else {-%>
             else { isPendingApiRequestRefB.current = true; }
 <%}-%> 
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
           //strict contention
           if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
             //configure A
@@ -1469,7 +1599,7 @@ const cancelableCountingPromises = useRef([]);
         }
       });
     }//end: Case 1
-  }, [lastModelChanged, lastChangeTimestamp, items, itemsB, handleUntransfer, getCount, count<%_if( isToMany ){-%>, getCountB, countB<%}-%><%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>, configurePagination<%}-%><%if(sortedAssociations[aindex].paginationType === 'cursorBased' && isToMany) {-%>, configurePaginationB<%}-%>]);
+  }, [lastModelChanged, lastChangeTimestamp, items, itemsB, handleUntransfer, getCount, count<%_if( isToMany ){-%>, getCountB, countB<%}-%><%if(isCursorBased) {-%>, configurePagination<%}-%><%if(isCursorBased && isToMany) {-%>, configurePaginationB<%}-%>]);
   
   useEffect(() => {
     //return if this flag is set
@@ -1507,7 +1637,7 @@ const cancelableCountingPromises = useRef([]);
     }
   }, [pageB]);
 
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
   useEffect(() => {
     //update ref
     rowsPerPageRef.current = rowsPerPage;
@@ -1518,7 +1648,7 @@ const cancelableCountingPromises = useRef([]);
     //reload
     setDataTrigger(prevDataTrigger => !prevDataTrigger);
   }, [rowsPerPage]);
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
   useEffect(() => {
     //update ref
     rowsPerPageRef.current = rowsPerPage;
@@ -1536,7 +1666,7 @@ const cancelableCountingPromises = useRef([]);
 <%}-%>
 
 <%_if( isToMany ){-%>
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
   useEffect(() => {
     //update ref
     rowsPerPageRefB.current = rowsPerPageB;
@@ -1547,7 +1677,7 @@ const cancelableCountingPromises = useRef([]);
     //reload
     setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
   }, [rowsPerPageB]);
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
   useEffect(() => {
     //update ref
     rowsPerPageRefB.current = rowsPerPageB;
@@ -1568,10 +1698,10 @@ const cancelableCountingPromises = useRef([]);
   useEffect(() => {
     if (!isOnApiRequest && isPendingApiRequestRef.current) {
       isPendingApiRequestRef.current = false;
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
       //reload
       setDataTrigger(prevDataTrigger => !prevDataTrigger);
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
       //configure
       configurePagination('reload');
       //reload
@@ -1579,15 +1709,15 @@ const cancelableCountingPromises = useRef([]);
 <%}-%>
     }
     updateHeights();
-  }, [isOnApiRequest<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>, configurePagination<%}-%>]);
+  }, [isOnApiRequest<%if(isCursorBased) {-%>, configurePagination<%}-%>]);
 
   useEffect(() => {
     if (!isOnApiRequestB && isPendingApiRequestRefB.current) {
       isPendingApiRequestRefB.current = false;
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
       //reload
       setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
 <%_if( isToMany ){-%>
       //configure
       configurePaginationB('reload');
@@ -1597,7 +1727,7 @@ const cancelableCountingPromises = useRef([]);
 <%}-%>
     }
     updateHeights();
-  }, [isOnApiRequestB<%if(sortedAssociations[aindex].paginationType === 'cursorBased' && isToMany) {-%>, configurePaginationB<%}-%>]);
+  }, [isOnApiRequestB<%if(isCursorBased && isToMany) {-%>, configurePaginationB<%}-%>]);
 
   useEffect(() => {
     if(Array.isArray(items) && items.length > 0) { 
@@ -1642,7 +1772,7 @@ const cancelableCountingPromises = useRef([]);
     }
   }
 
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
   function resetPageRefs() {
     pageRef.current = 0;
   }
@@ -1667,10 +1797,10 @@ const cancelableCountingPromises = useRef([]);
 <%}-%>
 
   function reloadDataA() {
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
     //reload A
     setDataTrigger(prevDataTrigger => !prevDataTrigger); 
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
     //configure A
     configurePagination('reload');
     //reload A
@@ -1679,10 +1809,10 @@ const cancelableCountingPromises = useRef([]);
   }
 
   function reloadDataB() {
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
     //reload B
     setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
 <%_if( isToMany ){-%>
     //configure B
     configurePaginationB('reload');    
@@ -1691,128 +1821,6 @@ const cancelableCountingPromises = useRef([]);
     setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
 <%}-%>
   }
-
-<%if(paginationType === 'cursorBased') {-%>
-  function onEmptyPage(pi) {
-    //case: forward
-    if(isForwardPagination.current) {
-      if(pi && pi.hasPreviousPage) {
-        //configure
-        isOnApiRequestRef.current = false;
-        isCursorPaginating.current = false;
-        setIsOnApiRequest(false);
-        configurePagination('previousPage');
-        
-        //reload
-        setDataTrigger(prevDataTrigger => !prevDataTrigger);
-        return;
-      } else {
-        //disable nextPage
-        pageInfo.current.hasNextPage = false;
-        setHasNextPage(pageInfo.current.hasNextPage);
-
-        //configure pagination (default)
-        configurePagination('reload');
-
-        //ends request
-        isOnApiRequestRef.current = false;
-        isCursorPaginating.current = false;
-        setIsOnApiRequest(false);
-
-        //do not update items...
-        return;
-      }
-    } else {//case: backward
-      if(pi && pi.hasNextPage) {
-        //configure
-        isOnApiRequestRef.current = false;
-        isCursorPaginating.current = false;
-        setIsOnApiRequest(false);
-        configurePagination('nextPage');
-        
-        //reload
-        setDataTrigger(prevDataTrigger => !prevDataTrigger);
-        return;
-      } else {
-        //disable previousPage
-        pageInfo.current.hasPreviousPage = false;
-        setHasPreviousPage(pageInfo.current.hasPreviousPage);
-
-        //configure pagination (default)
-        configurePagination('reload');
-
-        //ends request
-        isOnApiRequestRef.current = false;
-        isCursorPaginating.current = false;
-        setIsOnApiRequest(false);
-
-        //do not update items...
-        return;
-      }
-    }
-  }
-
-<%_if( isToMany ){-%>
-  function onEmptyPageB(pi) {
-    //case: forward
-    if(isForwardPaginationB.current) {
-      if(pi && pi.hasPreviousPage) {
-        //configure
-        isOnApiRequestRefB.current = false;
-        isCursorPaginatingB.current = false;
-        setIsOnApiRequestB(false);
-        configurePaginationB('previousPage');
-        
-        //reload
-        setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-        return;
-      } else {
-        //disable nextPage
-        pageInfoB.current.hasNextPage = false;
-        setHasNextPageB(pageInfoB.current.hasNextPage);
-
-        //configure pagination (default)
-        configurePaginationB('reload');
-
-        //ends request
-        isOnApiRequestRefB.current = false;
-        isCursorPaginatingB.current = false;
-        setIsOnApiRequestB(false);
-
-        //do not update items...
-        return;
-      }
-    } else {//case: backward
-      if(pi && pi.hasNextPage) {
-        //configure
-        isOnApiRequestRefB.current = false;
-        isCursorPaginatingB.current = false;
-        setIsOnApiRequestB(false);
-        configurePaginationB('nextPage');
-        
-        //reload
-        setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-        return;
-      } else {
-        //disable previousPage
-        pageInfoB.current.hasPreviousPage = false;
-        setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
-
-        //configure pagination (default)
-        configurePaginationB('reload');
-
-        //ends request
-        isOnApiRequestRefB.current = false;
-        isCursorPaginatingB.current = false;
-        setIsOnApiRequestB(false);
-
-        //do not update items...
-        return;
-      }
-    }
-  }
-<%}-%>
-<%}-%>
 
   /**
    * Handlers
@@ -1824,7 +1832,7 @@ const cancelableCountingPromises = useRef([]);
   const handleSearchEnter = text => {
     if(text !== search)
     {
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
       resetPageRefs();
 <%}-%>
       if(page !== 0) {
@@ -1844,7 +1852,7 @@ const cancelableCountingPromises = useRef([]);
   const handleSearchEnterB = text => {
     if(text !== searchB)
     {
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
       resetPageRefsB();
 <%}-%>
       if(pageB !== 0) {
@@ -1865,7 +1873,7 @@ const cancelableCountingPromises = useRef([]);
   /*
    * Pagination handlers
    */
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -1877,7 +1885,7 @@ const cancelableCountingPromises = useRef([]);
 <%}-%>
 <%}-%>
 
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%if(isCursorBased) {-%>
   const handleFirstPageButtonClick = (event) => {
     //strict contention
     if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
@@ -1979,7 +1987,7 @@ const cancelableCountingPromises = useRef([]);
   const handleChangeRowsPerPage = event => {
     if(event.target.value !== rowsPerPage)
     {
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
       resetPageRefs();
 <%}-%>
       if(page !== 0) {
@@ -1995,7 +2003,7 @@ const cancelableCountingPromises = useRef([]);
   const handleChangeRowsPerPageB = event => {
     if(event.target.value !== rowsPerPageB)
     {
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
       resetPageRefsB();
 <%}-%>
       if(pageB !== 0) {
@@ -2007,14 +2015,14 @@ const cancelableCountingPromises = useRef([]);
   };
 <%}-%>
 
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
   const handleReloadClick = (event) => {
     resetReloadDataA();
   };
   const handleReloadClickB = (event) => {
     resetReloadDataB();
   };
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
   const handleReloadClick = (event) => {
     //check strict contention
     if(isOnApiRequestRef.current || isCursorPaginating.current) { return; }
@@ -2070,10 +2078,10 @@ const cancelableCountingPromises = useRef([]);
       //will count B
       cancelCountingPromisesB();
       isCountingRefB.current = false;
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
       //reset B
       resetReloadDataB();
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
       //configure B
       configurePaginationB('reset');
       //reload B
@@ -2097,10 +2105,10 @@ const cancelableCountingPromises = useRef([]);
       }
       //reload A
       reloadDataA();
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
       //reset B
       resetReloadDataB();
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
       //reload B
       setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
 <%}-%>
@@ -2124,10 +2132,10 @@ const cancelableCountingPromises = useRef([]);
       //will count A
       cancelCountingPromises();
       isCountingRef.current = false;
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
       //reset A
       resetReloadDataA();
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
       //configure A
       configurePaginationB('reset');
       //reload A
@@ -2156,10 +2164,10 @@ const cancelableCountingPromises = useRef([]);
         cancelCountingPromises();
         isCountingRef.current = false;
       }
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
       //reset A
       resetReloadDataA();
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
       //reload A
       setDataTrigger(prevDataTrigger => !prevDataTrigger);
 <%}-%>
@@ -2326,7 +2334,7 @@ const cancelableCountingPromises = useRef([]);
             )}
 
             {/* Pagination */}
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
             <TablePagination
               rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
               component="div"
@@ -2338,7 +2346,7 @@ const cancelableCountingPromises = useRef([]);
               onChangePage={handleChangePage}
               onChangeRowsPerPage={handleChangeRowsPerPage}
             />
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
             <<%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferViewCursorPagination
               count={count}
               rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
@@ -2587,7 +2595,7 @@ const cancelableCountingPromises = useRef([]);
 
 <%if( isToMany ) {-%>
             {/* Pagination */}
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(isLimitOffset) {-%>
             <TablePagination
               rowsPerPageOptions={(countB <=10) ? [] : (countB <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
               component="div"
@@ -2599,7 +2607,7 @@ const cancelableCountingPromises = useRef([]);
               onChangePage={handleChangePageB}
               onChangeRowsPerPage={handleChangeRowsPerPageB}
             />
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(isCursorBased) {-%>
             <<%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferViewCursorPagination
               count={countB}
               rowsPerPageOptions={(countB <=10) ? [] : (countB <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}

@@ -193,6 +193,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
    *  showMessageB
 <%if(paginationType === 'cursorBased') {-%>
    *  configurePagination
+   *  onEmptyPage
 <%}-%>
    *  clearRequestGetData
    *  getCount
@@ -336,6 +337,67 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
         break;
     }
   }, []);
+<%}-%>
+
+<%if(paginationType === 'cursorBased') {-%>
+  const onEmptyPage = useCallback((pi) => {
+    //case: forward
+    if(isForwardPagination.current) {
+      if(pi && pi.hasPreviousPage) {
+        //configure
+        isOnApiRequestRef.current = false;
+        isCursorPaginating.current = false;
+        setIsOnApiRequest(false);
+        configurePagination('previousPage');
+        
+        //reload
+        setDataTrigger(prevDataTrigger => !prevDataTrigger);
+        return;
+      } else {
+        //disable nextPage
+        pageInfo.current.hasNextPage = false;
+        setHasNextPage(pageInfo.current.hasNextPage);
+
+        //configure pagination (default)
+        configurePagination('reload');
+
+        //ends request
+        isOnApiRequestRef.current = false;
+        isCursorPaginating.current = false;
+        setIsOnApiRequest(false);
+
+        //do not update items...
+        return;
+      }
+    } else {//case: backward
+      if(pi && pi.hasNextPage) {
+        //configure
+        isOnApiRequestRef.current = false;
+        isCursorPaginating.current = false;
+        setIsOnApiRequest(false);
+        configurePagination('nextPage');
+        
+        //reload
+        setDataTrigger(prevDataTrigger => !prevDataTrigger);
+        return;
+      } else {
+        //disable previousPage
+        pageInfo.current.hasPreviousPage = false;
+        setHasPreviousPage(pageInfo.current.hasPreviousPage);
+
+        //configure pagination (default)
+        configurePagination('reload');
+
+        //ends request
+        isOnApiRequestRef.current = false;
+        isCursorPaginating.current = false;
+        setIsOnApiRequest(false);
+
+        //do not update items...
+        return;
+      }
+    }
+  }, [configurePagination]);
 <%}-%>
 
   /**
@@ -540,11 +602,11 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     //count (async)
     getCount();
 
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+<%if(paginationType === 'limitOffset') {-%>
     let variables = {
       pagination: {offset: (pageRef.current * rowsPerPageRef.current), limit: rowsPerPageRef.current}
     };
-<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+<%} else if(paginationType === 'cursorBased') {-%>
     let variables = {
       pagination: {...paginationRef.current}
     };
@@ -662,7 +724,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           return;
         }
       });
-  }, [graphqlServerUrl, t, dataTrigger, search, orderBy, order, getCount, showMessage, clearRequestGetData<%if(paginationType === 'cursorBased') {-%>, configurePagination<%}-%>]);
+  }, [graphqlServerUrl, t, dataTrigger, search, orderBy, order, getCount, showMessage, clearRequestGetData<%if(paginationType === 'cursorBased') {-%>, configurePagination, onEmptyPage<%}-%>]);
 
   /**
    * Effects
@@ -1181,67 +1243,6 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
         return 0;
     }
   }
-  
-<%if(paginationType === 'cursorBased') {-%>
-  function onEmptyPage(pi) {
-    //case: forward
-    if(isForwardPagination.current) {
-      if(pi && pi.hasPreviousPage) {
-        //configure
-        isOnApiRequestRef.current = false;
-        isCursorPaginating.current = false;
-        setIsOnApiRequest(false);
-        configurePagination('previousPage');
-        
-        //reload
-        setDataTrigger(prevDataTrigger => !prevDataTrigger);
-        return;
-      } else {
-        //disable nextPage
-        pageInfo.current.hasNextPage = false;
-        setHasNextPage(pageInfo.current.hasNextPage);
-
-        //configure pagination (default)
-        configurePagination('reload');
-
-        //ends request
-        isOnApiRequestRef.current = false;
-        isCursorPaginating.current = false;
-        setIsOnApiRequest(false);
-
-        //do not update items...
-        return;
-      }
-    } else {//case: backward
-      if(pi && pi.hasNextPage) {
-        //configure
-        isOnApiRequestRef.current = false;
-        isCursorPaginating.current = false;
-        setIsOnApiRequest(false);
-        configurePagination('nextPage');
-        
-        //reload
-        setDataTrigger(prevDataTrigger => !prevDataTrigger);
-        return;
-      } else {
-        //disable previousPage
-        pageInfo.current.hasPreviousPage = false;
-        setHasPreviousPage(pageInfo.current.hasPreviousPage);
-
-        //configure pagination (default)
-        configurePagination('reload');
-
-        //ends request
-        isOnApiRequestRef.current = false;
-        isCursorPaginating.current = false;
-        setIsOnApiRequest(false);
-
-        //do not update items...
-        return;
-      }
-    }
-  }
-<%}-%>
 
   /**
    * Handlers
