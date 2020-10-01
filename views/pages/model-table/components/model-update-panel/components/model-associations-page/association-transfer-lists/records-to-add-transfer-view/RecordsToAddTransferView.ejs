@@ -658,20 +658,29 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
         setDataTrigger(prevDataTrigger => !prevDataTrigger);
         return;
       } else {
-        //disable nextPage
-        pageInfo.current.hasNextPage = false;
-        setHasNextPage(pageInfo.current.hasNextPage);
+        //if special case...
+        if(pageInfo.current.hasNextPage === true) {
+          //disable nextPage
+          pageInfo.current.hasNextPage = false;
+          setHasNextPage(pageInfo.current.hasNextPage);
 
-        //configure pagination (default)
-        configurePagination('reload');
+          //configure pagination (default)
+          configurePagination('reload');
 
-        //ends request
-        isOnApiRequestRef.current = false;
-        isCursorPaginating.current = false;
-        setIsOnApiRequest(false);
+          //do not update items...
+          
+        } else {
+          //update pageInfo
+          pageInfo.current = pi;
+          setHasPreviousPage(pageInfo.current.hasPreviousPage);
+          setHasNextPage(pageInfo.current.hasNextPage);
 
-        //do not update items...
-        return;
+          //configure pagination (default)
+          configurePagination('reload');
+
+          //ok
+          setItems([]);
+        }
       }
     } else {//case: backward
       if(pi && pi.hasNextPage) {
@@ -685,22 +694,36 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
         setDataTrigger(prevDataTrigger => !prevDataTrigger);
         return;
       } else {
-        //disable previousPage
-        pageInfo.current.hasPreviousPage = false;
-        setHasPreviousPage(pageInfo.current.hasPreviousPage);
+        //if special case...
+        if(pageInfo.current.hasPreviousPage === true) {
+          //disable previousPage
+          pageInfo.current.hasPreviousPage = false;
+          setHasPreviousPage(pageInfo.current.hasPreviousPage);
 
-        //configure pagination (default)
-        configurePagination('reload');
+          //configure pagination (default)
+          configurePagination('reload');
 
-        //ends request
-        isOnApiRequestRef.current = false;
-        isCursorPaginating.current = false;
-        setIsOnApiRequest(false);
+          //do not update items...
+        } else {
+          //update pageInfo
+          pageInfo.current = pi;
+          setHasPreviousPage(pageInfo.current.hasPreviousPage);
+          setHasNextPage(pageInfo.current.hasNextPage);
 
-        //do not update items...
-        return;
+          //configure pagination (default)
+          configurePagination('reload');
+
+          //ok
+          setItems([]);
+        }
       }
     }
+    //ends request
+    isOnApiRequestRef.current = false;
+    isCursorPaginating.current = false;
+    setIsOnApiRequest(false);
+    return;
+
   }, [configurePagination]);
 
 <%_if( isToMany ){-%>
@@ -717,21 +740,6 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
         //reload
         setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
         return;
-      } else {
-        //disable nextPage
-        pageInfoB.current.hasNextPage = false;
-        setHasNextPageB(pageInfoB.current.hasNextPage);
-
-        //configure pagination (default)
-        configurePaginationB('reload');
-
-        //ends request
-        isOnApiRequestRefB.current = false;
-        isCursorPaginatingB.current = false;
-        setIsOnApiRequestB(false);
-
-        //do not update items...
-        return;
       }
     } else {//case: backward
       if(pi && pi.hasNextPage) {
@@ -744,23 +752,26 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
         //reload
         setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
         return;
-      } else {
-        //disable previousPage
-        pageInfoB.current.hasPreviousPage = false;
-        setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
-
-        //configure pagination (default)
-        configurePaginationB('reload');
-
-        //ends request
-        isOnApiRequestRefB.current = false;
-        isCursorPaginatingB.current = false;
-        setIsOnApiRequestB(false);
-
-        //do not update items...
-        return;
       }
     }
+
+     //update pageInfo
+     pageInfoB.current = pi;
+     setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
+     setHasNextPageB(pageInfoB.current.hasNextPage);
+
+     //configure pagination (default)
+     configurePaginationB('reload');
+
+     //ok
+     setItemsB([]);
+
+     //ends request
+     isOnApiRequestRefB.current = false;
+     isCursorPaginatingB.current = false;
+     setIsOnApiRequestB(false);
+     return;
+
   }, [configurePaginationB]);
 <%}-%>
 <%}-%>

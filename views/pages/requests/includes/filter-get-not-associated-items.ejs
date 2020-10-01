@@ -335,7 +335,7 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
   if(batchSearch) batchVariables.search = batchSearch.search;
   
   let batchQuery = 
-        `query <%- sortedAssociations[aindex].targetModelPlLc _%>Connection($<%- internalId _%>:ID!, $search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationCursorInput) {
+        `query <%- sortedAssociations[aindex].targetModelPlLc _%>Connection($<%- internalId _%>: String, $search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationCursorInput) {
                <%- sortedAssociations[aindex].targetModelPlLc _%>Connection(search: $search, pagination: $pagination) {
                   pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
                   edges {node {

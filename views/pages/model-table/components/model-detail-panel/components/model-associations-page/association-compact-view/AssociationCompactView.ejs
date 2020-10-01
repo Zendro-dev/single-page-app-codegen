@@ -337,21 +337,6 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
         //reload
         setDataTrigger(prevDataTrigger => !prevDataTrigger);
         return;
-      } else {
-        //disable nextPage
-        pageInfo.current.hasNextPage = false;
-        setHasNextPage(pageInfo.current.hasNextPage);
-
-        //configure pagination (default)
-        configurePagination('reload');
-
-        //ends request
-        isOnApiRequestRef.current = false;
-        isCursorPaginating.current = false;
-        setIsOnApiRequest(false);
-
-        //do not update items...
-        return;
       }
     } else {//case: backward
       if(pi && pi.hasNextPage) {
@@ -364,23 +349,26 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>C
         //reload
         setDataTrigger(prevDataTrigger => !prevDataTrigger);
         return;
-      } else {
-        //disable previousPage
-        pageInfo.current.hasPreviousPage = false;
-        setHasPreviousPage(pageInfo.current.hasPreviousPage);
-
-        //configure pagination (default)
-        configurePagination('reload');
-
-        //ends request
-        isOnApiRequestRef.current = false;
-        isCursorPaginating.current = false;
-        setIsOnApiRequest(false);
-
-        //do not update items...
-        return;
       }
     }
+
+    //update pageInfo
+    pageInfo.current = pi;
+    setHasPreviousPage(pageInfo.current.hasPreviousPage);
+    setHasNextPage(pageInfo.current.hasNextPage);
+
+    //configure pagination (default)
+    configurePagination('reload');
+
+    //ok
+    setItems([]);
+
+    //ends request
+    isOnApiRequestRef.current = false;
+    isCursorPaginating.current = false;
+    setIsOnApiRequest(false);
+    return;
+    
   }, [configurePagination]);
 <%}-%>
 <%}-%>
