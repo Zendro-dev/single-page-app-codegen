@@ -23,16 +23,13 @@
     if(!variables||typeof variables !== 'object') throw new Error("internal_error: expected object 'variables' argument");
     if(!variables.pagination||typeof variables.pagination !== 'object' ) throw new Error("internal_error: pagination object expected in variables");
 <%}-%>
-<%_if( sortedAssociations[aindex].type === 'to_many' ){-%>
+<%_if( sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many'){-%>
 <%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
     if(!variables.pagination.first&&!variables.pagination.last ) throw new Error("internal_error: pagination first or last positive argument expected");
 <%}-%>
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
     if(!variables.pagination.limit) throw new Error("internal_error: pagination limit positive argument expected");
 <%}-%>
-<%}-%>
-<%if( sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many' ) {-%>
-    if(!variables.pagination.first&&!variables.pagination.last ) throw new Error("internal_error: pagination first or last positive argument expected");
 <%}-%>
     let graphqlErrors = [];
 
@@ -106,7 +103,7 @@
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
     //set query
     let query = 
-      `query readOne<%- nameCp _%>($<%- internalId _%>:ID!, $search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationCursorInput) {
+      `query readOne<%- nameCp _%>($<%- internalId _%>:ID!, $search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationInput!) {
              readOne<%- nameCp _%>(<%- internalId _%>:$<%- internalId _%>) {
                 <%- sortedAssociations[aindex].relationNameLc _%>Filter(search: $search, pagination: $pagination) {
                   ${qattributes}
@@ -128,7 +125,7 @@
           }`;
 
     let query =
-      `query readOne<%- nameCp %>($<%- internalId _%>:ID!, $search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationCursorInput) {
+      `query readOne<%- nameCp %>($<%- internalId _%>:ID!, $search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationCursorInput!) {
              readOne<%- nameCp _%>(<%- internalId _%>:$<%- internalId _%>) {
                 <%- sortedAssociations[aindex].relationNameLc _%>Connection(search: $search, pagination: $pagination) {
                   ${qbody},
@@ -145,7 +142,7 @@
     let items = null;
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
     //check
-    let check = checkResponse(response, graphqlErrors, "<%- sortedAssociations[aindex].targetModelPlLc _%>");
+    let check = checkResponse(response, graphqlErrors, "readOne<%- nameCp _%>");
     if(check === 'ok') {
       //check type
       if(!response.data.data["readOne<%- nameCp _%>"]
@@ -154,7 +151,7 @@
       return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
 
       //get value
-      items = response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].targetModelPlLc _%>"];
+      items = response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationNameLc _%>Filter"];
     } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
 <%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
     //check

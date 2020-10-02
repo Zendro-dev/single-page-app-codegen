@@ -48,14 +48,14 @@
 <%if(paginationType === 'limitOffset') {-%>
     //query
     let query =
-      `query <%- namePlLc _%>($order: [order<%- nameCp _%>Input], $search: search<%- nameCp _%>Input, $pagination: paginationInput) { 
+      `query <%- namePlLc _%>($order: [order<%- nameCp _%>Input], $search: search<%- nameCp _%>Input, $pagination: paginationInput!) { 
              <%- namePlLc _%>( order: $order, search: $search, pagination: $pagination ) {
                 ${qattributes} }
        }`;
 <%} else if(paginationType === 'cursorBased') {-%>
     //query
     let query =
-      `query <%- namePlLc _%>Connection($order: [order<%- nameCp _%>Input], $search: search<%- nameCp _%>Input, $pagination: paginationCursorInput) { 
+      `query <%- namePlLc _%>Connection($order: [order<%- nameCp _%>Input], $search: search<%- nameCp _%>Input, $pagination: paginationCursorInput!) { 
              <%- namePlLc _%>Connection( order: $order, search: $search, pagination: $pagination ) {
                 pageInfo { startCursor, endCursor, hasPreviousPage, hasNextPage }
                 edges { node { ${qattributes} }}

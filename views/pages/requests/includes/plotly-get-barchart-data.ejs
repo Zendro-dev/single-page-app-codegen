@@ -34,7 +34,7 @@
     let batchVariables = {pagination: batchPagination};
     //query
     let batchQuery = 
-          `query <%- namePlLc _%>Connection($pagination: paginationCursorInput) {
+          `query <%- namePlLc _%>Connection($pagination: paginationCursorInput!) {
                  <%- namePlLc _%>Connection(pagination: $pagination) {
                     pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
                     edges {node {${attribute}}}

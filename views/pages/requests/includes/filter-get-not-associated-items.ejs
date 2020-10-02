@@ -16,12 +16,10 @@
  * @param {Int}    batchSize Max number of records to fetch in batch from GraphQL Server.
  */
 async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, itemId, searchText, variables, ops, batchSize) {
-<%_if( sortedAssociations[aindex].type !== 'to_one' && sortedAssociations[aindex].type !== 'generic_to_one' ){-%>
-    //internal checks
-    if(!variables||typeof variables !== 'object') throw new Error("internal_error: expected object 'variables' argument");
-    if(!variables.pagination||typeof variables.pagination !== 'object' ) throw new Error("internal_error: pagination object expected in variables");
-<%}-%>
-<%_if( sortedAssociations[aindex].type === 'to_many' ){-%>
+   //internal checks
+   if(!variables||typeof variables !== 'object') throw new Error("internal_error: expected object 'variables' argument");
+   if(!variables.pagination||typeof variables.pagination !== 'object' ) throw new Error("internal_error: pagination object expected in variables");
+<%_if( sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_one' || sortedAssociations[aindex].type === 'generic_to_one' ){-%>
 <%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
     if(!variables.pagination.first&&!variables.pagination.last ) throw new Error("internal_error: pagination first or last positive argument expected");
 <%}-%>
@@ -61,20 +59,19 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
      *    1. get associated item id.
      * 
      */
-    variables = {"<%- internalId _%>": itemId};
     let query = 
-      `query readOne<%- nameCp _%>($<%- internalId _%>:ID!) {
-             readOne<%- nameCp _%>(<%- internalId _%>:$<%- internalId _%>) {
-                <%- sortedAssociations[aindex].relationName _%> {
-                  <%- sortedAssociations[aindex].internalId _%>
-                }
-             }}`;
+      `{  readOne<%- nameCp _%>(<%- internalId _%>:<%_ if(internalIdType === 'String') {-%> "${itemId}" <%_}else {-%> ${itemId} <%_}-%>) {
+            <%- sortedAssociations[aindex].relationName _%> {
+              <%- sortedAssociations[aindex].internalId _%>
+            }
+          }
+        }`;
      /**
      * Debug
      */
-    if(globals.REQUEST_LOGGER) logRequest('getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>.query1', query, variables);
+    if(globals.REQUEST_LOGGER) logRequest('getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>.query1', query);
     //request
-    let response = await requestGraphql({ url, query, variables });
+    let response = await requestGraphql({ url, query });
     let associatedItem = null;
     //check
     let check = checkResponse(response, graphqlErrors, "readOne<%- nameCp _%>");
@@ -93,7 +90,6 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
      *    2. get all items exluding associated item if there is one.
      * 
      */
-    variables = {};
     //make filter to exclude associated item
     let f1 = null;
     if(associatedItem) f1 = {field: "<%- sortedAssociations[aindex].internalId _%>", valueType: "<%- sortedAssociations[aindex].internalIdType _%>", value: associatedItem["<%- sortedAssociations[aindex].internalId _%>"], operator: "ne"};
@@ -121,7 +117,7 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
     //set query
     query = 
-      `query <%- sortedAssociations[aindex].targetModelPlLc _%>($search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationCursorInput) {
+      `query <%- sortedAssociations[aindex].targetModelPlLc _%>($search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationInput!) {
              <%- sortedAssociations[aindex].targetModelPlLc _%>(search: $search, pagination: $pagination) {
                   ${qattributes}
                 }
@@ -142,7 +138,7 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
             }
           }`;
     query =
-      `query <%- sortedAssociations[aindex].targetModelPlLc _%>Connection($search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationCursorInput) {
+      `query <%- sortedAssociations[aindex].targetModelPlLc _%>Connection($search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationCursorInput!) {
              <%- sortedAssociations[aindex].targetModelPlLc _%>Connection(search: $search, pagination: $pagination) {
                   ${qbody},
                 },
@@ -224,7 +220,7 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
     //set query
     let query = 
-      `query <%- sortedAssociations[aindex].targetModelPlLc _%>($search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationCursorInput) {
+      `query <%- sortedAssociations[aindex].targetModelPlLc _%>($search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationInput!) {
              <%- sortedAssociations[aindex].targetModelPlLc _%>(search: $search, pagination: $pagination) {
                   ${qattributes}
                 }
@@ -245,7 +241,7 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
             }
           }`;
     let query =
-      `query <%- sortedAssociations[aindex].targetModelPlLc _%>Connection($search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationCursorInput) {
+      `query <%- sortedAssociations[aindex].targetModelPlLc _%>Connection($search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationCursorInput!) {
              <%- sortedAssociations[aindex].targetModelPlLc _%>Connection(search: $search, pagination: $pagination) {
                   ${qbody},
                 },
@@ -335,7 +331,7 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
   if(batchSearch) batchVariables.search = batchSearch.search;
   
   let batchQuery = 
-        `query <%- sortedAssociations[aindex].targetModelPlLc _%>Connection($<%- internalId _%>: String, $search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationCursorInput) {
+        `query <%- sortedAssociations[aindex].targetModelPlLc _%>Connection($<%- internalId _%>: String, $search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationCursorInput!) {
                <%- sortedAssociations[aindex].targetModelPlLc _%>Connection(search: $search, pagination: $pagination) {
                   pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
                   edges {node {
@@ -513,7 +509,7 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
   // if(batchSearch) batchVariables.search = batchSearch.search;
   // //query
   // let batchQuery = 
-  //       `query readOne<%- nameCp _%>($<%- internalId _%>:ID!, $search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationCursorInput) {
+  //       `query readOne<%- nameCp _%>($<%- internalId _%>:ID!, $search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationCursorInput!) {
   //              readOne<%- nameCp _%>(<%- internalId _%>: $<%- internalId _%>) {
   //                 <%- sortedAssociations[aindex].relationNameLc _%>Connection( search: $search, pagination: $pagination ) {
   //                   pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
@@ -532,7 +528,7 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
   // let nonaVariables = {pagination: nonaPagination};
   // //query
   // let nonaQuery =
-  //       `query <%- sortedAssociations[aindex].targetModelPlLc _%>Connection($search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationCursorInput) {
+  //       `query <%- sortedAssociations[aindex].targetModelPlLc _%>Connection($search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationCursorInput!) {
   //              <%- sortedAssociations[aindex].targetModelPlLc _%>Connection( search: $search, pagination: $pagination ) {
   //                 pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
   //                 edges {node {${qattributes}}}
