@@ -786,12 +786,15 @@ function setAjvErrors(err) {
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
     if(associationKey === '<%- sortedAssociations[i].relationName _%>') {
 <%if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one') {-%>
-      <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
-      set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState([]);
+      if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.length > 0
+      && <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current[0] === itemId) {
+        <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
+        set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState([]);
 <%if(hasOwnForeingKeys && sortedAssociations[i].foreignKey){-%>
-      handleSetValue(null, -2, '<%- sortedAssociations[i].foreignKey _%>');
-      setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: null});
+        handleSetValue(null, -2, '<%- sortedAssociations[i].foreignKey _%>');
+        setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: null});
 <%}-%>
+      }
 <%} else if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many') {-%>
       for(let i=0; i<<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.length; ++i)
       {
@@ -835,12 +838,15 @@ function setAjvErrors(err) {
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
     if(associationKey === '<%- sortedAssociations[i].relationName _%>') {
 <%if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one') {-%>
-      <%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current = [];
-      set<%- sortedAssociations[i].relationNameCp _%>IdsToRemoveState([]);
+      if(<%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current.length > 0
+      && <%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current[0] === itemId) {
+        <%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current = [];
+        set<%- sortedAssociations[i].relationNameCp _%>IdsToRemoveState([]);
 <%if(hasOwnForeingKeys && sortedAssociations[i].foreignKey){-%>
-      handleSetValue(itemId, -2, '<%- sortedAssociations[i].foreignKey _%>');
-      setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: itemId});
+        handleSetValue(itemId, -2, '<%- sortedAssociations[i].foreignKey _%>');
+        setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: itemId});
 <%}-%>
+      }
 <%} else if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many') {-%>
       for(let i=0; i<<%- sortedAssociations[i].relationNameLc _%>IdsToRemove.current.length; ++i)
       {

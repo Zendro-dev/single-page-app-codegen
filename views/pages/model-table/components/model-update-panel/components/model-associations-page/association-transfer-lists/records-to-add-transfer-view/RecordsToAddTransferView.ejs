@@ -50,6 +50,7 @@ import Key from '@material-ui/icons/VpnKey';
 <%if(isToOne) {-%>
 import { green, grey } from '@material-ui/core/colors';
 import Checkbox from '@material-ui/core/Checkbox';
+import Paper from '@material-ui/core/Paper';
 <%}-%>
 
 const useStyles = makeStyles(theme => ({
@@ -105,6 +106,16 @@ const useStyles = makeStyles(theme => ({
   row: {
     maxHeight: 70,
   },
+<%if(isToOne) {-%>
+  paper: {
+    marginTop: theme.spacing(2),
+    borderColor: "#eeeeee"
+  },
+  associatedItemTitle: {
+    padding: theme.spacing(1),
+    paddingLeft: theme.spacing(2),
+  },
+<%}-%>
 }));
 
 export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferView(props) {
@@ -201,7 +212,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 
   //associated id
   const [associatedItem, setAssociatedItem] = useState(undefined);
-  const [checked, setChecked] = useState(true);
+  const [checked, setChecked] = useState(lidsToRemove.current.length===0);
 <%}-%>
 
   const cancelablePromises = useRef([]);
@@ -868,7 +879,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
         let item = response.value;
 
         //ok
-        setAssociatedItem((item !== null) ? {...item} : null);        
+        setAssociatedItem((item !== null) ? {...item} : null);    
         return;
       },
       //rejected
@@ -1619,6 +1630,22 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
     }
   }, [getDataB]);
 
+<%_if( isToOne ){-%>
+  useEffect(() => {
+    // update: id to remove if there is one...
+    if(lidsToRemove.current&&lidsToRemove.current.length>0) {
+      if(associatedItem) {
+        //update idsToRemove
+        lidsToRemove.current = [associatedItem.<%- sortedAssociations[aindex].internalId _%>];
+        handleDisassociateItem('<%- sortedAssociations[aindex].relationName _%>', associatedItem.<%- sortedAssociations[aindex].internalId _%>);
+      } else {
+        handleReassociateItem('<%- sortedAssociations[aindex].relationName _%>', lidsToRemove.current[0].<%- sortedAssociations[aindex].internalId _%>);
+        lidsToRemove.current = [];
+      }
+    } // else: //nothing to do...
+  }, [associatedItem, handleDisassociateItem, handleReassociateItem]);
+<%}-%>
+
   useEffect(() => {
     /*
      * Handle changes 
@@ -1682,8 +1709,10 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
               }
               handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', idAdded);
 
+<%_if( isToMany ){-%>
               //decrement A
               setCount(count-1);
+<%}-%>
             });
           }
 
@@ -1854,9 +1883,10 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 <%}-%>
                   }
                   handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', idAdded);
-
+<%_if( isToMany ){-%>
                   //decrement A
                   setCount(count-1);
+<%}-%>
 
                   //will count A
                   cancelCountingPromises();
@@ -3150,7 +3180,7 @@ const handleReloadClickB = (event) => {
 <%}-%>
             </Card>
 <%if(isToOne) {-%>
-            <div>
+            <Paper className={classes.paper} variant='outlined'>
               {/* Case: associated item */}
               {(associatedItem !== undefined && associatedItem !== null) && (
                 /* List */
@@ -3159,6 +3189,21 @@ const handleReloadClickB = (event) => {
                   unmountOnExit
                 >
                   <Box className={classes.listBox}>
+                    {/* Title */}
+                    <Grid className={classes.associatedItemTitle} container justify='flex-start' alignItems='center' wrap='wrap' spacing={2}>
+                      <Grid item>
+                        <Typography variant="body2" display="inline" color="textSecondary">
+                          <%- sortedAssociations[aindex].targetModelCp %>
+                        </Typography>
+                      </Grid>
+                      <Grid item>
+                        <Typography variant="h6" display="inline">
+                          { t('modelPanels.associated', 'Associated') }
+                        </Typography>
+                      </Grid>
+                    </Grid>
+
+                    {/* List */}
                     <List id='<%- sortedAssociations[aindex].relationNameOnPascal -%>ToAddTransferView-associatedItem-list'
                       dense component="div" role="list">
                       {[associatedItem].map(associatedItem => {
@@ -3225,12 +3270,12 @@ const handleReloadClickB = (event) => {
                             />
                             {/* Checkbox */}
                             <ListItemSecondaryAction>
-                              <Tooltip title={ t('modelPanels.untransferToAdd') }>
+                              <Tooltip title={ checked ? t('modelPanels.uncheckToDissasociate', 'Uncheck to disassociate') : t('modelPanels.checkToReassociate', 'Check to keep associated') }>
                                 <Checkbox
                                   id={'<%- sortedAssociations[aindex].relationNameOnPascal -%>ToAddTransferView-associatedItem-list-listItem-'+associatedItem.<%- sortedAssociations[aindex].internalId _%>+'-checkbox'}
                                   className={classes.checkbox}
                                   checked={checked}
-                                  color={(!checked) ? "secondary" : "primary"}
+                                  color="primary"
                                   onChange={(event) => {
                                     setChecked(event.target.checked);
                                     
@@ -3287,9 +3332,18 @@ const handleReloadClickB = (event) => {
                   <div id='<%- sortedAssociations[aindex].relationNameOnPascal -%>ToAddTransferView-div-noAssociatedItem'>
                     <Grid container>
                       <Grid item xs={12}>
-                        <Grid className={classes.noDataBox} container justify="center" alignItems="center">
+                        <Grid className={classes.noDataBox} container justify="center" alignItems="center" wrap='nowrap' spacing={1}>
+                          {/*Key icon*/}
                           <Grid item>
-                            <Typography variant="body2" >{ t('modelPanels.noAssociatedItem', 'There is currently no associated record') }</Typography>
+                            <Tooltip title={ t('modelPanels.noAssociatedItemB', 'No associated record') }>
+                              <Key fontSize="small" style={{ marginTop:8, color: grey[400]}} />
+                            </Tooltip>
+                          </Grid>
+                          {/*Msg*/}
+                          <Grid item>
+                              <Typography variant="body2" color='textSecondary' >
+                                { t('modelPanels.noAssociatedItem', 'There is no associated record currently') }
+                              </Typography>
                           </Grid>
                         </Grid>
                       </Grid>
@@ -3297,7 +3351,7 @@ const handleReloadClickB = (event) => {
                   </div>
                 </Fade>
               )}
-            </div>
+            </Paper>
 <%}-%>
             </div>
           )}
