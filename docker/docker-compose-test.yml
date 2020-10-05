@@ -62,7 +62,7 @@ services:
     environment:
       PORT: 3000
       REQUIRE_SIGN_IN: "false"
-      LIMIT_RECORDS: 100000
+      LIMIT_RECORDS: 25
     # Await POSTGRES role and DB creation, migrate schema, then start web server:
     networks:
       - integrationtest
@@ -132,6 +132,7 @@ services:
      - REACT_APP_ZENDRO_LOGIN_URL=http://localhost:3000/login
      - REACT_APP_ZENDRO_EXPORT_URL=http://localhost:3000/export
      - REACT_APP_ZENDRO_MAX_UPLOAD_SIZE=500
+     - REACT_APP_ZENDRO_MAX_RECORD_LIMIT=25
     networks:
     - integrationtest
     command:
@@ -155,7 +156,7 @@ services:
      - sdb_db_data2:/var/lib/postgresql/data
      - ../test/integration-test.sql:/usr/src/app/integration-test.sql
     networks:
-      - instance2
+     - instance2
 #
 # GraphQL Server 2
 #
@@ -189,7 +190,7 @@ services:
     environment:
       PORT: 3030
       REQUIRE_SIGN_IN: "false"
-      LIMIT_RECORDS: 100000
+      LIMIT_RECORDS: 25
     # Await POSTGRES role and DB creation, migrate schema, then start web server:
     networks:
       - integrationtest
@@ -229,6 +230,7 @@ services:
      - REACT_APP_ZENDRO_LOGIN_URL=http://localhost:3030/login
      - REACT_APP_ZENDRO_EXPORT_URL=http://localhost:3030/export
      - REACT_APP_ZENDRO_MAX_UPLOAD_SIZE=500
+     - REACT_APP_ZENDRO_MAX_RECORD_LIMIT=25
     networks:
     - integrationtest
     command:

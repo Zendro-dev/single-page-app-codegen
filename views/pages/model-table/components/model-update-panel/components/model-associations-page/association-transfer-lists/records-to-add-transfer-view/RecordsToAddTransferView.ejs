@@ -668,30 +668,6 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
         //reload
         setDataTrigger(prevDataTrigger => !prevDataTrigger);
         return;
-      } else {
-        //if special case...
-        if(pageInfo.current.hasNextPage === true) {
-          //disable nextPage
-          pageInfo.current.hasNextPage = false;
-          setHasNextPage(pageInfo.current.hasNextPage);
-
-          //configure pagination (default)
-          configurePagination('reload');
-
-          //do not update items...
-          
-        } else {
-          //update pageInfo
-          pageInfo.current = pi;
-          setHasPreviousPage(pageInfo.current.hasPreviousPage);
-          setHasNextPage(pageInfo.current.hasNextPage);
-
-          //configure pagination (default)
-          configurePagination('reload');
-
-          //ok
-          setItems([]);
-        }
       }
     } else {//case: backward
       if(pi && pi.hasNextPage) {
@@ -704,31 +680,20 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
         //reload
         setDataTrigger(prevDataTrigger => !prevDataTrigger);
         return;
-      } else {
-        //if special case...
-        if(pageInfo.current.hasPreviousPage === true) {
-          //disable previousPage
-          pageInfo.current.hasPreviousPage = false;
-          setHasPreviousPage(pageInfo.current.hasPreviousPage);
-
-          //configure pagination (default)
-          configurePagination('reload');
-
-          //do not update items...
-        } else {
-          //update pageInfo
-          pageInfo.current = pi;
-          setHasPreviousPage(pageInfo.current.hasPreviousPage);
-          setHasNextPage(pageInfo.current.hasNextPage);
-
-          //configure pagination (default)
-          configurePagination('reload');
-
-          //ok
-          setItems([]);
-        }
       }
     }
+
+    //update pageInfo
+    pageInfo.current = pi;
+    setHasPreviousPage(pageInfo.current.hasPreviousPage);
+    setHasNextPage(pageInfo.current.hasNextPage);
+
+    //configure pagination (default)
+    configurePagination('reload');
+
+    //ok
+    setItems([]);
+
     //ends request
     isOnApiRequestRef.current = false;
     isCursorPaginating.current = false;
@@ -751,7 +716,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
         //reload
         setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
         return;
-      }
+      } 
     } else {//case: backward
       if(pi && pi.hasNextPage) {
         //configure
@@ -766,22 +731,22 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
       }
     }
 
-     //update pageInfo
-     pageInfoB.current = pi;
-     setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
-     setHasNextPageB(pageInfoB.current.hasNextPage);
+    //update pageInfo
+    pageInfoB.current = pi;
+    setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
+    setHasNextPageB(pageInfoB.current.hasNextPage);
 
-     //configure pagination (default)
-     configurePaginationB('reload');
+    //configure pagination (default)
+    configurePaginationB('reload');
 
-     //ok
-     setItemsB([]);
+    //ok
+    setItemsB([]);
 
-     //ends request
-     isOnApiRequestRefB.current = false;
-     isCursorPaginatingB.current = false;
-     setIsOnApiRequestB(false);
-     return;
+    //ends request
+    isOnApiRequestRefB.current = false;
+    isCursorPaginatingB.current = false;
+    setIsOnApiRequestB(false);
+    return;
 
   }, [configurePaginationB]);
 <%}-%>
@@ -1576,22 +1541,6 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
     }
   }, [getDataB]);
 
-<%_if( isToOne ){-%>
-  useEffect(() => {
-    // update: id to remove if there is one...
-    if(lidsToRemove.current&&lidsToRemove.current.length>0) {
-      if(associatedItem) {
-        //update idsToRemove
-        lidsToRemove.current = [associatedItem.<%- sortedAssociations[aindex].internalId _%>];
-        handleDisassociateItem('<%- sortedAssociations[aindex].relationName _%>', associatedItem.<%- sortedAssociations[aindex].internalId _%>);
-      } else {
-        handleReassociateItem('<%- sortedAssociations[aindex].relationName _%>', lidsToRemove.current[0].<%- sortedAssociations[aindex].internalId _%>);
-        lidsToRemove.current = [];
-      }
-    } // else: //nothing to do...
-  }, [associatedItem, handleDisassociateItem, handleReassociateItem]);
-<%}-%>
-
   useEffect(() => {
     /*
      * Handle changes 
@@ -1648,18 +1597,32 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                 if(lidsToAdd.current.length === 0) {
                   setThereAreItemsToAdd(false);
                 }
+                handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', idAdded);
 <%_if( isToMany ){-%>
                 //decrement B
                 setCountB(countB-1);
 <%}-%>
               }
-              handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', idAdded);
-
 <%_if( isToMany ){-%>
               //decrement A
               setCount(count-1);
 <%}-%>
             });
+<%_if( isToOne ){-%>
+            /**
+             * If currently the associated item is marked for disassociate,
+             * i.e. is in the lidsToRemove array, then update the id in
+             * lidsToRemove with the new id associated.
+             * 
+             * This event occurs if the current record was associated with
+             * another item.
+             */
+            //update idsToRemove
+            if(lidsToRemove.current && lidsToRemove.current.length>0) {
+              lidsToRemove.current = [idsAdded[0]];
+              handleDisassociateItem('<%- sortedAssociations[aindex].relationName _%>', idsAdded[0]);
+            }
+<%}-%>
           }
 
           //update count for each dis-associated internalId from idsToAdd[]
@@ -1667,6 +1630,22 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
           if(idsRemoved) {
             //increment A
             setCount(count+idsRemoved.length);
+
+<%_if( isToOne ){-%>
+            /**
+             * If currently the associated item is marked for disassociate,
+             * i.e. is in the lidsToRemove array, and there is no item added, 
+             * then clear the lidsToRemove list.
+             * 
+             * This event occurs if the current record was disassociated and
+             * no other record was associated.
+             */
+            //update idsToRemove
+            if(!idsAdded && lidsToRemove.current && lidsToRemove.current.length>0) {
+              handleReassociateItem('<%- sortedAssociations[aindex].relationName _%>', lidsToRemove.current[0]);
+              lidsToRemove.current = [];
+            } 
+<%}-%>
           }
 
           //will count A
@@ -1753,6 +1732,13 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
               if(idsRemoved) {
                 let iof = idsRemoved.indexOf(item.<%- internalId _%>);
                 if(iof !== -1) {
+<%_if( isToOne ){-%>
+                  //update idsToRemove
+                  if(lidsToRemove.current && lidsToRemove.current.length>0) {
+                    handleReassociateItem('<%- sortedAssociations[aindex].relationName _%>', lidsToRemove.current[0]);
+                    lidsToRemove.current = [];
+                  } 
+<%}-%>
 
                   //increment A
                   setCount(count+1);
@@ -1778,7 +1764,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                   else { isPendingApiRequestRefB.current = true; }
 <%}-%> 
 <%} else if(isCursorBased) {-%>
-                  //strict contention
+                  //strict contention reload
                   if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
                     //configure A
                     configurePagination('reload');
@@ -1787,7 +1773,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                   } else {
                     getCount();
                   }
-                  //strict contention
+                  //strict contention reload
 <%_if( isToMany ){-%>
                   if (!isOnApiRequestRefB.current && !isCursorPaginatingB.current) {
                     //configure B
@@ -1829,6 +1815,13 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
 <%}-%>
                   }
                   handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', idAdded);
+<%_if( isToOne ){-%>
+                  //update idsToRemove
+                  if(lidsToRemove.current && lidsToRemove.current.length>0) {
+                    lidsToRemove.current = [idAdded];
+                    handleDisassociateItem('<%- sortedAssociations[aindex].relationName _%>', idAdded);
+                  } 
+<%}-%>
 <%_if( isToMany ){-%>
                   //decrement A
                   setCount(count-1);
@@ -2050,7 +2043,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
         }
       });
     }//end: Case 3
-  }, [lastModelChanged, lastChangeTimestamp, items, itemsB, item.<%- internalId _%>, handleUntransfer, getCount, count<%_if( isToMany ){-%>, getCountB, countB<%}-%><%if(isCursorBased) {-%>, configurePagination<%}-%><%if(isCursorBased && isToMany) {-%>, configurePaginationB<%}-%><%_if( isToOne ){-%>, associatedItem<%}-%>]);
+  }, [lastModelChanged, lastChangeTimestamp, items, itemsB, item.<%- internalId _%>, handleUntransfer, getCount, count<%_if( isToMany ){-%>, getCountB, countB<%}-%><%if(isCursorBased) {-%>, configurePagination<%}-%><%if(isCursorBased && isToMany) {-%>, configurePaginationB<%}-%><%_if( isToOne ){-%>, associatedItem, handleDisassociateItem, handleReassociateItem<%}-%>]);
 
   useEffect(() => {
     //return if this flag is set
@@ -2543,8 +2536,8 @@ const handleReloadClickB = (event) => {
       handleTransfer('<%- sortedAssociations[aindex].relationName _%>', item.<%- sortedAssociations[aindex].internalId _%>);
     }
 <%} else {-%>
-    if(lidsToAdd.current.indexOf(item.<%- sortedAssociations[aindex].internalId _%>) === -1) {
-      let hasItem = (lidsToAdd.current&&lidsToAdd.current.length > 0);
+    if(lidsToAdd.current&&lidsToAdd.current.indexOf(item.<%- sortedAssociations[aindex].internalId _%>) === -1) {
+      let hasItem = (lidsToAdd.current.length > 0);
       lidsToAdd.current = [];
       lidsToAdd.current.push(item.<%- sortedAssociations[aindex].internalId _%>);
       setThereAreItemsToAdd(true);
@@ -2559,6 +2552,7 @@ const handleReloadClickB = (event) => {
 
       if(associatedItem && checked) {
         setChecked(false);
+        lidsToRemove.current = [associatedItem.<%- sortedAssociations[aindex].internalId _%>];
         handleDisassociateItem('<%- sortedAssociations[aindex].relationName _%>', associatedItem.<%- sortedAssociations[aindex].internalId _%>);
       }
 
@@ -3226,8 +3220,10 @@ const handleReloadClickB = (event) => {
                                     setChecked(event.target.checked);
                                     
                                     if(event.target.checked) {
-                                      if(lidsToAdd.current&&lidsToAdd.current.length>0) {
-                                        handleRemoveItem(null, lidsToAdd.current[0])
+                                      if(lidsToAdd.current&&lidsToAdd.current.length>0
+                                      && itemsB&&itemsB.length>0
+                                      && itemsB[0].id===lidsToAdd.current[0]) {
+                                        handleRemoveItem(null, itemsB[0]);
                                       }
                                       lidsToRemove.current = [];
                                       handleReassociateItem('<%- sortedAssociations[aindex].relationName _%>', associatedItem.<%- sortedAssociations[aindex].internalId _%>);

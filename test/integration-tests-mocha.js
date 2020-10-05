@@ -151,10 +151,7 @@ describe('1. Basic functionality', function () {
       location_type: "type-1",
       cultivar_id: null,
       field_plot_id: null,
-      pot_id: null,
-      cultivar: null,
-      field_plot: null,
-      pot: null
+      pot_id: null
     };
     let q1 = {
       "data": {
@@ -338,10 +335,7 @@ describe('1. Basic functionality', function () {
       location_type: "type-1-edited",
       cultivar_id: null,
       field_plot_id: null,
-      pot_id: null,
-      cultivar: null,
-      field_plot: null,
-      pot: null
+      pot_id: null
     };
     let q1 = {
       "data": {
@@ -529,10 +523,7 @@ describe('1. Basic functionality', function () {
       location_type: "type-2",
       cultivar_id: null,
       field_plot_id: null,
-      pot_id: null,
-      cultivar: null,
-      field_plot: null,
-      pot: null
+      pot_id: null
     };
     let q1 = {
       "data": {
@@ -723,10 +714,7 @@ describe('1. Basic functionality', function () {
       location_type: "type-2-b",
       cultivar_id: null,
       field_plot_id: null,
-      pot_id: null,
-      cultivar: null,
-      field_plot: null,
-      pot: null
+      pot_id: null
     };
     let q1 = {
       "data": {
