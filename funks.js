@@ -5,8 +5,6 @@ const inflection = require('inflection')
 const {promisify} = require('util');
 const ejsRenderFile = promisify( ejs.renderFile )
 const colors = require('colors/safe');
-const { first, template } = require('lodash');
-const { option } = require('commander');
 
 /**
  * renderTemplate - Generate the Javascript code as string using EJS templates views
@@ -193,9 +191,10 @@ exports.toPascalCase = function(word){
  * parseFile - Parse a json file
  *
  * @param  {string} jFile path where json file is stored
+ * @param  {object} options Object with extra options used to generate output.
  * @return {object}       json file converted to js object
  */
-exports.parseFile = function(jFile, {withImageAttachment}){
+exports.parseFile = function(jFile, options){
   let data = null;
   let words = null;
 
@@ -214,7 +213,7 @@ exports.parseFile = function(jFile, {withImageAttachment}){
     words=JSON.parse(data);
 
     //#imgs
-    if(withImageAttachment) {
+    if(options&&options.withImageAttachment) {
       let iamodel = getImageAttachmentModel();
       if(words.model === iamodel.model){
         //no more checks...
@@ -282,7 +281,7 @@ exports.checkJsonFiles = function(jsonDir, jsonFiles, options){
   let jsonFilesPaths = jsonFiles.map((file) => path.resolve(path.join(jsonDir, file)));
   let specialModels = getAdminModels();
   //#imgs
-  if(options.withImageAttachment) specialModels.push(getImageAttachmentModel);
+  if(options&&options.withImageAttachment) specialModels.push(getImageAttachmentModel);
   //imgs#
 
   /**
@@ -1745,7 +1744,7 @@ parseJsonModels = function(jsonFiles, baseDir, options, verbose) {
     if(verbose) console.log("@@ Processing model in: ", colors.blue(jsonFile));
 
     //#imgs
-    if(options.withImageAttachment) {
+    if(options&&options.withImageAttachment) {
       if(fileData.model === iamodel.model) {
         //check
         if(fileData.attributes && typeof fileData.attributes !== 'object') {
@@ -1809,12 +1808,12 @@ parseJsonModels = function(jsonFiles, baseDir, options, verbose) {
   }//end: for() each json model file
 
   //#imgs
-  if(options.withImageAttachment) {
+  if(options&&options.withImageAttachment) {
     /**
      * If no custom imageAttachment model was provided
      * add the default one.
      */
-    if(!opts.map(o => o.name).includes('imageAttachment')) {
+    if(!opts.map(o => o.name).includes(iamodel.model)) {
       //msg
       console.log(colors.white('\n@ Adding imageAttachment model...'));
       //get options
@@ -2038,7 +2037,7 @@ exports.genSpa = async function(program, {plotlyOptions}) {
 
     // set table path & collect models
     let tablePath = null;
-    if(adminModelsNames.includes(ejbOpts.nameLc)) {
+    if(adminModelsNames.includes(ejbOpts.name)) {
       tablePath = 'src/components/main-panel/table-panel/admin-tables';
       modelsOpts.adminModels.push(ejbOpts);
     } else {
