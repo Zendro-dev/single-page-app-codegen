@@ -18,6 +18,7 @@ program
   .option('-D, --createBaseDirs', 'Try to create base directories if they do not exist.')
   .option('-P, --genPlotlyForAll', 'Generates a Plotly JS React component for all the json model files given as input.'+
     'Plotly components will be part of the SPA being generated.')
+  .option('-I, --genImageAttachment', 'Generate image attachment model and components to support image attachment operations.')
   .option('-V, --verbose', 'Show details about the results of running code generation process.');
 
 /**

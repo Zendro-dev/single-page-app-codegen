@@ -590,9 +590,9 @@ genCode() {
   # Msg
   echo -e "${LGRAY}@@ Generating SPA code...${NC}"
   #Generate
-  node ./index.js -f ${TEST_MODELS_INSTANCE1} -o ${TARGET_DIR_SPA_INSTANCE1} -P -D
+  node ./index.js -f ${TEST_MODELS_INSTANCE1} -o ${TARGET_DIR_SPA_INSTANCE1} -P -D -I
   local spa1_status=$?
-  node ./index.js -f ${TEST_MODELS_INSTANCE2} -o ${TARGET_DIR_SPA_INSTANCE2} -P -D
+  node ./index.js -f ${TEST_MODELS_INSTANCE2} -o ${TARGET_DIR_SPA_INSTANCE2} -P -D -I
   local spa2_status=$?
 
   #

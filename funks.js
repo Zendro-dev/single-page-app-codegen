@@ -6,6 +6,7 @@ const {promisify} = require('util');
 const ejsRenderFile = promisify( ejs.renderFile )
 const colors = require('colors/safe');
 const { first, template } = require('lodash');
+const { option } = require('commander');
 
 /**
  * renderTemplate - Generate the Javascript code as string using EJS templates views
@@ -194,7 +195,7 @@ exports.toPascalCase = function(word){
  * @param  {string} jFile path where json file is stored
  * @return {object}       json file converted to js object
  */
-exports.parseFile = function(jFile){
+exports.parseFile = function(jFile, {withImageAttachment}){
   let data = null;
   let words = null;
 
@@ -211,6 +212,16 @@ exports.parseFile = function(jFile){
   //parse
   try {
     words=JSON.parse(data);
+
+    //#imgs
+    if(withImageAttachment) {
+      let iamodel = getImageAttachmentModel();
+      if(words.model === iamodel.model){
+        //no more checks...
+        return words;
+      }
+    }
+    //imgs#
     
     /**
      * Check storageType: exclude adapters.
@@ -265,30 +276,34 @@ exports.checkJsonFiles = function(jsonDir, jsonFiles, options){
   if(jsonFiles.length <= 0) {
     result.pass = false;
     result.errors.push(`@@Error: There are no JSON files on input directory. You should specify some JSON files in order to generate the Zendro SPA.`);
-  } else {
-    
+    return result;
+  }//else...
+  
+  let jsonFilesPaths = jsonFiles.map((file) => path.resolve(path.join(jsonDir, file)));
+  let specialModels = getAdminModels();
+  //#imgs
+  if(options.withImageAttachment) specialModels.push(getImageAttachmentModel);
+  //imgs#
+
+  /**
+   * Plotly checks
+   */
+  let plotlyOptions = options.plotlyOptions;
+
+  //genPlotly + modelsWithPlotly
+  if(plotlyOptions.genPlotly) {
     /**
-     * Plotly checks
+     * All models should be one of those in jsonDir or an admin model name.
      */
-    let plotlyOptions = options.plotlyOptions;
-    let jsonFilesPaths = jsonFiles.map((file) => path.resolve(path.join(jsonDir, file)));
-    let adminModels = getAdminModels();
+    plotlyOptions.modelsWithPlotly.forEach((file) => {
 
-    //genPlotly + modelsWithPlotly
-    if(plotlyOptions.genPlotly) {
-      /**
-       * All models should be one of those in jsonDir or an admin model name.
-       */
-      plotlyOptions.modelsWithPlotly.forEach((file) => {
-
-        //check admin models
-        if(!adminModels.map(m => m.model).includes(file)
-        && !jsonFilesPaths.includes(path.resolve(file))) {
-          result.pass = false;
-          result.errors.push(`@@Error: json model file '${file}' is not in the json input directory.`);
-        }
-      });
-    }
+      //check admin models
+      if(!specialModels.map(m => m.model).includes(file)
+      && !jsonFilesPaths.includes(path.resolve(file))) {
+        result.pass = false;
+        result.errors.push(`@@Error: json model file '${file}' is not in the json input directory.`);
+      }
+    });
   }
 
   return result;
@@ -1314,7 +1329,7 @@ getWithPlotly = function(options, filePath) {
   if(plotlyOptions.genPlotly) {
 
     //check: admin model
-    if(plotlyOptions.isAdminModel && plotlyOptions.modelsWithPlotly.includes(plotlyOptions.modelName)) {
+    if(plotlyOptions.isSpecialModel && plotlyOptions.modelsWithPlotly.includes(plotlyOptions.modelName)) {
       return true;
     }
 
@@ -1616,13 +1631,35 @@ getAdminModels = function() {
   ];
 }
 
-parseJsonModels = function(jsonFiles, baseDir, {plotlyOptions}, verbose) {
+getImageAttachmentModel = function() {
+  return {
+    model : "ImageAttachment",
+    storageType : "SQL",
+    attributes : {
+      fileName : "String",
+      fileSizeKb : "Float",
+      fileType: "String",
+      filePath: "String",
+      smallTnPath: "String",
+      mediumTnPath: "String",
+      licence: "String",
+      description: "String"
+    }
+  }
+}
+
+parseJsonModels = function(jsonFiles, baseDir, options, verbose) {
   let opts = [];
   let totalFiles = 0;         //files readed from input dir
   let totalExcludedFiles = 0; //files excluded: either by JSON error parsing or by semantic errors.
   let totalWrongFiles = 0;    //files with semantic errors.
   let totalWarnings = 0;
   let adminModels = getAdminModels();
+  let plotlyOptions = options.plotlyOptions;
+
+  //#imgs
+  let iamodel = getImageAttachmentModel();
+  //imgs#
 
   /**
    * Add admin models
@@ -1635,7 +1672,7 @@ parseJsonModels = function(jsonFiles, baseDir, {plotlyOptions}, verbose) {
     //get options
     let opt = null;
     try {
-      opt = funks.fillOptionsForViews(model, null, {plotlyOptions, isAdminModel: true, modelName: model.model});
+      opt = funks.fillOptionsForViews(model, null, {plotlyOptions, isSpecialModel: true, modelName: model.model});
       totalWarnings += opt.warnings;
     }catch(e) {
       totalWrongFiles++;
@@ -1647,10 +1684,9 @@ parseJsonModels = function(jsonFiles, baseDir, {plotlyOptions}, verbose) {
       console.log('@@@ Model:', colors.blue(model.model), colors.yellow('excluded'));
       continue;
     }
-
+    opts.push(opt);
     //msg
     if(verbose) console.log("@@ ", colors.green('done'));
-    opts.push(opt);
   }
   //msg
   console.log("@ ", colors.green('done'));
@@ -1680,7 +1716,8 @@ parseJsonModels = function(jsonFiles, baseDir, {plotlyOptions}, verbose) {
 
     //Parse JSON file
     try {
-      fileData = funks.parseFile(jsonFilePath);
+      //parse
+      fileData = funks.parseFile(jsonFilePath, options);
       //check
       if(fileData === null) {
         totalExcludedFiles++;
@@ -1706,6 +1743,30 @@ parseJsonModels = function(jsonFiles, baseDir, {plotlyOptions}, verbose) {
     
     //msg
     if(verbose) console.log("@@ Processing model in: ", colors.blue(jsonFile));
+
+    //#imgs
+    if(options.withImageAttachment) {
+      if(fileData.model === iamodel.model) {
+        //check
+        if(fileData.attributes && typeof fileData.attributes !== 'object') {
+          //warning
+          console.log(colors.yellow("@@Warning: expected object in 'attributes', "), 'on model:', colors.blue(fileData.model));
+          totalWarnings++;
+
+          //set to default
+          fileData = {...iamodel};
+        } else {
+          //tmp
+          let fd = {...fileData};
+          //set to default
+          fileData = {...iamodel};
+          //add custom attributes to default imageAttachment model (all other
+          //properties are discarded).
+          fileData.attributes = {...fd.attributes, ...fileData.attributes};
+        }
+      }
+    }
+    //imgs#
     
     //do semantic validations
     let check_json_model = funks.checkJsonDataFile(fileData);
@@ -1741,12 +1802,42 @@ parseJsonModels = function(jsonFiles, baseDir, {plotlyOptions}, verbose) {
         console.log('@@@ File:', colors.blue(jsonFile), colors.yellow('excluded'));
         continue;
       }
-
+      opts.push(opt);
       //msg
       if(verbose) console.log("@@ ", colors.green('done'));
-      opts.push(opt);
+    }
+  }//end: for() each json model file
+
+  //#imgs
+  if(options.withImageAttachment) {
+    /**
+     * If no custom imageAttachment model was provided
+     * add the default one.
+     */
+    if(!opts.map(o => o.name).includes('imageAttachment')) {
+      //msg
+      console.log(colors.white('\n@ Adding imageAttachment model...'));
+      //get options
+      let opt = null;
+      try {
+        opt = funks.fillOptionsForViews(iamodel, null, {plotlyOptions, isSpecialModel: true, modelName: iamodel.model});
+        totalWarnings += opt.warnings;
+        opts.push(opt);
+        //msg
+        console.log("@ ", colors.green('done'));
+      }catch(e) {
+        totalWrongFiles++;
+        totalExcludedFiles++;
+        //err
+        console.log(colors.red("@@@ Error on model:"), colors.blue(iamodel.model));
+        console.log(e);
+        //msg
+        console.log('@@@ Model:', colors.blue(iamodel.model), colors.yellow('excluded'));
+      }
     }
   }
+  //imgs#
+
 
   return {
     opts,
@@ -1758,7 +1849,6 @@ parseJsonModels = function(jsonFiles, baseDir, {plotlyOptions}, verbose) {
 }
 
 exports.printSummary = function(status) {
-
   //msg
   if(status.totalFiles !== undefined) console.log("\n@@ Total JSON files processed: ", colors.blue(status.totalFiles));
   //msg
@@ -1788,6 +1878,12 @@ exports.genSpa = async function(program, {plotlyOptions}) {
   /**
    * Set options
    */
+  
+  //#imgs
+  //op: withImageAttachment
+  let withImageAttachment = program.genImageAttachment !== undefined ? true : false;
+  //imgs#
+
   //ops: output/input directories
   let inputModelsDir = program.jsonFiles;
   let spaBaseDir = program.outputDir || __dirname;
@@ -1816,6 +1912,10 @@ exports.genSpa = async function(program, {plotlyOptions}) {
   console.log('Input directory:', colors.dim(path.resolve(inputModelsDir)));
   console.log('Output directory:', colors.dim(path.resolve(spaBaseDir)));
   console.log('Plotly options:', colors.dim(JSON.stringify(plotlyOptions, null, 4)));
+  //#imgs
+  console.log('With image attachment:', colors.dim(withImageAttachment));
+  //imgs#
+
 
   /**
    * Check: required directories
@@ -1854,7 +1954,13 @@ exports.genSpa = async function(program, {plotlyOptions}) {
   /**
    * Semantic validations
    */
-  let check_json_files = exports.checkJsonFiles(inputModelsDir, jsonModelsfiles, {plotlyOptions});
+  let options = {};
+  options.plotlyOptions = plotlyOptions;
+  //#imgs
+  options.withImageAttachment = withImageAttachment;
+  //imgs#
+
+  let check_json_files = exports.checkJsonFiles(inputModelsDir, jsonModelsfiles, options);
   if(!check_json_files.pass) {//no-valid
     //err
     console.log(colors.red("@@: Proccess", colors.red('canceled...')));
@@ -1870,7 +1976,7 @@ exports.genSpa = async function(program, {plotlyOptions}) {
   /**
    * Parse JSON model files
    */
-  status = parseJsonModels(jsonModelsfiles, inputModelsDir, {plotlyOptions}, verbose);
+  status = parseJsonModels(jsonModelsfiles, inputModelsDir, options, verbose);
   //check
   let opts = status.opts;
   if(opts.length === 0) {
@@ -1919,6 +2025,10 @@ exports.genSpa = async function(program, {plotlyOptions}) {
   let modelsOpts = {models: [], adminModels: []};
   let modelAtts = {};
   let adminModelsNames = getAdminModels().map(m=>m.model);
+  
+  //#imgs
+  if(withImageAttachment) adminModelsNames.push(getImageAttachmentModel().model);
+  //imgs#
 
   /**
    * For each model in opts
