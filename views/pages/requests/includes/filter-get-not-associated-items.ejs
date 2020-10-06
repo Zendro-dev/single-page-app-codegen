@@ -336,7 +336,7 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
                   pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
                   edges {node {
                     ${qattributes}
-                    <%- sortedAssociations[aindex].peerAssociationNameLc _%>Connection(
+                    <%- sortedAssociations[aindex].peerAssociationName _%>Connection(
                       search: {field: <%- internalId _%>, value: $<%- internalId _%>, valueType: <%- internalIdType _%>, operator: eq },
                       pagination: {first: 1}){ edges {node {<%- internalId _%> }}}
           }}}}`;
@@ -393,7 +393,7 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
     let batchEdges = [];
     for(let i=0; (i<batchConnection.edges.length && nonaEdges.length<requiredItems); i++) {          
         //check: not associated item
-        if(batchConnection.edges[i].node["<%- sortedAssociations[aindex].peerAssociationNameLc _%>Connection"].edges.length === 0) {
+        if(batchConnection.edges[i].node["<%- sortedAssociations[aindex].peerAssociationName _%>Connection"].edges.length === 0) {
         
           //new non-associated edge
           let edge = {...batchConnection.edges[i]};
@@ -456,7 +456,7 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
 
       //delete innerConnecton and cursor
       for(let i=0; i<nonaEdges.length; i++) {
-        delete nonaEdges[i].node["<%- sortedAssociations[aindex].peerAssociationNameLc _%>Connection"];
+        delete nonaEdges[i].node["<%- sortedAssociations[aindex].peerAssociationName _%>Connection"];
         delete nonaEdges[i].cursor;
       }
 
@@ -511,7 +511,7 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
   // let batchQuery = 
   //       `query readOne<%- nameCp _%>($<%- internalId _%>:ID!, $search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationCursorInput!) {
   //              readOne<%- nameCp _%>(<%- internalId _%>: $<%- internalId _%>) {
-  //                 <%- sortedAssociations[aindex].relationNameLc _%>Connection( search: $search, pagination: $pagination ) {
+  //                 <%- sortedAssociations[aindex].relationName _%>Connection( search: $search, pagination: $pagination ) {
   //                   pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
   //                   edges {node {<%- sortedAssociations[aindex].internalId _%>}}
   //         }}}`;
@@ -564,15 +564,15 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
   //     //check type
   //     if(!response.data.data["readOne<%- nameCp _%>"]
   //     || typeof response.data.data["readOne<%- nameCp _%>"] !== 'object'
-  //     || response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationNameLc _%>Connection"] === null
-  //     || typeof response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationNameLc _%>Connection"] !== 'object'
-  //     || !Array.isArray(response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationNameLc _%>Connection"].edges)
-  //     || typeof response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationNameLc _%>Connection"].pageInfo !== 'object' 
-  //     || response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationNameLc _%>Connection"].pageInfo === null)
+  //     || response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationName _%>Connection"] === null
+  //     || typeof response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationName _%>Connection"] !== 'object'
+  //     || !Array.isArray(response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationName _%>Connection"].edges)
+  //     || typeof response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationName _%>Connection"].pageInfo !== 'object' 
+  //     || response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationName _%>Connection"].pageInfo === null)
   //     return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
 
   //     //get value
-  //     batchConnection = response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationNameLc _%>Connection"];
+  //     batchConnection = response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationName _%>Connection"];
   //   } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
     
   //   //get ids to exclude

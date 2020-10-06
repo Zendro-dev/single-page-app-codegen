@@ -3222,7 +3222,7 @@ const handleReloadClickB = (event) => {
                                     if(event.target.checked) {
                                       if(lidsToAdd.current&&lidsToAdd.current.length>0
                                       && itemsB&&itemsB.length>0
-                                      && itemsB[0].id===lidsToAdd.current[0]) {
+                                      && itemsB[0].<%- sortedAssociations[aindex].internalId _%>===lidsToAdd.current[0]) {
                                         handleRemoveItem(null, itemsB[0]);
                                       }
                                       lidsToRemove.current = [];
