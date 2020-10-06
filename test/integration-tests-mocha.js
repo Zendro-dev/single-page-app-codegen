@@ -3069,6 +3069,26 @@ describe('3. AJV Validations', function() {
     }
   ];
 
+  let q1 = {
+    "data": {
+      "countWith_validations": 0
+    }
+  };
+
+  let q2 = {
+    "data": {
+      "with_validationsConnection": {
+        "pageInfo": {
+          "startCursor": null,
+          "endCursor": null,
+          "hasPreviousPage": false,
+          "hasNextPage": false
+        },
+        "edges": []
+      }
+    }
+  };
+
   describe('3.0 Logout/Login', function() {
     //general timeout for each 'it'.
     this.timeout(tt); //10s.
@@ -3125,7 +3145,7 @@ describe('3. AJV Validations', function() {
         await clickOn(props);
         // evaluate
         let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
-        expect(datas).to.deep.equalInAnyOrder([{data: {countWith_validations: 0}}]);
+        expect(datas).to.deep.equalInAnyOrder([q1, q2]);
         expect(await page.title()).to.eql('Zendro');
       });
     });
@@ -5197,7 +5217,7 @@ describe('4. ACL Validations', function() {
             "pageInfo": {
               "startCursor": "eyJuYW1lIjoiYWRtaW5pc3RyYXRvciIsImRlc2NyaXB0aW9uIjpudWxsLCJpZCI6MX0=",
               "endCursor": "eyJuYW1lIjoiYWNsX3ZhbGlkYXRpb25zLXJvbGUiLCJkZXNjcmlwdGlvbiI6bnVsbCwiaWQiOjR9",
-              "hasPreviousPage": true,
+              "hasPreviousPage": false,
               "hasNextPage": false
             },
             "edges": [
@@ -5258,7 +5278,7 @@ describe('4. ACL Validations', function() {
               "pageInfo": {
                 "startCursor": "eyJuYW1lIjoiYWRtaW5pc3RyYXRvciIsImRlc2NyaXB0aW9uIjpudWxsLCJpZCI6MX0=",
                 "endCursor": "eyJuYW1lIjoiYWRtaW5pc3RyYXRvciIsImRlc2NyaXB0aW9uIjpudWxsLCJpZCI6MX0=",
-                "hasPreviousPage": true,
+                "hasPreviousPage": false,
                 "hasNextPage": false
               },
               "edges": [
@@ -5318,7 +5338,7 @@ describe('4. ACL Validations', function() {
             "pageInfo": {
               "startCursor": "eyJuYW1lIjoiYWRtaW5pc3RyYXRvciIsImRlc2NyaXB0aW9uIjpudWxsLCJpZCI6MX0=",
               "endCursor": "eyJuYW1lIjoiYWNsX3ZhbGlkYXRpb25zLXJvbGUiLCJkZXNjcmlwdGlvbiI6bnVsbCwiaWQiOjR9",
-              "hasPreviousPage": true,
+              "hasPreviousPage": false,
               "hasNextPage": false
             },
             "edges": [
@@ -6579,8 +6599,11 @@ describe('4. ACL Validations', function() {
         'Country',              'Country_to_river',
         'Cultivar',             'Dog',
         'Field_plot',           'Individual',
-        'Location',             'Measurement',
-        'Microbiome_asv',       'Parrot',
+        'Location',
+        'MM1',                  'MM1_to_MM2',
+        'MM2',                  'Measurement',
+        'Microbiome_asv',       'OM1',
+        'OM2',                  'Parrot',
         'Person',               'Plant_measurement',
         'Pot',                  'River',
         'Sample',               'Sample_measurement',
