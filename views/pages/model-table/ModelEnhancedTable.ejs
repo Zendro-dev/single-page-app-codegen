@@ -43,6 +43,9 @@ import Edit from '@material-ui/icons/Edit';
 import SeeInfo from '@material-ui/icons/VisibilityTwoTone';
 //Plotly
 import <%- nameOnPascal -%>Plotly from '../../../../plots/<%- nameCp -%>Plotly';
+<%if(withImageAttachment&&isImageAttachmentModel){-%>
+<%-include('./includes/imgs-ModelEnhancedTable-imports');%>
+<%}-%>
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -1754,6 +1757,10 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                                         <Typography variant='body2' color='textSecondary' display='block' noWrap={true}>{item.<%- internalId _%>}</Typography>
                                       </Tooltip>
                                     </TableCell>
+
+<%if(withImageAttachment&&isImageAttachmentModel){-%>
+<%-include('./includes/imgs-ModelEnhancedTable-thumbnail-cell');%>
+<%}-%>
 
 <%for( let i=0; i<attributesArr.length; i++ ){
     let a = attributesArr[i][0];

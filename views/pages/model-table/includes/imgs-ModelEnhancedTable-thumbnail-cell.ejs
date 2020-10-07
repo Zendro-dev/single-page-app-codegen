@@ -1,0 +1,12 @@
+
+{/* #imgs */}
+                                    {/* thumbnail */}
+                                    <TableCell 
+                                      key='thumbnail'
+                                      padding='checkbox' 
+                                      align='center'>
+                                        <Link href={item.fileUrl} rel="noopener noreferrer" target="_blank" onClick={(event) => {event.stopPropagation();}}>
+                                          <Avatar alt="Image" src={item.smallTnUrl} />
+                                        </Link>
+                                    </TableCell>
+{/* #imgs */}

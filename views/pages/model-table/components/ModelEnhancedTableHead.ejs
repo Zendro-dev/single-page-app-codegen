@@ -80,6 +80,11 @@ export default function <%- nameOnPascal -%>EnhancedTableHead(props) {
           </Grid>
           </TableSortLabel>
         </TableCell>
+
+<%if(withImageAttachment&&isImageAttachmentModel){-%>
+<%-include('./includes/imgs-ModelEnhancedTableHead-thumbnail-header');%>
+<%}-%>
+
 <%for( let i=0; i<attributesArr.length; i++ ){
 let a = attributesArr[i][0];
 let label = a;

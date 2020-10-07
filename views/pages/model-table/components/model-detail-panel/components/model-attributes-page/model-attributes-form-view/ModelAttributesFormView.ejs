@@ -10,6 +10,9 @@ import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
 import Attributes from '@material-ui/icons/HdrWeakTwoTone';
 import Key from '@material-ui/icons/VpnKey';
+<%if(withImageAttachment&&isImageAttachmentModel){-%>
+<%-include('./includes/imgs-ModelAttributesFormView-imports');%>
+<%}-%>
 <%
   let types = [];
 
@@ -32,28 +35,28 @@ import Key from '@material-ui/icons/VpnKey';
   for( let i=0; i<types.length; i++ ){
     let type = types[i];
 -%>
-<%if(type === 'Password') {%>
+<%if(type === 'Password') {-%>
 import PasswordField from './components/PasswordField'
 <%}-%>
-<%if(type === 'String') {%>
+<%if(type === 'String') {-%>
 import StringField from './components/StringField'
 <%}-%>
-<%if(type === 'Float') {%>
+<%if(type === 'Float') {-%>
 import FloatField from './components/FloatField'
 <%}-%>
-<%if(type === 'Int') {%>
+<%if(type === 'Int') {-%>
 import IntField from './components/IntField'
 <%}-%>
-<%if(type === 'Boolean') {%>
+<%if(type === 'Boolean') {-%>
 import BoolField from './components/BoolField'
 <%}-%>
-<%if(type === 'Date') {%>
+<%if(type === 'Date') {-%>
 import DateField from './components/DateField'
 <%}-%>
-<%if(type === 'Time') {%>
+<%if(type === 'Time') {-%>
 import TimeField from './components/TimeField'
 <%}-%>
-<%if(type === 'DateTime') {%>
+<%if(type === 'DateTime') {-%>
 import DateTimeField from './components/DateTimeField'
 <%}}-%>
 
@@ -81,12 +84,18 @@ const useStyles = makeStyles(theme => ({
   ibox: {
     padding: theme.spacing(2),
   },
+<%if(withImageAttachment&&isImageAttachmentModel){-%>
+<%-include('./includes/imgs-ModelAttributesFormView-styles');%>
+<%}-%>
 }));
 
 export default function <%- nameOnPascal _%>AttributesFormView(props) {
   const classes = useStyles();
   const { t } = useTranslation();
   const { item, valueOkStates } = props;
+<%if(withImageAttachment&&isImageAttachmentModel){-%>
+<%-include('./includes/imgs-ModelAttributesFormView-state');%>
+<%}-%>
 
   function getItemsOk() {
     let countOk=0;
@@ -121,6 +130,9 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
           </Card>
 
           <Card className={classes.card}>
+<%if(withImageAttachment&&isImageAttachmentModel){-%>
+<%-include('./includes/imgs-ModelAttributesFormView-card-content');%>
+<%}-%>
             {/* 
               Fields 
             */}

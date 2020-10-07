@@ -538,6 +538,13 @@ exports.fillOptionsForViews = function(fileData, filePath, options){
     withPlotly: getWithPlotly(options, filePath),
     standalonePlotly: options.plotlyOptions.standalonePlotly,
 
+    //#imgs
+    //Images
+    withImageAttachment: options.withImageAttachment ? true: false,
+    imageAttachmentModelName: getImageAttachmentModel().model,
+    isImageAttachmentModel: getImageAttachmentModel().model===fileData.model,
+    //imgs#
+
     //Warnings
     warnings,
   }
@@ -1671,7 +1678,7 @@ parseJsonModels = function(jsonFiles, baseDir, options, verbose) {
     //get options
     let opt = null;
     try {
-      opt = funks.fillOptionsForViews(model, null, {plotlyOptions, isSpecialModel: true, modelName: model.model});
+      opt = funks.fillOptionsForViews(model, null, {...options, isSpecialModel: true, modelName: model.model});
       totalWarnings += opt.warnings;
     }catch(e) {
       totalWrongFiles++;
@@ -1789,7 +1796,7 @@ parseJsonModels = function(jsonFiles, baseDir, options, verbose) {
       //get options
       let opt = null;
       try {
-        opt = funks.fillOptionsForViews(fileData, jsonFilePath, {plotlyOptions});
+        opt = funks.fillOptionsForViews(fileData, jsonFilePath, options);
         totalWarnings += opt.warnings;
       }catch(e) {
         totalWrongFiles++;
@@ -1819,7 +1826,7 @@ parseJsonModels = function(jsonFiles, baseDir, options, verbose) {
       //get options
       let opt = null;
       try {
-        opt = funks.fillOptionsForViews(iamodel, null, {plotlyOptions, isSpecialModel: true, modelName: iamodel.model});
+        opt = funks.fillOptionsForViews(iamodel, null, {...options, isSpecialModel: true, modelName: iamodel.model});
         totalWarnings += opt.warnings;
         opts.push(opt);
         //msg
