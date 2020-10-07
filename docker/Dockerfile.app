@@ -6,5 +6,5 @@ WORKDIR /usr/src/app
 # Clone the skeleton App project and install dependencies
 RUN apk update && \
  apk add git bash && \
- git clone --branch issue142-refactor-readMany-merge-master+M https://github.com/Zendro-dev/single-page-app.git . && \
+ git clone --branch master https://github.com/Zendro-dev/single-page-app.git . && \
  npm install
