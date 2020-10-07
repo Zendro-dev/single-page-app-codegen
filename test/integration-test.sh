@@ -601,7 +601,7 @@ genCode() {
   # Msg
   echo -e "${LGRAY}@@ Generating GraphQL Server code...${NC}"
   #Generate
-  node ${GQL_CODEGEN_DIR}/index.js -f ${GQL_TEST_MODELS_INSTANCE1} -o ${TARGET_DIR_GQL_INSTANCE1}
+  node ${GQL_CODEGEN_DIR}/index.js -m -f ${GQL_TEST_MODELS_INSTANCE1} -o ${TARGET_DIR_GQL_INSTANCE1}
   local gql1_status=$?
   if [ $gql1_status -eq 0 ]; then
     # Patch
@@ -628,7 +628,7 @@ genCode() {
     fi
   fi
 
-  node ${GQL_CODEGEN_DIR}/index.js -f ${GQL_TEST_MODELS_INSTANCE2} -o ${TARGET_DIR_GQL_INSTANCE2}
+  node ${GQL_CODEGEN_DIR}/index.js -m -f ${GQL_TEST_MODELS_INSTANCE2} -o ${TARGET_DIR_GQL_INSTANCE2}
   local gql2_status=$?
 
   # Print summary
