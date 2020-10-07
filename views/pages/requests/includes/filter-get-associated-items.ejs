@@ -1,0 +1,178 @@
+
+/**
+ * Filter
+ * ------
+ */
+
+  /**
+   * get<%- sortedAssociations[aindex].relationNameCp _%>
+   *
+   * Get <%- sortedAssociations[aindex].targetModelPlLc %> records associated to the given <%- nameLc %> record
+   * through association '<%- sortedAssociations[aindex].relationNameCp %>', from GraphQL Server.
+   *
+   *
+   * @param {String} url GraphQL Server url
+   * @param {Number} itemId Model item internalId.
+   * @param {String} searchText Text string currently on search bar.
+   * @param {Object} variables Object with cursor-based-pagination variables.
+   * @param {String} ops Object with adittional query options.
+   */
+  async get<%- sortedAssociations[aindex].relationNameCp _%>(url, itemId, searchText, variables, ops) {
+<%_if( sortedAssociations[aindex].type !== 'to_one' && sortedAssociations[aindex].type !== 'generic_to_one' ){-%>
+    //internal checks
+    if(!variables||typeof variables !== 'object') throw new Error("internal_error: expected object 'variables' argument");
+    if(!variables.pagination||typeof variables.pagination !== 'object' ) throw new Error("internal_error: pagination object expected in variables");
+<%}-%>
+<%_if( sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many'){-%>
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+    if(!variables.pagination.first&&!variables.pagination.last ) throw new Error("internal_error: pagination first or last positive argument expected");
+<%}-%>
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+    if(!variables.pagination.limit) throw new Error("internal_error: pagination limit positive argument expected");
+<%}-%>
+<%}-%>
+    let graphqlErrors = [];
+
+    //set attributes
+    let qattributes = 
+    `<%- sortedAssociations[aindex].internalId _%>,
+<%_for( let j=0; j<modelsAtts[sortedAssociations[aindex].targetModel].length; j++ ){
+  if(modelsAtts[sortedAssociations[aindex].targetModel][j][0] !== sortedAssociations[aindex].internalId) {
+-%>
+     <%- modelsAtts[sortedAssociations[aindex].targetModel][j][0] -%>,
+<%}}-%>`;
+
+<%#
+/**
+ * to_one
+ * generic_to_one
+ */
+-%>
+ <%_if( sortedAssociations[aindex].type === 'to_one' || sortedAssociations[aindex].type === 'generic_to_one' ){-%>
+    variables = { "<%- internalId _%>": itemId };
+    //set query
+    let query = 
+      `query readOne<%- nameCp _%>($<%- internalId _%>:ID!) {
+             readOne<%- nameCp _%>(<%- internalId _%>:$<%- internalId _%>) {
+                <%- sortedAssociations[aindex].relationName _%> {
+                  ${qattributes}
+                }
+             }}`;
+    /**
+     * Debug
+     */
+    if(globals.REQUEST_LOGGER) logRequest('get<%- sortedAssociations[aindex].relationNameCp _%>', query, variables);
+    
+    //request
+    let response = await requestGraphql({ url, query, variables });
+    let associatedItem = null;
+    //check
+    let check = checkResponse(response, graphqlErrors, "readOne<%- nameCp _%>");
+    if(check === 'ok') {
+      //check types
+      if(!response.data.data["readOne<%- nameCp _%>"]
+      || typeof response.data.data["readOne<%- nameCp _%>"] !== 'object'
+      || typeof response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationName _%>"] !== 'object' //can be null
+      ) return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+      
+      //get value
+      associatedItem = response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationName _%>"];
+    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+    //return value
+    return {value: associatedItem, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+  },
+<%}-%>
+<%#
+  /**
+   * to_many
+   * to_many_through_sql_cross_table
+   * generic_to_many
+   */
+-%>
+<%_if( sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many' ){-%>
+    variables["<%- internalId _%>"] = itemId;
+    //set search
+    let s = getSearchArgument('<%- sortedAssociations[aindex].targetModelLc _%>', searchText, ops, 'object');
+    if(s) variables.search = s.search;
+<%#
+  /**
+   * limitOffset
+   */
+-%>
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+    //set query
+    let query = 
+      `query readOne<%- nameCp _%>($<%- internalId _%>:ID!, $search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationInput!) {
+             readOne<%- nameCp _%>(<%- internalId _%>:$<%- internalId _%>) {
+                <%- sortedAssociations[aindex].relationName _%>Filter(search: $search, pagination: $pagination) {
+                  ${qattributes}
+                }
+             }}`;
+<%}-%>
+<%#
+  /**
+   * cursorBased
+   */
+-%>
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased'){-%>
+    let qbody = `
+          pageInfo {startCursor, endCursor, hasPreviousPage, hasNextPage},
+          edges {
+            node {
+              ${qattributes}
+            }
+          }`;
+
+    let query =
+      `query readOne<%- nameCp %>($<%- internalId _%>:ID!, $search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationCursorInput!) {
+             readOne<%- nameCp _%>(<%- internalId _%>:$<%- internalId _%>) {
+                <%- sortedAssociations[aindex].relationName _%>Connection(search: $search, pagination: $pagination) {
+                  ${qbody},
+                },
+             }}`;
+<%}-%>
+    /**
+     * Debug
+     */
+    if(globals.REQUEST_LOGGER) logRequest('get<%- sortedAssociations[aindex].relationNameCp _%>', query, variables);
+
+//request
+    let response = await requestGraphql({ url, query, variables });
+    let items = null;
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+    //check
+    let check = checkResponse(response, graphqlErrors, "readOne<%- nameCp _%>");
+    if(check === 'ok') {
+      //check type
+      if(!response.data.data["readOne<%- nameCp _%>"]
+      || typeof response.data.data["readOne<%- nameCp _%>"] !== 'object'
+      || !Array.isArray(response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationName _%>Filter"])) 
+      return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+      //get value
+      items = response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationName _%>Filter"];
+    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+    //check
+    let check = checkResponse(response, graphqlErrors, "readOne<%- nameCp _%>");
+    if(check === 'ok') {
+      //check type
+      if(!response.data.data["readOne<%- nameCp _%>"]
+      || typeof response.data.data["readOne<%- nameCp _%>"] !== 'object'
+      || !response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationName _%>Connection"]
+      || typeof response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationName _%>Connection"] !== 'object'
+      || !Array.isArray(response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationName _%>Connection"].edges)
+      || typeof response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationName _%>Connection"].pageInfo !== 'object' 
+      || response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationName _%>Connection"].pageInfo === null)
+      return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+      //get value
+      items = response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationName _%>Connection"];
+    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+<%}-%>
+
+    //return value
+    return {value: items, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+  },
+<%}-%>

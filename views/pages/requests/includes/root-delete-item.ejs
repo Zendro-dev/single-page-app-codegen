@@ -1,0 +1,49 @@
+/**
+ * Root mutation
+ * -------------
+ */
+
+  /**
+   * deleteItem
+   *
+   * Delete an item on GraphQL Server.
+   * (root mutation)
+   *
+   * @param {String} url GraphQL Server url.
+   * @param {Object} variables Object with values needed to delete the <%- nameCp %> item.
+   */
+  async deleteItem(url, variables) {
+    //internal checks
+    if(!variables||typeof variables !== 'object') throw new Error("internal_error: expected object 'variables' argument");
+    let graphqlErrors = [];
+
+    let query =
+      `mutation 
+            delete<%- nameCp %>(
+              $<%- internalId _%>:ID!
+        ) { delete<%- nameCp %>(
+              <%- internalId _%>:$<%- internalId -%>
+        ) }`;
+
+    /**
+     * Debug
+     */
+    if(globals.REQUEST_LOGGER) logRequest('deleteItem', query, variables);
+
+    //request
+    let response = await requestGraphql({ url, query, variables });
+    let result = null;
+    //check
+    let check = checkResponse(response, graphqlErrors, "delete<%- nameCp %>");
+    if(check === 'ok') {
+      //check type
+      if(response.data.data["delete<%- nameCp %>"] === null)
+      return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+      //get value
+      result = response.data.data["delete<%- nameCp %>"];
+    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+    //return value
+    return {value: result, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+  },

@@ -320,7 +320,6 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
    * names
    */
   let methodName1 = 'doSave()';
-  let queryName1 = 'add'+nameCp;
   let requestName1 = 'api.'+nameLc+'.createItem';
 -%>
   /**
@@ -331,7 +330,7 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
     * Updates state to inform new @item added.
     * 
     */
-  function doSave(event) {
+  async function doSave(event) {
     errors.current = [];
     valuesAjvRefs.current = getInitialValueAjvStates();
 
@@ -370,87 +369,52 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
 <%for( let i=0; i<sortedAssociations.length; i++ ){
   if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many') {
 -%>
-    variables.add<%- sortedAssociations[i].relationNameCp %> = <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current;
+    variables.add<%- sortedAssociations[i].relationNameCp %> = [...<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current];
 <%}}-%>
 
     /*
-      API Request: <%- queryName1 %>
+      API Request: <%- requestName1 %>
     */
     let cancelableApiReq = makeCancelable(api.<%- nameLc _%>.createItem(graphqlServerUrl, variables));
     cancelablePromises.current.push(cancelableApiReq);
-    cancelableApiReq
+    await cancelableApiReq
       .promise
       .then(
       //resolved
       (response) => {
         //delete from cancelables
         cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
-        
-        //check: response data
-        if(!response.data ||!response.data.data) {
+        //check: response
+        if(response.message === 'ok') {
+          //check: graphql errors
+          if(response.graphqlErrors) {
+            let newError = {};
+            let withDetails=true;
+            variant.current='info';
+            newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
+            newError.locations=[{model: '<%- name -%>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+            newError.path=['<%- namePlCp %>', 'add'];
+            newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
+            errors.current.push(newError);
+            console.log("Error: ", newError);
+
+            showMessage(newError.message, withDetails);
+          }
+        } else { //not ok
+          //show error
           let newError = {};
           let withDetails=true;
           variant.current='error';
-          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+          newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
+          newError.locations=[{model: '<%- name -%>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
           newError.path=['<%- namePlCp %>', 'add'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
-
+ 
           showMessage(newError.message, withDetails);
           clearRequestDoSave();
           return;
-        }
-
-        //check: <%- queryName1 %>
-        let <%- queryName1 %> = response.data.data.<%- queryName1 %>;
-        if(<%- queryName1 %> === null) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e5', 'could not be completed.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
-          newError.path=['<%- namePlCp %>', 'add'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestDoSave();
-          return;
-        }
-
-        //check: <%- queryName1 %> type
-        if(typeof <%- queryName1 %> !== 'object') {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = '<%- name %> ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
-          newError.path=['<%- namePlCp %>', 'add'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestDoSave();
-          return;
-        }
-
-        //check: graphql errors
-        if(response.data.errors) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='info';
-          newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e6', 'completed with errors.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
-          newError.path=['<%- namePlCp %>', 'add'];
-          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
         }
 
         //ok
@@ -463,7 +427,7 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
             horizontal: 'left',
           },
         });
-        onClose(event, true, <%- queryName1 %>);
+        onClose(event, true, response.value);
         return;
       },
       //rejected
@@ -483,7 +447,7 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
           let withDetails=true;
           variant.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: '<%- name -%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+          newError.locations=[{model: '<%- name -%>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
           newError.path=['<%- namePlCp %>', 'add'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errors.current.push(newError);

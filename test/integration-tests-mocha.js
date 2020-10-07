@@ -1,6 +1,9 @@
 require('lodash');
 const puppeteer = require('puppeteer');
-const { expect } = require('chai');
+const chai = require('chai');
+const deepEqualInAnyOrder = require('deep-equal-in-any-order');
+chai.use(deepEqualInAnyOrder);
+const { expect } = chai;
 const delay = require('delay');
 const { extendWith } = require('lodash');
 
@@ -131,7 +134,7 @@ describe('1. Basic functionality', function () {
       // evaluate
       let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
       let recordsCount = await page.$$eval('[id=IndividualEnhancedTable-tableBody] > tr', items => items.length);
-      expect(datas).to.include.deep.members([q1, q2]);
+      expect(datas).to.deep.equalInAnyOrder([q1, q2]);
       expect(recordsCount).to.eql(0);
     });
   });
@@ -151,10 +154,7 @@ describe('1. Basic functionality', function () {
       location_type: "type-1",
       cultivar_id: null,
       field_plot_id: null,
-      pot_id: null,
-      cultivar: null,
-      field_plot: null,
-      pot: null
+      pot_id: null
     };
     let q1 = {
       "data": {
@@ -317,7 +317,7 @@ describe('1. Basic functionality', function () {
       q3.data.individualsConnection.edges.push({node: q1.data.addIndividual});
       q3.data.individualsConnection.pageInfo.startCursor = individualsConnection.pageInfo.startCursor;
       q3.data.individualsConnection.pageInfo.endCursor = individualsConnection.pageInfo.endCursor;
-      expect(datas).to.include.deep.members([q1, q2, q3]);
+      expect(datas).to.deep.equalInAnyOrder([q1, q2, q3]);
       expect(recordsCount).to.eql(1);
     });
 
@@ -338,10 +338,7 @@ describe('1. Basic functionality', function () {
       location_type: "type-1-edited",
       cultivar_id: null,
       field_plot_id: null,
-      pot_id: null,
-      cultivar: null,
-      field_plot: null,
-      pot: null
+      pot_id: null
     };
     let q1 = {
       "data": {
@@ -505,11 +502,11 @@ describe('1. Basic functionality', function () {
       q3.data.individualsConnection.edges.push({node: q1.data.updateIndividual});
       q3.data.individualsConnection.pageInfo.startCursor = individualsConnection.pageInfo.startCursor;
       q3.data.individualsConnection.pageInfo.endCursor = individualsConnection.pageInfo.endCursor;
-      expect(datas).to.include.deep.members([q1, q2, q3]);
-      expect(recordsCount).to.eql(1);
-
       //save
       addedIndividuals.push({...q1.data.updateIndividual});
+
+      expect(datas).to.deep.equalInAnyOrder([q1, q2, q3]);
+      expect(recordsCount).to.eql(1);
     });
 
   });
@@ -529,10 +526,7 @@ describe('1. Basic functionality', function () {
       location_type: "type-2",
       cultivar_id: null,
       field_plot_id: null,
-      pot_id: null,
-      cultivar: null,
-      field_plot: null,
-      pot: null
+      pot_id: null
     };
     let q1 = {
       "data": {
@@ -699,11 +693,11 @@ describe('1. Basic functionality', function () {
       q3.data.individualsConnection.edges.push({node: {...q1.data.addIndividual}});
       q3.data.individualsConnection.pageInfo.startCursor = individualsConnection.pageInfo.startCursor;
       q3.data.individualsConnection.pageInfo.endCursor = individualsConnection.pageInfo.endCursor;
-      expect(datas).to.include.deep.members([q1, q2, q3]);
-      expect(recordsCount).to.eql(2);
-
       //save
       addedIndividuals.push({...q1.data.addIndividual});
+
+      expect(datas).to.deep.equalInAnyOrder([q1, q2, q3]);
+      expect(recordsCount).to.eql(2);
     });
 
   });
@@ -723,10 +717,7 @@ describe('1. Basic functionality', function () {
       location_type: "type-2-b",
       cultivar_id: null,
       field_plot_id: null,
-      pot_id: null,
-      cultivar: null,
-      field_plot: null,
-      pot: null
+      pot_id: null
     };
     let q1 = {
       "data": {
@@ -893,11 +884,11 @@ describe('1. Basic functionality', function () {
       q3.data.individualsConnection.edges.push({node: q1.data.addIndividual});
       q3.data.individualsConnection.pageInfo.startCursor = individualsConnection.pageInfo.startCursor;
       q3.data.individualsConnection.pageInfo.endCursor = individualsConnection.pageInfo.endCursor;
-      expect(datas).to.include.deep.members([q1, q2, q3]);
-      expect(recordsCount).to.eql(3);
-
       //save
       addedIndividuals.push({...q1.data.addIndividual});
+      
+      expect(datas).to.deep.equalInAnyOrder([q1, q2, q3]);
+      expect(recordsCount).to.eql(3);
     });
 
   });
@@ -966,7 +957,7 @@ describe('1. Basic functionality', function () {
       q2.data.individualsConnection.edges.push({node: {...addedIndividuals[2]}});
       q2.data.individualsConnection.pageInfo.startCursor = individualsConnection.pageInfo.startCursor;
       q2.data.individualsConnection.pageInfo.endCursor = individualsConnection.pageInfo.endCursor;
-      expect(datas).to.include.deep.members([q1, q2]);
+      expect(datas).to.deep.equalInAnyOrder([q1, q2]);
       expect(recordsCount).to.eql(2);
     });
   });
@@ -1034,7 +1025,7 @@ describe('1. Basic functionality', function () {
       q2.data.individualsConnection.edges.push({node: {...addedIndividuals[0]}});
       q2.data.individualsConnection.pageInfo.startCursor = individualsConnection.pageInfo.startCursor;
       q2.data.individualsConnection.pageInfo.endCursor = individualsConnection.pageInfo.endCursor;
-      expect(datas).to.include.deep.members([q1, q2]);
+      expect(datas).to.deep.equalInAnyOrder([q1, q2]);
       expect(recordsCount).to.eql(1);
     });
   });
@@ -1095,7 +1086,7 @@ describe('1. Basic functionality', function () {
       q2.data.individualsConnection.edges = addedIndividuals.map(item=>({node: {...item}}));
       q2.data.individualsConnection.pageInfo.startCursor = individualsConnection.pageInfo.startCursor;
       q2.data.individualsConnection.pageInfo.endCursor = individualsConnection.pageInfo.endCursor;
-      expect(datas).to.include.deep.members([q1, q2]);
+      expect(datas).to.deep.equalInAnyOrder([q1, q2]);
       expect(recordsCount).to.eql(3);
     });
   });
@@ -1155,7 +1146,7 @@ describe('1. Basic functionality', function () {
       await clickOn(props);
       // evaluate
       let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
-      expect(datas).to.include.deep.members([q1]);
+      expect(datas).to.deep.equalInAnyOrder([q1]);
       expect(await page.title()).to.eql('Zendro');
     });
 
@@ -1196,7 +1187,7 @@ describe('1. Basic functionality', function () {
       q4.data.individualsConnection.edges.push({node: {...addedIndividuals[2]}});
       q4.data.individualsConnection.pageInfo.startCursor = individualsConnection.pageInfo.startCursor;
       q4.data.individualsConnection.pageInfo.endCursor = individualsConnection.pageInfo.endCursor;
-      expect(datas).to.include.deep.members([q2, q3, q4]);
+      expect(datas).to.deep.equalInAnyOrder([q2, q3, q4]);
       expect(recordsCount).to.eql(2);
       expect(await page.title()).to.eql('Zendro');
     });
@@ -1256,7 +1247,7 @@ describe('1. Basic functionality', function () {
       await clickOn(props);
       // evaluate
       let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
-      expect(datas).to.include.deep.members([q1]);
+      expect(datas).to.deep.equalInAnyOrder([q1]);
       expect(await page.title()).to.eql('Zendro');
     });
 
@@ -1293,7 +1284,7 @@ describe('1. Basic functionality', function () {
       q4.data.individualsConnection.edges.push({node: {...addedIndividuals[2]}});
       q4.data.individualsConnection.pageInfo.startCursor = individualsConnection.pageInfo.startCursor;
       q4.data.individualsConnection.pageInfo.endCursor = individualsConnection.pageInfo.endCursor;
-      expect(datas).to.include.deep.members([q2, q3, q4]);
+      expect(datas).to.deep.equalInAnyOrder([q2, q3, q4]);
       expect(recordsCount).to.eql(1);
       expect(await page.title()).to.eql('Zendro');
     });
@@ -1353,7 +1344,7 @@ describe('1. Basic functionality', function () {
       await clickOn(props);
       // evaluate
       let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
-      expect(datas).to.include.deep.members([q1]);
+      expect(datas).to.deep.equalInAnyOrder([q1]);
       expect(await page.title()).to.eql('Zendro');
     });
 
@@ -1387,7 +1378,7 @@ describe('1. Basic functionality', function () {
       let individualsConnection = datas.reduce((a, c) => {if(c&&c.data&&c.data.individualsConnection){ a=c.data.individualsConnection; return a; } else  {return a; }}, {});
       q4.data.individualsConnection.pageInfo.startCursor = individualsConnection.pageInfo.startCursor;
       q4.data.individualsConnection.pageInfo.endCursor = individualsConnection.pageInfo.endCursor;
-      expect(datas).to.include.deep.members([q2, q3, q4]);
+      expect(datas).to.deep.equalInAnyOrder([q2, q3, q4]);
       expect(recordsCount).to.eql(0);
       expect(await page.title()).to.eql('Zendro');
     });
@@ -1586,7 +1577,7 @@ describe('2.1 Associations - one(sql) to many(sql) - add associations - create-p
     let datas = await Promise.all(apiResponses);
     let rowsCountA = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listA] > li', rows => rows.length);
     let rowsCountB = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listB] > li', rows => rows.length);
-    expect(datas).to.include.deep.members([
+    expect(datas).to.deep.equalInAnyOrder([
       { countTranscript_counts: recordsCount_d2_it02-1 },
       { countTranscript_counts: 1 }]);
     expect(rowsCountA).to.eql(recordsCount_d2_it02-1);
@@ -1616,7 +1607,7 @@ describe('2.1 Associations - one(sql) to many(sql) - add associations - create-p
     datas = await Promise.all(apiResponses);
     rowsCountA = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listA] > li', rows => rows.length);
     rowsCountB = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listB] > li', rows => rows.length);
-    expect(datas).to.include.deep.members([
+    expect(datas).to.deep.equalInAnyOrder([
       { countTranscript_counts: recordsCount_d2_it02-2 },
       { countTranscript_counts: 2 }]);
     expect(rowsCountA).to.eql(recordsCount_d2_it02-2);
@@ -1645,7 +1636,7 @@ describe('2.1 Associations - one(sql) to many(sql) - add associations - create-p
     datas = await Promise.all(apiResponses);
     rowsCountA = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listA] > li', rows => rows.length);
     rowsCountB = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listB] > li', rows => rows.length);
-    expect(datas).to.include.deep.members([
+    expect(datas).to.deep.equalInAnyOrder([
       { countTranscript_counts: recordsCount_d2_it02-3 },
       { countTranscript_counts: 3 }]);
     expect(rowsCountA).to.eql(recordsCount_d2_it02-3);
@@ -1674,7 +1665,7 @@ describe('2.1 Associations - one(sql) to many(sql) - add associations - create-p
     datas = await Promise.all(apiResponses);
     rowsCountA = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listA] > li', rows => rows.length);
     rowsCountB = await page.$$eval('div[id=TranscriptCountsToAddTransferView-list-listB] > li', rows => rows.length);
-    expect(datas).to.include.deep.members([
+    expect(datas).to.deep.equalInAnyOrder([
       { countTranscript_counts: recordsCount_d2_it02-2 },
       { countTranscript_counts: 2 }]);
     expect(rowsCountA).to.eql(recordsCount_d2_it02-2);
@@ -3078,6 +3069,26 @@ describe('3. AJV Validations', function() {
     }
   ];
 
+  let q1 = {
+    "data": {
+      "countWith_validations": 0
+    }
+  };
+
+  let q2 = {
+    "data": {
+      "with_validationsConnection": {
+        "pageInfo": {
+          "startCursor": null,
+          "endCursor": null,
+          "hasPreviousPage": false,
+          "hasNextPage": false
+        },
+        "edges": []
+      }
+    }
+  };
+
   describe('3.0 Logout/Login', function() {
     //general timeout for each 'it'.
     this.timeout(tt); //10s.
@@ -3134,7 +3145,7 @@ describe('3. AJV Validations', function() {
         await clickOn(props);
         // evaluate
         let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
-        expect(datas).to.include.deep.members([{data: {countWith_validations: 0}}]);
+        expect(datas).to.deep.equalInAnyOrder([q1, q2]);
         expect(await page.title()).to.eql('Zendro');
       });
     });
@@ -4794,7 +4805,6 @@ describe('4. ACL Validations', function() {
     namesCp: [ "Role", "Role_to_user", "User"],
   }
 
-  if(true)
   describe('4.1. Role - administrator', function() {
     describe('4.1.1 Login', function() {
       //general timeout for each 'it'.
@@ -4995,7 +5005,13 @@ describe('4. ACL Validations', function() {
                   }
                 }
               ]
-            },
+            }
+          }
+        }
+      };
+      let q3_count = {
+        "data": {
+          "readOneUser": {
             "countFilteredRoles": 4
           }
         }
@@ -5178,20 +5194,84 @@ describe('4. ACL Validations', function() {
       }
       let q13 = {
         "data": {
-          "readOneUser": {
-            "rolesConnection": {
-              "edges": [
-                {
-                  "node": {
-                    "id": "1"
-                  }
-                }
-              ]
-            }
-          }
+          "countRoles": 4
         }
       };
       let q14 = {
+        "data": {
+          "readOneUser": {
+            "countFilteredRoles": 1
+          }
+        }
+      };
+      let q14_count = {
+        "data": {
+          "readOneUser": {
+            "countFilteredRoles": 1
+          }
+        }
+      };
+      let q15 = {
+        "data": {
+          "rolesConnection": {
+            "pageInfo": {
+              "startCursor": "eyJuYW1lIjoiYWRtaW5pc3RyYXRvciIsImRlc2NyaXB0aW9uIjpudWxsLCJpZCI6MX0=",
+              "endCursor": "eyJuYW1lIjoiYWNsX3ZhbGlkYXRpb25zLXJvbGUiLCJkZXNjcmlwdGlvbiI6bnVsbCwiaWQiOjR9",
+              "hasPreviousPage": false,
+              "hasNextPage": false
+            },
+            "edges": [
+              {
+                "node": {
+                  "id": "1",
+                  "name": "administrator",
+                  "description": null,
+                  "usersConnection": {
+                    "edges": [
+                      {
+                        "node": {
+                          "id": "6"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "node": {
+                  "id": "2",
+                  "name": "reader",
+                  "description": null,
+                  "usersConnection": {
+                    "edges": []
+                  }
+                }
+              },
+              {
+                "node": {
+                  "id": "3",
+                  "name": "editor",
+                  "description": null,
+                  "usersConnection": {
+                    "edges": []
+                  }
+                }
+              },
+              {
+                "node": {
+                  "id": "4",
+                  "name": "acl_validations-role",
+                  "description": null,
+                  "usersConnection": {
+                    "edges": []
+                  }
+                }
+              }
+            ]
+          }
+        }
+      };
+      let q16 = {
         "data": {
           "readOneUser": {
             "rolesConnection": {
@@ -5210,64 +5290,13 @@ describe('4. ACL Validations', function() {
                   }
                 }
               ]
-            },
-            "countFilteredRoles": 1
-          }
-        }
-      };
-      let q15 = {
-        "data": {
-          "countRoles": 3
-        }
-      };
-      let q16 = {
-        "data": {
-          "rolesConnection": {
-            "pageInfo": {
-              "startCursor": "eyJuYW1lIjoicmVhZGVyIiwiZGVzY3JpcHRpb24iOm51bGwsImlkIjoyfQ==",
-              "endCursor": "eyJuYW1lIjoiYWNsX3ZhbGlkYXRpb25zLXJvbGUiLCJkZXNjcmlwdGlvbiI6bnVsbCwiaWQiOjR9",
-              "hasPreviousPage": false,
-              "hasNextPage": false
-            },
-            "edges": [
-              {
-                "node": {
-                  "id": "2",
-                  "name": "reader",
-                  "description": null
-                }
-              },
-              {
-                "node": {
-                  "id": "3",
-                  "name": "editor",
-                  "description": null
-                }
-              },
-              {
-                "node": {
-                  "id": "4",
-                  "name": "acl_validations-role",
-                  "description": null
-                }
-              }
-            ]
+            }
           }
         }
       };
       let q17 = {
         "data": {
-          "readOneUser": {
-            "rolesConnection": {
-              "edges": [
-                {
-                  "node": {
-                    "id": "1"
-                  }
-                }
-              ]
-            }
-          }
+          "countRoles": 3
         }
       };
       let q18 = {
@@ -5298,14 +5327,16 @@ describe('4. ACL Validations', function() {
       };
       let q20 = {
         "data": {
-          "countRoles": 2
+          "readOneUser": {
+            "countFilteredRoles": 1
+          }
         }
       };
       let q21 = {
         "data": {
           "rolesConnection": {
             "pageInfo": {
-              "startCursor": "eyJuYW1lIjoiZWRpdG9yIiwiZGVzY3JpcHRpb24iOm51bGwsImlkIjozfQ==",
+              "startCursor": "eyJuYW1lIjoiYWRtaW5pc3RyYXRvciIsImRlc2NyaXB0aW9uIjpudWxsLCJpZCI6MX0=",
               "endCursor": "eyJuYW1lIjoiYWNsX3ZhbGlkYXRpb25zLXJvbGUiLCJkZXNjcmlwdGlvbiI6bnVsbCwiaWQiOjR9",
               "hasPreviousPage": false,
               "hasNextPage": false
@@ -5313,16 +5344,38 @@ describe('4. ACL Validations', function() {
             "edges": [
               {
                 "node": {
+                  "id": "1",
+                  "name": "administrator",
+                  "description": null,
+                  "usersConnection": {
+                    "edges": [
+                      {
+                        "node": {
+                          "id": "6"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "node": {
                   "id": "3",
                   "name": "editor",
-                  "description": null
+                  "description": null,
+                  "usersConnection": {
+                    "edges": []
+                  }
                 }
               },
               {
                 "node": {
                   "id": "4",
                   "name": "acl_validations-role",
-                  "description": null
+                  "description": null,
+                  "usersConnection": {
+                    "edges": []
+                  }
                 }
               }
             ]
@@ -5418,7 +5471,13 @@ describe('4. ACL Validations', function() {
                   }
                 }
               ]
-            },
+            }
+          }
+        }
+      };
+      let q25_count = {
+        "data": {
+          "readOneUser": {
             "countFilteredRoles": 2
           }
         }
@@ -5519,7 +5578,7 @@ describe('4. ACL Validations', function() {
           // evaluate
           let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
           let recordsCount = await page.$$eval('[id=UserEnhancedTable-tableBody] > tr', items => items.length);
-          expect(datas).to.include.deep.members([q1, q2]);
+          expect(datas).to.deep.equalInAnyOrder([q2, q1]);
           expect(recordsCount).to.eql(5);
           expect(await page.title()).to.eql('Zendro');
         });
@@ -5540,12 +5599,12 @@ describe('4. ACL Validations', function() {
             ],
             requests: ['http://localhost:3000/graphql'],
             responses: [],
-            expectedResponses: 1,
+            expectedResponses: 2,
           };
           await clickOn(props);
           // evaluate
           let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
-          expect(datas).to.include.deep.members([q3]);
+          expect(datas).to.deep.equalInAnyOrder([q3, q3_count]);
           expect(await page.title()).to.eql('Zendro');
         });
 
@@ -5647,7 +5706,7 @@ describe('4. ACL Validations', function() {
           // evaluate
           let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
           let recordsCount = await page.$$eval('[id=RolesToAddTransferView-list-listA] > li', items => items.length);
-          expect(datas).to.include.deep.members([q4, q5]);
+          expect(datas).to.deep.equalInAnyOrder([q4, q5]);
           expect(recordsCount).to.eql(4);
           expect(await page.title()).to.eql('Zendro');
         });
@@ -5684,7 +5743,7 @@ describe('4. ACL Validations', function() {
           let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
           let recordsCountA = await page.$$eval('[id=RolesToAddTransferView-list-listA] > li', items => items.length);
           let recordsCountB = await page.$$eval('[id=RolesToAddTransferView-list-listB] > li', items => items.length);
-          expect(datas).to.include.deep.members([q6, q7, q8, q9]);
+          expect(datas).to.deep.equalInAnyOrder([q6, q7, q8, q9]);
           expect(recordsCountA).to.eql(3);
           expect(recordsCountB).to.eql(1);
           expect(await page.title()).to.eql('Zendro');
@@ -5745,7 +5804,7 @@ describe('4. ACL Validations', function() {
           q10.data.addUser.password = addUser.password;
           q12.data.usersConnection.edges.push({node: addUser});
           q12.data.usersConnection.pageInfo.endCursor = usersConnection.pageInfo.endCursor;
-          expect(datas).to.include.deep.members([q10, q11, q12]);
+          expect(datas).to.deep.equalInAnyOrder([q10, q11, q12]);
           expect(recordsCount).to.eql(6);
           expect(await page.title()).to.eql('Zendro');
         });
@@ -5798,14 +5857,14 @@ describe('4. ACL Validations', function() {
 
             requests: ['http://localhost:3000/graphql'],
             responses: [],
-            expectedResponses: 4,
+            expectedResponses: 5,
           };
           await clickOn(props);
           // evaluate
           let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
           let recordsCountA = await page.$$eval('[id=RolesToAddTransferView-list-listA] > li', items => items.length);
           let recordsCountB = await page.$$eval('[id=RolesToRemoveTransferView-list-listA] > li', items => items.length);
-          expect(datas).to.include.deep.members([q13, q14, q15, q16]);
+          expect(datas).to.deep.equalInAnyOrder([q13, q14, q14_count, q15, q16]);
           expect(recordsCountA).to.eql(3);
           expect(recordsCountB).to.eql(1);
           expect(await page.title()).to.eql('Zendro');
@@ -5846,7 +5905,7 @@ describe('4. ACL Validations', function() {
           let recordsCountA = await page.$$eval('[id=RolesToAddTransferView-list-listA] > li', items => items.length);
           let recordsCountB = await page.$$eval('[id=RolesToAddTransferView-list-listB] > li', items => items.length);
           let recordsCountC = await page.$$eval('[id=RolesToRemoveTransferView-list-listA] > li', items => items.length);
-          expect(datas).to.include.deep.members([q17, q18, q19, q20, q21]);
+          expect(datas).to.deep.equalInAnyOrder([q17, q18, q19, q20, q21]);
           expect(recordsCountA).to.eql(2);
           expect(recordsCountB).to.eql(1);
           expect(recordsCountC).to.eql(1);
@@ -5908,7 +5967,7 @@ describe('4. ACL Validations', function() {
           q22.data.updateUser.password = updateUser.password;
           q24.data.usersConnection.edges.push({node: updateUser});
           q24.data.usersConnection.pageInfo.endCursor = usersConnection.pageInfo.endCursor;
-          expect(datas).to.include.deep.members([q22, q23, q24]);
+          expect(datas).to.deep.equalInAnyOrder([q22, q23, q24]);
           expect(recordsCount).to.eql(6);
           expect(await page.title()).to.eql('Zendro');
         });
@@ -5930,12 +5989,12 @@ describe('4. ACL Validations', function() {
             ],
             requests: ['http://localhost:3000/graphql'],
             responses: [],
-            expectedResponses: 1,
+            expectedResponses: 2,
           };
           await clickOn(props);
           // evaluate
           let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
-          expect(datas).to.include.deep.members([q25]);
+          expect(datas).to.deep.equalInAnyOrder([q25, q25_count]);
           expect(await page.title()).to.eql('Zendro');
         });
 
@@ -5977,7 +6036,7 @@ describe('4. ACL Validations', function() {
           // evaluate
           let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
           let recordsCount = await page.$$eval('[id=UserEnhancedTable-tableBody] > tr', items => items.length);
-          expect(datas).to.include.deep.members([q26, q27, q28]);
+          expect(datas).to.deep.equalInAnyOrder([q26, q27, q28]);
           expect(recordsCount).to.eql(5);
           expect(await page.title()).to.eql('Zendro');
         });
@@ -6135,6 +6194,15 @@ describe('4. ACL Validations', function() {
           expect(datas[0].errors[0].path).to.eql(q1.errors[0].path);
           expect(datas[0].data).to.eql(q1.data);
           expect(await page.title()).to.eql('Zendro');
+        });
+
+        it(`${n++}. click on: close <Snackbar>`, async function () {
+          props = {
+            elementType: 'button',
+            buttonId: 'Snackbar-button-close',
+            ttdelay: ttdelay*2
+          };
+          await clickOn(props);
         });
 
         it(`${n++}. click on: close <Snackbar>`, async function () {
@@ -6325,8 +6393,27 @@ describe('4. ACL Validations', function() {
             "message": "You don't have authorization to perform this action",
             "locations": [
               {
-                "line": 1,
-                "column": 3
+                "line": 2,
+                "column": 14
+              }
+            ],
+            "path": [
+              "acl_validationsConnection"
+            ]
+          }
+        ],
+        "data": {
+          "acl_validationsConnection": null
+        }
+      };
+      let q1_count = {
+        "errors": [
+          {
+            "message": "You don't have authorization to perform this action",
+            "locations": [
+              {
+                "line": 2,
+                "column": 14
               }
             ],
             "path": [
@@ -6369,10 +6456,19 @@ describe('4. ACL Validations', function() {
           // evaluate
           let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
           expect(datas.length).to.eql(1);
-          expect(datas[0].errors[0].message).to.eql(q1.errors[0].message);
-          expect(datas[0].errors[0].path).to.eql(q1.errors[0].path);
-          expect(datas[0].data).to.eql(q1.data);
+          expect(datas[0].errors[0].message).to.eql(q1_count.errors[0].message);
+          expect(datas[0].errors[0].path).to.eql(q1_count.errors[0].path);
+          expect(datas[0].data).to.eql(q1_count.data);
           expect(await page.title()).to.eql('Zendro');
+        });
+
+        it(`${n++}. click on: close <Snackbar>`, async function () {
+          props = {
+            elementType: 'button',
+            buttonId: 'Snackbar-button-close',
+            ttdelay: ttdelay*2
+          };
+          await clickOn(props);
         });
 
         it(`${n++}. click on: close <Snackbar>`, async function () {
@@ -6503,8 +6599,11 @@ describe('4. ACL Validations', function() {
         'Country',              'Country_to_river',
         'Cultivar',             'Dog',
         'Field_plot',           'Individual',
-        'Location',             'Measurement',
-        'Microbiome_asv',       'Parrot',
+        'Location',
+        'MM1',                  'MM1_to_MM2',
+        'MM2',                  'Measurement',
+        'Microbiome_asv',       'OM1',
+        'OM2',                  'Parrot',
         'Person',               'Plant_measurement',
         'Pot',                  'River',
         'Sample',               'Sample_measurement',
@@ -6662,7 +6761,7 @@ describe('4. ACL Validations', function() {
           // evaluate
           let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
           let recordsCount = await page.$$eval('[id=AclValidationsEnhancedTable-tableBody] > tr', items => items.length);
-          expect(datas).to.include.deep.members([q1, q2]);
+          expect(datas).to.deep.equalInAnyOrder([q1, q2]);
           expect(recordsCount).to.eql(1);
           expect(await page.title()).to.eql('Zendro');
         });

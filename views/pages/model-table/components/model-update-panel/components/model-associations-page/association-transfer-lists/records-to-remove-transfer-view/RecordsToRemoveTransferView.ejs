@@ -105,53 +105,63 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
     State Table A (associated)
   */
   const [items, setItems] = useState([]);
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState(-1);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [isOnApiRequest, setIsOnApiRequest] = useState(false);
-  const [isCountReady, setIsCountReady] = useState(false);
   const [areItemsReady, setAreItemsReady] = useState(false);
   const [dataTrigger, setDataTrigger] = useState(false);
   const isPendingApiRequestRef = useRef(false);
   const isOnApiRequestRef = useRef(false);
   const isGettingFirstDataRef = useRef(true);
   const pageRef = useRef(0);
+  const rowsPerPageRef = useRef(10);
   const lastFetchTime = useRef(null);
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+  const [isCounting, setIsCounting] = useState(true);
+<%}-%>
+  const isCountingRef = useRef(false);
 <%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
   const [hasPreviousPage, setHasPreviousPage] = useState(false);
   const [hasNextPage, setHasNextPage] = useState(false);
   const pageInfo = useRef({startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false});
+  const paginationRef = useRef({first: rowsPerPage, after: null, last: null, before: null, includeCursor: false});
   const isForwardPagination = useRef(true);
   const isCursorPaginating = useRef(false);
-  const includeCursor = useRef(false);
 <%}-%>
+  const cancelableCountingPromises = useRef([]);
 
   /*
     State Table B (to remove)
   */
   const [itemsB, setItemsB] = useState([]);
-  const [countB, setCountB] = useState(0);
+  const [countB, setCountB] = useState(-1);
   const [searchB, setSearchB] = useState('');
   const [pageB, setPageB] = useState(0);
   const [rowsPerPageB, setRowsPerPageB] = useState(10);
   const [isOnApiRequestB, setIsOnApiRequestB] = useState(false);
-  const [isCountReadyB, setIsCountReadyB] = useState(false);
   const [areItemsReadyB, setAreItemsReadyB] = useState(false);
   const [dataTriggerB, setDataTriggerB] = useState(false);
   const isPendingApiRequestRefB = useRef(false);
   const isOnApiRequestRefB = useRef(false);
   const isGettingFirstDataRefB = useRef(true);
   const pageRefB = useRef(0);
+  const rowsPerPageRefB = useRef(10);
   const lastFetchTimeB = useRef(null);
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+  const [isCountingB, setIsCountingB] = useState(true);
+<%}-%>
+  const isCountingRefB = useRef(false);
 <%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
   const [hasPreviousPageB, setHasPreviousPageB] = useState(false);
   const [hasNextPageB, setHasNextPageB] = useState(false);
   const pageInfoB = useRef({startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false});
+  const paginationRefB = useRef({first: rowsPerPage, after: null, last: null, before: null, includeCursor: false});
   const isForwardPaginationB = useRef(true);
   const isCursorPaginatingB = useRef(false);
-  const includeCursorB = useRef(false);
 <%}-%>
+  const cancelableCountingPromisesB = useRef([]);
 
   const [thereAreItemsToAdd, setThereAreItemsToAdd] = useState((idsToRemove && Array.isArray(idsToRemove) && idsToRemove.length > 0));
   const lidsToRemove = useRef((idsToRemove && Array.isArray(idsToRemove)) ? Array.from(idsToRemove) : []);
@@ -201,10 +211,57 @@ const actionB = useRef((key) => (
   </> 
 ));
 
+
+  //snackbar (for: getCount)
+  const variantC = useRef('info');
+  const errorsC = useRef([]);
+  const contentC = useRef((key, message) => (
+    <Snackbar id={key} message={message} errors={errorsC.current}
+    variant={variantC.current} />
+  ));
+  const actionTextC = useRef(t('modelPanels.gotIt', "Got it"));
+  const actionC = useRef((key) => (
+    <>
+      <Button color='inherit' variant='text' size='small' 
+      onClick={() => { closeSnackbar(key) }}>
+        {actionTextC.current}
+      </Button>
+    </> 
+  ));
+
+  //snackbar (for: getCountB)
+  const variantD = useRef('info');
+  const errorsD = useRef([]);
+  const contentD = useRef((key, message) => (
+    <Snackbar id={key} message={message} errors={errorsD.current}
+    variant={variantD.current} />
+  ));
+  const actionTextD = useRef(t('modelPanels.gotIt', "Got it"));
+  const actionD = useRef((key) => (
+    <>
+      <Button color='inherit' variant='text' size='small' 
+      onClick={() => { closeSnackbar(key) }}>
+        {actionTextD.current}
+      </Button>
+    </> 
+  ));
+
 /**
   * Callbacks:
   *  showMessage
   *  showMessageB
+  *  showMessageC
+  *  showMessageD
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+  *  configurePagination
+  *  configurePaginationB
+  *  onEmptyPage
+  *  onEmptyPageB
+<%}-%>
+  *  clearRequestGetData
+  *  clearRequestGetDataB
+  *  getCount
+  *  getCountB
   *  getData
   *  getDataB
   */
@@ -241,34 +298,531 @@ const showMessageB = useCallback((message, withDetail) => {
   });
 },[enqueueSnackbar]);
 
+ /**
+   * showMessageC
+   * 
+   * Show the given message in a notistack snackbar.
+   * 
+   */
+  const showMessageC = useCallback((message, withDetail) => {
+    enqueueSnackbar( message, {
+      variant: variantC.current,
+      preventDuplicate: false,
+      persist: true,
+      action: !withDetail ? actionC.current : undefined,
+      content: withDetail ? contentC.current : undefined,
+    });
+  },[enqueueSnackbar]);
+
+  /**
+   * showMessageD
+   * 
+   * Show the given message in a notistack snackbar.
+   * 
+   */
+  const showMessageD = useCallback((message, withDetail) => {
+    enqueueSnackbar( message, {
+      variant: variantD.current,
+      preventDuplicate: false,
+      persist: true,
+      action: !withDetail ? actionD.current : undefined,
+      content: withDetail ? contentD.current : undefined,
+    });
+  },[enqueueSnackbar]);
+
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+  /**
+   * configurePagination
+   * 
+   * Set the configuration needed to perform a reload of data
+   * in the given mode.
+   */
+  const configurePagination = useCallback((mode) => {
+    switch(mode) {
+      case "reset":
+        //reset page info attributes
+        pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+        //set direction
+        isForwardPagination.current = true;
+        //set pagination attributes
+        paginationRef.current = {
+          first: rowsPerPageRef.current,
+          after: null,
+          last: null,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+      
+      case "reload":
+        //set direction
+        isForwardPagination.current = true;
+        //set pagination attributes
+        paginationRef.current = {
+          first: rowsPerPageRef.current,
+          after: pageInfo.current.startCursor,
+          last: null,
+          before: null,
+          includeCursor: true,
+        }
+        break;
+
+      case "firstPage":
+        //set direction
+        isForwardPagination.current = true;
+        //set pagination attributes
+        paginationRef.current = {
+          first: rowsPerPageRef.current,
+          after: null,
+          last: null,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+
+      case "lastPage":
+        //set direction
+        isForwardPagination.current = false;
+        //set pagination attributes
+        paginationRef.current = {
+          first: null,
+          after: null,
+          last: rowsPerPageRef.current,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+
+      case "nextPage":
+        //set direction
+        isForwardPagination.current = true;
+        //set pagination attributes
+        paginationRef.current = {
+          first: rowsPerPageRef.current,
+          after: pageInfo.current.endCursor,
+          last: null,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+
+      case "previousPage":
+        //set direction
+        isForwardPagination.current = false;
+        //set pagination attributes
+        paginationRef.current = {
+          first: null,
+          after: null,
+          last: rowsPerPageRef.current,
+          before: pageInfo.current.startCursor,
+          includeCursor: false,
+        }
+        break;
+
+      default: //reset
+        //reset page info attributes
+        pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+        //set direction
+        isForwardPagination.current = true;
+        //set pagination attributes
+        paginationRef.current = {
+          first: rowsPerPageRef.current,
+          after: null,
+          last: null,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+    }
+  }, []);
+<%}-%>
+
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+  /**
+   * configurePaginationB
+   * 
+   * Set the configuration needed to perform a reload of data
+   * in the given mode.
+   */
+  const configurePaginationB = useCallback((mode) => {
+    switch(mode) {
+      case "reset":
+        //reset page info attributes
+        pageInfoB.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+        //set direction
+        isForwardPaginationB.current = true;
+        //set pagination attributes
+        paginationRefB.current = {
+          first: rowsPerPageRefB.current,
+          after: null,
+          last: null,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+      
+      case "reload":
+        //set direction
+        isForwardPaginationB.current = true;
+        //set pagination attributes
+        paginationRefB.current = {
+          first: rowsPerPageRefB.current,
+          after: pageInfoB.current.startCursor,
+          last: null,
+          before: null,
+          includeCursor: true,
+        }
+        break;
+
+      case "firstPage":
+        //set direction
+        isForwardPaginationB.current = true;
+        //set pagination attributes
+        paginationRefB.current = {
+          first: rowsPerPageRefB.current,
+          after: null,
+          last: null,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+
+      case "lastPage":
+        //set direction
+        isForwardPaginationB.current = false;
+        //set pagination attributes
+        paginationRefB.current = {
+          first: null,
+          after: null,
+          last: rowsPerPageRefB.current,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+
+      case "nextPage":
+        //set direction
+        isForwardPaginationB.current = true;
+        //set pagination attributes
+        paginationRefB.current = {
+          first: rowsPerPageRefB.current,
+          after: pageInfoB.current.endCursor,
+          last: null,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+
+      case "previousPage":
+        //set direction
+        isForwardPaginationB.current = false;
+        //set pagination attributes
+        paginationRefB.current = {
+          first: null,
+          after: null,
+          last: rowsPerPageRefB.current,
+          before: pageInfoB.current.startCursor,
+          includeCursor: false,
+        }
+        break;
+
+      default: //reset
+        //reset page info attributes
+        pageInfoB.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+        //set direction
+        isForwardPaginationB.current = true;
+        //set pagination attributes
+        paginationRefB.current = {
+          first: rowsPerPageRefB.current,
+          after: null,
+          last: null,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+    }
+  }, []);
+<%}-%>
+
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+  const onEmptyPage = useCallback((pi) => {
+    //case: forward
+    if(isForwardPagination.current) {
+      if(pi && pi.hasPreviousPage) {
+        //configure
+        isOnApiRequestRef.current = false;
+        isCursorPaginating.current = false;
+        setIsOnApiRequest(false);
+        configurePagination('previousPage');
+        
+        //reload
+        setDataTrigger(prevDataTrigger => !prevDataTrigger);
+        return;
+      }
+    } else {//case: backward
+      if(pi && pi.hasNextPage) {
+        //configure
+        isOnApiRequestRef.current = false;
+        isCursorPaginating.current = false;
+        setIsOnApiRequest(false);
+        configurePagination('nextPage');
+        
+        //reload
+        setDataTrigger(prevDataTrigger => !prevDataTrigger);
+        return;
+      }
+    }
+
+    //update pageInfo
+    pageInfo.current = pi;
+    setHasPreviousPage(pageInfo.current.hasPreviousPage);
+    setHasNextPage(pageInfo.current.hasNextPage);
+
+    //configure pagination (default)
+    configurePagination('reload');
+
+    //ok
+    setItems([]);
+
+    //ends request
+    isOnApiRequestRef.current = false;
+    isCursorPaginating.current = false;
+    setIsOnApiRequest(false);
+    return;
+
+  }, [configurePagination]);
+
+  const onEmptyPageB = useCallback((pi) => {
+    //case: forward
+    if(isForwardPaginationB.current) {
+      if(pi && pi.hasPreviousPage) {
+        //configure
+        isOnApiRequestRefB.current = false;
+        isCursorPaginatingB.current = false;
+        setIsOnApiRequestB(false);
+        configurePaginationB('previousPage');
+        
+        //reload
+        setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+        return;
+      } 
+    } else {//case: backward
+      if(pi && pi.hasNextPage) {
+        //configure
+        isOnApiRequestRefB.current = false;
+        isCursorPaginatingB.current = false;
+        setIsOnApiRequestB(false);
+        configurePaginationB('nextPage');
+        
+        //reload
+        setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+        return;
+      }
+    }
+
+    //update pageInfo
+    pageInfoB.current = pi;
+    setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
+    setHasNextPageB(pageInfoB.current.hasNextPage);
+
+    //configure pagination (default)
+    configurePaginationB('reload');
+
+    //ok
+    setItemsB([]);
+
+    //ends request
+    isOnApiRequestRefB.current = false;
+    isCursorPaginatingB.current = false;
+    setIsOnApiRequestB(false);
+    return;
+
+  }, [configurePaginationB]);
+<%}-%>
+
+  const clearRequestGetData = useCallback(() => {
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+    //configure pagination
+    configurePagination('reset');
+<%}-%>          
+    setItems([]);
+    isOnApiRequestRef.current = false;
+    setIsOnApiRequest(false);
+  },[<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>configurePagination<%}-%>]);
+
+  const clearRequestGetDataB = useCallback(() => {
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+    //configure pagination
+    configurePaginationB('reset');
+<%}-%>  
+    setItemsB([]);
+    isOnApiRequestRefB.current = false;
+    setIsOnApiRequestB(false);
+  },[<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>configurePaginationB<%}-%>]);
+
+<%
+  /**
+   * names
+   */
+  let methodName5 = 'getCount()';
+  let requestName5 = 'api.'+nameLc+'.get'+sortedAssociations[aindex].relationNameCp+'Count';
+-%>
+  /**
+   * getCount
+   * 
+   * Get @count from GrahpQL Server.
+   * Uses current state properties to fill query request.
+   * Updates state to inform new @count retreived.
+   * 
+   */
+  const getCount = useCallback(async () => {
+    //return if there is an active count operation
+    if(isCountingRef.current) return;
+
+    cancelCountingPromises();
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+    setIsCounting(true);
+<%}-%>
+    isCountingRef.current = true;
+    errorsC.current = [];
+
+    /*
+      API Request: <%- requestName5 %>
+    */
+    let cancelableApiReq = makeCancelable(api.<%- nameLc _%>.get<%- sortedAssociations[aindex].relationNameCp _%>Count(
+      graphqlServerUrl, 
+      item.<%- internalId _%>,
+      search,
+    ));
+    cancelableCountingPromises.current.push(cancelableApiReq);
+    await cancelableApiReq
+      .promise
+      .then(
+      //resolved
+      (response) => {
+        //delete from cancelables
+        cancelableCountingPromises.current.splice(cancelableCountingPromises.current.indexOf(cancelableApiReq), 1);
+        //check: response
+        if(response.message === 'ok') {
+          //check: graphql errors
+          if(response.graphqlErrors) {
+            let newError = {};
+            let withDetails=true;
+            variantC.current='info';
+            newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
+            newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', method: '<%- methodName5 %>', request: '<%- requestName5 %>'}];
+            newError.path=['update', `<%- internalId _%>:${item.<%- internalId _%>}`, 'remove', '<%- sortedAssociations[aindex].relationName _%>'];
+            newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
+            errorsC.current.push(newError);
+            console.log("Error: ", newError);
+
+            showMessageC(newError.message, withDetails);
+          }
+        } else { //not ok
+          //show error
+          let newError = {};
+          let withDetails=true;
+          variantC.current='error';
+          newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
+          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', method: '<%- methodName5 %>', request: '<%- requestName5 %>'}];
+          newError.path=['update', `<%- internalId _%>:${item.<%- internalId _%>}`, 'remove', '<%- sortedAssociations[aindex].relationName _%>'];
+          newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
+          errorsC.current.push(newError);
+          console.log("Error: ", newError);
+ 
+          showMessageC(newError.message, withDetails);
+          return;
+        }
+
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+        //ok
+        setCount(response.value);
+        setIsCounting(false);
+        isCountingRef.current = false;
+        /*
+          Check: empty page
+        */
+        if( (response.value === (pageRef.current * rowsPerPageRef.current)) && (pageRef.current > 0) ) 
+        {
+          isOnApiRequestRef.current = false;
+          setIsOnApiRequest(false);
+          setPage(pageRef.current - 1);
+          return;
+        }
+        /*
+          Check: page overflow
+        */
+        if((pageRef.current * rowsPerPageRef.current) > response.value) {
+          isOnApiRequestRef.current = false;
+          setIsOnApiRequest(false);
+          setPage(Math.floor(response.value / rowsPerPageRef.current));
+          return;
+        }
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+        //ok
+        setCount(response.value);
+        isCountingRef.current = false;
+<%}-%>
+        return;
+      },
+      //rejected
+      (err) => {
+        if(err.isCanceled) return;
+        else throw err;
+      })
+      //error
+      .catch((err) => { //error: on <%- requestName5 %>
+        if(err.isCanceled) {
+          return;
+        } else {
+          let newError = {};
+          let withDetails=true;
+          variantC.current='error';
+          newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
+          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', method: '<%- methodName5 %>', request: '<%- requestName5 %>'}];
+          newError.path=['update', `<%- internalId _%>:${item.<%- internalId _%>}`, 'remove', '<%- sortedAssociations[aindex].relationName _%>'];
+          newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
+          errorsC.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessageC(newError.message, withDetails);
+          return;
+        }
+      });
+
+  }, [graphqlServerUrl, showMessageC, t, item.<%- internalId _%>, search]);
+
 <%
 /**
  * names
  */
 let methodName1 = 'getData()';
-let queryName1 = 'readOne'+nameCp;
-let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sortedAssociations[aindex].relationNameCp+'Filter' : 'api.'+nameLc+'.get'+sortedAssociations[aindex].relationNameCp+'Connection';
+let requestName1 = 'api.'+nameLc+'.get'+sortedAssociations[aindex].relationNameCp;
 -%>
   /**
    * getData
    * 
-   * Get @items and @count from GrahpQL Server.
+   * Get @items from GrahpQL Server.
    * Uses current state properties to fill query request.
-   * Updates state to inform new @items and @count retrieved.
+   * Updates state to inform new @items retrieved.
    * 
    */
-  const getData = useCallback(() => {
+  const getData = useCallback(async () => {
+    updateHeights();
     isOnApiRequestRef.current = true;
     setIsOnApiRequest(true);
     Boolean(dataTrigger); //avoid warning
     errors.current = [];
+
+    //count (async)
+    getCount();
 
     /*
      * Uncomment following lines to exclude (hide) in this list, the records that are on to-remove list.
      */
     //set ops: excluded ids: toRemoveIds
     // let ops = null;
-    // if(lidsToRemove.current !== undefined && lidsToRemove.current.length > 0) {
+    // if(lidsToRemove.current && lidsToRemove.current.length > 0) {
     //   ops = {
     //     exclude: [{
     //       type: '<%- sortedAssociations[aindex].internalIdType _%>',
@@ -278,189 +832,79 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
     // }
 
     /*
-      API Request: <%- queryName1 %>
+      API Request: <%- requestName1 %>
     */
-    let label = '<%- (sortedAssociations[aindex].label!==undefined && sortedAssociations[aindex].label!=='') ? `${sortedAssociations[aindex].label}` : '' _%>';
-    let sublabel = '<%- (sortedAssociations[aindex].sublabel!==undefined && sortedAssociations[aindex].sublabel!=='') ? `${sortedAssociations[aindex].sublabel}` : '' _%>';
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
-    let cancelableApiReq = makeCancelable(api.<%- nameLc _%>.get<%- sortedAssociations[aindex].relationNameCp _%>Filter(
-      graphqlServerUrl, 
-      item.<%- internalId _%>,
-      label,
-      sublabel,
-      search,
-      pageRef.current * rowsPerPage, //paginationOffset
-      rowsPerPage, //paginationLimit
-      // ops
-    ));
+    let variables = {
+      pagination: {offset: (pageRef.current * rowsPerPageRef.current), limit: rowsPerPageRef.current}
+    };
 <%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
     let variables = {
-      pagination: {
-        after: isForwardPagination.current ? pageInfo.current.endCursor : null,
-        before: !isForwardPagination.current ? pageInfo.current.startCursor : null,
-        first: isForwardPagination.current ? rowsPerPage : null,
-        last: !isForwardPagination.current ? rowsPerPage : null,
-        includeCursor: includeCursor.current,
-      }
+      pagination: {...paginationRef.current}
     };
-    let cancelableApiReq = makeCancelable(api.<%- nameLc _%>.get<%- sortedAssociations[aindex].relationNameCp _%>Connection(
+<%}-%>
+    let cancelableApiReq = makeCancelable(api.<%- nameLc _%>.get<%- sortedAssociations[aindex].relationNameCp _%>(
       graphqlServerUrl, 
       item.<%- internalId _%>,
-      label,
-      sublabel,
       search,
       variables,
-      // ops
+      //ops  //uncomment to send ops
     ));
-<%}-%>
     cancelablePromises.current.push(cancelableApiReq);
-    cancelableApiReq
+    await cancelableApiReq
       .promise
       .then(
       //resolved
       (response) => {
         //delete from cancelables
         cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
-        
-        //check: response data
-        if(!response.data ||!response.data.data) {
+        //check: response
+        if(response.message === 'ok') {
+          //check: graphql errors
+          if(response.graphqlErrors) {
+            let newError = {};
+            let withDetails=true;
+            variant.current='info';
+            newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
+            newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+            newError.path=['update', `<%- internalId _%>:${item.<%- internalId _%>}`, 'remove', '<%- sortedAssociations[aindex].relationName _%>'];
+            newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
+            errors.current.push(newError);
+            console.log("Error: ", newError);
+
+            showMessage(newError.message, withDetails);
+          }
+        } else { //not ok
+          //show error
           let newError = {};
           let withDetails=true;
           variant.current='error';
-          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
-          newError.path=['remove', '<%- sortedAssociations[aindex].relationName _%>'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
+          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+          newError.path=['update', `<%- internalId _%>:${item.<%- internalId _%>}`, 'remove', '<%- sortedAssociations[aindex].relationName _%>'];
+          newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestGetData();
-          return;
-        }
-
-        //check: <%- queryName1 %>
-        let <%- queryName1 %> = response.data.data.<%- queryName1 %>;
-        if(<%- queryName1 %> === null) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
-          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
-          newError.path=['remove', '<%- sortedAssociations[aindex].relationName _%>'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
+  
           showMessage(newError.message, withDetails);
           clearRequestGetData();
           return;
         }
         
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
-        //check: <%- queryName1 %> type
-        if(typeof <%- queryName1 %> !== 'object'
-        || !Number.isInteger(<%- queryName1 %>.countFiltered<%- sortedAssociations[aindex].relationNameCp %>)
-        || !Array.isArray(<%- queryName1 %>.<%- sortedAssociations[aindex].relationNameLc _%>Filter)) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
-          newError.path=['remove', '<%- sortedAssociations[aindex].relationName _%>'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestGetData();
-          return;
-        }
         //get items
-        let newCount = <%- queryName1 %>.countFiltered<%- sortedAssociations[aindex].relationNameCp _%>;
-        let its = <%- queryName1 %>.<%- sortedAssociations[aindex].relationNameLc _%>Filter;
-
-        //check: graphql errors
-        if(response.data.errors) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='info';
-          newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
-          newError.path=['remove', '<%- sortedAssociations[aindex].relationName _%>'];
-          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-        }
-
-        /*
-          Check: empty page
-        */
-        if( (newCount === (pageRef.current * rowsPerPage)) && (pageRef.current > 0) ) 
-        {
-          isOnApiRequestRef.current = false;
-          setIsOnApiRequest(false);
-          setPage(pageRef.current - 1);
-          return;
-        }
+        let its = response.value;
 <%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
-        //check: <%- queryName1 %> type
-        if(typeof <%- queryName1 %> !== 'object'
-        || !Number.isInteger(<%- queryName1 %>.countFiltered<%- sortedAssociations[aindex].relationNameCp %>)
-        || typeof <%- queryName1 %>.<%- sortedAssociations[aindex].relationNameLc _%>Connection !== 'object'
-        || <%- queryName1 %>.<%- sortedAssociations[aindex].relationNameLc _%>Connection === null
-        || !Array.isArray(<%- queryName1 %>.<%- sortedAssociations[aindex].relationNameLc _%>Connection.edges)
-        || typeof <%- queryName1 %>.<%- sortedAssociations[aindex].relationNameLc _%>Connection.pageInfo !== 'object'
-        || <%- queryName1 %>.<%- sortedAssociations[aindex].relationNameLc _%>Connection.pageInfo === null) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
-          newError.path=['remove', '<%- sortedAssociations[aindex].relationName _%>'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestGetData();
-          return;
-        }
         //get items
-        let newCount = <%- queryName1 %>.countFiltered<%- sortedAssociations[aindex].relationNameCp _%>;
-        let its = <%- queryName1 %>.<%- sortedAssociations[aindex].relationNameLc _%>Connection.edges.map(o => o.node);
-        let pi = <%- queryName1 %>.<%- sortedAssociations[aindex].relationNameLc _%>Connection.pageInfo;
-
-        //check: graphql errors
-        if(response.data.errors) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='info';
-          newError.message = '<%- queryName1 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
-          newError.path=['remove', '<%- sortedAssociations[aindex].relationName _%>'];
-          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-        }
+        let its = response.value.edges.map(o => o.node);
+        let pi = response.value.pageInfo;
 
         /*
           Check: empty page
         */
-        if( its.length === 0 && pi.hasPreviousPage ) 
+        if( its.length === 0 ) 
         {
-          //configure
-          isOnApiRequestRef.current = false;
-          isCursorPaginating.current = false;
-          isForwardPagination.current = false;
-          setIsOnApiRequest(false);
-          
-          //reload
-          setDataTrigger(prevDataTrigger => !prevDataTrigger);
+          onEmptyPage(pi);
           return;
         }//else
 
@@ -468,25 +912,26 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
         pageInfo.current = pi;
         setHasPreviousPage(pageInfo.current.hasPreviousPage);
         setHasNextPage(pageInfo.current.hasNextPage);
+
+        //configure pagination (default)
+        configurePagination('reload');
 <%}-%>
           
           //ok
-          setCount(newCount);
           setItems([...its]);
 
           //ends request
           isOnApiRequestRef.current = false;
 <%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
           isCursorPaginating.current = false;
-          includeCursor.current = false;
 <%}-%>
           setIsOnApiRequest(false);
           return;
-
       },
       //rejected
       (err) => {
-        throw err;
+        if(err.isCanceled) return;
+        else throw err;
       })
       //error
       .catch((err) => { //error: on <%- requestName1 %>
@@ -497,8 +942,8 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
           let withDetails=true;
           variant.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', query: '<%- queryName1 %>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
-          newError.path=['remove', '<%- sortedAssociations[aindex].relationName _%>'];
+          newError.locations=[{association: '<%- sortedAssociations[aindex].relationName _%>', method: '<%- methodName1 %>', request: '<%- requestName1 %>'}];
+          newError.path=['update', `<%- internalId _%>:${item.<%- internalId _%>}`, 'remove', '<%- sortedAssociations[aindex].relationName _%>'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errors.current.push(newError);
           console.log("Error: ", newError);
@@ -508,39 +953,182 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
           return;
         }
       });
-  }, [graphqlServerUrl, showMessage, t, dataTrigger, item.<%- internalId _%>, search, rowsPerPage]);
+  }, [graphqlServerUrl, showMessage, clearRequestGetData, t, dataTrigger, item.<%- internalId _%>, search, getCount<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>, configurePagination, onEmptyPage<%}-%>]);
 
 <%
   /**
    * names
    */
-  let methodName2 = 'getDataB()';
-  let queryName3 = 'count'+sortedAssociations[aindex].targetModelPlCp;
-  let requestName3 = 'api.'+sortedAssociations[aindex].targetModelLc+'.getCountItems'
-  let queryName4 = paginationType === 'limitOffset' ? sortedAssociations[aindex].targetModelPlLc : sortedAssociations[aindex].targetModelPlLc+'Connection';
-  let requestName4 =  paginationType === 'limitOffset' ? 'api.'+sortedAssociations[aindex].targetModelLc+'.getItems' : 'api.'+sortedAssociations[aindex].targetModelLc+'.getItemsConnection';
+  let methodName6 = 'getCountB()';
+  let requestName6 = 'api.'+sortedAssociations[aindex].targetModelLc+'.getCountItems'
 -%>
   /**
    * getDataB
    * 
-   * Get @items and @count from GrahpQL Server.
+   * Get @count from GrahpQL Server.
    * Uses current state properties to fill query request.
-   * Updates state to inform new @items and @count retreived.
+   * Updates state to inform new @count retreived.
    * 
    */
-  const getDataB = useCallback(() => {
+  const getCountB = useCallback(async () => {
+    //return if there is an active count operation
+    if(isCountingRefB.current) return;
+
+    cancelCountingPromisesB();
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+    setIsCountingB(true);
+<%}-%>
+    isCountingRefB.current = true;
+    errorsD.current = [];
+
+    //set ops: only ids
+    let ops = null;
+    if(lidsToRemove.current && lidsToRemove.current.length > 0) {
+      ops = {
+        only: [{
+          type: '<%- sortedAssociations[aindex].internalIdType _%>',
+          values: {"<%- sortedAssociations[aindex].internalId _%>": lidsToRemove.current}
+        }]
+      };
+    } else {
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+      setIsCountingB(false);
+<%}-%>
+      isCountingRefB.current = false;
+      return;
+    }
+
+    /*
+      API Request: <%- requestName6 %>
+    */
+    let cancelableApiReq = makeCancelable(api.<%- sortedAssociations[aindex].targetModelLc _%>.getCountItems(graphqlServerUrl, searchB, ops));
+    cancelableCountingPromisesB.current.push(cancelableApiReq);
+    await cancelableApiReq
+      .promise
+      .then(
+      //resolved
+      (response) => {
+        //delete from cancelables
+        cancelableCountingPromisesB.current.splice(cancelableCountingPromisesB.current.indexOf(cancelableApiReq), 1);
+        //check: response
+        if(response.message === 'ok') {
+          //check: graphql errors
+          if(response.graphqlErrors) {
+            let newError = {};
+            let withDetails=true;
+            variantD.current='info';
+            newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
+            newError.locations=[{model: '<%- name -%>', association: '<%- sortedAssociations[aindex].relationName _%>', table:'B', method: '<%- methodName6 %>', request: '<%- requestName6 %>'}];
+            newError.path=['update', `<%- internalId _%>:${item.<%- internalId _%>}`, 'remove', '<%- sortedAssociations[aindex].relationName _%>'];
+            newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
+            errorsD.current.push(newError);
+            console.log("Error: ", newError);
+
+            showMessageD(newError.message, withDetails);
+          }
+        } else { //not ok
+          //show error
+          let newError = {};
+          let withDetails=true;
+          variantD.current='error';
+          newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
+          newError.locations=[{model: '<%- name -%>', association: '<%- sortedAssociations[aindex].relationName _%>', table:'B', method: '<%- methodName6 %>', request: '<%- requestName6 %>'}];
+          newError.path=['update', `<%- internalId _%>:${item.<%- internalId _%>}`, 'remove', '<%- sortedAssociations[aindex].relationName _%>'];
+          newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
+          errorsD.current.push(newError);
+          console.log("Error: ", newError);
+ 
+          showMessageD(newError.message, withDetails);
+          return;
+        }
+
+        //ok
+        setCountB(response.value);
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+        setIsCountingB(false);
+<%}-%>
+        isCountingRefB.current = false;
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+        /*
+          Check: empty page
+        */
+        if( (response.value === (pageRefB.current * rowsPerPageRefB.current)) && (pageRefB.current > 0) ) 
+        {
+          isOnApiRequestRefB.current = false;;
+          setIsOnApiRequestB(false);
+          setPageB(pageRefB.current-1);
+          return;
+        }
+        /*
+          Check: page overflow
+        */
+       if((pageRefB.current * rowsPerPageRefB.current) > response.value) {
+        isOnApiRequestRefB.current = false;
+        setIsOnApiRequestB(false);
+        setPageB(Math.floor(response.value / rowsPerPageRefB.current));
+        return;
+      }
+<%}-%>
+      return;
+    },
+    //rejected
+    (err) => {
+      if(err.isCanceled) return;
+      else throw err;
+    })
+    //error
+    .catch((err) => { //error: on <%- requestName6 %>
+      if(err.isCanceled) {
+        return;
+      } else {
+        let newError = {};
+        let withDetails=true;
+        variantD.current='error';
+        newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
+        newError.locations=[{model: '<%- name -%>', association: '<%- sortedAssociations[aindex].relationName _%>', table:'B', method: '<%- methodName6 %>', request: '<%- requestName6 %>'}];
+        newError.path=['update', `<%- internalId _%>:${item.<%- internalId _%>}`, 'remove', '<%- sortedAssociations[aindex].relationName _%>'];
+        newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
+        errorsD.current.push(newError);
+        console.log("Error: ", newError);
+
+        showMessageD(newError.message, withDetails);
+        return;
+      }
+    });
+  }, [graphqlServerUrl, showMessageD, t, item.<%- internalId _%>, searchB]);
+
+<%
+  /**
+   * names
+   */
+  let methodName4 = 'getDataB()';
+  let requestName4 = 'api.'+sortedAssociations[aindex].targetModelLc+'.getItems';
+-%>
+  /**
+   * getDataB
+   * 
+   * Get @items from GrahpQL Server.
+   * Uses current state properties to fill query request.
+   * Updates state to inform new @items retreived.
+   * 
+   */
+  const getDataB = useCallback(async () => {
+    updateHeights();
     isOnApiRequestRefB.current = true;
     setIsOnApiRequestB(true);
     Boolean(dataTriggerB); //avoid warning
     errorsB.current = [];
 
+    //count (async)
+    getCountB();
+
     //set ops: only ids: idsToRemove
     let ops = null;
-    if(lidsToRemove.current !== undefined && lidsToRemove.current.length > 0) {
+    if(lidsToRemove.current && lidsToRemove.current.length > 0) {
       ops = {
         only: [{
           type: '<%- sortedAssociations[aindex].internalIdType _%>',
-          values: {<%- sortedAssociations[aindex].internalId _%>: lidsToRemove.current}
+          values: {"<%- sortedAssociations[aindex].internalId _%>": lidsToRemove.current}
         }]
       };
     } else {
@@ -549,332 +1137,119 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
       return;
     }
 
-    /*
-      API Request: <%- queryName3 %>
-    */
-    let cancelableApiReq = makeCancelable(api.<%- sortedAssociations[aindex].targetModelLc _%>.getCountItems(graphqlServerUrl, searchB, ops));
-    cancelablePromises.current.push(cancelableApiReq);
-    cancelableApiReq
-      .promise
-      .then(
-      (response) => {
-        //delete from cancelables
-        cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
-        
-        //check: response data
-        if(!response.data ||!response.data.data) {
-          let newError = {};
-          let withDetails=true;
-          variantB.current='error';
-          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-          newError.locations=[{model: '<%- name -%>', association: '<%- sortedAssociations[aindex].relationName _%>', table:'B', query: '<%- queryName3 %>', method: '<%- methodName2 %>', request: '<%- requestName3 %>'}];
-          newError.path=['remove', '<%- sortedAssociations[aindex].relationName _%>'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errorsB.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessageB(newError.message, withDetails);
-          clearRequestGetDataB();
-          return;
-        }
-
-        //check: <%- queryName3 %>
-        let <%- queryName3 %> = response.data.data.<%- queryName3 %>;
-        if(<%- queryName3 %> === null) {
-          let newError = {};
-          let withDetails=true;
-          variantB.current='error';
-          newError.message = '<%- queryName3 %> ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
-          newError.locations=[{model: '<%- name -%>', association: '<%- sortedAssociations[aindex].relationName _%>', table:'B', query: '<%- queryName3 %>', method: '<%- methodName2 %>', request: '<%- requestName3 %>'}];
-          newError.path=['remove', '<%- sortedAssociations[aindex].relationName _%>'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errorsB.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessageB(newError.message, withDetails);
-          clearRequestGetDataB();
-          return;
-        }
-        
-        //check: <%- queryName3 %> type
-        if(!Number.isInteger(<%- queryName3 %>)) {
-          let newError = {};
-          let withDetails=true;
-          variantB.current='error';
-          newError.message = '<%- queryName3 %> ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-          newError.locations=[{model: '<%- name -%>', association: '<%- sortedAssociations[aindex].relationName _%>', table:'B', query: '<%- queryName3 %>', method: '<%- methodName2 %>', request: '<%- requestName3 %>'}];
-          newError.path=['remove', '<%- sortedAssociations[aindex].relationName _%>'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errorsB.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessageB(newError.message, withDetails);
-          clearRequestGetDataB();
-          return;
-        }
-
-        //check: graphql errors
-        if(response.data.errors) {
-          let newError = {};
-          newError.message = '<%- queryName3 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-          newError.locations=[{model: '<%- name -%>', association: '<%- sortedAssociations[aindex].relationName _%>', table:'B', query: '<%- queryName3 %>', method: '<%- methodName2 %>', request: '<%- requestName3 %>'}];
-          newError.path=['remove', '<%- sortedAssociations[aindex].relationName _%>'];
-          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-          errorsB.current.push(newError);
-          console.log("Error: ", newError);
-        }
-
-        //ok
-        setCountB(<%- queryName3 %>);
-        
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
-        /*
-          Check: empty page
-        */
-        if( (<%- queryName3 %> === (pageRefB.current * rowsPerPageB)) && (pageRefB.current > 0) ) 
-        {
-          isOnApiRequestRefB.current = false;
-          setIsOnApiRequestB(false);
-          setPageB(pageRefB.current-1);
-          return;
-        }
-<%}-%>
-
-<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
-        /*
-          API Request: <%- queryName4 %>
-        */
-        let cancelableApiReqB = makeCancelable(api.<%- sortedAssociations[aindex].targetModelLc _%>.getItems(
-          graphqlServerUrl,
-          searchB,
-          null, //orderBy
-          null, //orderDirection
-          pageRefB.current * rowsPerPageB, //paginationOffset
-          rowsPerPageB, //paginationLimit
-          ops
-        ));
+    let variables = {
+      pagination: {offset: (pageRefB.current * rowsPerPageRefB.current), limit: rowsPerPageRefB.current}
+    };
 <%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
-        /*
-          API Request: <%- queryName4 %>
-        */
-        let variables = {
-          pagination: {
-            after: isForwardPaginationB.current ? pageInfoB.current.endCursor : null,
-            before: !isForwardPaginationB.current ? pageInfoB.current.startCursor : null,
-            first: isForwardPaginationB.current ? rowsPerPageB : null,
-            last: !isForwardPaginationB.current ? rowsPerPageB : null,
-            includeCursor: includeCursorB.current,
-          }
-        };
-        let cancelableApiReqB = makeCancelable(api.<%- sortedAssociations[aindex].targetModelLc _%>.getItemsConnection(
-          graphqlServerUrl,
-          searchB,
-          null, //orderBy
-          null, //orderDirection
-          variables,
-          ops
-        ));
+    let variables = {
+      pagination: {...paginationRefB.current}
+    };
 <%}-%>
-          cancelablePromises.current.push(cancelableApiReqB);
-          cancelableApiReqB
-            .promise
-            .then(
-            //resolved
-            (response) => {
-              //delete from cancelables
-              cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReqB), 1);
-              
-              //check: response data
-              if(!response.data ||!response.data.data) {
-                let newError = {};
-                let withDetails=true;
-                variantB.current='error';
-                newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-                newError.locations=[{model: '<%- name -%>', association: '<%- sortedAssociations[aindex].relationName _%>', table:'B', query: '<%- queryName4 %>', method: '<%- methodName2 %>', request: '<%- requestName4 %>'}];
-                newError.path=['remove', '<%- sortedAssociations[aindex].relationName _%>'];
-                newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-                errorsB.current.push(newError);
-                console.log("Error: ", newError);
-
-                showMessageB(newError.message, withDetails);
-                clearRequestGetDataB();
-                return;
-              }
-              
-              //check: <%- queryName4 %>
-              let <%- queryName4 %> = response.data.data.<%- queryName4 %>;
-              if(<%- queryName4 %> === null) {
-                let newError = {};
-                let withDetails=true;
-                variantB.current='error';
-                newError.message = '<%- queryName4 %> ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
-                newError.locations=[{model: '<%- name -%>', association: '<%- sortedAssociations[aindex].relationName _%>', table:'B', query: '<%- queryName4 %>', method: '<%- methodName2 %>', request: '<%- requestName4 %>'}];
-                newError.path=['remove', '<%- sortedAssociations[aindex].relationName _%>'];
-                newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-                errorsB.current.push(newError);
-                console.log("Error: ", newError);
-
-                showMessageB(newError.message, withDetails);
-                clearRequestGetDataB();
-                return;
-              }
-              
-  <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
-              //check: <%- queryName4 %> type
-              if(!Array.isArray(<%- queryName4 %>)) {
-                let newError = {};
-                let withDetails=true;
-                variantB.current='error';
-                newError.message = '<%- queryName4 %> ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-                newError.locations=[{model: '<%- name -%>', association: '<%- sortedAssociations[aindex].relationName _%>', table:'B', query: '<%- queryName4 %>', method: '<%- methodName2 %>', request: '<%- requestName4 %>'}];
-                newError.path=['remove', '<%- sortedAssociations[aindex].relationName _%>'];
-                newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-                errorsB.current.push(newError);
-                console.log("Error: ", newError);
-
-                showMessageB(newError.message, withDetails);
-                clearRequestGetDataB();
-                return;
-              }
-              //get items
-              let its = <%- queryName4 %>;
-
-              //check: graphql errors
-              if(response.data.errors) {
-                let newError = {};
-                newError.message = '<%- queryName4 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-                newError.locations=[{model: '<%- name -%>', association: '<%- sortedAssociations[aindex].relationName _%>', table:'B', query: '<%- queryName4 %>', method: '<%- methodName2 %>', request: '<%- requestName4 %>'}];
-                newError.path=['remove', '<%- sortedAssociations[aindex].relationName _%>'];
-                newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-                errorsB.current.push(newError);
-                console.log("Error: ", newError);
-              }
-
-  <%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
-              //check: <%- queryName4 %> type
-              if(typeof <%- queryName4 %> !== 'object'
-              || !Array.isArray(<%- queryName4 %>.edges)
-              || typeof <%- queryName4 %>.pageInfo !== 'object' 
-              || <%- queryName4 %>.pageInfo === null) {
-                let newError = {};
-                let withDetails=true;
-                variantB.current='error';
-                newError.message = '<%- queryName4 %> ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-                newError.locations=[{model: '<%- name -%>', association: '<%- sortedAssociations[aindex].relationName _%>', table:'B', query: '<%- queryName4 %>', method: '<%- methodName2 %>', request: '<%- requestName4 %>'}];
-                newError.path=['remove', '<%- sortedAssociations[aindex].relationName _%>'];
-                newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-                errorsB.current.push(newError);
-                console.log("Error: ", newError);
-
-                showMessageB(newError.message, withDetails);
-                clearRequestGetDataB();
-                return;
-              }
-              //get items
-              let its = <%- queryName4 %>.edges.map(o => o.node);
-              let pi = <%- queryName4 %>.pageInfo;
-
-              //check: graphql errors
-              if(response.data.errors) {
-                let newError = {};
-                newError.message = '<%- queryName4 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-                newError.locations=[{model: '<%- name -%>', association: '<%- sortedAssociations[aindex].relationName _%>', table:'B', query: '<%- queryName4 %>', method: '<%- methodName2 %>', request: '<%- requestName4 %>'}];
-                newError.path=['remove', '<%- sortedAssociations[aindex].relationName _%>'];
-                newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-                errorsB.current.push(newError);
-                console.log("Error: ", newError);
-              }
-
-              /*
-                Check: empty page
-              */
-              if( its.length === 0 && pi.hasPreviousPage ) 
-              {
-                //configure
-                isOnApiRequestRefB.current = false;
-                isCursorPaginatingB.current = false;
-                isForwardPaginationB.current = false;
-                setIsOnApiRequestB(false);
-                
-                //reload
-                setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-                return;
-              }//else
-
-              //update pageInfo
-              pageInfoB.current = pi;
-              setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
-              setHasNextPageB(pageInfoB.current.hasNextPage);
-  <%}-%>
-              //ok
-              setItemsB([...its]);
-
-              //ends request
-              isOnApiRequestRefB.current = false;
-  <%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
-              isCursorPaginatingB.current = false;
-              isForwardPaginationB.current = false;
-  <%}-%>
-              setIsOnApiRequestB(false);
-
-              /**
-                * Display graphql errors
-                */
-              if(errorsB.current.length > 0) {
-                let newError = {};
-                let withDetails=true;
-                variantB.current='info';
-                newError.message = '<%- methodName2 %> ' + t('modelPanels.errors.data.e3', 'fetched with errors.') + ' ('+errorsB.current.length+')';
-                newError.locations=[{model: '<%- name -%>', association: '<%- sortedAssociations[aindex].relationName _%>', table:'B', method: '<%- methodName2 %>'}];
-                newError.path=['remove', '<%- sortedAssociations[aindex].relationName _%>'];
-                newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-                errorsB.current.push(newError);
-                console.log("Error: ", newError);
-
-                showMessageB(newError.message, withDetails);
-              }
-              return;
-          },
-          //rejected
-          (err) => {
-            throw err;
-          })
-          //error
-          .catch((err) => { //error: on <%- requestName4 %>
-            if(err.isCanceled) {
-              return;
-            } else {
+    /*
+      API Request: <%- requestName4 %>
+    */
+    let cancelableApiReq = makeCancelable(api.<%- sortedAssociations[aindex].targetModelLc _%>.getItems(
+      graphqlServerUrl,
+      searchB,
+      null, //orderBy
+      null, //orderDirection
+      variables,
+      ops
+    ));
+      cancelablePromises.current.push(cancelableApiReq);
+      await cancelableApiReq
+        .promise
+        .then(
+        //resolved
+        (response) => {
+          //delete from cancelables
+          cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
+          //check: response
+          if(response.message === 'ok') {
+            //check: graphql errors
+            if(response.graphqlErrors) {
               let newError = {};
               let withDetails=true;
-              variantB.current='error';
-              newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-              newError.locations=[{model: '<%- name -%>', association: '<%- sortedAssociations[aindex].relationName _%>', table:'B', query: '<%- queryName4 %>', method: '<%- methodName2 %>', request: '<%- requestName4 %>'}];
-              newError.path=['remove', '<%- sortedAssociations[aindex].relationName _%>'];
-              newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
+              variantB.current='info';
+              newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
+              newError.locations=[{model: '<%- name -%>', association: '<%- sortedAssociations[aindex].relationName _%>', table:'B', method: '<%- methodName4 %>', request: '<%- requestName4 %>'}];
+              newError.path=['update', `<%- internalId _%>:${item.<%- internalId _%>}`, 'remove', '<%- sortedAssociations[aindex].relationName _%>'];
+              newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
               errorsB.current.push(newError);
               console.log("Error: ", newError);
 
               showMessageB(newError.message, withDetails);
-              clearRequestGetDataB();
-              return;
             }
-          });
+          } else { //not ok
+            //show error
+            let newError = {};
+            let withDetails=true;
+            variantB.current='error';
+            newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
+            newError.locations=[{model: '<%- name -%>', association: '<%- sortedAssociations[aindex].relationName _%>', table:'B', method: '<%- methodName4 %>', request: '<%- requestName4 %>'}];
+            newError.path=['update', `<%- internalId _%>:${item.<%- internalId _%>}`, 'remove', '<%- sortedAssociations[aindex].relationName _%>'];
+            newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
+            errorsB.current.push(newError);
+            console.log("Error: ", newError);
+  
+            showMessageB(newError.message, withDetails);
+            clearRequestGetDataB();
+            return;
+          }
+          
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+          //get items
+          let its = response.value;
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+          //get items
+          let its = response.value.edges.map(o => o.node);
+          let pi = response.value.pageInfo;
+
+           /*
+            Check: empty page
+          */
+          if( its.length === 0 ) 
+          {
+            onEmptyPageB(pi);
+            return;
+          }
+
+          //update pageInfo
+          pageInfoB.current = pi;
+          setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
+          setHasNextPageB(pageInfoB.current.hasNextPage);
+
+          //configure pagination (default)
+          configurePaginationB('reload');
+<%}-%>
+
+          //ok
+          setItemsB([...its]);
+
+          //ends request
+          isOnApiRequestRefB.current = false;
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+          isCursorPaginatingB.current = false;
+<%}-%>
+          setIsOnApiRequestB(false);
+          return;
       },
       //rejected
       (err) => {
         throw err;
       })
       //error
-      .catch((err) => { //error: on <%- requestName3 %>
+      .catch((err) => { //error: on <%- requestName4 %>
         if(err.isCanceled) {
-          return
+          return;
         } else {
           let newError = {};
           let withDetails=true;
           variantB.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: '<%- name -%>', association: '<%- sortedAssociations[aindex].relationName _%>', table:'B', query: '<%- queryName3 %>', method: '<%- methodName2 %>', request: '<%- requestName3 %>'}];
-          newError.path=['remove', '<%- sortedAssociations[aindex].relationName _%>'];
+          newError.locations=[{model: '<%- name -%>', association: '<%- sortedAssociations[aindex].relationName _%>', table:'B', method: '<%- methodName4 %>', request: '<%- requestName4 %>'}];
+          newError.path=['update', `<%- internalId _%>:${item.<%- internalId _%>}`, 'remove', '<%- sortedAssociations[aindex].relationName _%>'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errorsB.current.push(newError);
           console.log("Error: ", newError);
@@ -884,7 +1259,7 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
           return;
         }
       });
-  }, [graphqlServerUrl, showMessageB, t, dataTriggerB, searchB, rowsPerPageB]);
+  }, [graphqlServerUrl, showMessageB, clearRequestGetDataB, t, item.<%- internalId _%>, dataTriggerB, searchB, getCountB<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>, configurePaginationB, onEmptyPageB<%}-%>]);
 
   useEffect(() => {
 
@@ -892,33 +1267,12 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
     return function cleanup() {
       cancelablePromises.current.forEach(p => p.cancel());
       cancelablePromises.current = [];
+      cancelableCountingPromises.current.forEach(p => p.cancel());
+      cancelableCountingPromises.current = [];
+      cancelableCountingPromisesB.current.forEach(p => p.cancel());
+      cancelableCountingPromisesB.current = [];
     };
   }, []);
-
-  useEffect(() => {
-    if(idsToRemove !== undefined && Array.isArray(idsToRemove) && idsToRemove.length > 0) {
-      lidsToRemove.current = Array.from(idsToRemove);
-      setThereAreItemsToAdd(true);
-      setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-
-<%if(paginationType === 'limitOffset') {-%>
-      //reload B
-      if (!isOnApiRequestRefB.current) { setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); } 
-      else { isPendingApiRequestRefB.current = true; }
-<%} else if(paginationType === 'cursorBased') {-%>
-      //strict reload
-      
-      //configure B
-      isForwardPaginationB.current = true;
-      pageInfoB.current.endCursor = pageInfoB.current.startCursor;
-      includeCursorB.current = true;
-      //reload B
-      setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-<%}-%>
-    } else {
-      isGettingFirstDataRefB.current = false; 
-    }
-  }, [idsToRemove]);
 
   useEffect(() => {
     if (!isOnApiRequestRef.current) {
@@ -949,7 +1303,7 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
     if(!lastModelChanged) {
       return;
     }
-    if(!lastChangeTimestamp || !lastFetchTime.current) {
+    if(!lastChangeTimestamp || !lastFetchTime.current || !lastFetchTimeB.current) {
       return;
     }
     let isNewChangeOnA = (lastFetchTime.current<lastChangeTimestamp);
@@ -967,7 +1321,8 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
     /*
      * Case 1: 
      * The relation '<%- sortedAssociations[aindex].relationName _%>' for this item was updated.
-     * That is to say that the current item was associated or dis-associated with some '<%- sortedAssociations[aindex].targetModelPlLc _%>' (from another place).
+     * That is to say that the current item was associated or dis-associated with some '<%- sortedAssociations[aindex].targetModelPlLc _%>' 
+     * (from another place).
      * 
      * Actions:
      * - remove any dis-associated internalId from idsToRemove[]
@@ -981,7 +1336,7 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
         (lastModelChanged.<%- name _%>[String(item.<%- internalId _%>)].changedAssociations.<%- sortedAssociations[aindex].keyRelationName _%>.added ||
          lastModelChanged.<%- name _%>[String(item.<%- internalId _%>)].changedAssociations.<%- sortedAssociations[aindex].keyRelationName _%>.removed)) {
           
-          //remove any dis-associated id from idsToRemove[]
+          //remove any dis-associated id from idsToRemove[] & update counts
           let idsRemoved = lastModelChanged.<%- name _%>[String(item.<%- internalId _%>)].changedAssociations.<%- sortedAssociations[aindex].keyRelationName _%>.idsRemoved;
           if(idsRemoved) {
             idsRemoved.forEach( (idRemoved) => {
@@ -992,41 +1347,57 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
                 if(lidsToRemove.current.length === 0) {
                   setThereAreItemsToAdd(false);
                 }
+                //decrement B
+                setCountB(countB-1);
               }
               handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', idRemoved);
+
+              //decrement A
+              setCount(count-1);
             });
           }
 
-          //reload
-          updateHeights();
-<%if(paginationType === 'limitOffset') {-%>
+          //update count for each associated internalId
+          let idsAdded = lastModelChanged.<%- name _%>[String(item.<%- internalId _%>)].changedAssociations.<%- sortedAssociations[aindex].keyRelationName _%>.idsAdded;
+          if(idsAdded) {
+            //increment A
+            setCount(count+idsAdded.length);
+          }
+
+          //will count A
+          cancelCountingPromises();
+          isCountingRef.current = false;
+          //will count B
+          cancelCountingPromisesB();
+          isCountingRefB.current = false;
+
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
           //reload A
           if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
-          else { isPendingApiRequestRef.current = true; }
+          else { isPendingApiRequestRef.current = true; getCount(); }
           //reload B
           if (!isOnApiRequestRefB.current) { setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); } 
-          else { isPendingApiRequestRefB.current = true; }
-<%} else if(paginationType === 'cursorBased') {-%>
+          else { isPendingApiRequestRefB.current = true; getCountB(); }
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
           //strict contention
           if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
             //configure A
-            isForwardPagination.current = true;
-            pageInfo.current.endCursor = pageInfo.current.startCursor;
-            includeCursor.current = true;
+            configurePagination('reload');
             //reload A
             setDataTrigger(prevDataTrigger => !prevDataTrigger);
+          } else {
+            getCount();
           }
           //strict contention
           if (!isOnApiRequestRefB.current && !isCursorPaginatingB.current) {
             //configure B
-            isForwardPaginationB.current = true;
-            pageInfoB.current.endCursor = pageInfoB.current.startCursor;
-            includeCursorB.current = true;
+            configurePaginationB('reload');
             //reload B
             setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+          } else {
+            getCountB();
           }
 <%}-%>
-
           return;
     }//end: Case 1
 
@@ -1070,36 +1441,43 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
                     if(lidsToRemove.current.length === 0) {
                       setThereAreItemsToAdd(false);
                     }
+                    //decrement B
+                    setCountB(countB-1);
                   }
                   handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', idRemoved);
 
-                  //reload
-                  updateHeights();
-<%if(paginationType === 'limitOffset') {-%>
+                  //will count A
+                  cancelCountingPromises();
+                  isCountingRef.current = false;
+                  //will count B
+                  cancelCountingPromisesB();
+                  isCountingRefB.current = false;
+
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
                   //reload A
                   if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
-                  else { isPendingApiRequestRef.current = true; }
+                  else { isPendingApiRequestRef.current = true; getCount(); }
                   //reload B
                   if (!isOnApiRequestRefB.current) { setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); } 
-                  else { isPendingApiRequestRefB.current = true; }
-<%} else if(paginationType === 'cursorBased') {-%>
+                  else { isPendingApiRequestRefB.current = true; getCountB(); }
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
                   //strict contention
                   if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
                     //configure A
-                    isForwardPagination.current = true;
-                    pageInfo.current.endCursor = pageInfo.current.startCursor;
-                    includeCursor.current = true;
+                    configurePagination('reload');
                     //reload A
                     setDataTrigger(prevDataTrigger => !prevDataTrigger);
+                  } else {
+                    getCount();
                   }
                   //strict contention
                   if (!isOnApiRequestRefB.current && !isCursorPaginatingB.current) {
                     //configure B
-                    isForwardPaginationB.current = true;
-                    pageInfoB.current.endCursor = pageInfoB.current.startCursor;
-                    includeCursorB.current = true;
+                    configurePaginationB('reload');
                     //reload B
                     setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+                  } else {
+                    getCountB();
                   }
 <%}-%>
                   return;
@@ -1113,33 +1491,42 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
               if(idsAdded) {
                 let iof = idsAdded.indexOf(item.<%- internalId _%>);
                 if(iof !== -1) {
-                  //reload
-                  updateHeights();
-<%if(paginationType === 'limitOffset') {-%>
+
+                  //increment A
+                  setCount(count+1);
+
+                  //will count A
+                  cancelCountingPromises();
+                  isCountingRef.current = false;
+                  //will count B
+                  cancelCountingPromisesB();
+                  isCountingRefB.current = false;
+
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
                   //reload A
                   if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
-                  else { isPendingApiRequestRef.current = true; }
+                  else { isPendingApiRequestRef.current = true; getCount(); }
                   //reload B
                   if (!isOnApiRequestRefB.current) { setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); } 
-                  else { isPendingApiRequestRefB.current = true; }
-<%} else if(paginationType === 'cursorBased') {-%>
+                  else { isPendingApiRequestRefB.current = true; getCountB(); }
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
                   //strict contention
                   if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
                     //configure A
-                    isForwardPagination.current = true;
-                    pageInfo.current.endCursor = pageInfo.current.startCursor;
-                    includeCursor.current = true;
+                    configurePagination('reload');
                     //reload A
                     setDataTrigger(prevDataTrigger => !prevDataTrigger);
+                  } else {
+                    getCount();
                   }
                   //strict contention
                   if (!isOnApiRequestRefB.current && !isCursorPaginatingB.current) {
                     //configure B
-                    isForwardPaginationB.current = true;
-                    pageInfoB.current.endCursor = pageInfoB.current.startCursor;
-                    includeCursorB.current = true;
+                    configurePaginationB('reload');
                     //reload B
                     setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+                  } else {
+                    getCountB();
                   }
 <%}-%>
                   return;
@@ -1177,7 +1564,7 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
  * Special case: user model
  */
 -%>
-<% if(sortedAssociations[aindex].targetModelLc==='user') {%>
+<%if(sortedAssociations[aindex].targetModelLc==='user') {%>
         //case A: updated || updated password
         if((entry[1].op === "update" || entry[1].op === "updatePassword")&&entry[1].newItem) {
 <%} else {-%>
@@ -1209,56 +1596,74 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
         if(entry[1].op === "delete") {
           let idRemoved = entry[1].item.<%- sortedAssociations[aindex].internalId _%>;
 
-          //lookup item on any tables
+          //lookup item on table A
           let iofA = items.findIndex((item) => item.<%- sortedAssociations[aindex].internalId _%>===idRemoved);
-          let iofB = itemsB.findIndex((item) => item.<%- sortedAssociations[aindex].internalId _%>===idRemoved);
-          if(iofA !== -1 || iofB !== -1) {
-            
-            //remove deleted item from lidsToRemove
-            let iofD = lidsToRemove.current.indexOf(idRemoved);
-            if(iofD !== -1) {
-              lidsToRemove.current.splice(iofD, 1);
-              if(lidsToRemove.current.length === 0) {
-                setThereAreItemsToAdd(false);
-              }
-            }
-            handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', idRemoved);
-
-            //reload
-            updateHeights();
-<%if(paginationType === 'limitOffset') {-%>
-            //reload A
-            if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
-            else { isPendingApiRequestRef.current = true; }
-            //reload B
-            if (!isOnApiRequestRefB.current) { setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); } 
-            else { isPendingApiRequestRefB.current = true; }
-<%} else if(paginationType === 'cursorBased') {-%>
-            //strict contention
-            if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
-              //configure A
-              isForwardPagination.current = true;
-              pageInfo.current.endCursor = pageInfo.current.startCursor;
-              includeCursor.current = true;
-              //reload A
-              setDataTrigger(prevDataTrigger => !prevDataTrigger);
-            }
-            //strict contention
-            if (!isOnApiRequestRefB.current && !isCursorPaginatingB.current) {
-              //configure B
-              isForwardPaginationB.current = true;
-              pageInfoB.current.endCursor = pageInfoB.current.startCursor;
-              includeCursorB.current = true;
-              //reload B
-              setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-            }
-<%}-%>
-            return;
+          if(iofA !== -1) {
+            //decrement A
+            setCount(count-1);
           }
+
+          //lookup item on table B
+          let iofB = itemsB.findIndex((item) => item.<%- sortedAssociations[aindex].internalId _%>===idRemoved);
+          if(iofB !== -1) {
+            //decrement B
+            setCountB(countB-1);
+          }
+
+          //lookup item on ids to remove
+          let iofD = lidsToRemove.current.indexOf(idRemoved);
+          //remove deleted item from lidsToAdd
+          if(iofD !== -1) {
+            lidsToRemove.current.splice(iofD, 1);
+            if(lidsToRemove.current.length === 0) {
+              setThereAreItemsToAdd(false);
+            }
+            if(iofB === -1) {
+              //decrement B
+              setCountB(countB-1);
+            }
+          }
+          handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', idRemoved);
+
+          //will count A
+          cancelCountingPromises();
+          isCountingRef.current = false;
+          //will count B
+          cancelCountingPromisesB();
+          isCountingRefB.current = false;
+
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+          //reload A
+          if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
+          else { isPendingApiRequestRef.current = true; getCount(); }
+          //reload B
+          if (!isOnApiRequestRefB.current) { setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); } 
+          else { isPendingApiRequestRefB.current = true; getCountB(); }
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+          //strict contention
+          if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
+            //configure A
+            configurePagination('reload');
+            //reload A
+            setDataTrigger(prevDataTrigger => !prevDataTrigger);
+          } else {
+            getCount();
+          }
+          //strict contention
+          if (!isOnApiRequestRefB.current && !isCursorPaginatingB.current) {
+            //configure B
+            configurePaginationB('reload');
+            //reload B
+            setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+          } else {
+            getCountB();
+          }
+<%}-%>
+          return;
         }
       });
     }//end: Case 3
-  }, [lastModelChanged, lastChangeTimestamp, items, itemsB, item.<%- internalId _%>, handleUntransfer]);
+  }, [lastModelChanged, lastChangeTimestamp, items, itemsB, item.<%- internalId _%>, handleUntransfer, getCount, count, getCountB, countB<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>, configurePagination, configurePaginationB<%}-%>]);
 
   useEffect(() => {
     //return if this flag is set
@@ -1296,44 +1701,96 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
     }
   }, [pageB]);
 
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+  useEffect(() => {
+    //update ref
+    rowsPerPageRef.current = rowsPerPage;
+
+    //check strict contention
+    if(isOnApiRequestRef.current) { return; }
+
+    //reload
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  }, [rowsPerPage]);
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+  useEffect(() => {
+    //update ref
+    rowsPerPageRef.current = rowsPerPage;
+
+    //check strict contention
+    if(isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+    //set strict contention
+    isCursorPaginating.current = true;
+    
+    //configure pagination
+    configurePagination('reset');
+    //reload    
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  }, [rowsPerPage, configurePagination]);
+<%}-%>
+
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+  useEffect(() => {
+    //update ref
+    rowsPerPageRefB.current = rowsPerPageB;
+    
+    //check strict contention
+    if(isOnApiRequestRefB.current) { return; }
+
+    //reload
+    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+  }, [rowsPerPageB]);
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+  useEffect(() => {
+    //update ref
+    rowsPerPageRefB.current = rowsPerPageB;
+
+    //check strict contention
+    if(isOnApiRequestRefB.current || isCursorPaginatingB.current) { return; }
+    //set strict contention
+    isCursorPaginatingB.current = true;
+    
+    //configure pagination
+    configurePaginationB('reset');
+    //reload    
+    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+  }, [rowsPerPageB, configurePaginationB]);
+<%}-%>
+
   useEffect(() => {
     if (!isOnApiRequest && isPendingApiRequestRef.current) {
       isPendingApiRequestRef.current = false;
-<%if(paginationType === 'limitOffset') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
       //reload
       setDataTrigger(prevDataTrigger => !prevDataTrigger);
-<%} else if(paginationType === 'cursorBased') {-%>
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
       //configure
-      isForwardPagination.current = true;
-      pageInfo.current.endCursor = pageInfo.current.startCursor;
-      includeCursor.current = true;
+      configurePagination('reload');
       //reload
       setDataTrigger(prevDataTrigger => !prevDataTrigger);
 <%}-%>
     }
     updateHeights();
-  }, [isOnApiRequest]);
+  }, [isOnApiRequest<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>, configurePagination<%}-%>]);
 
   useEffect(() => {
     if (!isOnApiRequestB && isPendingApiRequestRefB.current) {
       isPendingApiRequestRefB.current = false;
-<%if(paginationType === 'limitOffset') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
       //reload
       setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-<%} else if(paginationType === 'cursorBased') {-%>
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
       //configure
-      isForwardPaginationB.current = true;
-      pageInfoB.current.endCursor = pageInfoB.current.startCursor;
-      includeCursorB.current = true;
+      configurePaginationB('reload');
       //reload
       setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
 <%}-%>
     }
     updateHeights();
-  }, [isOnApiRequestB]);
+  }, [isOnApiRequestB<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>, configurePaginationB<%}-%>]);
 
   useEffect(() => {
-    if(items.length > 0) { 
+    if(Array.isArray(items) && items.length > 0) { 
       setAreItemsReady(true); 
     } else { 
       setAreItemsReady(false); 
@@ -1342,7 +1799,7 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
   }, [items]);
 
   useEffect(() => {
-    if(itemsB.length > 0) { 
+    if(Array.isArray(itemsB) && itemsB.length > 0) { 
       setAreItemsReadyB(true); 
     } else { 
       setAreItemsReadyB(false); 
@@ -1350,60 +1807,16 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
     lastFetchTimeB.current = Date.now();
   }, [itemsB]);
 
-  useEffect(() => {
-    if(count === 0) {
-      setIsCountReady(false);
-
-    } else {
-      setIsCountReady(true);
-    }
-  }, [count]);
-
-  useEffect(() => {
-    if(countB === 0) {
-      setIsCountReadyB(false);
-
-    } else {
-      setIsCountReadyB(true);
-    }
-  }, [countB]);
-
   /**
    * Utils
    */
-
-  function clearRequestGetData() {
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
-    //update pageInfo
-    pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-    setHasPreviousPage(pageInfo.current.hasPreviousPage);
-    setHasNextPage(pageInfo.current.hasNextPage);
-<%}-%>          
-    setCount(0);
-    setItems([]);
-    isOnApiRequestRef.current = false;
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
-    isCursorPaginating.current = false;
-    includeCursor.current = false;
-<%}-%>
-    setIsOnApiRequest(false);
+  function cancelCountingPromises() {
+    cancelableCountingPromises.current.forEach(p => p.cancel());
+    cancelableCountingPromises.current = [];    
   }
-
-  function clearRequestGetDataB() {
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
-    //update pageInfo
-    pageInfoB.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-    setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
-    setHasNextPageB(pageInfoB.current.hasNextPage);
-<%}-%>  
-    setCountB(0);
-    setItemsB([]);
-    isOnApiRequestRefB.current = false;
-<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
-    isCursorPaginatingB.current = false;
-    includeCursorB.current = false;
-<%}-%>
-    setIsOnApiRequestB(false);
+  function cancelCountingPromisesB() {
+    cancelableCountingPromisesB.current.forEach(p => p.cancel());
+    cancelableCountingPromisesB.current = [];    
   }
 
   function updateHeights() {
@@ -1416,103 +1829,53 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
       setLhB(hb);
     }
   }
-  
+
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
   function resetPageRefs() {
-<%if(paginationType === 'cursorBased') {-%>
-    isForwardPagination.current = true;
-    pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-    setHasPreviousPage(pageInfo.current.hasPreviousPage);
-    setHasNextPage(pageInfo.current.hasNextPage);
-    includeCursor.current = false;
-<%}-%>
     pageRef.current = 0;
   }
 
   function resetPageRefsB() {
-<%if(paginationType === 'cursorBased') {-%>
-    isForwardPaginationB.current = true;
-    pageInfoB.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-    setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
-    setHasNextPageB(pageInfoB.current.hasNextPage);
-    includeCursorB.current = false;
-<%}-%>
     pageRefB.current = 0;
   }
 
   function resetReloadDataA() {
-<%if(paginationType === 'limitOffset') {-%>
     //reload A
     resetPageRefs();
     if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
     else { isPendingApiRequestRef.current = true; }
-<%} else if(paginationType === 'cursorBased') {-%>
-    //strict contention
-    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
-
-    //configure A
-    resetPageRefs();
-    isCursorPaginating.current = true;
-    //reload A
-    setDataTrigger(prevDataTrigger => !prevDataTrigger);
-<%}-%>
-    updateHeights();
   }
 
   function resetReloadDataB() {
-<%if(paginationType === 'limitOffset') {-%>
     //reload B
     resetPageRefsB();
     if (!isOnApiRequestRefB.current) { setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); } 
     else { isPendingApiRequestRefB.current = true; }
-<%} else if(paginationType === 'cursorBased') {-%>
-    //strict contention
-    if (isOnApiRequestRefB.current || isCursorPaginatingB.current) { return; }
-
-    //configure B
-    resetPageRefsB();
-    isCursorPaginatingB.current = true;
-    //reload B
-    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-<%}-%>
-    updateHeights();
   }
+<%}-%>
 
   function reloadDataA() {
-<%if(paginationType === 'limitOffset') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
     //reload A
-    if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
-    else { isPendingApiRequestRef.current = true; }
-<%} else if(paginationType === 'cursorBased') {-%>
-    //strict contention
-    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
-
+    setDataTrigger(prevDataTrigger => !prevDataTrigger); 
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
     //configure A
-    isForwardPagination.current = true;
-    pageInfo.current.endCursor = pageInfo.current.startCursor;
-    includeCursor.current = true;
+    configurePagination('reload');
     //reload A
     setDataTrigger(prevDataTrigger => !prevDataTrigger);
 <%}-%>
-    updateHeights();
   }
 
   function reloadDataB() {
-<%if(paginationType === 'limitOffset') {-%>
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
     //reload B
-    if (!isOnApiRequestRefB.current) { setDataTriggerB(prevDataTriggerB => !prevDataTriggerB); } 
-    else { isPendingApiRequestRefB.current = true; }
-<%} else if(paginationType === 'cursorBased') {-%>
-    //strict contention
-    if (isOnApiRequestRefB.current || isCursorPaginatingB.current) { return; }
-    
+    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
     //configure B
-    isForwardPaginationB.current = true;
-    pageInfoB.current.endCursor = pageInfoB.current.startCursor;
-    includeCursorB.current = true;
+    configurePaginationB('reload');    
     //reload B
     setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
 <%}-%>
-    updateHeights();
   }
 
   /**
@@ -1523,29 +1886,41 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
    * Search handlers
    */
   const handleSearchEnter = text => {
-    updateHeights();
-
     if(text !== search)
     {
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
       resetPageRefs();
+<%}-%>
       if(page !== 0) {
         isGettingFirstDataRef.current = true; //avoids to get data on [page] effect
         setPage(0);
       }
+
+      setCount(-1);
+      //will count
+      cancelCountingPromises();
+      isCountingRef.current = false;
+
       setSearch(text);
     }
   };
 
   const handleSearchEnterB = text => {
-    updateHeights();
-
     if(text !== searchB)
     {
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
       resetPageRefsB();
+<%}-%>
       if(pageB !== 0) {
         isGettingFirstDataRefB.current = true; //avoids to get data on [pageB] effect
         setPageB(0);
       }
+
+      setCountB(-1);
+      //will count
+      cancelCountingPromisesB();
+      isCountingRefB.current = false;
+
       setSearchB(text);
     }
   };
@@ -1563,130 +1938,108 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
     };
   <%}-%>
 
-  <%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
-    const handleFirstPageButtonClick = (event) => {
-      //strict contention
-      if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+  const handleFirstPageButtonClick = (event) => {
+    //strict contention
+    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+    //set strict contention
+    isCursorPaginating.current = true;
+    //configure A
+    configurePagination('firstPage');
+    //reload A
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  };
   
-      //configure
-      isCursorPaginating.current = true;
-      includeCursor.current = false;
-      isForwardPagination.current = true;
-      pageInfo.current.endCursor = null;
-  
-      //reload A
-      updateHeights();
-      setDataTrigger(prevDataTrigger => !prevDataTrigger);
-    };
-    const handleFirstPageButtonClickB = (event) => {
-      //strict contention
-      if (isOnApiRequestRefB.current || isCursorPaginatingB.current) { return; }
-  
-      //configure
-      isCursorPaginatingB.current = true;
-      includeCursorB.current = false;
-      isForwardPaginationB.current = true;
-      pageInfoB.current.endCursor = null;
-  
-      //reload B
-      updateHeights();
-      setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-    };
-  
-    const handleLastPageButtonClick = (event) => {
-      //strict contention
-      if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
-  
-      //configure
-      isCursorPaginating.current = true;
-      includeCursor.current = false;
-      isForwardPagination.current = false;
-      pageInfo.current.startCursor = null;
-  
-      //reload A
-      updateHeights();
-      setDataTrigger(prevDataTrigger => !prevDataTrigger);
-    };
-    const handleLastPageButtonClickB = (event) => {
-      //strict contention
-      if (isOnApiRequestRefB.current || isCursorPaginatingB.current) { return; }
-  
-      //configure
-      isCursorPaginatingB.current = true;
-      includeCursorB.current = false;
-      isForwardPaginationB.current = false;
-      pageInfoB.current.startCursor = null;
-  
-      //reload B
-      updateHeights();
-      setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-    };
-  
-    const handleNextButtonClick = (event) => {
-      //strict contention
-      if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
-  
-      //configure
-      isCursorPaginating.current = true;
-      includeCursor.current = false;
-      isForwardPagination.current = true;
-  
-      //reload A
-      updateHeights();
-      setDataTrigger(prevDataTrigger => !prevDataTrigger);
-    };
-    const handleNextButtonClickB = (event) => {
-      //strict contention
-      if (isOnApiRequestRefB.current || isCursorPaginatingB.current) { return; }
-  
-      //configure
-      isCursorPaginatingB.current = true;
-      includeCursorB.current = false;
-      isForwardPaginationB.current = true;
-  
-      //reload B
-      updateHeights();
-      setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-    };
-  
-    const handleBackButtonClick = (event) => {
-      //strict contention
-      if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
-  
-      //configure
-      isCursorPaginating.current = true;
-      includeCursor.current = false;
-      isForwardPagination.current = false;
-  
-      //reload A
-      updateHeights();
-      setDataTrigger(prevDataTrigger => !prevDataTrigger);
-    };
-    const handleBackButtonClickB = (event) => {
-      //strict contention
-      if (isOnApiRequestRefB.current || isCursorPaginatingB.current) { return; }
-  
-      //configure
-      isCursorPaginatingB.current = true;
-      includeCursorB.current = false;
-      isForwardPaginationB.current = false;
-  
-      //reload B
-      updateHeights();
-      setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-    };
-  <%}-%>  
+  const handleFirstPageButtonClickB = (event) => {
+    //strict contention
+    if (isOnApiRequestRefB.current || isCursorPaginatingB.current) { return; }
+    //set strict contention
+    isCursorPaginatingB.current = true;
+    //configure B
+    configurePaginationB('firstPage');
+    //reload B
+    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+  };
+
+  const handleLastPageButtonClick = (event) => {
+    //strict contention
+    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+    //set strict contention
+    isCursorPaginating.current = true;
+    //configure A
+    configurePagination('lastPage');
+    //reload A
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  };
+
+  const handleLastPageButtonClickB = (event) => {
+    //strict contention
+    if (isOnApiRequestRefB.current || isCursorPaginatingB.current) { return; }
+    //set strict contention
+    isCursorPaginatingB.current = true;
+    //configure B
+    configurePaginationB('lastPage');
+    //reload B
+    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+  };
+
+  const handleNextButtonClick = (event) => {
+    //strict contention
+    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+    //set strict contention
+    isCursorPaginating.current = true;
+    //configure A
+    configurePagination('nextPage');
+    //reload A
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  };
+
+  const handleNextButtonClickB = (event) => {
+    //strict contention
+    if (isOnApiRequestRefB.current || isCursorPaginatingB.current) { return; }
+    //set strict contention
+    isCursorPaginatingB.current = true;
+    //configure B
+    configurePaginationB('nextPage');
+    //reload B
+    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+  };
+
+  const handleBackButtonClick = (event) => {
+    //strict contention
+    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+    //set strict contention
+    isCursorPaginating.current = true;
+    //configure A
+    configurePagination('previousPage');
+    //reload A
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  };
+
+  const handleBackButtonClickB = (event) => {
+    //strict contention
+    if (isOnApiRequestRefB.current || isCursorPaginatingB.current) { return; }
+    //set strict contention
+    isCursorPaginatingB.current = true;
+    //configure B
+    configurePaginationB('previousPage');
+
+    //reload B
+    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+  };
+<%}-%>
 
   const handleChangeRowsPerPage = event => {
     if(event.target.value !== rowsPerPage)
     {
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
       resetPageRefs();
+<%}-%>
       if(page !== 0) {
         isGettingFirstDataRef.current = true; //avoids to get data on [page] effect
         setPage(0);
       }
 
-      updateHeights();
       setRowsPerPage(parseInt(event.target.value, 10));
     }
   };
@@ -1694,7 +2047,9 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
   const handleChangeRowsPerPageB = event => {
     if(event.target.value !== rowsPerPageB)
     {
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
       resetPageRefsB();
+<%}-%>
       if(pageB !== 0) {
         isGettingFirstDataRefB.current = true; //avoids to get data on [pageB] effect
         setPageB(0);
@@ -1703,12 +2058,35 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
     }
   };
 
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
   const handleReloadClick = (event) => {
     resetReloadDataA();
   };
   const handleReloadClickB = (event) => {
     resetReloadDataB();
   };
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+  const handleReloadClick = (event) => {
+    //check strict contention
+    if(isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+    //set strict contention
+    isCursorPaginating.current = true;
+    //configure pagination
+    configurePagination('reset');
+    //reload
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  };
+  const handleReloadClickB = (event) => {
+    //check strict contention
+    if(isOnApiRequestRefB.current || isCursorPaginatingB.current) { return; }
+    //set strict contention
+    isCursorPaginatingB.current = true;
+    //configure pagination
+    configurePaginationB('reset');
+    //reload
+    setDataTriggerB(prevDataTrigger => !prevDataTrigger);
+  };
+<%}-%>
 
   /*
    * Items handlers
@@ -1721,11 +2099,27 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
     if(lidsToRemove.current.indexOf(item.<%- sortedAssociations[aindex].internalId _%>) === -1) {
       lidsToRemove.current.push(item.<%- sortedAssociations[aindex].internalId _%>);
       setThereAreItemsToAdd(true);
-      updateHeights();
+      
+      //will count A
+      cancelCountingPromises();
+      isCountingRef.current = false;
       //reload A
       reloadDataA();
-      //reload B (full)
+
+      //increment count B
+      if(countB > 0) setCountB(countB+1);
+      //will count B
+      cancelCountingPromisesB();
+      isCountingRefB.current = false;
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+      //reset B
       resetReloadDataB();
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+      //configure B
+      configurePaginationB('reset');
+      //reload B
+      setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+<%}-%>
       handleTransfer('<%- sortedAssociations[aindex].relationName _%>', item.<%- sortedAssociations[aindex].internalId _%>);
     }
   };
@@ -1738,9 +2132,25 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
       if(lidsToRemove.current.length === 0) {
         setThereAreItemsToAdd(false);
       }
-      updateHeights();
-      //reload A (full)
+      
+      //will count A
+      cancelCountingPromises();
+      isCountingRef.current = false;
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+      //reset A
       resetReloadDataA();
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+      //configure A
+      configurePaginationB('reset');
+      //reload A
+      setDataTrigger(prevDataTrigger => !prevDataTrigger);
+<%}-%>
+
+      //decrement count B
+      if(countB > 0) setCountB(countB-1);
+      //will count B
+      cancelCountingPromisesB();
+      isCountingRefB.current = false;
       //reload B
       reloadDataB();
       handleUntransfer('<%- sortedAssociations[aindex].relationName _%>', item.<%- sortedAssociations[aindex].internalId _%>);
@@ -1767,7 +2177,7 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
               />
 
               {/* Case: no data */}
-              {(!isOnApiRequest && (!areItemsReady || !isCountReady)) && (
+              {(!isOnApiRequest && (!areItemsReady)) && (
                 /* Label */
                 <Fade
                   in={true}
@@ -1788,7 +2198,7 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
               )}
 
               {/* Case: data ready */}
-              {(!isOnApiRequest && areItemsReady && isCountReady) && (
+              {(!isOnApiRequest && areItemsReady) && (
               
                 /* List */
                 <Fade
@@ -1913,10 +2323,10 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
                 rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
                 component="div"
                 count={count}
-                rowsPerPage={(count <=10) ? '' : rowsPerPage}
+                rowsPerPage={rowsPerPage}
                 page={page}
-                labelRowsPerPage = { t('modelPanels.rows') }
-                labelDisplayedRows = {({ from, to, count }) => `${from}-${to === -1 ? count : to} ${t('modelPanels.of')} ${count}`}
+                labelRowsPerPage = { t('modelPanels.rows', 'Rows') }
+                labelDisplayedRows = {({ from, to }) => `${(count<0) ? '': from}${(count<0) ? '': '-'}${(count<0) ? '': to} ${(count<0) ? '': (isCounting) ? '' : t('modelPanels.of')} ${(count<0) ? '?': (isCounting) ? '' : count}`}
                 onChangePage={handleChangePage}
                 onChangeRowsPerPage={handleChangeRowsPerPage}
               />
@@ -1925,7 +2335,7 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
                 count={count}
                 rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
                 rowsPerPage={(count <=10) ? '' : rowsPerPage}
-                labelRowsPerPage = { t('modelPanels.rows') }
+                labelRowsPerPage = { t('modelPanels.rows', 'Rows') }
                 hasNextPage={hasNextPage}
                 hasPreviousPage={hasPreviousPage}
                 handleFirstPageButtonClick={handleFirstPageButtonClick}
@@ -1953,8 +2363,8 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
                     <svg {...svgProps}>
                       <defs>
                         <linearGradient id="gradient2">
-                          <stop offset="30%" stopColor={(countB&&countB>0) ? "#3F51B5" : blueGrey[200]} />
-                          <stop offset="70%" stopColor={(count&&count>0) ? "#F50057" : blueGrey[200]} />
+                          <stop offset="30%" stopColor={(itemsB&&itemsB.length>0) ? "#3F51B5" : blueGrey[200]} />
+                          <stop offset="70%" stopColor={(items&&items.length>0) ? "#F50057" : blueGrey[200]} />
                         </linearGradient>
                       </defs>
                       {React.cloneElement(svgProps.children[0], {
@@ -1979,8 +2389,8 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
                     <svg {...svgProps}>
                       <defs>
                         <linearGradient id="gradient2b">
-                          <stop offset="30%" stopColor={(countB&&countB>0) ? "#3F51B5" : blueGrey[200]} />
-                          <stop offset="70%" stopColor={(count&&count>0) ? "#F50057" : blueGrey[200]} />
+                          <stop offset="30%" stopColor={(itemsB&&itemsB.length>0) ? "#3F51B5" : blueGrey[200]} />
+                          <stop offset="70%" stopColor={(items&&items.length>0) ? "#F50057" : blueGrey[200]} />
                         </linearGradient>
                       </defs>
                       {React.cloneElement(svgProps.children[0], {
@@ -2003,7 +2413,7 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
 
               {/* Toolbar */}
               <<%- sortedAssociations[aindex].relationNameOnPascal _%>ToRemoveTransferViewToolbar 
-                title={'<%- (sortedAssociations[aindex].type === 'to_one' || sortedAssociations[aindex].type === 'generic_to_one') ? sortedAssociations[aindex].targetModelCp : sortedAssociations[aindex].targetModelPlCp %>'}
+                title={'<%- sortedAssociations[aindex].targetModelPlCp %>'}
                 titleIcon={2}
                 search={searchB}
                 onSearchEnter={handleSearchEnterB}
@@ -2032,7 +2442,7 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
               )}
 
               {/* Case: no data from search */}
-              {(thereAreItemsToAdd && !isOnApiRequestB && (!areItemsReadyB || !isCountReadyB)) && (
+              {(thereAreItemsToAdd && !isOnApiRequestB && (!areItemsReadyB)) && (
                 /* Label */
                 <Fade
                   in={true}
@@ -2053,7 +2463,7 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
               )}
 
               {/* Case: data ready */}
-              {(thereAreItemsToAdd && !isOnApiRequestB && areItemsReadyB && isCountReadyB) && (
+              {(thereAreItemsToAdd && !isOnApiRequestB && areItemsReadyB) && (
               
                 /* List */
                 <Fade
@@ -2169,36 +2579,31 @@ let requestName1 =  paginationType === 'limitOffset' ? 'api.'+nameLc+'.get'+sort
 
               {/* Pagination */}
 <%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
-              {(<%- (sortedAssociations[aindex].type==='to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many') ? true : false _%>) && (
-                <TablePagination
-                  rowsPerPageOptions={(countB <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
-                  component="div"
-                  count={countB}
-                  rowsPerPage={(countB <=10) ? '' : rowsPerPageB}
-                  page={pageB}
-                  labelRowsPerPage = { t('modelPanels.rows') }
-                  labelDisplayedRows = {({ from, to, count }) => `${from}-${to === -1 ? count : to} ${t('modelPanels.of')} ${count}`}
-                  onChangePage={handleChangePageB}
-                  onChangeRowsPerPage={handleChangeRowsPerPageB}
-                />
-              )}
+              <TablePagination
+                rowsPerPageOptions={(countB <=10) ? [] : (countB <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
+                component="div"
+                count={countB}
+                rowsPerPage={rowsPerPageB}
+                page={pageB}
+                labelRowsPerPage = { t('modelPanels.rows', 'Rows') }
+                labelDisplayedRows = {({ from, to }) => `${(countB<0) ? '': from}${(countB<0) ? '': '-'}${(countB<0) ? '': to} ${(countB<0) ? '': (isCountingB) ? '' : t('modelPanels.of')} ${(countB<0) ? '?': (isCountingB) ? '' : countB}`}
+                onChangePage={handleChangePageB}
+                onChangeRowsPerPage={handleChangeRowsPerPageB}
+              />
 <%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
-              {(<%- (sortedAssociations[aindex].type==='to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many') ? true : false _%>) && (
-                
-                <<%- sortedAssociations[aindex].relationNameOnPascal _%>ToRemoveTransferViewCursorPagination
-                  count={countB}
-                  rowsPerPageOptions={(countB <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
-                  rowsPerPage={(countB <=10) ? '' : rowsPerPageB}
-                  labelRowsPerPage = { t('modelPanels.rows') }
-                  hasNextPage={hasNextPageB}
-                  hasPreviousPage={hasPreviousPageB}
-                  handleFirstPageButtonClick={handleFirstPageButtonClickB}
-                  handleLastPageButtonClick={handleLastPageButtonClickB}
-                  handleNextButtonClick={handleNextButtonClickB}
-                  handleBackButtonClick={handleBackButtonClickB}
-                  handleChangeRowsPerPage={handleChangeRowsPerPageB}
-                />
-              )}
+              <<%- sortedAssociations[aindex].relationNameOnPascal _%>ToRemoveTransferViewCursorPagination
+                count={countB}
+                rowsPerPageOptions={(countB <=10) ? [] : (countB <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
+                rowsPerPage={(countB <=10) ? '' : rowsPerPageB}
+                labelRowsPerPage = { t('modelPanels.rows', 'Rows') }
+                hasNextPage={hasNextPageB}
+                hasPreviousPage={hasPreviousPageB}
+                handleFirstPageButtonClick={handleFirstPageButtonClickB}
+                handleLastPageButtonClick={handleLastPageButtonClickB}
+                handleNextButtonClick={handleNextButtonClickB}
+                handleBackButtonClick={handleBackButtonClickB}
+                handleChangeRowsPerPage={handleChangeRowsPerPageB}
+              />
 <%}-%>
             </Card>
           )}

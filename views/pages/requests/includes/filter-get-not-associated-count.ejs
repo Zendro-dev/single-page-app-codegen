@@ -1,0 +1,270 @@
+/**
+ * Filter
+ * ------
+ */
+
+  /**
+   * getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>Count
+   *
+   * Get count of not associated <%- sortedAssociations[aindex].relationNameCp %> from GraphQL Server.
+   *
+   * @param {String} url GraphQL Server url.
+   * @param {String} itemId Model item internalId.
+   * @param {String} searchText Text string currently on search bar.
+   * @param {String} ops Object with adittional query options.
+   */
+  async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>Count(url, itemId, searchText, ops) {
+    let graphqlErrors = [];
+<%#
+  /**
+   * to_one
+   * generic_to_one
+   */
+-%>
+<%_if( sortedAssociations[aindex].type === 'to_one' || sortedAssociations[aindex].type === 'generic_to_one' ){-%>
+    /**
+     * Algorithm:
+     *    1. get associated item id.
+     *    2. get count of all items with corresponding filters:
+     *      2.1 if: there is search filter:
+     *          2.1.1: if: there is associated item:
+     *            2.1.1.1: add filter to exclude associated item id.
+     *            2.1.1.2: get filtered count.
+     *          2.1.2: @return filtered count.
+     *      2.2 else: there isn't search filter:
+     *          2.2.1: get all items count.
+     *            2.2.1.1: if: there is associated item:
+     *              2.2.1.1.1: @return count-1.
+     *            2.2.1.2: else: there isn't associated item:
+     *              2.2.1.2.1: @return count. 
+     */
+  
+    /**
+     *    1. get associated item id.
+     * 
+     */
+    let variables = {"<%- internalId _%>": itemId};
+    let query = 
+      `query readOne<%- nameCp _%>($<%- internalId _%>:ID!) {
+             readOne<%- nameCp _%>(<%- internalId _%>:$<%- internalId _%>) {
+                <%- sortedAssociations[aindex].relationName _%> {
+                  <%- sortedAssociations[aindex].internalId _%>
+                }
+             }}`;
+    /**
+     * Debug
+     */
+    if(globals.REQUEST_LOGGER) logRequest('getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>Count.query1', query, variables);
+    //request
+    let response = await requestGraphql({ url, query, variables });
+    let associatedItem = null;
+    //check
+    let check = checkResponse(response, graphqlErrors, "readOne<%- nameCp _%>");
+    if(check === 'ok') {
+      //check types
+      if(!response.data.data["readOne<%- nameCp _%>"]
+      || typeof response.data.data["readOne<%- nameCp _%>"] !== 'object'
+      || typeof response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationName _%>"] !== 'object' //can be null
+      ) return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+      
+      //get value
+      associatedItem = response.data.data["readOne<%- nameCp _%>"]["<%- sortedAssociations[aindex].relationName _%>"];
+    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+   /**
+     *    2. get count of all items with corresponding filters:
+     *      2.1 if: there is search filter:
+     *          2.1.1: if: there is associated item:
+     *            2.1.1.1: add filter to exclude associated item id.
+     *            2.1.1.2: get filtered count.
+     *          2.1.2: @return filtered count.
+     *      2.2 else: there isn't search filter:
+     *          2.2.1: get all items count.
+     *            2.2.1.1: if: there is associated item:
+     *              2.2.1.1.1: @return count-1.
+     *            2.2.1.2: else: there isn't associated item:
+     *              2.2.1.2.1: @return count. 
+     */
+    variables = {};
+    //search
+    let s = getSearchArgument('<%- sortedAssociations[aindex].targetModelLc _%>', searchText, ops, 'object');
+    if(s) {
+      if(associatedItem) {
+        //make filter to exclude associated item
+        let f1 = {field: "<%- sortedAssociations[aindex].internalId _%>", valueType: "<%- sortedAssociations[aindex].internalIdType _%>", value: associatedItem["<%- sortedAssociations[aindex].internalId _%>"], operator: "ne"};
+        //add new filter to ands array
+        s.search.search.push(f1)        
+      }
+      //set search
+      variables.search = s.search;
+    }
+    //set query
+    query = 
+      `query count<%- sortedAssociations[aindex].targetModelPlCp _%>($search: search<%- sortedAssociations[aindex].targetModelCp _%>Input) {
+             count<%- sortedAssociations[aindex].targetModelPlCp _%>(search: $search) }
+      `;
+    /**
+     * Debug
+     */
+    if(globals.REQUEST_LOGGER) logRequest('getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>Count.query2', query, variables);
+    //request
+    response = await requestGraphql({ url, query, variables });
+    let count = null;
+    //check
+    check = checkResponse(response, graphqlErrors, "count<%- sortedAssociations[aindex].targetModelPlCp _%>");
+    if(check === 'ok') {
+      //check type
+      if(!Number.isInteger(response.data.data["count<%- sortedAssociations[aindex].targetModelPlCp _%>"])) 
+      return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+      //get value
+      count = response.data.data["count<%- sortedAssociations[aindex].targetModelPlCp _%>"];
+    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+    //return value
+    if(!s && associatedItem)  return {value: count-1, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+    else                      return {value: count, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+  },
+<%}-%>
+<%#
+  /**
+   * to_many
+   */
+-%>
+<%_if( sortedAssociations[aindex].type === 'to_many' ){-%>
+    /**
+     * Algorithm:
+     *    1. get a filtered count over all items.
+     *       filters:
+     *          1.1: exclude itemId in association.targetKey field.
+     *          1.2: include null values in association.targetKey field.  
+     *    2. @return filtered count. 
+     */
+    //search
+    let s = getSearchArgument('<%- sortedAssociations[aindex].targetModelLc _%>', searchText, ops, 'object');
+  
+    //make filter to exclude itemId on FK & include null's
+    let f1 = {field: "<%- sortedAssociations[aindex].targetKey _%>", valueType: "<%- internalIdType _%>", value: itemId, operator: "ne"};
+    let f2 = {field: "<%- sortedAssociations[aindex].targetKey _%>", valueType: "<%- internalIdType _%>", value: null, operator: "eq"};
+    let nf = {operator: "or", search: [ f1, f2 ]};
+    
+    //add new filter to ands array
+    if(s) s.search.search.push(nf);
+    else  s = {search: nf};
+
+    //set search
+    let variables = {search: s.search};
+
+     //set query
+    let query = 
+     `query count<%- sortedAssociations[aindex].targetModelPlCp _%>($search: search<%- sortedAssociations[aindex].targetModelCp _%>Input) {
+            count<%- sortedAssociations[aindex].targetModelPlCp _%>(search: $search) }`;
+    
+    /**
+     * Debug
+     */
+    if(globals.REQUEST_LOGGER) logRequest('getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>Count', query, variables);
+    //request
+    let response = await requestGraphql({ url, query, variables });
+    let count = null;
+    //check
+    let check = checkResponse(response, graphqlErrors, "count<%- sortedAssociations[aindex].targetModelPlCp _%>");
+    if(check === 'ok') {
+      //check type
+      if(!Number.isInteger(response.data.data["count<%- sortedAssociations[aindex].targetModelPlCp _%>"])) 
+      return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+      //get value
+      count = response.data.data["count<%- sortedAssociations[aindex].targetModelPlCp _%>"];
+    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+    //return value
+    return {value: count, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+  },
+<%}-%>
+<%#
+  /**
+   * to_many_through_sql_cross_table
+   */
+-%>
+<%_if( sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many' ){-%>
+    /**
+     * Algorithm:
+     *    1. get count of all associtation items (countA).
+     *    2. get count of all associated items (countB).
+     *    3. @return (countA - countB).
+     *  
+     */
+
+    /**
+     *    1. get count of all associtation items (countA).
+     * 
+     */
+    let variables = {};
+    //search
+    let s = getSearchArgument('<%- sortedAssociations[aindex].targetModelLc _%>', searchText, ops, 'object');
+    if(s) variables.search = s.search;
+
+    //set query
+    let query = 
+     `query count<%- sortedAssociations[aindex].targetModelPlCp _%>($search: search<%- sortedAssociations[aindex].targetModelCp _%>Input) {
+            count<%- sortedAssociations[aindex].targetModelPlCp _%>(search: $search) }`;
+    
+    /**
+     * Debug
+     */
+    if(globals.REQUEST_LOGGER) logRequest('getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>Count.query1', query, variables);
+    //request
+    let response = await requestGraphql({ url, query, variables });
+    let countA = null;
+    //check
+    let check = checkResponse(response, graphqlErrors, "count<%- sortedAssociations[aindex].targetModelPlCp _%>");
+    if(check === 'ok') {
+      //check type
+      if(!Number.isInteger(response.data.data["count<%- sortedAssociations[aindex].targetModelPlCp _%>"])) 
+      return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+      //get value
+      countA = response.data.data["count<%- sortedAssociations[aindex].targetModelPlCp _%>"];
+    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+    /**
+     *    2. get count of all associated items (countB).
+     *  
+     */
+    variables = {};
+    //id
+    variables["<%- internalId _%>"] = itemId;
+    //search
+    if(s) variables.search = s.search;
+    //query
+    query =
+      `query readOne<%- nameCp _%>($<%- internalId _%>:ID!, $search: search<%- sortedAssociations[aindex].targetModelCp _%>Input) { 
+             readOne<%- nameCp _%>(<%- internalId _%>:$<%- internalId _%>) {
+              countFiltered<%- sortedAssociations[aindex].relationNameCp %>(search: $search) 
+       }}`
+
+    /**
+     * Debug
+     */
+    if(globals.REQUEST_LOGGER) logRequest('get<%- sortedAssociations[aindex].relationNameCp %>Count.query2', query, variables);
+    //request
+    response = await requestGraphql({ url, query, variables });
+    let countB = null;
+    //check
+    check = checkResponse(response, graphqlErrors, "readOne<%- nameCp _%>");
+    if(check === 'ok') {
+      //check types
+      if(!response.data.data["readOne<%- nameCp _%>"]
+      ||typeof response.data.data["readOne<%- nameCp _%>"] !== 'object'
+      || !Number.isInteger(response.data.data["readOne<%- nameCp _%>"]["countFiltered<%- sortedAssociations[aindex].relationNameCp _%>"])
+      ) return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+      
+      //get value
+      countB = response.data.data["readOne<%- nameCp _%>"]["countFiltered<%- sortedAssociations[aindex].relationNameCp _%>"];
+    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+    //return value
+    return {value: (countA - countB), message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+  },
+<%}-%>

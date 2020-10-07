@@ -29,15 +29,12 @@ export default function <%- nameOnPascal _%>AssociationsPage(props) {
     item,
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
     <%- sortedAssociations[i].relationNameLc _%>IdsToAdd,
-<%if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many'){-%>
     <%- sortedAssociations[i].relationNameLc _%>IdsToRemove,
-<%}}-%>
+<%}-%>
     handleTransferToAdd,
     handleUntransferFromAdd,
-<%if(hasToManyAssociations) {-%>
     handleTransferToRemove,
     handleUntransferFromRemove,
-<%}-%>
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
     handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row,
 <%}}-%>
@@ -126,15 +123,11 @@ export default function <%- nameOnPascal _%>AssociationsPage(props) {
               <<%- sortedAssociations[i].relationNameOnPascal _%>TransferLists
                 item={item}
                 idsToAdd={<%- sortedAssociations[i].relationNameLc _%>IdsToAdd}
-<%if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many'){-%>
                 idsToRemove={<%- sortedAssociations[i].relationNameLc _%>IdsToRemove}
-<%}-%>
                 handleTransferToAdd={handleTransferToAdd}
                 handleUntransferFromAdd={handleUntransferFromAdd}
-<%if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many'){-%>
                 handleTransferToRemove={handleTransferToRemove}
                 handleUntransferFromRemove={handleUntransferFromRemove}
-<%}-%>
                 handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row}
               />
             </Grid>
@@ -152,15 +145,12 @@ export default function <%- nameOnPascal _%>AssociationsPage(props) {
   item: PropTypes.object.isRequired,
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
   <%- sortedAssociations[i].relationNameLc _%>IdsToAdd: PropTypes.array.isRequired,
-<%if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many'){-%>
   <%- sortedAssociations[i].relationNameLc _%>IdsToRemove: PropTypes.array.isRequired,
-<%}}-%>
+<%}-%>
   handleTransferToAdd: PropTypes.func.isRequired,
   handleUntransferFromAdd: PropTypes.func.isRequired,
-<%if(hasToManyAssociations) {-%>
   handleTransferToRemove: PropTypes.func.isRequired,
   handleUntransferFromRemove: PropTypes.func.isRequired,
-<%}-%>
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
   handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row: PropTypes.func.isRequired,
 <%}}-%>

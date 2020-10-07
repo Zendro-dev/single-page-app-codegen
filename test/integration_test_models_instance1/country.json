@@ -13,7 +13,7 @@
         "keyIn": "capital",
         "targetStorageType" : "sql"
       },
-      "rivers": {
+      "rivers_mm": {
         "type" : "to_many_through_sql_cross_table",
         "target": "river",
         "sourceKey": "country_id",

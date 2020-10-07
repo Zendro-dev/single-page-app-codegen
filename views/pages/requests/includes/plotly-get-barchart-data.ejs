@@ -1,0 +1,118 @@
+/**
+ * Plotly query
+ * ------------
+ */
+
+  /**
+   * getBarchartData
+   *
+   * Given an @attribute, calculates the object {x1:y1, x2:y2, ...} where
+   * @x is a value of the attribute and @y is the total ocurrences of the 
+   * value, calculated over all records in the model's table.
+   * 
+   * The items attrbutes are fetched from GraphQL Server in paginatedbatches, 
+   * using a cursor-based connection. Gets only the indicated attribute. 
+   * No search nor order are specified.
+   * 
+   * @param {String} url GraphQL Server url
+   * @param {String} attribute Name of the attribute to be retrieved.
+   */
+  async getBarchartData(url, attribute) {
+    //internal checks
+    if(!attribute||typeof attribute !== 'string') throw new Error("internal_error: expected string in 'attribute' argument");
+    
+    let graphqlErrors = [];
+    let batchSize = globals.MAX_RECORD_LIMIT ? Math.floor(globals.MAX_RECORD_LIMIT/2) : 5000;
+    
+    /**
+     * Initialize batch query
+     * 
+     */
+    //pagination
+    let batchPagination = {first: batchSize};
+    //variables
+    let batchVariables = {pagination: batchPagination};
+    //query
+    let batchQuery = 
+          `query <%- namePlLc _%>Connection($pagination: paginationCursorInput!) {
+                 <%- namePlLc _%>Connection(pagination: $pagination) {
+                    pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
+                    edges {node {${attribute}}}
+                 }}`;
+    
+    //initialize results
+    let data = {};
+
+    /**
+     *  Recursive fetch of items algorithm (cursor-based-pagination):
+     *  1 while @thereAreMoreItems do:
+     *    1.1 fetch @batchSize items.
+     *    1.2 reduce items result to {x1:y1, x2:y2, ...} and accumulate in @data object.
+     *    1.3 calculates new @thereAreMoreItems value.
+     *    1.4 if @thereAreMoreItems
+     *      1.4.1 adjust pagination and @continue with next iteration.
+     *    1.5 else: !@thereAreMoreItems 
+     *      1.5.1 return @data or null if there are no values in @data.
+     * 
+     */
+    let thereAreMoreItems = true;
+    let iteration = 1;
+    while(thereAreMoreItems) {
+      /**
+       * 1.1 Get @batchSize associated ids.
+       * 
+       */
+
+      /**
+       * Debug
+       */
+      if(globals.REQUEST_LOGGER) logRequest(`getBarchartData#i-${iteration}#`, batchQuery, batchVariables);
+
+      //request
+      let response = await requestGraphql({ url, query:batchQuery, variables:batchVariables });
+      let items = null;
+      //check
+      let check = checkResponse(response, graphqlErrors, "<%- namePlLc _%>Connection");
+      if(check === 'ok') {
+        //check type
+        if(!response.data.data["<%- namePlLc _%>Connection"]
+        || typeof response.data.data["<%- namePlLc _%>Connection"] !== 'object'
+        || !Array.isArray(response.data.data["<%- namePlLc _%>Connection"].edges)
+        || typeof response.data.data["<%- namePlLc _%>Connection"].pageInfo !== 'object' 
+        || response.data.data["<%- namePlLc _%>Connection"].pageInfo === null)
+        return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+        //get value
+        items = response.data.data["<%- namePlLc _%>Connection"];
+      } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+      //if there are results...
+      if(items.edges.length > 0) {
+        //reduce to {x1:y1, x2:y2, ...}
+        data = items.edges.reduce((acc, item) => {
+          let key = item.node[attribute];
+          if(!acc[key]) acc[key] = 1; //first ocurrence
+          else acc[key]++;
+          return acc;
+        }, data);
+      }
+
+      //set flag
+      thereAreMoreItems = (items.edges.length > 0) && items.pageInfo.hasNextPage;
+
+      //check
+      if(thereAreMoreItems) {
+        //adjust pagination for next batch
+        batchPagination.after = items.pageInfo.endCursor;
+        batchVariables.pagination = batchPagination;
+        
+        //continue with next iteration...
+        iteration++;
+
+      } else { //no more items...
+
+        //return value
+        return {value: data, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+      }
+    }//end: while()
+  },

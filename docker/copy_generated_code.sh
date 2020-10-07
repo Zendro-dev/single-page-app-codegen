@@ -48,8 +48,7 @@ do
     if [ $? -eq 0 ]; then
         echo -e "@ Copied generated code into: ./${i} ... ${LGREEN}done${NC}"
     else
-        echo -e "!!${RED}ERROR${NC}: trying to copy generated code into: ${RED}./${i}${NC} fails ... ${YEL}exit${NC}"
-        exit 0
+        echo -e "!!${YEL}WARNING${NC}: trying to copy generated code into: ${RED}./${i}${YEL} fails${NC}"
     fi
   fi
 done

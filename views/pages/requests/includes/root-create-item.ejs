@@ -1,0 +1,131 @@
+/**
+ * Root mutation
+ * -------------
+ */
+
+    /**
+   * createItem
+   *
+   * Add new <%- nameCp %> item on GraphQL Server.
+   * (root mutation)
+   *
+   * @param {String} url GraphQL Server url.
+   * @param {Object} variables Object with values to create new <%- nameCp %> item.
+   */
+  async createItem(url, variables) {
+    //internal checks
+    if(!variables||typeof variables !== 'object') throw new Error("internal_error: expected object 'variables' argument");
+    let graphqlErrors = [];
+
+    //set variables declarations
+    let qvariables = `
+<%if(!isDefaultId){-%>
+          $<%- internalId _%>:ID!,
+<%}-%>
+<%_for( let i=0; i<attributesArr.length; i++ ){
+  /*
+   * Render each attribute, except FK attributes and internalId.
+   */
+
+  let a = attributesArr[i][0];
+  let isForeignKey = (hasOwnForeingKeys&&ownForeignKeysArr.includes(a));
+  if(!isForeignKey && (attributesArr[i][0] !== internalId)) {
+-%>
+          $<%- attributesArr[i][0] _%>:<%- attributesArr[i][1] _%>,
+<%}}-%>
+<%for( let i=0; i<sortedAssociations.length; i++ ){
+  /*
+   * Render each toAdd attributes for to_one associations.
+   */
+
+  if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one') {
+-%>
+          $add<%- sortedAssociations[i].relationNameCp _%>: ID,
+<%}}-%>
+<%_for( let i=0; i<sortedAssociations.length; i++ ){
+  /*
+   * Render each toAdd attributes for to_many associations.
+   */
+
+  if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many') {
+-%>
+          $add<%- sortedAssociations[i].relationNameCp _%>: [ID],
+<%}}-%>`;
+
+    //set parameters assignation
+    let qparameters = `
+<%if(!isDefaultId){-%>
+            <%- internalId _%>:$<%- internalId _%>,
+<%}-%>
+<%_for( let i=0; i<attributesArr.length; i++ ){
+  /*
+   * Render each attribute, except FK attributes and internalId.
+   */
+
+  let a = attributesArr[i][0];
+  let isForeignKey = (hasOwnForeingKeys&&ownForeignKeysArr.includes(a));
+  if(!isForeignKey && (attributesArr[i][0] !== internalId)) {
+-%>
+            <%- attributesArr[i][0] _%>:$<%- attributesArr[i][0] _%>,
+<%}}-%>
+<%for( let i=0; i<sortedAssociations.length; i++ ){
+  /*
+   * Render each toAdd attributes for to_one associations.
+   */
+
+  if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one') {
+-%>
+            add<%- sortedAssociations[i].relationNameCp _%>: $add<%- sortedAssociations[i].relationNameCp _%>,
+<%}}-%>
+<%_for( let i=0; i<sortedAssociations.length; i++ ){
+  /*
+   * Render each toAdd attributes for to_many associations.
+   */
+
+  if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many') {
+-%>
+            add<%- sortedAssociations[i].relationNameCp _%>: $add<%- sortedAssociations[i].relationNameCp _%>,
+<%}}-%>`;
+
+    //set attributes to fetch
+    let qattributes = 
+      `<%- internalId _%>,
+<%_for( let i=0; i<attributesArr.length; i++ ){
+  if(attributesArr[i][0] !== internalId) {
+-%>
+       <%- attributesArr[i][0] _%>,
+<%}}-%>`;
+
+    //query
+    let query =
+      `mutation add<%- nameCp %>(
+          ${qvariables}
+          ) { add<%- nameCp %>(
+          ${qparameters}
+          ) {
+          ${qattributes}
+          } }`;
+
+    /**
+     * Debug
+     */
+    if(globals.REQUEST_LOGGER) logRequest('createItem', query, variables);
+
+    //request
+    let response = await requestGraphql({ url, query, variables });
+    let item = null;
+    //check
+    let check = checkResponse(response, graphqlErrors, "add<%- nameCp %>");
+    if(check === 'ok') {
+        //check type
+        if(!response.data.data["add<%- nameCp %>"]
+        || typeof response.data.data["add<%- nameCp %>"] !== 'object')
+        return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+        //get value
+        item = response.data.data["add<%- nameCp %>"];
+    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+    //return value
+    return {value: item, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+  },

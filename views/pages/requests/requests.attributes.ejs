@@ -1,29 +1,24 @@
-export default function getAttributes(filterName) {
-  switch(filterName) {
-<%for( let i=0; i<models.length; i++ ){-%>
-    case '<%- models[i].nameLc _%>':
-      return {
-<%if(models[i].isDefaultId){-%>
-        "<%- models[i].internalId _%>": "<%- models[i].internalIdType _%>",
+<%
+//concat all models.
+let allModels = adminModels.concat(models);
+-%>
+/**
+ * Models attributes
+ * 
+ */
+const modelsAttributes = {
+<%for( let i=0; i<allModels.length; i++ ){-%>
+  '<%- allModels[i].nameLc _%>': {
+<%if(allModels[i].isDefaultId){-%>
+      "<%- allModels[i].internalId _%>": "<%- allModels[i].internalIdType _%>",
 <%}-%>
-<%for( let j=0; j<models[i].attributesArr.length; j++ ){-%>
-        "<%- models[i].attributesArr[j][0] _%>": "<%- models[i].attributesArr[j][1] _%>",
+<%for( let j=0; j<allModels[i].attributesArr.length; j++ ){-%>
+      "<%- allModels[i].attributesArr[j][0] _%>": "<%- allModels[i].attributesArr[j][1] _%>",
 <%}-%>
-      };
+  },
 <%}-%>
-<%for( let i=0; i<adminModels.length; i++ ){-%>
-    case '<%- adminModels[i].nameLc _%>':
-      return {
-<%if(adminModels[i].isDefaultId){-%>
-        "<%- adminModels[i].internalId _%>": "<%- adminModels[i].internalIdType _%>",
-<%}-%>
-<%for( let j=0; j<adminModels[i].attributesArr.length; j++ ){-%>
-        "<%- adminModels[i].attributesArr[j][0] _%>": "<%- adminModels[i].attributesArr[j][1] _%>",
-<%}-%>
-    };
-<%}-%>
+}
 
-    default:
-      return {};
-  }
+export default function getAttributes(filterName) {
+  return {...modelsAttributes[filterName]};
 }
