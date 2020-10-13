@@ -55,6 +55,12 @@ for object in ${DB_KEYS[@]}; do
 
 done
 
+psql \
+	-U sciencedb \
+	-d sciencedb_development \
+	-P pager=off \
+	--single-transaction \
+	-f /usr/src/app/integration-test.sql
 
 # Start GraphQL-server
 npm start acl

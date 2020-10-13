@@ -1,0 +1,15 @@
+--- test/integration_test_env/services/gql_science_db_graphql_server1/migrateDbAndStartServer.sh	2020-10-13 19:10:51.290000000 +0200
++++ test/integration_test_misc/migrateDbAndStartServer.sh	2020-10-13 19:35:30.630000000 +0200
+@@ -55,6 +55,12 @@
+ 
+ done
+ 
++psql \
++	-U sciencedb \
++	-d sciencedb_development \
++	-P pager=off \
++	--single-transaction \
++	-f /usr/src/app/integration-test.sql
+ 
+ # Start GraphQL-server
+ npm start acl

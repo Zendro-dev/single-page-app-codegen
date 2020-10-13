@@ -1,0 +1,12 @@
+FROM node:14.3.0-stretch-slim
+
+# Create app directory
+WORKDIR /usr/src/app
+
+# Path to binary jq (used by node-jq)
+ENV JQ_PATH=/usr/bin/jq
+
+# Clone the skeleton project and install dependencies
+RUN apt-get update && apt-get install -y git procps autoconf libtool make jq
+
+EXPOSE 3000

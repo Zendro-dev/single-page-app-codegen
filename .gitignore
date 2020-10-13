@@ -1,6 +1,5 @@
-node_modules
 .idea
 .vscode-upload.json
-package-lock.json
+node_modules
 npm-debug.log
-docker/graphql-server-model-codegen
+test/integration_test_env
