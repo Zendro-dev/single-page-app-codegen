@@ -24,8 +24,6 @@ services:
       dockerfile: Dockerfile.postgres
     ports:
       - 1234:5432
-    volumes:
-      - sdb_db_data1:/var/lib/postgresql/data
     networks:
       - instance1
 
@@ -102,8 +100,6 @@ services:
       dockerfile: Dockerfile.postgres
     ports:
      - 1235:5431
-    volumes:
-     - sdb_db_data2:/var/lib/postgresql/data
     networks:
      - instance2
 
@@ -168,10 +164,6 @@ services:
       - -c
       - |
         npm start
-
-volumes:
-  sdb_db_data1:
-  sdb_db_data2:
 
 networks:
   instance1:
