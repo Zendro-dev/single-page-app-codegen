@@ -1,0 +1,17 @@
+--- migrateDbAndStartServer.sh	2020-10-14 11:40:45.490000000 +0200
++++ migrateDbAndStartServer.patch	2020-10-14 11:44:29.210000000 +0200
+@@ -55,6 +55,13 @@
+
+ done
+
++psql \
++  -h gql_postgres2 \
++  -U sciencedb \
++  -d sciencedb_development \
++  -P pager=off \
++  --single-transaction \
++  -f ./integration-test.sql
+
+ # Start GraphQL-server
+-npm start # acl
++npm start acl

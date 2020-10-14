@@ -65,12 +65,12 @@
     },
     {
       "opts": [],
-      "src": "../../test/patches/migrateDbAndStartServer.patch",
+      "src": "../../test/patches/migrateDbAndStartServer1.patch",
       "dest": "gql_science_db_graphql_server1/migrateDbAndStartServer.sh"
     },
     {
       "opts": [],
-      "src": "../../test/patches/migrateDbAndStartServer.patch",
+      "src": "../../test/patches/migrateDbAndStartServer2.patch",
       "dest": "gql_science_db_graphql_server2/migrateDbAndStartServer.sh"
     }
   ],
