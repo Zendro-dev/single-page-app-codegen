@@ -4,7 +4,6 @@
     "attributes" : {
       "arrId": "String",
       "country": "String",
-      "singleTime": "Time",
       "arrStr": "[String]",
       "arrInt": "[Int]",
       "arrFloat": "[Float]",
