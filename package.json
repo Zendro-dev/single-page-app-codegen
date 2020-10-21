@@ -35,6 +35,6 @@
     "lodash": "^4.17.11",
     "mocha": "^8.0.1",
     "puppeteer": "^5.2.1",
-    "zendro-env": "https://github.com/Zendro-dev/zendro-env"
+    "zendro-env": "https://github.com/Zendro-dev/zendro-env.git"
   }
 }
