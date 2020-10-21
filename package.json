@@ -1,6 +1,6 @@
 {
   "name": "single-page-app-codegen",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Enables auto generation of basic List, Create, Edit, and Delete Views for data models.",
   "repository": {
     "type": "git",
@@ -11,8 +11,8 @@
     "single-page-app-codegen": "./index.js"
   },
   "scripts": {
-    "test": "mocha ./test/test-features.js",
-    "test-integration": "bash ./test/integration-test.sh"
+    "test-env": "zendro-env",
+    "test-integration": "zendro-env integration"
   },
   "author": "Dr. Asis Hallab <asis.hallab@gmail.com>",
   "license": "MIT",
@@ -34,6 +34,7 @@
     "delay": "^4.1.0",
     "lodash": "^4.17.11",
     "mocha": "^8.0.1",
-    "puppeteer": "^5.2.1"
+    "puppeteer": "^5.2.1",
+    "zendro-env": "https://github.com/Zendro-dev/zendro-env.git"
   }
 }

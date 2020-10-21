@@ -7,9 +7,7 @@ WORKDIR /usr/src/app
 COPY ./ncbi_sim_srv/package.json .
 
 # Install the app dependencies
-RUN apk update && \
- apk add bash && \
- npm install --save
+RUN apk update && apk add bash
 
 # Map the port
 EXPOSE 3344
