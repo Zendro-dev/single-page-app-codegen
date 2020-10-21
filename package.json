@@ -12,7 +12,6 @@
   },
   "scripts": {
     "test-env": "zendro-env",
-    "test": "mocha ./test/test-features.js",
     "test-integration": "zendro-env integration"
   },
   "author": "Dr. Asis Hallab <asis.hallab@gmail.com>",
