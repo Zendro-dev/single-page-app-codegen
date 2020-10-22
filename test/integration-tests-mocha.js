@@ -886,7 +886,7 @@ describe('1. Basic functionality', function () {
       q3.data.individualsConnection.pageInfo.endCursor = individualsConnection.pageInfo.endCursor;
       //save
       addedIndividuals.push({...q1.data.addIndividual});
-      
+
       expect(datas).to.deep.equalInAnyOrder([q1, q2, q3]);
       expect(recordsCount).to.eql(3);
     });
@@ -3587,66 +3587,66 @@ describe('3. AJV Validations', function() {
         this.retries(retriesmax);
         let selector = "textarea[id=StringField-WithValidations-string_1]";
         let input = inputNotOk.string_1;
-        
+
         await page.click(selector, { clickCount: 3 });
         await page.type(selector, input);
         // evaluate
-        let value = await page.$eval(selector, e => e.value); 
+        let value = await page.$eval(selector, e => e.value);
         expect(value).to.eql(input);
       });
       it(`${n++}. type on: input field - invalid value - string_2`, async function () {
         this.retries(retriesmax);
         let selector = "textarea[id=StringField-WithValidations-string_2]";
         let input = inputNotOk.string_2;
-        
+
         await page.click(selector, { clickCount: 3 });
         await page.type(selector, input);
         // evaluate
-        let value = await page.$eval(selector, e => e.value); 
+        let value = await page.$eval(selector, e => e.value);
         expect(value).to.eql(input);
       });
       it(`${n++}. type on: input field - invalid value - int_1`, async function () {
         this.retries(retriesmax);
         let selector = "input[id=IntField-WithValidations-int_1]";
         let input = inputNotOk.int_1;
-        
+
         await page.click(selector, { clickCount: 3 });
         await page.type(selector, input);
         // evaluate
-        let value = await page.$eval(selector, e => e.value); 
+        let value = await page.$eval(selector, e => e.value);
         expect(value).to.eql(input);
       });
       it(`${n++}. type on: input field - invalid value - int_2`, async function () {
         this.retries(retriesmax);
         let selector = "input[id=IntField-WithValidations-int_2]";
         let input = inputNotOk.int_2;
-        
+
         await page.click(selector, { clickCount: 3 });
         await page.type(selector, input);
         // evaluate
-        let value = await page.$eval(selector, e => e.value); 
+        let value = await page.$eval(selector, e => e.value);
         expect(value).to.eql(input);
       });
       it(`${n++}. type on: input field - invalid value - float_1`, async function () {
         this.retries(retriesmax);
         let selector = "input[id=FloatField-WithValidations-float_1]";
         let input = inputNotOk.float_1;
-        
+
         await page.click(selector, { clickCount: 3 });
         await page.type(selector, input);
         // evaluate
-        let value = await page.$eval(selector, e => e.value); 
+        let value = await page.$eval(selector, e => e.value);
         expect(value).to.eql(input);
       });
       it(`${n++}. type on: input field - invalid value - float_2`, async function () {
         this.retries(retriesmax);
         let selector = "input[id=FloatField-WithValidations-float_2]";
         let input = inputNotOk.float_2;
-        
+
         await page.click(selector, { clickCount: 3 });
         await page.type(selector, input);
         // evaluate
-        let value = await page.$eval(selector, e => e.value); 
+        let value = await page.$eval(selector, e => e.value);
         expect(value).to.eql(input);
       });
       it(`${n++}. type on: input field - invalid value - boolean_1`, async function () {
@@ -3664,66 +3664,66 @@ describe('3. AJV Validations', function() {
         this.retries(retriesmax);
         let selector = "input[id=DateField-WithValidations-date_1]";
         let input = inputNotOk.date_1;
-        
+
         await page.click(selector, { clickCount: 3 });
         await page.type(selector, input);
         // evaluate
-        let value = await page.$eval(selector, e => e.value); 
+        let value = await page.$eval(selector, e => e.value);
         expect(value).to.eql(input);
       });
       it(`${n++}. type on: input field - invalid value - date_2`, async function () {
         this.retries(retriesmax);
         let selector = "input[id=DateField-WithValidations-date_2]";
         let input = inputNotOk.date_2;
-        
+
         await page.click(selector, { clickCount: 3 });
         await page.type(selector, input);
         // evaluate
-        let value = await page.$eval(selector, e => e.value); 
+        let value = await page.$eval(selector, e => e.value);
         expect(value).to.eql(input);
       });
       it(`${n++}. type on: input field - invalid value - dateTime_1`, async function () {
         this.retries(retriesmax);
         let selector = "input[id=DateTimeField-WithValidations-dateTime_1]";
         let input = inputNotOk.dateTime_1;
-        
+
         await page.click(selector, { clickCount: 3 });
         await page.type(selector, input);
         // evaluate
-        let value = await page.$eval(selector, e => e.value); 
+        let value = await page.$eval(selector, e => e.value);
         expect(value).to.eql(input);
       });
       it(`${n++}. type on: input field - invalid value - dateTime_2`, async function () {
         this.retries(retriesmax);
         let selector = "input[id=DateTimeField-WithValidations-dateTime_2]";
         let input = inputNotOk.dateTime_2;
-        
+
         await page.click(selector, { clickCount: 3 });
         await page.type(selector, input);
         // evaluate
-        let value = await page.$eval(selector, e => e.value); 
+        let value = await page.$eval(selector, e => e.value);
         expect(value).to.eql(input);
       });
       it(`${n++}. type on: input field - invalid value - time_1`, async function () {
         this.retries(retriesmax);
         let selector = "input[id=TimeField-WithValidations-time_1]";
         let input = inputNotOk.time_1;
-        
+
         await page.click(selector, { clickCount: 3 });
         await page.type(selector, input);
         // evaluate
-        let value = await page.$eval(selector, e => e.value); 
+        let value = await page.$eval(selector, e => e.value);
         expect(value).to.eql(input);
       });
       it(`${n++}. type on: input field - invalid value - time_2`, async function () {
         this.retries(retriesmax);
         let selector = "input[id=TimeField-WithValidations-time_2]";
         let input = inputNotOk.time_2;
-        
+
         await page.click(selector, { clickCount: 3 });
         await page.type(selector, input);
         // evaluate
-        let value = await page.$eval(selector, e => e.value); 
+        let value = await page.$eval(selector, e => e.value);
         expect(value).to.eql(input);
       });
 
@@ -4413,66 +4413,66 @@ describe('3. AJV Validations', function() {
         this.retries(retriesmax);
         let selector = "textarea[id=StringField-WithValidations-string_1]";
         let input = inputNotOk.string_1;
-        
+
         await page.click(selector, { clickCount: 3 });
         await page.type(selector, input);
         // evaluate
-        let value = await page.$eval(selector, e => e.value); 
+        let value = await page.$eval(selector, e => e.value);
         expect(value).to.eql(input);
       });
       it(`${n++}. type on: input field - invalid value - string_2`, async function () {
         this.retries(retriesmax);
         let selector = "textarea[id=StringField-WithValidations-string_2]";
         let input = inputNotOk.string_2;
-        
+
         await page.click(selector, { clickCount: 3 });
         await page.type(selector, input);
         // evaluate
-        let value = await page.$eval(selector, e => e.value); 
+        let value = await page.$eval(selector, e => e.value);
         expect(value).to.eql(input);
       });
       it(`${n++}. type on: input field - invalid value - int_1`, async function () {
         this.retries(retriesmax);
         let selector = "input[id=IntField-WithValidations-int_1]";
         let input = inputNotOk.int_1;
-        
+
         await page.click(selector, { clickCount: 3 });
         await page.type(selector, input);
         // evaluate
-        let value = await page.$eval(selector, e => e.value); 
+        let value = await page.$eval(selector, e => e.value);
         expect(value).to.eql(input);
       });
       it(`${n++}. type on: input field - invalid value - int_2`, async function () {
         this.retries(retriesmax);
         let selector = "input[id=IntField-WithValidations-int_2]";
         let input = inputNotOk.int_2;
-        
+
         await page.click(selector, { clickCount: 3 });
         await page.type(selector, input);
         // evaluate
-        let value = await page.$eval(selector, e => e.value); 
+        let value = await page.$eval(selector, e => e.value);
         expect(value).to.eql(input);
       });
       it(`${n++}. type on: input field - invalid value - float_1`, async function () {
         this.retries(retriesmax);
         let selector = "input[id=FloatField-WithValidations-float_1]";
         let input = inputNotOk.float_1;
-        
+
         await page.click(selector, { clickCount: 3 });
         await page.type(selector, input);
         // evaluate
-        let value = await page.$eval(selector, e => e.value); 
+        let value = await page.$eval(selector, e => e.value);
         expect(value).to.eql(input);
       });
       it(`${n++}. type on: input field - invalid value - float_2`, async function () {
         this.retries(retriesmax);
         let selector = "input[id=FloatField-WithValidations-float_2]";
         let input = inputNotOk.float_2;
-        
+        await delay(2000);
         await page.click(selector, { clickCount: 3 });
         await page.type(selector, input);
         // evaluate
-        let value = await page.$eval(selector, e => e.value); 
+        let value = await page.$eval(selector, e => e.value);
         expect(value).to.eql(input);
       });
       it(`${n++}. type on: input field - invalid value - boolean_1`, async function () {
@@ -4489,66 +4489,66 @@ describe('3. AJV Validations', function() {
         this.retries(retriesmax);
         let selector = "input[id=DateField-WithValidations-date_1]";
         let input = inputNotOk.date_1;
-        
+
         await page.click(selector, { clickCount: 3 });
         await page.type(selector, input);
         // evaluate
-        let value = await page.$eval(selector, e => e.value); 
+        let value = await page.$eval(selector, e => e.value);
         expect(value).to.eql(input);
       });
       it(`${n++}. type on: input field - invalid value - date_2`, async function () {
         this.retries(retriesmax);
         let selector = "input[id=DateField-WithValidations-date_2]";
         let input = inputNotOk.date_2;
-        
+
         await page.click(selector, { clickCount: 3 });
         await page.type(selector, input);
         // evaluate
-        let value = await page.$eval(selector, e => e.value); 
+        let value = await page.$eval(selector, e => e.value);
         expect(value).to.eql(input);
       });
       it(`${n++}. type on: input field - invalid value - dateTime_1`, async function () {
         this.retries(retriesmax);
         let selector = "input[id=DateTimeField-WithValidations-dateTime_1]";
         let input = inputNotOk.dateTime_1;
-        
+
         await page.click(selector, { clickCount: 3 });
         await page.type(selector, input);
         // evaluate
-        let value = await page.$eval(selector, e => e.value); 
+        let value = await page.$eval(selector, e => e.value);
         expect(value).to.eql(input);
       });
       it(`${n++}. type on: input field - invalid value - dateTime_2`, async function () {
         this.retries(retriesmax);
         let selector = "input[id=DateTimeField-WithValidations-dateTime_2]";
         let input = inputNotOk.dateTime_2;
-        
+
         await page.click(selector, { clickCount: 3 });
         await page.type(selector, input);
         // evaluate
-        let value = await page.$eval(selector, e => e.value); 
+        let value = await page.$eval(selector, e => e.value);
         expect(value).to.eql(input);
       });
       it(`${n++}. type on: input field - invalid value - time_1`, async function () {
         this.retries(retriesmax);
         let selector = "input[id=TimeField-WithValidations-time_1]";
         let input = inputNotOk.time_1;
-        
+
         await page.click(selector, { clickCount: 3 });
         await page.type(selector, input);
         // evaluate
-        let value = await page.$eval(selector, e => e.value); 
+        let value = await page.$eval(selector, e => e.value);
         expect(value).to.eql(input);
       });
       it(`${n++}. type on: input field - invalid value - time_2`, async function () {
         this.retries(retriesmax);
         let selector = "input[id=TimeField-WithValidations-time_2]";
         let input = inputNotOk.time_2;
-        
+
         await page.click(selector, { clickCount: 3 });
         await page.type(selector, input);
         // evaluate
-        let value = await page.$eval(selector, e => e.value); 
+        let value = await page.$eval(selector, e => e.value);
         expect(value).to.eql(input);
       });
 

@@ -1,0 +1,171 @@
+version: "3.2"
+
+#
+# This docker-compose setup raises the following services:
+#
+# gql_postgres1                   (db)
+# gql_science_db_graphql_server1  (gql server)
+# gql_ncbi_sim_srv1               (external web database simulator) //inactive
+# spa_science_db_app_server1      (spa)
+#
+# gql_postgres2                   (db)
+# gql_science_db_graphql_server2  (gql server)
+# spa_science_db_app_server2      (spa)
+#
+
+services:
+  #
+  # Postgres 1
+  #
+  gql_postgres1:
+    container_name: postgres1
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres
+    ports:
+      - 1234:5432
+    networks:
+      - instance1
+
+  #
+  # GraphQL Server 1
+  #
+  gql_science_db_graphql_server1:
+    container_name: server1
+    depends_on:
+      - gql_postgres1
+    build:
+      context: .
+      dockerfile: Dockerfile.graphql_server
+    volumes:
+      - ../integration_test_env/node_modules:/usr/node_modules
+      - ../integration_test_env/services/gql_science_db_graphql_server1:/usr/src/app
+      - ./data_models_storage_config1.json:/usr/src/app/config/data_models_storage_config.json
+      - ./integration-test.sql:/usr/src/app/integration-test.sql
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      REQUIRE_SIGN_IN: "false"
+      LIMIT_RECORDS: 25
+    # Await POSTGRES role and DB creation, migrate schema, then start web server:
+    networks:
+      - integrationtest
+      - instance1
+
+    command:
+      - /bin/sh
+      - -c
+      - |
+        ./migrateDbAndStartServer.sh
+
+  #
+  # SPA 1
+  #
+  spa_science_db_app_server1:
+    stdin_open: true # needed for react-scripts@3.4.1 https://github.com/facebook/create-react-app/issues/8688
+    container_name: spa1
+    depends_on:
+      - gql_science_db_graphql_server1
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    volumes:
+      - ../integration_test_env/node_modules:/usr/node_modules
+      - ../integration_test_env/services/spa_science_db_app_server1:/usr/src/app
+    ports:
+     - 8080:8080
+    environment:
+     - PORT=8080
+     - REACT_APP_ZENDRO_GRAPHQL_SERVER_URL=http://localhost:3000/graphql
+     - REACT_APP_ZENDRO_LOGIN_URL=http://localhost:3000/login
+     - REACT_APP_ZENDRO_EXPORT_URL=http://localhost:3000/export
+     - REACT_APP_ZENDRO_MAX_UPLOAD_SIZE=500
+     - REACT_APP_ZENDRO_MAX_RECORD_LIMIT=25
+    networks:
+    - integrationtest
+    command:
+      - /bin/sh
+      - -c
+      - |
+        npm start
+
+  #
+  # Postgres 2
+  #
+  gql_postgres2:
+    container_name: postgres2
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres
+    ports:
+     - 1235:5431
+    networks:
+     - instance2
+
+  #
+  # GraphQL Server 2
+  #
+  gql_science_db_graphql_server2:
+    container_name: server2
+    depends_on:
+      - gql_postgres2
+    build:
+      context: .
+      dockerfile: Dockerfile.graphql_server
+    volumes:
+      - ../integration_test_env/node_modules:/usr/node_modules
+      - ../integration_test_env/services/gql_science_db_graphql_server2:/usr/src/app
+      - ./data_models_storage_config2.json:/usr/src/app/config/data_models_storage_config.json
+      - ./integration-test.sql:/usr/src/app/integration-test.sql
+    ports:
+      - "3030:3030"
+    environment:
+      PORT: 3030
+      REQUIRE_SIGN_IN: "false"
+      LIMIT_RECORDS: 25
+    # Await POSTGRES role and DB creation, migrate schema, then start web server:
+    networks:
+      - integrationtest
+      - instance2
+    command:
+      - /bin/sh
+      - -c
+      - |
+        ./migrateDbAndStartServer.sh
+
+  #
+  # SPA 2
+  #
+  spa_science_db_app_server2:
+    stdin_open: true # needed for react-scripts@3.4.1 https://github.com/facebook/create-react-app/issues/8688
+    container_name: spa2
+    depends_on:
+      - gql_science_db_graphql_server2
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    volumes:
+      - ../integration_test_env/node_modules:/usr/node_modules
+      - ../integration_test_env/services/spa_science_db_app_server2:/usr/src/app
+    ports:
+     - 8081:8081
+    environment:
+     - PORT=8081
+     - REACT_APP_ZENDRO_GRAPHQL_SERVER_URL=http://localhost:3030/graphql
+     - REACT_APP_ZENDRO_LOGIN_URL=http://localhost:3030/login
+     - REACT_APP_ZENDRO_EXPORT_URL=http://localhost:3030/export
+     - REACT_APP_ZENDRO_MAX_UPLOAD_SIZE=500
+     - REACT_APP_ZENDRO_MAX_RECORD_LIMIT=25
+    networks:
+    - integrationtest
+    command:
+      - /bin/sh
+      - -c
+      - |
+        npm start
+
+networks:
+  instance1:
+  instance2:
+  integrationtest:

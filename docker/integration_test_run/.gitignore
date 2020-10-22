@@ -1,8 +1,0 @@
-# Ignore everything in this directory
-*
-# Except this file
-!.gitignore
-!gql-instance1
-!gql-instance2
-!spa-instance1
-!spa-instance2
