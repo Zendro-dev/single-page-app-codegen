@@ -49,13 +49,13 @@
       "codegen": "../..",
       "opts": [ "-P", "-D" ],
       "path": "../integration_test_models_instance1",
-      "target": [ "spa_science_db_app_server1" ]
+      "targets": [ "spa_science_db_app_server1" ]
     },
     {
       "codegen": "../..",
       "opts": [ "-P", "-D" ],
       "path": "../integration_test_models_instance2",
-      "target": [ "spa_science_db_app_server2" ]
+      "targets": [ "spa_science_db_app_server2" ]
     }
   ],
   "patches": [
