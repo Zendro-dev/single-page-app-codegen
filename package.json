@@ -12,7 +12,7 @@
   },
   "scripts": {
     "test-env": "zenv",
-    "test-integration": "zenv && mocha test/integration-tests-mocha.js"
+    "test-integration": "zenv integration"
   },
   "author": "Dr. Asis Hallab <asis.hallab@gmail.com>",
   "license": "MIT",
