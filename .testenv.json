@@ -60,19 +60,19 @@
   ],
   "patches": [
     {
-      "path": "../test/patches/with_validations.js.patch",
+      "path": "../../test/patches/with_validations.js.patch",
       "target": "gql_science_db_graphql_server1/validations/with_validations.js"
     },
     {
-      "path": "../test/patches/acl_rules.js.patch",
+      "path": "../../test/patches/acl_rules.js.patch",
       "target": "spa_science_db_app_server1/src/acl_rules.js"
     },
     {
-      "path": "../test/patches/migrateDbAndStartServer1.patch",
+      "path": "../../test/patches/migrateDbAndStartServer1.patch",
       "target": "gql_science_db_graphql_server1/migrateDbAndStartServer.sh"
     },
     {
-      "path": "../test/patches/migrateDbAndStartServer2.patch",
+      "path": "../../test/patches/migrateDbAndStartServer2.patch",
       "target": "gql_science_db_graphql_server2/migrateDbAndStartServer.sh"
     }
   ],
