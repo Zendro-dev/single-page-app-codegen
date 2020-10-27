@@ -11,8 +11,8 @@
     "single-page-app-codegen": "./index.js"
   },
   "scripts": {
-    "test-env": "zendro-env",
-    "test-integration": "zendro-env integration"
+    "test-env": "zenv",
+    "test-integration": "zenv integration"
   },
   "author": "Dr. Asis Hallab <asis.hallab@gmail.com>",
   "license": "MIT",

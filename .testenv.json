@@ -1,52 +1,58 @@
 {
   "cwd": "./test/integration_test_env",
-  "docker": "../integration_test_misc/docker-compose-test.yml",
   "env": {
     "NODE_JQ_SKIP_INSTALL_BINARY": true
   },
+  "docker": "../integration_test_misc/docker-compose-test.yml",
   "services": [
     {
       "name": "gql_science_db_graphql_server1",
-      "template": "gql",
-      "codegen": "gql-codegen",
+      "template": "https://github.com/Zendro-dev/graphql-server.git",
+      "branch": "master",
       "url": "http://localhost:3000/graphql"
     },
     {
       "name": "gql_science_db_graphql_server2",
-      "template": "gql",
-      "codegen": "gql-codegen",
+      "template": "https://github.com/Zendro-dev/graphql-server.git",
+      "branch": "master",
       "url": "http://localhost:3030/graphql"
     },
     {
       "name": "spa_science_db_app_server1",
-      "template": "spa",
-      "codegen": "spa-codegen",
+      "template": "https://github.com/Zendro-dev/single-page-app.git",
+      "branch": "master",
       "url": "http://localhost:8080/graphql"
     },
     {
       "name": "spa_science_db_app_server2",
-      "template": "spa",
-      "codegen": "spa-codegen",
+      "template": "https://github.com/Zendro-dev/single-page-app.git",
+      "branch": "master",
       "url": "http://localhost:8081/graphql"
     }
   ],
   "models": [
     {
-      "opts": [ "--migrations" ],
+      "codegen": "https://github.com/Zendro-dev/graphql-server-model-codegen.git",
+      "branch": "master",
+      "options": [ "--migrations" ],
       "path": "../integration_test_models_instance1",
-      "target": [ "gql_science_db_graphql_server1" ]
+      "targets": [ "gql_science_db_graphql_server1"  ]
     },
     {
-      "opts": [ "--migrations" ],
+      "codegen": "https://github.com/Zendro-dev/graphql-server-model-codegen.git",
+      "branch": "master",
+      "options": [ "--migrations" ],
       "path": "../integration_test_models_instance2",
-      "target": [ "gql_science_db_graphql_server2" ]
+      "targets": [ "gql_science_db_graphql_server2" ]
     },
     {
+      "codegen": "../..",
       "opts": [ "-P", "-D" ],
       "path": "../integration_test_models_instance1",
       "target": [ "spa_science_db_app_server1" ]
     },
     {
+      "codegen": "../..",
       "opts": [ "-P", "-D" ],
       "path": "../integration_test_models_instance2",
       "target": [ "spa_science_db_app_server2" ]
@@ -54,47 +60,20 @@
   ],
   "patches": [
     {
-      "opts": [],
-      "src": "../../test/patches/with_validations.js.patch",
-      "dest": "gql_science_db_graphql_server1/validations/with_validations.js"
+      "path": "../../test/patches/with_validations.js.patch",
+      "target": "gql_science_db_graphql_server1/validations/with_validations.js"
     },
     {
-      "opts": [],
-      "src": "../../test/patches/acl_rules.js.patch",
-      "dest": "spa_science_db_app_server1/src/acl_rules.js"
+      "path": "../../test/patches/acl_rules.js.patch",
+      "target": "spa_science_db_app_server1/src/acl_rules.js"
     },
     {
-      "opts": [],
-      "src": "../../test/patches/migrateDbAndStartServer1.patch",
-      "dest": "gql_science_db_graphql_server1/migrateDbAndStartServer.sh"
+      "path": "../../test/patches/migrateDbAndStartServer1.patch",
+      "target": "gql_science_db_graphql_server1/migrateDbAndStartServer.sh"
     },
     {
-      "opts": [],
-      "src": "../../test/patches/migrateDbAndStartServer2.patch",
-      "dest": "gql_science_db_graphql_server2/migrateDbAndStartServer.sh"
-    }
-  ],
-  "templates": [
-    {
-      "name": "gql",
-      "branch": "master",
-      "url": "https://github.com/Zendro-dev/graphql-server.git"
-    },
-    {
-      "name": "gql-codegen",
-      "branch": "master",
-      "url": "https://github.com/Zendro-dev/graphql-server-model-codegen.git"
-    },
-    {
-      "name": "spa",
-      "branch": "master",
-      "url": "https://github.com/Zendro-dev/single-page-app.git"
-    },
-    {
-      "name": "spa-codegen",
-      "branch": "master",
-      "url": "../../.git",
-      "source": true
+      "path": "../../test/patches/migrateDbAndStartServer2.patch",
+      "target": "gql_science_db_graphql_server2/migrateDbAndStartServer.sh"
     }
   ],
   "tests": [
