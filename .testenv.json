@@ -80,7 +80,7 @@
     {
       "name": "integration",
       "runner": "mocha",
-      "target": "spa-codegen/test/integration-tests-mocha.js"
+      "target": "../integration-tests-mocha.js"
     }
   ]
 }
