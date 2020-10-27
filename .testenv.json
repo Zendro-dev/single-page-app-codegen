@@ -75,12 +75,5 @@
       "path": "../../test/patches/migrateDbAndStartServer2.patch",
       "target": "gql_science_db_graphql_server2/migrateDbAndStartServer.sh"
     }
-  ],
-  "tests": [
-    {
-      "name": "integration",
-      "runner": "mocha",
-      "target": "../integration-tests-mocha.js"
-    }
   ]
 }
