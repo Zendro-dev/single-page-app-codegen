@@ -1,5 +1,11 @@
 
 export default () => ({
+  zendroStudio: {
+    id: -1,
+    name: 'zendro-studio',
+    title: 'Zendro Studio',
+    url: '/main/zendro-studio',
+  },
   models: [
 <%for( let i=0; i<models.length; i++ ){-%>
     {
@@ -19,5 +25,5 @@ export default () => ({
       url: '/main/admin/<%- adminModels[i].nameLc _%>',
     },
 <%}-%>
-  ]
+  ],
 })
