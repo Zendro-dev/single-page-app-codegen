@@ -5,7 +5,7 @@ fs = require('fs-extra');
 path = require('path');
 jsb = require('js-beautify').js_beautify;
 funks = require(path.resolve(__dirname, 'funks.js'));
-program = require('commander');
+const program = require('commander');
 const colors = require('colors/safe');
 
 /*
@@ -19,6 +19,7 @@ program
   .option('-P, --genPlotlyForAll', 'Generates a Plotly JS React component for all the json model files given as input.'+
     'Plotly components will be part of the SPA being generated.')
   .option('-S, --enableZendroStudio', 'Generate a main Zendro Studio component.')
+  .option('-s, --enableZendroStudioModels [modelNames...]', 'Generate individual Zendro Studio components for all or specific models.')
   .option('-V, --verbose', 'Show details about the results of running code generation process.');
 
 /**
@@ -158,7 +159,12 @@ if(!program.jsonFiles){
   /**
    * Case: Generate SPA
    */
-  return funks.genSpa(program, { plotlyOptions: {genPlotly, modelsWithPlotly} })
+  return funks.genSpa(program, {
+    plotlyOptions: {
+      genPlotly,
+      modelsWithPlotly
+    }
+  })
   .then((status) => {
     //print summary
     funks.printSummary(status);

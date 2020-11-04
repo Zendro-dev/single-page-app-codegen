@@ -1925,6 +1925,7 @@ exports.genSpa = async function(program, {plotlyOptions}) {
    */
   for(let i=0; i<opts.length; i++) {
     let ejbOpts = opts[i];
+    ejbOpts.zendroStudioModels = program.enableZendroStudioModels;
 
     // set table path & collect models
     let tablePath = null;

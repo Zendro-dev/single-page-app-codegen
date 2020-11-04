@@ -43,8 +43,10 @@ import Edit from '@material-ui/icons/Edit';
 import SeeInfo from '@material-ui/icons/VisibilityTwoTone';
 //Plotly
 import <%- nameOnPascal -%>Plotly from '../../../../plots/<%- nameCp -%>Plotly';
+<%if(zendroStudioModels) {-%>
 //ZendroStudio
 import ZendroStudio from '../../../../static/zendro-studio/ZendroStudio';
+<%}-%>
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -1202,9 +1204,11 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
       case 'plot':
         return 1;
 
+<%if(zendroStudioModels) {-%>
       case 'plot-editor':
         return 2;
 
+<%}-%>
       default:
         return 0;
     }
@@ -1842,7 +1846,9 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                     )}
                   </div>
 
+<%if(zendroStudioModels) {-%>
                   <ZendroStudio />
+<%}-%>
                 </SwipeableViews>
               </Paper>
             </Grid>
