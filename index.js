@@ -19,7 +19,7 @@ program
   .option('-P, --genPlotlyForAll', 'Generates a Plotly JS React component for all the json model files given as input.'+
     'Plotly components will be part of the SPA being generated.')
   .option('-S, --enableZendroStudio', 'Generate a main Zendro Studio component.')
-  .option('-s, --enableZendroStudioModels [modelNames...]', 'Generate individual Zendro Studio components for all or specific models.')
+  .option('-s, --enableZendroStudioModels', 'Generate individual Zendro Studio components for all or specific models.')
   .option('-V, --verbose', 'Show details about the results of running code generation process.');
 
 /**
