@@ -93,6 +93,11 @@ const useStyles = makeStyles(theme => ({
       width: '100%',
       height: '100%'
     },
+<% if(zendroStudioModels) { -%>
+    zendroStudio: {
+      padding: theme.spacing(0, 2),
+    }
+<% } -%>
 }));
 
 export default function <%- nameOnPascal -%>EnhancedTable(props) {
@@ -1846,9 +1851,9 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                     )}
                   </div>
 
-<%if(zendroStudioModels) {-%>
-                  <ZendroStudio />
-<%}-%>
+<% if(zendroStudioModels) { -%>
+                  <ZendroStudio className={ classes.zendroStudio } />
+<% } -%>
                 </SwipeableViews>
               </Paper>
             </Grid>
