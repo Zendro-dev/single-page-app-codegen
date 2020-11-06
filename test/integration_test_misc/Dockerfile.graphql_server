@@ -11,7 +11,7 @@ RUN mkdir -p /usr/share/man/man1 /usr/share/man/man7
 
 # Clone the skeleton project and install dependencies
 RUN apt-get update \
-    && apt-get upgrade \
+    && apt-get upgrade -y \
     && apt-get install -y git procps autoconf libtool make jq postgresql-client
 
 EXPOSE 3000
