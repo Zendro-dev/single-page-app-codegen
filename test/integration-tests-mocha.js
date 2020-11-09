@@ -1432,7 +1432,7 @@ describe('1. Basic functionality', function () {
     });
   });
 
-  describe('1.15 Add <arr> - record', function() {
+  describe('1.15 Add <arr>', function() {
     //general timeout for each 'it'.
     this.timeout(tt); //10s.
     let n=1;
@@ -1584,14 +1584,13 @@ describe('1. Basic functionality', function () {
   });
 
 
-  describe('1.16 Update <arr> - record', function() {
+  describe('1.16 Update <arr>', function() {
     //general timeout for each 'it'.
     this.timeout(tt); //10s.
     let n=1;
 
     let arrInput = {
-      arrDate: "2012-12-12,2020-02-02",
-      arrDateTime: "2012-12-12T12:12:30Z,2020-02-02T02:02:30Z"
+      arrDateTime: "2012-12-12T12:12:30.000Z,2020-02-02T02:02:30.000Z"
     };
 
     let arr = {
@@ -1601,9 +1600,9 @@ describe('1. Basic functionality', function () {
       arrInt: [1,2,3],
       arrFloat: [1.1,3.14,9.8],
       arrBool: [true,false],
-      arrDate: ["2012-12-12","2020-02-02"],
+      arrDate: null,
       arrTime: null,
-      arrDateTime: ["2012-12-12T12:12:30Z","2020-02-02T02:02:30Z"]
+      arrDateTime: ["2012-12-12T12:12:30.000Z","2020-02-02T02:02:30.000Z"]
     };
 
     let q1 = {
@@ -1645,11 +1644,6 @@ describe('1. Basic functionality', function () {
         ],
       };
       await clickOn(props);
-    });
-
-    it(`${n++}. type on: input field - arrDate`, async function () {
-      await page.click("[id=ArrayField-Arr-arrDate]", { clickCount: 3 });
-      await page.type("[id=ArrayField-Arr-arrDate]", arrInput.arrDate);
     });
     
     it(`${n++}. type on: input field - arrDateTime`, async function () {
@@ -1714,7 +1708,146 @@ describe('1. Basic functionality', function () {
 
   });
 
-  describe('1.16 Delete <arr> - record', function() {
+  describe('1.17 Find <arr>', function() {
+    //general timeout for each 'it'.
+    this.timeout(tt); //10s.
+    let n=1;
+
+    let arrResult = {
+      arrId: "1",
+      country: "Germany",
+      arrStr: ["str1","str2","str3"],
+      arrInt: [1,2,3],
+      arrFloat: [1.1,3.14,9.8],
+      arrBool: [true,false],
+      arrDate: null,
+      arrTime: null,
+      arrDateTime: ["2012-12-12T12:12:30.000Z","2020-02-02T02:02:30.000Z"]
+    };
+
+    let q1= {
+      "data": {
+        "countArrs": 1
+      }
+    };
+    let q2 = {
+      "data": {
+        "arrsConnection": {
+          "pageInfo": {
+            "startCursor": "to_be_assigned",
+            "endCursor": "to_be_assigned",
+            "hasPreviousPage": false,
+            "hasNextPage": false
+          },
+          "edges": [
+            //to_be_assigned
+          ]
+        }
+      }
+    };
+
+    it(`${n++}. type on: input field - search`, async function () {
+      await page.click("input[id=ArrEnhancedTableToolbar-textField-search]", { clickCount: 3 });
+      await page.type("input[id=ArrEnhancedTableToolbar-textField-search]", '2');
+    });
+
+    it(`${n++}. click on: search`, async function() {
+      props = {
+        buttonId: 'ArrEnhancedTableToolbar-iconButton-search',
+        visibleIds: [
+          'ArrEnhancedTable-tableBody',
+          'ArrEnhancedTableToolbar-button-add',
+          'ArrEnhancedTableToolbar-button-import',
+          'ArrEnhancedTableToolbar-button-downloadOptions',
+          'ArrEnhancedTable-row-iconButton-detail-1',
+          'ArrEnhancedTable-row-iconButton-edit-1',
+          'ArrEnhancedTable-row-iconButton-delete-1',
+        ],
+        requests: ['http://localhost:3000/graphql'],
+        responses: [],
+        expectedResponses: 2,
+      };
+      await clickOn(props);
+      // evaluate
+      let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
+      let recordsCount = await page.$$eval('[id=ArrEnhancedTable-tableBody] > tr', items => items.length);
+      let arrsConnection = datas.reduce((a, c) => {if(c&&c.data&&c.data.arrsConnection){ a=c.data.arrsConnection; return a; } else  {return a; }}, {});
+      q2.data.arrsConnection.edges.push({node: arrResult});
+      q2.data.arrsConnection.pageInfo.startCursor = arrsConnection.pageInfo.startCursor;
+      q2.data.arrsConnection.pageInfo.endCursor = arrsConnection.pageInfo.endCursor;
+      expect(datas).to.deep.equalInAnyOrder([q1, q2]);
+      expect(recordsCount).to.eql(1);
+    });
+  });
+
+  describe('1.18 Clear search', function() {
+    //general timeout for each 'it'.
+    this.timeout(tt); //10s.
+    let n=1;
+
+    let arrResult = {
+      arrId: "1",
+      country: "Germany",
+      arrStr: ["str1","str2","str3"],
+      arrInt: [1,2,3],
+      arrFloat: [1.1,3.14,9.8],
+      arrBool: [true,false],
+      arrDate: null,
+      arrTime: null,
+      arrDateTime: ["2012-12-12T12:12:30.000Z","2020-02-02T02:02:30.000Z"]
+    };
+
+    let q1= {
+      "data": {
+        "countArrs": 1
+      }
+    };
+    let q2 = {
+      "data": {
+        "arrsConnection": {
+          "pageInfo": {
+            "startCursor": "to_be_assigned",
+            "endCursor": "to_be_assigned",
+            "hasPreviousPage": false,
+            "hasNextPage": false
+          },
+          "edges": [
+            //to_be_assigned
+          ]
+        }
+      }
+    };
+
+    it(`${n++}. click on: clear search`, async function() {
+      props = {
+        buttonId: 'ArrEnhancedTableToolbar-iconButton-clearSearch',
+        visibleIds: [
+          'ArrEnhancedTable-tableBody',
+          'ArrEnhancedTableToolbar-button-add',
+          'ArrEnhancedTableToolbar-button-import',
+          'ArrEnhancedTableToolbar-button-downloadOptions',
+          'ArrEnhancedTable-row-iconButton-detail-1',
+          'ArrEnhancedTable-row-iconButton-edit-1',
+          'ArrEnhancedTable-row-iconButton-delete-1',
+        ],
+        requests: ['http://localhost:3000/graphql'],
+        responses: [],
+        expectedResponses: 2,
+      };
+      await clickOn(props);
+      // evaluate
+      let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
+      let recordsCount = await page.$$eval('[id=ArrEnhancedTable-tableBody] > tr', items => items.length);
+      let arrsConnection = datas.reduce((a, c) => {if(c&&c.data&&c.data.arrsConnection){ a=c.data.arrsConnection; return a; } else  {return a; }}, {});
+      q2.data.arrsConnection.edges.push({node: arrResult});
+      q2.data.arrsConnection.pageInfo.startCursor = arrsConnection.pageInfo.startCursor;
+      q2.data.arrsConnection.pageInfo.endCursor = arrsConnection.pageInfo.endCursor;
+      expect(datas).to.deep.equalInAnyOrder([q1, q2]);
+      expect(recordsCount).to.eql(1);
+    });
+  });
+
+  describe('1.19 Delete <arr>', function() {
     //general timeout for each 'it'.
     this.timeout(tt); //10s.
     let n=1;
@@ -1802,6 +1935,8 @@ describe('1. Basic functionality', function () {
       expect(await page.title()).to.eql('Zendro');
     });
   });
+
+  
 
 });
 
