@@ -43,6 +43,10 @@ import Edit from '@material-ui/icons/Edit';
 import SeeInfo from '@material-ui/icons/VisibilityTwoTone';
 //Plotly
 import <%- nameOnPascal -%>Plotly from '../../../../plots/<%- nameCp -%>Plotly';
+<%if(zendroStudioModels) {-%>
+//ZendroStudio
+import ZendroStudio from '../../../../static/zendro-studio/ZendroStudio';
+<%}-%>
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -89,6 +93,11 @@ const useStyles = makeStyles(theme => ({
       width: '100%',
       height: '100%'
     },
+<% if(zendroStudioModels) { -%>
+    zendroStudio: {
+      padding: theme.spacing(0, 2),
+    }
+<% } -%>
 }));
 
 export default function <%- nameOnPascal -%>EnhancedTable(props) {
@@ -151,11 +160,11 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   const actionText = useRef(t('modelPanels.gotIt', "Got it"));
   const action = useRef((key) => (
     <>
-      <Button color='inherit' variant='text' size='small' 
+      <Button color='inherit' variant='text' size='small'
       onClick={() => { closeSnackbar(key) }}>
         {actionText.current}
       </Button>
-    </> 
+    </>
   ));
 
   //snackbar (for: getCount)
@@ -168,11 +177,11 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   const actionTextB = useRef(t('modelPanels.gotIt', "Got it"));
   const actionB = useRef((key) => (
     <>
-      <Button color='inherit' variant='text' size='small' 
+      <Button color='inherit' variant='text' size='small'
       onClick={() => { closeSnackbar(key) }}>
         {actionTextB.current}
       </Button>
-    </> 
+    </>
   ));
 
   //toggle buttons
@@ -202,9 +211,9 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 
    /**
     * showMessage
-    * 
+    *
     * Show the given message in a notistack snackbar.
-    * 
+    *
     */
    const showMessage = useCallback((message, withDetail) => {
     enqueueSnackbar( message, {
@@ -218,9 +227,9 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 
   /**
    * showMessageB
-   * 
+   *
    * Show the given message in a notistack snackbar.
-   * 
+   *
    */
   const showMessageB = useCallback((message, withDetail) => {
     enqueueSnackbar( message, {
@@ -235,7 +244,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 <%if(paginationType === 'cursorBased') {-%>
   /**
    * configurePagination
-   * 
+   *
    * Set the configuration needed to perform a reload of data
    * in the given mode.
    */
@@ -255,7 +264,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           includeCursor: false,
         }
         break;
-      
+
       case "reload":
         //set direction
         isForwardPagination.current = true;
@@ -349,7 +358,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
         isCursorPaginating.current = false;
         setIsOnApiRequest(false);
         configurePagination('previousPage');
-        
+
         //reload
         setDataTrigger(prevDataTrigger => !prevDataTrigger);
         return;
@@ -361,7 +370,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
         isCursorPaginating.current = false;
         setIsOnApiRequest(false);
         configurePagination('nextPage');
-        
+
         //reload
         setDataTrigger(prevDataTrigger => !prevDataTrigger);
         return;
@@ -384,13 +393,13 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     isCursorPaginating.current = false;
     setIsOnApiRequest(false);
     return;
-    
+
   }, [configurePagination]);
 <%}-%>
 
   /**
    * clearRequestGetData
-   * 
+   *
    * Clear all configurations related to an api request.
    * Also clears table data and count.
    */
@@ -421,23 +430,23 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 -%>
   /**
     * getCount
-    * 
+    *
     * Get @count from GrahpQL Server (async).
     * Uses current state properties to fill query request.
     * Updates state to inform new @count retreived.
-    * 
+    *
     */
   const getCount = useCallback(async () => {
     //return if there is an active count operation
     if(isCountingRef.current) return;
-    
+
     cancelCountingPromises();
 <%if(paginationType === 'limitOffset') {-%>
     setIsCounting(true);
 <%}-%>
     isCountingRef.current = true;
     errorsB.current = [];
-    
+
     /*
       API Request: <%- requestName1 %>
     */
@@ -477,7 +486,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errorsB.current.push(newError);
           console.log("Error: ", newError);
- 
+
           showMessageB(newError.message, withDetails);
           return;
         }
@@ -547,11 +556,11 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 -%>
   /**
     * getData
-    * 
+    *
     * Get @items from GrahpQL Server.
     * Uses current state properties to fill query request.
     * Updates state to inform new @items retreived.
-    * 
+    *
     */
   const getData = useCallback(async () => {
     updateSizes();
@@ -617,7 +626,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
- 
+
           showMessage(newError.message, withDetails);
           clearRequestGetData();
           return;
@@ -631,11 +640,11 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
         //get items
         let its = response.value.edges.map(o => o.node);
         let pi =  response.value.pageInfo;
-          
+
         /*
           Check: empty page
         */
-        if( its.length === 0 ) 
+        if( its.length === 0 )
         {
           onEmptyPage(pi);
           return;
@@ -649,7 +658,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
         //configure pagination (default)
         configurePagination('reload');
 <%}-%>
-      
+
         //ok
         setItems([...its]);
 
@@ -704,9 +713,9 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   useEffect(() => {
     if (!isOnApiRequestRef.current) {
       getData();
-    } 
-    else { 
-      isPendingApiRequestRef.current = true; 
+    }
+    else {
+      isPendingApiRequestRef.current = true;
     }
   }, [getData]);
 
@@ -751,7 +760,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           (Object.keys(changes.models).length>0)) {
 <%if(paginationType === 'limitOffset') {-%>
             //reload
-            if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
+            if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); }
             else { isPendingApiRequestRef.current = true; }
 <%} else if(paginationType === 'cursorBased') {-%>
             //strict contention
@@ -770,18 +779,18 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 
   useEffect(() => {
     //return if this flag is set
-    if(isGettingFirstDataRef.current) { 
-      isGettingFirstDataRef.current = false; 
-      return; 
-    } 
+    if(isGettingFirstDataRef.current) {
+      isGettingFirstDataRef.current = false;
+      return;
+    }
     else {
       //get data from the new page
       pageRef.current = page;
       if (!isOnApiRequestRef.current) {
-        setDataTrigger(prevDataTrigger => !prevDataTrigger); 
-      } 
-      else { 
-        isPendingApiRequestRef.current = true; 
+        setDataTrigger(prevDataTrigger => !prevDataTrigger);
+      }
+      else {
+        isPendingApiRequestRef.current = true;
       }
     }
   }, [page]);
@@ -790,7 +799,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   useEffect(() => {
     //update ref
     rowsPerPageRef.current = rowsPerPage;
-    
+
     //check strict contention
     if(isOnApiRequestRef.current) { return; }
 
@@ -806,16 +815,16 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     if(isOnApiRequestRef.current || isCursorPaginating.current) { return; }
     //set strict contention
     isCursorPaginating.current = true;
-    
+
     //configure pagination
     configurePagination('reset');
-    //reload    
+    //reload
     setDataTrigger(prevDataTrigger => !prevDataTrigger);
   }, [rowsPerPage, configurePagination]);
 <%}-%>
 
 <%if(paginationType === 'limitOffset') {-%>
-  useEffect(() => {      
+  useEffect(() => {
     if (!isOnApiRequest && isPendingApiRequestRef.current) {
       isPendingApiRequestRef.current = false;
 
@@ -825,13 +834,13 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     updateSizes();
   }, [isOnApiRequest]);
 <%} else if(paginationType === 'cursorBased') {-%>
-  useEffect(() => {      
+  useEffect(() => {
     if (!isOnApiRequest && isPendingApiRequestRef.current) {
       isPendingApiRequestRef.current = false;
 
       //configure pagination
       configurePagination('reload');
-      //reload    
+      //reload
       setDataTrigger(prevDataTrigger => !prevDataTrigger);
     }
     updateSizes();
@@ -865,11 +874,11 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 -%>
   /**
     * doDelete
-    * 
+    *
     * Delete @item using GrahpQL Server mutation.
     * Uses current state properties to fill query request.
     * Updates state to inform new @item deleted.
-    * 
+    *
     */
   async function doDelete(event, item) {
     errors.current = [];
@@ -917,7 +926,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
-  
+
           showMessage(newError.message, withDetails);
           clearRequestDoDelete();
           return;
@@ -938,7 +947,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
         //will count
         cancelCountingPromises();
         isCountingRef.current = false;
-        
+
         reloadData();
         return;
       },
@@ -977,11 +986,11 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 -%>
   /**
     * getCsvTemplate
-    * 
+    *
     * Get @csvTemplate using GrahpQL Server query.
     * Uses current state properties to fill query request.
     * Updates state to inform new @item received.
-    * 
+    *
     */
   async function getCsvTemplate() {
     errors.current = [];
@@ -1025,7 +1034,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
-  
+
           showMessage(newError.message, withDetails);
           clearRequestGetCsvTemplate();
           return;
@@ -1082,7 +1091,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     */
   function cancelCountingPromises() {
     cancelableCountingPromises.current.forEach(p => p.cancel());
-    cancelableCountingPromises.current = [];    
+    cancelableCountingPromises.current = [];
   }
 
   function clearRequestDoDelete() {
@@ -1108,7 +1117,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   function reloadData() {
     //configure pagination
     configurePagination('reload');
-    //reload    
+    //reload
     setDataTrigger(prevDataTrigger => !prevDataTrigger);
   }
 <%}-%>
@@ -1117,7 +1126,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
   function resetReloadData() {
     resetPageRefs();
     //reload
-    if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); } 
+    if (!isOnApiRequestRef.current) { setDataTrigger(prevDataTrigger => !prevDataTrigger); }
     else { isPendingApiRequestRef.current = true; }
   }
 <%}-%>
@@ -1196,10 +1205,15 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     switch(toggleButtonValue) {
       case 'table':
         return 0;
-      
+
       case 'plot':
         return 1;
 
+<%if(zendroStudioModels) {-%>
+      case 'plot-editor':
+        return 2;
+
+<%}-%>
       default:
         return 0;
     }
@@ -1282,7 +1296,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     {
       //configure pagination
       configurePagination('reset');
-      
+
       if(page !== 0) {
         isGettingFirstDataRef.current = true; //avoids to get data on [page] effect
         setPage(0);
@@ -1336,7 +1350,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     if(isOnApiRequestRef.current || isCursorPaginating.current) { return; }
     //set strict contention
     isCursorPaginating.current = true;
-    
+
 
     //configure pagination
     configurePagination('reset');
@@ -1760,12 +1774,12 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     let label = a;
     let type = attributesArr[i][1];
 
-    /** 
+    /**
      * Skip:
      *  - internalId (already rendered).
      *  - password field in admin model User.
      */
-    if((a===internalId) 
+    if((a===internalId)
     || (nameLc==='user' && a==='password')) continue;
 -%>
                                     {/* <%- label %> */}
@@ -1836,6 +1850,10 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                       <<%- nameOnPascal -%>Plotly />
                     )}
                   </div>
+
+<% if(zendroStudioModels) { -%>
+                  <ZendroStudio className={ classes.zendroStudio } />
+<% } -%>
                 </SwipeableViews>
               </Paper>
             </Grid>

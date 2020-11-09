@@ -19,5 +19,13 @@ export default () => ({
       url: '/main/admin/<%- adminModels[i].nameLc _%>',
     },
 <%}-%>
-  ]
+  ],
+<%if (zendroStudio) { -%>
+  zendroStudio: {
+    id: <%- models.length + adminModels.length _%>,
+    name: 'zendro-studio',
+    title: 'Zendro Studio',
+    url: '/main/zendro-studio',
+  },
+<% } -%>
 })
