@@ -29,23 +29,28 @@ export default function ArrayField(props) {
     arrayType,
   } = props;
   
-  const defaultValue = useRef((text !== undefined && Array.isArray(text) ) ? text : '');
-  const textValue = useRef((text !== undefined && Array.isArray(text) ) ? text : null);
+  const defaultValue = useRef((text !== undefined && Array.isArray(text) ) ? text.join(",") : '');
+  const textValue = useRef((text !== undefined && Array.isArray(text) ) ? text.join(",") : '');
 
   let parseValue = (input, arrayType) => {
-    let array = input.split(",")
-    let typeSet = ["String", "Date", "Time", "DateTime"]
-    if (typeSet.includes(arrayType)){
-      return array
-    } else if (arrayType === 'Int'){
-      return array.map(x => parseInt(x))
-    } else if (arrayType === 'Float'){
-      return array.map(x => parseFloat(x))
-    } else if (arrayType === 'Boolean'){
-      return array.map(x => x === 'true' )
-    } else{
-      console.log('No support for current type. Please check your input.')
+    if (!input){
       return null
+    } else {
+      let array = input.split(",")
+      let typeSet = ["String", "Date", "Time", "DateTime"]
+      
+      if (typeSet.includes(arrayType)){
+        return array
+      } else if (arrayType === 'Int'){
+        return array.map(x => parseInt(x))
+      } else if (arrayType === 'Float'){
+        return array.map(x => parseFloat(x))
+      } else if (arrayType === 'Boolean'){
+        return array.map(x => x === 'true' )
+      } else{
+        console.log('No support for current type. Please check your input.')
+        return null
+      }
     }
   }
 
@@ -125,7 +130,7 @@ ArrayField.propTypes = {
   itemKey: PropTypes.string.isRequired,
   name: PropTypes.string,
   label: PropTypes.string.isRequired,
-  text: PropTypes.string,
+  text: PropTypes.array,
   valueOk: PropTypes.number.isRequired,
   valueAjv: PropTypes.object.isRequired,
   autoFocus: PropTypes.bool,

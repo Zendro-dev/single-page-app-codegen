@@ -33,7 +33,7 @@ export default function ArrayField(props) {
           label={label}
           multiline
           rowsMax="4"
-          value={(text !== undefined && text !== null && Array.isArray(text)) ? text : ''}
+          value={(text !== undefined && text !== null && Array.isArray(text)) ? text.join(",") : ''}
           className={classes.textField}
           margin="normal"
           variant="outlined"
@@ -73,7 +73,7 @@ export default function ArrayField(props) {
 ArrayField.propTypes = {
   name: PropTypes.string,
   label: PropTypes.string.isRequired,
-  text: PropTypes.string,
+  text: PropTypes.array,
   valueOk: PropTypes.number.isRequired,
   autoFocus: PropTypes.bool,
 };
