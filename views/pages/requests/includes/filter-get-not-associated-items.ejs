@@ -189,7 +189,7 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
  * to_many
  */
 -%>
-<%_if( sortedAssociations[aindex].type === 'to_many' ){-%>
+<%_if( sortedAssociations[aindex].type === 'to_many' && sortedAssociations[aindex].typeB !== 'assocThroughArray' ){-%>
     /**
      * Algorithm:
      *    1. get a filtered items.
@@ -286,6 +286,104 @@ async getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>(url, item
     //return value
     return {value: items, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
   },
+<%}-%>
+<%_if( sortedAssociations[aindex].type === 'to_many' && sortedAssociations[aindex].typeB === 'assocThroughArray' ){-%>
+  /**
+   * Algorithm:
+   *    1. get a filtered items.
+   *       filters:
+   *          1.1: exclude itemId in association.targetKey field.
+   *          1.2: include null values in association.targetKey field.  
+   *    2. @return filtered items. 
+   */
+  //search
+  let s = getSearchArgument('<%- sortedAssociations[aindex].targetModelLc _%>', searchText, ops, 'object');
+
+  //make filter to exclude itemId on FK & include null's
+  let f1 = {field: "<%- sortedAssociations[aindex].peerTargetKey _%>", valueType: "Array", value: itemId, operator: "notIn"};
+  let f2 = {field: "<%- sortedAssociations[aindex].peerTargetKey _%>", valueType: "String", value: null, operator: "eq"};
+  let nf = {operator: "or", search: [ f1, f2 ]};
+  
+  //add new filter to ands array
+  if(s) s.search.search.push(nf);
+  else  s = {search: nf};
+
+  //set search
+  variables.search = s.search;
+<%#
+/**
+ * limitOffset
+ */
+-%>
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+  //set query
+  let query = 
+    `query <%- sortedAssociations[aindex].targetModelPlLc _%>($search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationInput!) {
+           <%- sortedAssociations[aindex].targetModelPlLc _%>(search: $search, pagination: $pagination) {
+                ${qattributes}
+              }
+           }`;
+<%}-%>
+<%#
+/**
+ * cursorBased
+ */
+-%>
+<%if(sortedAssociations[aindex].paginationType === 'cursorBased'){-%>
+  //set query
+  let qbody = `
+        pageInfo {startCursor, endCursor, hasPreviousPage, hasNextPage},
+        edges {
+          node {
+            ${qattributes}
+          }
+        }`;
+  let query =
+    `query <%- sortedAssociations[aindex].targetModelPlLc _%>Connection($search: search<%- sortedAssociations[aindex].targetModelCp _%>Input, $pagination: paginationCursorInput!) {
+           <%- sortedAssociations[aindex].targetModelPlLc _%>Connection(search: $search, pagination: $pagination) {
+                ${qbody},
+              },
+           }`;
+<%}-%>
+  /**
+   * Debug
+   */
+  if(globals.REQUEST_LOGGER) logRequest('getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>', query, variables);
+
+  //request
+  let response = await requestGraphql({ url, query, variables });
+  let items = null;
+<%if(sortedAssociations[aindex].paginationType === 'limitOffset') {-%>
+  //check
+  let check = checkResponse(response, graphqlErrors, "<%- sortedAssociations[aindex].targetModelPlLc _%>");
+  if(check === 'ok') {
+      //check type
+      if(!Array.isArray(response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>"])) 
+      return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+      //get value
+      items = response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>"];
+  } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+<%} else if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
+  //check
+  let check = checkResponse(response, graphqlErrors, "<%- sortedAssociations[aindex].targetModelPlLc _%>Connection");
+  if(check === 'ok') {
+    //check type
+    if(!response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"]
+    || typeof response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"] !== 'object'
+    || !Array.isArray(response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"].edges)
+    || typeof response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"].pageInfo !== 'object' 
+    || response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"].pageInfo === null)
+    return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+    //get value
+    items = response.data.data["<%- sortedAssociations[aindex].targetModelPlLc _%>Connection"];
+  } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+<%}-%>
+
+  //return value
+  return {value: items, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+},
 <%}-%>
 <%#
 /**

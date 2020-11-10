@@ -762,7 +762,11 @@ function setAjvErrors(err) {
     switch(associationKey) {
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
       case '<%- sortedAssociations[i].relationName _%>':
-<%if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one') {-%>
+<%
+/**
+ * Case: to_one, generic_to_one
+ */
+if(['to_one', 'generic_to_one'].includes(sortedAssociations[i].type)){-%>
         <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
         <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.push(itemId);
         set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState([itemId]);
@@ -770,9 +774,17 @@ function setAjvErrors(err) {
         handleSetValue(itemId, -2, '<%- sortedAssociations[i].foreignKey _%>');
         setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: itemId});
 <%}-%>
-<%} else if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many') {-%>
+<%} else if(['to_many', 'to_many_through_sql_cross_table', 'generic_to_many'].includes(sortedAssociations[i].type)) {
+/**
+ * Case: to_many, to_many (assocThroughArray), to_many_through_sql_cross_table, generic_to_many
+ */
+-%>
         <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.push(itemId);
         set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState([...<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current]);
+<%if(hasOwnForeingKeys && sortedAssociations[i].foreignKey){-%>
+        handleSetValue(itemId, -2, '<%- sortedAssociations[i].foreignKey _%>');
+        setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: itemId});
+<%}-%>
 <%}-%>
         break;
 <%}-%>
@@ -785,7 +797,11 @@ function setAjvErrors(err) {
   const handleUntransferFromAdd =(associationKey, itemId) => {
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
     if(associationKey === '<%- sortedAssociations[i].relationName _%>') {
-<%if(sortedAssociations[i].type === 'to_one' || sortedAssociations[i].type === 'generic_to_one') {-%>
+<%
+/**
+ * Case: to_one, generic_to_one
+ */
+if(['to_one', 'generic_to_one'].includes(sortedAssociations[i].type)){-%>
       if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.length > 0
       && <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current[0] === itemId) {
         <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
@@ -795,12 +811,20 @@ function setAjvErrors(err) {
         setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: null});
 <%}-%>
       }
-<%} else if(sortedAssociations[i].type === 'to_many' || sortedAssociations[i].type === 'to_many_through_sql_cross_table' || sortedAssociations[i].type === 'generic_to_many') {-%>
+<%} else if(['to_many', 'to_many_through_sql_cross_table', 'generic_to_many'].includes(sortedAssociations[i].type)) {
+/**
+ * Case: to_many, to_many (assocThroughArray), to_many_through_sql_cross_table, generic_to_many
+ */
+-%>
       for(let i=0; i<<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.length; ++i)
       {
         if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current[i] === itemId) {
           <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.splice(i, 1);
           set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState([...<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current]);
+<%if(hasOwnForeingKeys && sortedAssociations[i].foreignKey){-%>
+          handleSetValue(null, -2, '<%- sortedAssociations[i].foreignKey _%>');
+          setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: null});
+<%}-%>
           return;
         }
       }
