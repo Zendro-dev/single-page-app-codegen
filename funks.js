@@ -971,25 +971,6 @@ parseAssociationsFromFile = function(fileData){
           assoc.ownForeignKeysArr.push(association.sourceKey);
           break;
 
-          /**
-           * study --> to_many --> factors
-           * 
-           * addFactors[1, 2, 3]
-           * 
-           * 
-           *  "factors": {
-      "type": "to_many",
-      "targetStorageType": "sql",
-      "target": "factor",
-      "targetKey": "study_ids",
-      "sourceKey": "factor_ids",
-      "keyIn": "study",
-      "reverseAssociationType": "to_many",
-      "label": "name"
-    },
-           */
-
-
         default:
           //unknown type
           console.log(colors.red('@@Error on association:'), colors.blue(name), '- Association has insconsistent key attributes.');
