@@ -65,7 +65,7 @@ exports.renderToFile = async function(outFile, templateName, options) {
  */
 exports.renderToFileSync = async function(outFile, templateName, options, status, verbose) {
   let errorOnRender = false;
-  
+
   //generate
   let genFile = await exports.renderTemplate(templateName, options)
   .catch((e) => {
@@ -75,7 +75,7 @@ exports.renderToFileSync = async function(outFile, templateName, options, status
     console.log('@@@ Template:', colors.dim(templateName), 'with error.');
     console.log(e);
   });
-  
+
   //write
   if(!errorOnRender) {
     try {
@@ -97,7 +97,7 @@ exports.renderToFileSync = async function(outFile, templateName, options, status
     if(typeof status.totalCodeGenerationErrors === 'number'){
       status.totalCodeGenerationErrors++;
     }
-    if(status.templatesWithErrors 
+    if(status.templatesWithErrors
     && Array.isArray(status.templatesWithErrors)
     && !status.templatesWithErrors.includes(templateName)) {
       status.templatesWithErrors.push(templateName);
@@ -211,7 +211,7 @@ exports.parseFile = function(jFile){
   //parse
   try {
     words=JSON.parse(data);
-    
+
     /**
      * Check storageType: exclude adapters.
      */
@@ -266,7 +266,7 @@ exports.checkJsonFiles = function(jsonDir, jsonFiles, options){
     result.pass = false;
     result.errors.push(`@@Error: There are no JSON files on input directory. You should specify some JSON files in order to generate the Zendro SPA.`);
   } else {
-    
+
     /**
      * Plotly checks
      */
@@ -323,7 +323,7 @@ exports.checkJsonDataFile = function(jsonModel, options){
       result.errors.push(`@@Error: 'model' field must be a string.`);
     }
   }
-  
+
   //'storageType'
   if(!jsonModel.hasOwnProperty('storageType')) {
     result.pass = false;
@@ -348,7 +348,7 @@ exports.checkJsonDataFile = function(jsonModel, options){
         case 'generic-adapter':
         //ok
         break;
-        
+
         default:
           //not ok
           result.pass = false;
@@ -357,7 +357,7 @@ exports.checkJsonDataFile = function(jsonModel, options){
       }
     }
   }
-  
+
   //'attributes'
   if(!jsonModel.hasOwnProperty('attributes')) {
     result.pass = false;
@@ -404,7 +404,7 @@ exports.checkJsonDataFile = function(jsonModel, options){
       }
     }
   }
-  
+
   //'associations'
   if(jsonModel.hasOwnProperty('associations')) {
     //check 'associations' type
@@ -526,7 +526,7 @@ exports.fillOptionsForViews = function(fileData, filePath, options){
     isDefaultId: (fileData.internalId) ? false : true,
     paginationType: getPaginationType(fileData),
     storageType: fileData.storageType,
-    
+
     //Plotly
     withPlotly: getWithPlotly(options, filePath),
     standalonePlotly: options.plotlyOptions.standalonePlotly,
@@ -541,13 +541,13 @@ exports.fillOptionsForViews = function(fileData, filePath, options){
 /**
  * addKeyRelationName - Adds 'keyRelationName' name-attributes to each association defined on each model.
  * This key name is a unique name that identifies a relation between two models and is composed as follows:
- * 
+ *
  * Case: to_many || to_one:
  *      <keyIn>_<targetKey>
- * 
+ *
  * Case: to_many_through_sql_cross_table:
  *      <keysIn>
- * 
+ *
  * Case: generic_to_one || generic_to_many
  *      <modelName>_<relationName>
  *
@@ -564,10 +564,10 @@ exports.addKeyRelationName = function(opts, status) {
   let errorsE = []; //check E: peerA.sourceKey should be = peerB.targetKey
   let errorsF = []; //check F: target model not found && is many_to_many
   let errorsG = []; //check G: peer association not found && is many_to_many
-  
+
   //for each model
   opts.forEach( (opt) => {
-    
+
     //for each association
     opt.sortedAssociations.forEach( (association) => {
 
@@ -580,7 +580,7 @@ exports.addKeyRelationName = function(opts, status) {
         association.keyRelationName = association.keysIn;
       } else if(association.type === 'generic_to_one' || association.type === 'generic_to_many') {
         association.keyRelationName = opt.name+'_'+association.relationName;
-      }       
+      }
 
       /**
        * Checks
@@ -592,7 +592,7 @@ exports.addKeyRelationName = function(opts, status) {
       //find target model
       let foundTargetModel = false;
       for(let i=0; i<opts.length && !foundTargetModel; i++) {
-        
+
         /**
          * Case: target model found
          */
@@ -602,9 +602,9 @@ exports.addKeyRelationName = function(opts, status) {
           //find peer association
           let foundPeerAssociation = false;
           for(let j=0; j<opts[i].sortedAssociations.length && !foundPeerAssociation; j++) {
-            
+
             if(association.type === 'to_one' || association.type === 'to_many') {
-              
+
               /**
                * Case: peer association found
                */
@@ -616,11 +616,11 @@ exports.addKeyRelationName = function(opts, status) {
                 if(opts[i].sortedAssociations[j].keyIn !== association.keyIn) {
                   //error
                   errorsA.push({
-                    model: opt.name, 
-                    association: association.relationName, 
-                    targetKey: association.targetKey, 
-                    keyIn: association.keyIn, 
-                    targetModel: association.targetModel, 
+                    model: opt.name,
+                    association: association.relationName,
+                    targetKey: association.targetKey,
+                    keyIn: association.keyIn,
+                    targetModel: association.targetModel,
                     peerAssociationName: opts[i].sortedAssociations[j].relationName,
                     peerAssociationKeyIn: opts[i].sortedAssociations[j].keyIn,
                   });
@@ -630,11 +630,11 @@ exports.addKeyRelationName = function(opts, status) {
                 if(opts[i].sortedAssociations[j].type !== 'to_one' && opts[i].sortedAssociations[j].type !== 'to_many') {
                   //error
                   errorsB.push({
-                    model: opt.name, 
-                    association: association.relationName, 
+                    model: opt.name,
+                    association: association.relationName,
                     targetKey: association.targetKey,
-                    type: association.type, 
-                    targetModel: association.targetModel, 
+                    type: association.type,
+                    targetModel: association.targetModel,
                     peerAssociationName: opts[i].sortedAssociations[j].relationName,
                     peerAssociationType: opts[i].sortedAssociations[j].type,
                   });
@@ -642,13 +642,13 @@ exports.addKeyRelationName = function(opts, status) {
               }//else: nothing to check
 
             } else if(association.type === 'to_many_through_sql_cross_table') {
-              
+
               /**
                * Case: same keysIn found
                */
               if(opts[i].sortedAssociations[j].keysIn === association.keysIn) {
                 foundPeerAssociation = true;
-                
+
                 //set peer association names
                 association.peerAssociationName = opts[i].sortedAssociations[j].relationName;
                 association.peerAssociationNameCp = opts[i].sortedAssociations[j].relationNameCp;
@@ -657,7 +657,7 @@ exports.addKeyRelationName = function(opts, status) {
 
                 /**
                  * Check: crossed attributes
-                 * 
+                 *
                  * (C) peerA.model        should be = peerB.targetModel
                  * (D) peerA.targetKey    should be = peerB.sourceKey
                  * (E) peerA.sourceKey    should be = peerB.targetKey
@@ -665,11 +665,11 @@ exports.addKeyRelationName = function(opts, status) {
                 if(opts[i].sortedAssociations[j].targetModel !== opt.name) {
                   //error: on check: (C)
                   errorsC.push({
-                    model: opt.name, 
-                    association: association.relationName, 
-                    targetKey: association.targetKey, 
-                    keysIn: association.keysIn, 
-                    targetModel: association.targetModel, 
+                    model: opt.name,
+                    association: association.relationName,
+                    targetKey: association.targetKey,
+                    keysIn: association.keysIn,
+                    targetModel: association.targetModel,
                     peerAssociationName: opts[i].sortedAssociations[j].relationName,
                     peerAssociationTargetModel: opts[i].sortedAssociations[j].targetModel,
                   });
@@ -677,11 +677,11 @@ exports.addKeyRelationName = function(opts, status) {
                 if(opts[i].sortedAssociations[j].sourceKey !== association.targetKey) {
                   //error: on check: (D)
                   errorsD.push({
-                    model: opt.name, 
-                    association: association.relationName, 
-                    targetKey: association.targetKey, 
-                    keysIn: association.keysIn, 
-                    targetModel: association.targetModel, 
+                    model: opt.name,
+                    association: association.relationName,
+                    targetKey: association.targetKey,
+                    keysIn: association.keysIn,
+                    targetModel: association.targetModel,
                     peerAssociationName: opts[i].sortedAssociations[j].relationName,
                     peerAssociationSourceKey: opts[i].sortedAssociations[j].sourceKey,
                   });
@@ -689,11 +689,11 @@ exports.addKeyRelationName = function(opts, status) {
                 if(opts[i].sortedAssociations[j].targetKey !== association.sourceKey) {
                   //error: on check: (E)
                   errorsE.push({
-                    model: opt.name, 
-                    association: association.relationName, 
-                    sourceKey: association.sourceKey, 
-                    keysIn: association.keysIn, 
-                    targetModel: association.targetModel, 
+                    model: opt.name,
+                    association: association.relationName,
+                    sourceKey: association.sourceKey,
+                    keysIn: association.keysIn,
+                    targetModel: association.targetModel,
                     peerAssociationName: opts[i].sortedAssociations[j].relationName,
                     peerAssociationTargetKey: opts[i].sortedAssociations[j].targetKey,
                   });
@@ -704,7 +704,7 @@ exports.addKeyRelationName = function(opts, status) {
 
           /**
            * Checks: peer association not found
-           * 
+           *
            * (B) peer association not found on to_one or to_many: warning
            * (G) peer association not found on many_to_many:      error
            */
@@ -712,9 +712,9 @@ exports.addKeyRelationName = function(opts, status) {
             if(association.type === 'to_many_through_sql_cross_table') {
               //error: on check: (G)
               errorsG.push({
-                model: opt.name, 
+                model: opt.name,
                 association: association.relationName,
-                keysIn: association.keysIn, 
+                keysIn: association.keysIn,
                 targetModel: association.targetModel,
               });
             }else {//warning: on check (B)
@@ -727,7 +727,7 @@ exports.addKeyRelationName = function(opts, status) {
       }//end: for each model: find target model
       /**
        * Checks: target model not found
-       * 
+       *
        * (A) target model not found on to_one or to_many: warning
        * (F) target model not found on many_to_many:      error
        */
@@ -735,9 +735,9 @@ exports.addKeyRelationName = function(opts, status) {
         if(association.type === 'to_many_through_sql_cross_table') {
           //error: on check: (F)
           errorsG.push({
-            model: opt.name, 
+            model: opt.name,
             association: association.relationName,
-            keysIn: association.keysIn, 
+            keysIn: association.keysIn,
             targetModel: association.targetModel,
           });
         }else {//warning: on check (A)
@@ -795,7 +795,7 @@ exports.addKeyRelationName = function(opts, status) {
   errorsG.forEach((e) => {
     console.log(colors.yellow('@@Error: Incomplete association definition'), 'on model:', colors.blue(e.model), 'on associaton:', colors.blue(e.association), 'with <keysIn>:', colors.blue(e.keysIn), '- Peer association on keysIn:', colors.yellow(e.keysIn), 'not found on target model:', colors.yellow(e.targetModel));
   });
- 
+
   //throws if there is any error
   if(errorsA.length > 0 || errorsB.length > 0 || errorsC.length > 0 || errorsD.length > 0 || errorsE.length > 0 || errorsF.length > 0 || errorsG.length > 0) {
     throw new Error("Incorrect association definition");
@@ -817,9 +817,9 @@ exports.addExtraAttributesAssociations = function(opts) {
       for(let i=0; !found && i<opts.length; i++) {
         if(association.targetModel === opts[i].name) {
           found = true;
-          
+
           /**
-           * Add extra attributes: 
+           * Add extra attributes:
            */
           //set internalId
           association.internalId = opts[i].internalId;
@@ -829,7 +829,7 @@ exports.addExtraAttributesAssociations = function(opts) {
           association.isDefaultId = opts[i].isDefaultId;
           //set paginationType
           association.paginationType = opts[i].paginationType;
-          
+
         }
       }
     })
@@ -854,14 +854,14 @@ attributesArrayFromFile = function(attributes){
 }
 
 /**
- * attributesWithoutTargetKeysArrayFromFile - Given a object containing attributes description, 
- * this function will convert it to an array of arrays, where each item is as array with field 
+ * attributesWithoutTargetKeysArrayFromFile - Given a object containing attributes description,
+ * this function will convert it to an array of arrays, where each item is as array with field
  * name and its type (example [ [ 'name','string' ], [ 'is_human','boolean' ] ]).
  * Own target keys given on @ownTargetKeys will be excluded.
  *
  * @param  {object} attributes Object with keys the name of the field and value its type.
  * @param  {object} attrownTargetKeysibutes Object with keys the name of the field and value its type.
- * @return {array}  Array of arrays, where each item is as array with field name and its type 
+ * @return {array}  Array of arrays, where each item is as array with field name and its type
  * (example [ [ 'name','string' ], [ 'is_human','boolean' ] ]).
  */
 attributesWithoutTargetKeysArrayFromFile = function(attributes, ownTargetKeys){
@@ -886,7 +886,7 @@ parseAssociationsFromFile = function(fileData){
   //check
   let results = checkAssociations(fileData); // !throws on error
   let warnings = results.warnings;
- 
+
   let associations = fileData.associations;
   let assoc = {
     "belongsTos" : [],
@@ -1070,7 +1070,7 @@ checkAssociations = function(fileData){
     console.log(colors.red('@@Error:'), "Invalid type of model's attribute:", colors.dim('associations'), "Expected an object but got:", colors.dim(typeof associations));
     throw new Error("Invalid attributes found");
   }
-  
+
   Object.entries(associations).forEach( ([name, association]) =>{
 
     /**
@@ -1082,7 +1082,7 @@ checkAssociations = function(fileData){
       console.log(colors.red('@@Error on association:'), colors.blue(name), "- Invalid association attribute:", colors.dim('type'), "Expected an string but got:", colors.dim(typeof association.type));
       throw new Error("Invalid attributes found");
     }
-    
+
     //check: value
     switch(association.type.toLowerCase()) {
       //adapters
@@ -1102,7 +1102,7 @@ checkAssociations = function(fileData){
 
     /**
      * Case:
-     * <to_one> || <to_many> 
+     * <to_one> || <to_many>
      */
     if(association.type === 'to_one' || association.type === 'to_many') {
 
@@ -1126,7 +1126,7 @@ checkAssociations = function(fileData){
         console.log(colors.red('@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("targetStorageType"), "and should be a string.");
         throw new Error("Required attributes not found");
       }
-      
+
       //check: required attribute: keyIn
       if(association.keyIn === undefined || typeof association.keyIn !== 'string') {
         //error
@@ -1165,7 +1165,7 @@ checkAssociations = function(fileData){
 
     /**
      * Case:
-     * <to_many_through_sql_cross_table> 
+     * <to_many_through_sql_cross_table>
      */
     if(association.type === 'to_many_through_sql_cross_table'){
 
@@ -1224,7 +1224,7 @@ checkAssociations = function(fileData){
 
     /**
      * Case:
-     * <generic_to_one> || <generic_to_many> 
+     * <generic_to_one> || <generic_to_many>
      */
     if(association.type === 'generic_to_one' || association.type === 'generic_to_many'){
 
@@ -1236,15 +1236,15 @@ checkAssociations = function(fileData){
       }
     }
   }); //end: Object.entries(associations).forEach()
-  
+
 
   /**
    * Check: target key should:
    * - appears only once (unique) per association, in a non self-associated definition.
-   * - appears only twice in a self-associated definition, once in each of the two complementary definitions.   
+   * - appears only twice in a self-associated definition, once in each of the two complementary definitions.
    */
   Object.entries(ownTargetKeys).forEach((entry) => {
-    //Case: not self-associated: target key appears more than once. 
+    //Case: not self-associated: target key appears more than once.
     if(entry[1].count > 1) {
       //error
       console.log(colors.red('@@Error on model:'), colors.blue(modelName), "- target keys should be unique for each association, but", colors.dim(entry[0]), "is used in",entry[1].count, "different associations as target key.");
@@ -1339,7 +1339,7 @@ getWithPlotly = function(options, filePath) {
 }
 
 /**
- * genPlotlyInExistentSpa - Generate Plotly JS React components on an existent 
+ * genPlotlyInExistentSpa - Generate Plotly JS React components on an existent
  * Zendro SPA project.
  *
  * @param  {object} plotlyOptions Plotly related options.
@@ -1410,7 +1410,7 @@ exports.genPlotlyInExistentSpa = async function(plotlyOptions, verbose) {
    */
   //msg
   console.log(colors.white('\n@ Starting code generation in: \n', colors.dim(path.resolve(outputDir))), "\n");
-  
+
   status.totalFilesGenerated = 0;
   status.totalCodeGenerationErrors = 0;
   status.templatesWithErrors = [];
@@ -1421,7 +1421,7 @@ exports.genPlotlyInExistentSpa = async function(plotlyOptions, verbose) {
 
     /**
      * modelPlotly
-     * 
+     *
      * */
     // template 63: ModelPlotly
     fpath = path.resolve(outputDir, `${ejbOpts.nameCp}Plotly.js`);
@@ -1504,18 +1504,18 @@ exports.genStandalonePlotly = async function(plotlyOptions, verbose) {
    */
   //msg
   console.log(colors.white('\n@ Starting code generation in: \n', colors.dim(path.resolve(outputDir))), "\n");
-  
+
   status.totalFilesGenerated = 0;
   status.totalCodeGenerationErrors = 0;
   status.templatesWithErrors = [];
-  
+
   for(let i=0; i<opts.length; i++) {
     let ejbOpts = opts[i];
     status.errorOnRender = false;
 
     /**
      * modelPlotly
-     * 
+     *
      * */
     // template 63: ModelPlotly
     fpath = path.resolve(outputDir, `${ejbOpts.nameCp}Plotly.js`);
@@ -1539,10 +1539,10 @@ checkRequiredDirs = function(requiredDirs, createDirs, baseDir, verbose) {
    */
   let allRequiredDirsExists = true;
   let allRequiredDirsCreated = true;
-  
+
   //msg
   console.log(colors.white('\n@ Checking required directories...'));
-  
+
   let baseDirectory = (baseDir) ? baseDir : "";
   for(let i=0; i<requiredDirs.length; ++i) {
     let dir = path.resolve(path.join(baseDirectory, requiredDirs[i]));
@@ -1710,10 +1710,10 @@ parseJsonModels = function(jsonFiles, baseDir, {plotlyOptions}, verbose) {
       console.log('@@@ File:', colors.blue(jsonFile), colors.yellow('excluded'));
       continue;
     }
-    
+
     //msg
     if(verbose) console.log("@@ Processing model in: ", colors.blue(jsonFile));
-    
+
     //do semantic validations
     let check_json_model = funks.checkJsonDataFile(fileData);
     totalWarnings += check_json_model.warnings;
@@ -1732,7 +1732,7 @@ parseJsonModels = function(jsonFiles, baseDir, {plotlyOptions}, verbose) {
       continue;
 
     } else { //first phase of semantic validations: ok
-      
+
       //get options
       let opt = null;
       try {
@@ -1872,7 +1872,7 @@ exports.genSpa = async function(program, {plotlyOptions}) {
     //msg
     console.log("@ ", colors.red('done'));
     process.exit(1);
-  } 
+  }
 
   /**
    * Parse JSON model files
@@ -1900,7 +1900,7 @@ exports.genSpa = async function(program, {plotlyOptions}) {
   //add extra attributes
   try {
     //msg
-    console.log(colors.white('@ Associations pos-processing:'));    
+    console.log(colors.white('@ Associations pos-processing:'));
     exports.addKeyRelationName(opts, status);
     exports.addExtraAttributesAssociations(opts);
     console.log(colors.white('@ ', colors.green('done')));
@@ -1919,11 +1919,11 @@ exports.genSpa = async function(program, {plotlyOptions}) {
    */
   //msg
   console.log(colors.white('\n@ Starting code generation in: \n', colors.dim(path.resolve(spaBaseDir))), "\n");
-  
+
   status.totalFilesGenerated = 0;
   status.totalCodeGenerationErrors = 0;
   status.templatesWithErrors = [];
-  let modelsOpts = {models: [], adminModels: []};
+  let modelsOpts = {models: [], adminModels: [], zendroStudio: program.enableZendroStudio};
   let modelAtts = {};
   let adminModelsNames = getAdminModels().map(m=>m.model);
 
@@ -1932,6 +1932,7 @@ exports.genSpa = async function(program, {plotlyOptions}) {
    */
   for(let i=0; i<opts.length; i++) {
     let ejbOpts = opts[i];
+    ejbOpts.zendroStudioModels = program.enableZendroStudioModels;
 
     // set table path & collect models
     let tablePath = null;
@@ -2008,7 +2009,7 @@ exports.genSpa = async function(program, {plotlyOptions}) {
 
     /**
      * modelTable
-     * 
+     *
      * */
     // template 1: ModelEnhancedTable
     let fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/`, `${ejbOpts.nameCp}EnhancedTable.js`);
@@ -2035,8 +2036,8 @@ exports.genSpa = async function(program, {plotlyOptions}) {
     await exports.renderToFileSync(fpath, 'model-table/components/ModelCursorPagination', ejbOpts, status, verbose);
 
     /**
-     * modelTable - modelCreatePanel 
-     * 
+     * modelTable - modelCreatePanel
+     *
      * */
 
     // template 6: ModelCreatePanel
@@ -2052,8 +2053,8 @@ exports.genSpa = async function(program, {plotlyOptions}) {
     await exports.renderToFileSync(fpath, 'model-table/components/model-create-panel/components/ModelConfirmationDialog', ejbOpts, status, verbose);
 
     /**
-     * modelTable - modelCreatePanel - modelAttributes 
-     * 
+     * modelTable - modelCreatePanel - modelAttributes
+     *
      * */
 
     // template 9: ModelAttributesPage
@@ -2104,7 +2105,7 @@ exports.genSpa = async function(program, {plotlyOptions}) {
 
     /**
      * modelTable - modelCreatePanel - modelAssociations
-     * 
+     *
      * */
 
     // template 18: ModelAssociationsPage
@@ -2130,15 +2131,15 @@ exports.genSpa = async function(program, {plotlyOptions}) {
       // template 22: RecordsToAddTransferViewToolbar
       fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-transfer-lists/${ejbOpts.sortedAssociations[i].relationNameLc}-to-add-transfer-view/components/`, `${ejbOpts.sortedAssociations[i].relationNameCp}ToAddTransferViewToolbar.js`);
       await exports.renderToFileSync(fpath, 'model-table/components/model-create-panel/components/model-associations-page/association-transfer-lists/records-to-add-transfer-view/components/RecordsToAddTransferViewToolbar', ejbOpts, status, verbose);
-    
+
       // template 22_b: RecordsToAddTransferViewCursorPagination
       fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-associations-page/${ejbOpts.sortedAssociations[i].relationNameLc}-transfer-lists/${ejbOpts.sortedAssociations[i].relationNameLc}-to-add-transfer-view/components/`, `${ejbOpts.sortedAssociations[i].relationNameCp}ToAddTransferViewCursorPagination.js`);
       await exports.renderToFileSync(fpath, 'model-table/components/model-create-panel/components/model-associations-page/association-transfer-lists/records-to-add-transfer-view/components/RecordsToAddTransferViewCursorPagination', ejbOpts, status, verbose);
     }
 
     /**
-     * modelTable - modelUpdatePanel 
-     * 
+     * modelTable - modelUpdatePanel
+     *
      * */
 
     // template 23: ModelUpdatePanel
@@ -2154,8 +2155,8 @@ exports.genSpa = async function(program, {plotlyOptions}) {
     await exports.renderToFileSync(fpath, 'model-table/components/model-update-panel/components/ModelConfirmationDialog', ejbOpts, status, verbose);
 
     /**
-     * modelTable - modelUpdatePanel - modelAttributes 
-     * 
+     * modelTable - modelUpdatePanel - modelAttributes
+     *
      * */
 
     // template 26: ModelAttributesPage
@@ -2204,7 +2205,7 @@ exports.genSpa = async function(program, {plotlyOptions}) {
 
     /**
      * modelTable - modelUpdatePanel - modelAssociations
-     * 
+     *
      * */
 
     // template 35: ModelAssociationsPage
@@ -2252,8 +2253,8 @@ exports.genSpa = async function(program, {plotlyOptions}) {
     }
 
     /**
-     * modelTable - modelDetailPanel 
-     * 
+     * modelTable - modelDetailPanel
+     *
      * */
 
     // template 42: ModelDetailPanel
@@ -2261,8 +2262,8 @@ exports.genSpa = async function(program, {plotlyOptions}) {
     await exports.renderToFileSync(fpath, 'model-table/components/model-detail-panel/ModelDetailPanel', ejbOpts, status, verbose);
 
     /**
-     * modelTable - modelDetailPanel - modelAttributes 
-     * 
+     * modelTable - modelDetailPanel - modelAttributes
+     *
      * */
 
     // template 43: ModelAttributesPage
@@ -2311,7 +2312,7 @@ exports.genSpa = async function(program, {plotlyOptions}) {
     
     /**
      * modelTable - modelDetailPanel - modelAssociations
-     * 
+     *
      * */
 
     // template 52: ModelAssociationsPage
@@ -2342,7 +2343,7 @@ exports.genSpa = async function(program, {plotlyOptions}) {
 
     /**
      * modelPlotly
-     * 
+     *
      * */
     // template 63: ModelPlotly
     fpath = path.resolve(spaBaseDir, `${plotlyPath}/`, `${ejbOpts.nameCp}Plotly.js`);
@@ -2388,7 +2389,7 @@ exports.genSpa = async function(program, {plotlyOptions}) {
 
   /**
    * requests - model
-   * 
+   *
    * */
   // template 56: model
   for(let i=0; i<modelsOpts.models.length; i++)
@@ -2420,7 +2421,7 @@ exports.genSpa = async function(program, {plotlyOptions}) {
 
   /**
    * requests - index & searchAttributes
-   * 
+   *
    * */
   // template 57: requests.index
   fpath = path.resolve(spaBaseDir, `src/requests/`, `requests.index.js`);
@@ -2432,7 +2433,7 @@ exports.genSpa = async function(program, {plotlyOptions}) {
 
   /**
    * routes
-   * 
+   *
    * */
   // template 59: routes
   fpath = path.resolve(spaBaseDir, `src/routes/`, `routes.js`);
@@ -2444,7 +2445,7 @@ exports.genSpa = async function(program, {plotlyOptions}) {
 
   /**
    * acl_rules
-   * 
+   *
    * */
   // template 61: acl_rules
   fpath = path.resolve(spaBaseDir, `src/`, `acl_rules.js`);

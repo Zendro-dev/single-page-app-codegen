@@ -25,6 +25,9 @@ import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import TableIcon from '@material-ui/icons/ViewComfyTwoTone';
 import ChartIcon from '@material-ui/icons/InsertChartTwoTone';
+<% if(zendroStudioModels) { -%>
+import PlotEditorIcon from '@material-ui/icons/CodeTwoTone';
+<% } -%>
 import { grey } from '@material-ui/core/colors';
 
 const useToolbarStyles = makeStyles(theme => ({
@@ -75,7 +78,7 @@ export default function <%- nameOnPascal -%>EnhancedTableToolbar(props) {
 
   const [displayedSearch, setDisplayedSearch] = useState('');
   const [downloadsAnchorEl, setDownloadsAnchorEl] = React.useState(null);
-  
+
   const exportServerUrl = useSelector(state => state.urls.exportServerUrl)
 
   //debouncing & event contention
@@ -107,7 +110,7 @@ export default function <%- nameOnPascal -%>EnhancedTableToolbar(props) {
                   </Typography>
                 </Grid>
 
-                {/* 
+                {/*
                   Conditional rendering: ToggleButtons
                 */}
                 {(showToggleButtons) && (
@@ -120,13 +123,20 @@ export default function <%- nameOnPascal -%>EnhancedTableToolbar(props) {
                       <Tooltip title={ t('modelPanels.table', "Table") }>
                         <ToggleButton value="table">
                           <TableIcon fontSize="small" />
-                        </ToggleButton>    
+                        </ToggleButton>
                       </Tooltip>
                       <Tooltip title={ t('modelPanels.plot', "Plot") }>
                         <ToggleButton value="plot">
                           <ChartIcon fontSize="small" />
                         </ToggleButton>
                       </Tooltip>
+<%if(zendroStudioModels) {-%>
+                      <Tooltip title={ t('modelPanels.plotEditor', "Plot Editor") }>
+                        <ToggleButton value="plot-editor">
+                          <PlotEditorIcon fontSize="small" />
+                        </ToggleButton>
+                      </Tooltip>
+<%}-%>
                     </ToggleButtonGroup>
                   </Grid>
                 )}
@@ -297,7 +307,7 @@ export default function <%- nameOnPascal -%>EnhancedTableToolbar(props) {
                                           <input type="hidden" name="model" value='<%- nameLc -%>' />
                                             <ButtonBase
                                               id='<%- nameOnPascal -%>EnhancedTableToolbar-button-exportData'
-                                              className={classes.textButton} 
+                                              className={classes.textButton}
                                               color="default"
                                               type="submit"
                                               onClick={(event)=>{
@@ -324,7 +334,7 @@ export default function <%- nameOnPascal -%>EnhancedTableToolbar(props) {
                                         <Grid container justify='flex-start'>
                                           <ButtonBase
                                             id='<%- nameOnPascal -%>EnhancedTableToolbar-button-exportTemplate'
-                                            className={classes.textButton} 
+                                            className={classes.textButton}
                                             color="default"
                                             onClick={()=>{
                                               if(!isDownloading.current) {
@@ -348,7 +358,7 @@ export default function <%- nameOnPascal -%>EnhancedTableToolbar(props) {
                                         <Grid container justify='flex-end'>
                                           <Button
                                             id='<%- nameOnPascal -%>EnhancedTableToolbar-button-closeDownloadOptions'
-                                            className={classes.actionButton} 
+                                            className={classes.actionButton}
                                             color="primary"
                                             onClick={handleDownloadsMenuClose}
                                           >

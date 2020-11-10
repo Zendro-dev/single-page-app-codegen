@@ -5,7 +5,7 @@ fs = require('fs-extra');
 path = require('path');
 jsb = require('js-beautify').js_beautify;
 funks = require(path.resolve(__dirname, 'funks.js'));
-program = require('commander');
+const program = require('commander');
 const colors = require('colors/safe');
 
 /*
@@ -18,6 +18,8 @@ program
   .option('-D, --createBaseDirs', 'Try to create base directories if they do not exist.')
   .option('-P, --genPlotlyForAll', 'Generates a Plotly JS React component for all the json model files given as input.'+
     'Plotly components will be part of the SPA being generated.')
+  .option('-S, --enableZendroStudio', 'Generate a main Zendro Studio component.')
+  .option('-s, --enableZendroStudioModels', 'Generate individual Zendro Studio components for all or specific models.')
   .option('-V, --verbose', 'Show details about the results of running code generation process.');
 
 /**
@@ -33,16 +35,16 @@ program
     'If neither -f nor -A options are given, then -s option will be taken as default.')
   .option('-A, --spaDir <spaDirectory>', 'Plotly components will be generated as part of the SPA located in the given directory.'+
     'This option will be ignored if -f option is given, and the Plotly components will be part of the SPA being generated.')
-  .option('-s, --standalonePlotly [plotlyOutputDir]', 
+  .option('-s, --standalonePlotly [plotlyOutputDir]',
     'Plotly components will be generated in standalone mode in the given output directory, or in ./ if no output directory is given.'+
     'This option will be ignored if either -f option or -A option are given.')
   .action((jsonModelFile, moreJsonModelFiles, cmdObj) => {
     //flag
     genPlotly = true;
-    
+
     //arg: <jsonModelFile>
     modelsWithPlotly.push(jsonModelFile);
-    
+
     //args: [moreJsonModelFiles...]
     if(moreJsonModelFiles) {
       moreJsonModelFiles.forEach((jFile) => {
@@ -51,12 +53,12 @@ program
         }
       });
     }
-    
+
     //op: spaDir
     if(cmdObj.spaDir) {
       spaPlotlyDir = path.resolve(cmdObj.spaDir);
     } else {
-      
+
       //op: standalonePlotly
       if(cmdObj.standalonePlotly) {
         if(typeof cmdObj.standalonePlotly === 'string') {
@@ -82,12 +84,12 @@ program.parse(process.argv);
  * Case: No SPA (no input json files for SPA).
  */
 if(!program.jsonFiles){
-  
+
   //op: verbose
   let verbose = program.verbose !== undefined ? true : false;
 
   /**
-   * Check: sub-command: genPlotly 
+   * Check: sub-command: genPlotly
    */
   if(genPlotly) {
     if(spaPlotlyDir) {
@@ -145,7 +147,7 @@ if(!program.jsonFiles){
         process.exit(1);
       });
     }
-  }//end: sub-command: genPlotly 
+  }//end: sub-command: genPlotly
 
   /**
    * No sub-commands neither.
@@ -157,7 +159,12 @@ if(!program.jsonFiles){
   /**
    * Case: Generate SPA
    */
-  return funks.genSpa(program, { plotlyOptions: {genPlotly, modelsWithPlotly} })
+  return funks.genSpa(program, {
+    plotlyOptions: {
+      genPlotly,
+      modelsWithPlotly
+    }
+  })
   .then((status) => {
     //print summary
     funks.printSummary(status);
