@@ -581,7 +581,11 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
     switch(associationKey) {
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
       case '<%- sortedAssociations[i].relationName _%>':
-<%if((sortedAssociations[i].sqlType === 'belongsTo')){-%>
+<%
+/**
+ * Case: to_one, generic_to_one
+ */
+if(['to_one', 'generic_to_one'].includes(sortedAssociations[i].type)){-%>
         if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.indexOf(itemId) === -1) {
           <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
           <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.push(itemId);
@@ -591,20 +595,18 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
           setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: itemId});
 <%}-%>
         }
-<%} else if((sortedAssociations[i].sqlType === 'hasOne')){-%>
+<%} else if(['to_many', 'to_many_through_sql_cross_table', 'generic_to_many'].includes(sortedAssociations[i].type)) {
+/**
+ * Case: to_many, to_many (assocThroughArray), to_many_through_sql_cross_table, generic_to_many
+ */
+-%>
         if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.indexOf(itemId) === -1) {
-          <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
           <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.push(itemId);
           set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current);
 <%if(hasOwnForeingKeys && sortedAssociations[i].foreignKey){-%>
           handleSetValue(itemId, -2, '<%- sortedAssociations[i].foreignKey _%>');
           setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: itemId});
 <%}-%>
-        }
-<%} else {-%>
-        if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.indexOf(itemId) === -1) {
-          <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.push(itemId);
-          set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current);
         }
 <%}-%>
         break;
@@ -618,7 +620,11 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
   const handleUntransferFromAdd =(associationKey, itemId) => {
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
     if(associationKey === '<%- sortedAssociations[i].relationName _%>') {
-<%if((sortedAssociations[i].sqlType === 'belongsTo')){-%>
+<%
+/**
+ * Case: to_one, generic_to_one
+ */
+if(['to_one', 'generic_to_one'].includes(sortedAssociations[i].type)){-%>
       if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.length > 0) {
         <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
         set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState([]);
@@ -627,17 +633,18 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
         setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: null});
 <%}-%>
       }
-<%} else if((sortedAssociations[i].sqlType === 'hasOne')){-%>
-      <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current = [];
-      set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState([]);
-<%if(hasOwnForeingKeys && sortedAssociations[i].foreignKey){-%>
-      handleSetValue(null, -2, '<%- sortedAssociations[i].foreignKey _%>');
-      setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: null});
-<%}-%>
-<%} else {-%>
+<%} else if(['to_many', 'to_many_through_sql_cross_table', 'generic_to_many'].includes(sortedAssociations[i].type)) {
+/**
+ * Case: to_many, to_many (assocThroughArray), to_many_through_sql_cross_table, generic_to_many
+ */
+-%>
       let iof = <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.indexOf(itemId);
       if(iof !== -1) {
         <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.splice(iof, 1);
+<%if(hasOwnForeingKeys && sortedAssociations[i].foreignKey){-%>
+        handleSetValue(null, -2, '<%- sortedAssociations[i].foreignKey _%>');
+        setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: null});
+<%}-%>
       }
 <%}-%>
       return;

@@ -131,7 +131,7 @@
    * to_many
    */
 -%>
-<%_if( sortedAssociations[aindex].type === 'to_many' ){-%>
+<%_if( sortedAssociations[aindex].type === 'to_many' && sortedAssociations[aindex].typeB !== 'assocThroughArray'){-%>
     /**
      * Algorithm:
      *    1. get a filtered count over all items.
@@ -181,6 +181,57 @@
     //return value
     return {value: count, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
   },
+<%}-%>
+<%_if( sortedAssociations[aindex].type === 'to_many' && sortedAssociations[aindex].typeB === 'assocThroughArray'){-%>
+  /**
+   * Algorithm:
+   *    1. get a filtered count over all items.
+   *       filters:
+   *          1.1: exclude itemId in association.targetKey field.
+   *          1.2: include null values in association.targetKey field.  
+   *    2. @return filtered count. 
+   */
+  //search
+  let s = getSearchArgument('<%- sortedAssociations[aindex].targetModelLc _%>', searchText, ops, 'object');
+
+  //make filter to exclude itemId on FK & include null's
+  let f1 = {field: "<%- sortedAssociations[aindex].peerTargetKey _%>", valueType: "Array", value: itemId, operator: "notIn"};
+  let f2 = {field: "<%- sortedAssociations[aindex].peerTargetKey _%>", valueType: "String", value: null, operator: "eq"};
+  let nf = {operator: "or", search: [ f1, f2 ]};
+  
+  //add new filter to ands array
+  if(s) s.search.search.push(nf);
+  else  s = {search: nf};
+
+  //set search
+  let variables = {search: s.search};
+
+   //set query
+  let query = 
+   `query count<%- sortedAssociations[aindex].targetModelPlCp _%>($search: search<%- sortedAssociations[aindex].targetModelCp _%>Input) {
+          count<%- sortedAssociations[aindex].targetModelPlCp _%>(search: $search) }`;
+  
+  /**
+   * Debug
+   */
+  if(globals.REQUEST_LOGGER) logRequest('getNotAssociated<%- sortedAssociations[aindex].relationNameCp %>Count', query, variables);
+  //request
+  let response = await requestGraphql({ url, query, variables });
+  let count = null;
+  //check
+  let check = checkResponse(response, graphqlErrors, "count<%- sortedAssociations[aindex].targetModelPlCp _%>");
+  if(check === 'ok') {
+    //check type
+    if(!Number.isInteger(response.data.data["count<%- sortedAssociations[aindex].targetModelPlCp _%>"])) 
+    return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+    //get value
+    count = response.data.data["count<%- sortedAssociations[aindex].targetModelPlCp _%>"];
+  } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+  //return value
+  return {value: count, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+},
 <%}-%>
 <%#
   /**

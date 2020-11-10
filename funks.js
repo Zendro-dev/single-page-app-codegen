@@ -908,6 +908,7 @@ parseAssociationsFromFile = function(fileData){
       let baa = {
         "type" : type,
         "sqlType" : sqlType,
+        "typeB" : sqlType,
 
         "relationName" : name,
         "relationNameCp": exports.capitalizeString(name),
@@ -960,11 +961,42 @@ parseAssociationsFromFile = function(fileData){
         case "generic":
           break;
 
+        case "assocThroughArray":
+          baa.foreignKey = association.sourceKey;
+          baa.targetKey = association.sourceKey;
+          baa.keyIn = association.keyIn;
+          baa.peerTargetKey = association.targetKey;
+
+          assoc.hasOwnForeingKeys = true;
+          assoc.ownForeignKeysArr.push(association.sourceKey);
+          break;
+
+          /**
+           * study --> to_many --> factors
+           * 
+           * addFactors[1, 2, 3]
+           * 
+           * 
+           *  "factors": {
+      "type": "to_many",
+      "targetStorageType": "sql",
+      "target": "factor",
+      "targetKey": "study_ids",
+      "sourceKey": "factor_ids",
+      "keyIn": "study",
+      "reverseAssociationType": "to_many",
+      "label": "name"
+    },
+           */
+
+
         default:
           //unknown type
           console.log(colors.red('@@Error on association:'), colors.blue(name), '- Association has insconsistent key attributes.');
           throw new Error("Inconsistent attributes found");
       }
+
+
 
       if(type==='to_one' || type==='generic_to_one'){
         assoc.belongsTos.push(baa);
@@ -1100,11 +1132,98 @@ checkAssociations = function(fileData){
         throw new Error("Invalid attributes found");
     }
 
+    //flag
+    let isAssocThroughArray = (association.reverseAssociationType && association.reverseAssociationType === 'to_many');
+
+    /**
+     * Case:
+     * <to_many>: assocThroughArray
+     */
+    if(association.type === 'to_many' && isAssocThroughArray) {
+
+      //check: required attribute: target
+      if(association.target === undefined || typeof association.target !== 'string') {
+        //error
+        console.log(colors.red('@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("target"), "and should be a string.");
+        throw new Error("Required attributes not found");
+      }
+
+      //check: required attribute: targetKey
+      if(association.targetKey === undefined || typeof association.targetKey !== 'string') {
+        //error
+        console.log(colors.red('@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("targetKey"), "and should be a string.");
+        throw new Error("Required attributes not found");
+      }
+
+      //check: required attribute: sourceKey
+      if(association.sourceKey === undefined || typeof association.sourceKey !== 'string') {
+        //error
+        console.log(colors.red('@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("sourceKey"), "and should be a string.");
+        throw new Error("Required attributes not found");
+      }
+
+      //check: required attribute: targetStorageType
+      if(association.targetStorageType === undefined || typeof association.targetStorageType !== 'string') {
+        //error
+        console.log(colors.red('@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("targetStorageType"), "and should be a string.");
+        throw new Error("Required attributes not found");
+      }
+
+      //check: required attribute: keyIn
+      if(association.keyIn === undefined || typeof association.keyIn !== 'string') {
+        //error
+        console.log(colors.red('@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined attribute", colors.dim("keyIn"), "and should be a string.");
+        throw new Error("Required attributes not found");
+      }
+
+      //check: required attribute: keyIn === sourceModel
+      if(association.keyIn !== modelName) {
+        //error
+        console.log(colors.red('@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "attribute", colors.dim("keyIn"), "with value: ", colors.blue(association.keyIn), " should be the source model: ", colors.yellow(modelName));
+        throw new Error("Inconsistent attributes found");
+      }
+
+      //switch targetKey
+      let _targetKey = association.sourceKey;
+
+      /**
+       * Expected: keyIn always is the source model.
+       */
+      //if has targetKey
+      if(association.keyIn === modelName) {
+
+        //update targetKey count
+        if(!ownTargetKeys[_targetKey]) { //case: first occurrence of targetKey
+          //Case: self-associated
+          if(association.target === modelName) {
+            ownTargetKeys[_targetKey] = {count: 0, selfAssociatedCount: 1};
+          } else { //Case: not self-associated
+            ownTargetKeys[_targetKey] = {count: 1, selfAssociatedCount: 0};
+          }
+        } else { //Case: this targetKey has appeared before
+          //Case: self-associated
+          if(association.target === modelName) {
+            ownTargetKeys[_targetKey].selfAssociatedCount++;
+          } else { //Case: not self-associated
+            ownTargetKeys[_targetKey].count++;
+          }
+        }
+
+        //check: consistency definition: targetKey
+        if(!attributes.hasOwnProperty(_targetKey)) {
+        //error
+        console.log(colors.red('@@Error on association:'), colors.blue(name), "- Association type:", colors.dim(association.type), "should have defined the value of", colors.dim("targetKey"), "as an attribute of this model, but", colors.yellow(_targetKey), "is not declared as an attribute.");
+        throw new Error("Inconsistent attributes found");
+        }
+      }
+
+    }
+
     /**
      * Case:
      * <to_one> || <to_many>
      */
-    if(association.type === 'to_one' || association.type === 'to_many') {
+    if(association.type === 'to_one' || (association.type === 'to_many' && !isAssocThroughArray)) {
 
       //check: required attribute: target
       if(association.target === undefined || typeof association.target !== 'string') {
@@ -1285,7 +1404,11 @@ checkAssociations = function(fileData){
  * @param  {string} name Association's name.
  */
 getSqlType = function(association, name){
-  if(association.type === 'to_one' && association.keyIn !== association.target){
+  if(association.type === 'to_many' 
+  && association.reverseAssociationType 
+  && association.reverseAssociationType === 'to_many') {
+    return 'assocThroughArray';
+  } else if(association.type === 'to_one' && association.keyIn !== association.target){
     return 'belongsTo';
   }else if(association.type === 'to_one' && association.keyIn === association.target){
     return 'hasOne';
@@ -1878,6 +2001,13 @@ exports.genSpa = async function(program, {plotlyOptions}) {
    * Parse JSON model files
    */
   status = parseJsonModels(jsonModelsfiles, inputModelsDir, {plotlyOptions}, verbose);
+
+  for(let i=0; i<status.opts.length; i++) {
+    if(status.opts[i].name === 'factor')
+    console.log("@@ status.opts: ", JSON.stringify(status.opts[i], null, 2));
+
+  }
+
   //check
   let opts = status.opts;
   if(opts.length === 0) {
