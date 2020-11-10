@@ -1982,13 +1982,6 @@ exports.genSpa = async function(program, {plotlyOptions}) {
    * Parse JSON model files
    */
   status = parseJsonModels(jsonModelsfiles, inputModelsDir, {plotlyOptions}, verbose);
-
-  for(let i=0; i<status.opts.length; i++) {
-    if(status.opts[i].name === 'factor')
-    console.log("@@ status.opts: ", JSON.stringify(status.opts[i], null, 2));
-
-  }
-
   //check
   let opts = status.opts;
   if(opts.length === 0) {
