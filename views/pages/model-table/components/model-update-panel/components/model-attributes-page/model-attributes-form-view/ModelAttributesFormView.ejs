@@ -12,6 +12,8 @@ import Attributes from '@material-ui/icons/HdrWeakTwoTone';
 import Key from '@material-ui/icons/VpnKey';
 <%
   let types = [];
+  let array = false;
+  let arrayType = ['[String]', '[Float]', '[Int]', '[Boolean]', '[Date]', '[Time]', '[DateTime]']
 
   for( let i=0; i<attributesArr.length; i++ ){
     let a = attributesArr[i][0];
@@ -25,10 +27,19 @@ import Key from '@material-ui/icons/VpnKey';
     if(nameLc==='user' && a==='password') type = 'Password';
 
     //push
-    if(!types.includes(type)) types.push(type);
+    if(!types.includes(type)) {
+      if (arrayType.includes(type)){
+        array = true
+      } else{
+        types.push(type);
+      }
+    }
   }
 
   //render imports
+  if (array){-%>
+import ArrayField from './components/ArrayField'
+<%}
   for( let i=0; i<types.length; i++ ){
     let type = types[i];
 -%>
@@ -289,6 +300,24 @@ export default function <%- nameOnPascal _%>AttributesFormView(props) {
                 autoFocus={true}
 <%}-%>
                 handleSetValue={handleSetValue}
+              />
+            </CardContent>
+<%}-%>
+<% if(type[0] === '[') {%>
+            {/* <%- label %> */}
+            <CardContent key='<%- a %>' className={classes.cardContent} >
+              <ArrayField
+                itemKey='<%- a %>'
+                name='<%- a %>'
+                label='<%- label %>'
+                text={item.<%- a %>}
+                valueOk={valueOkStates.<%- a _%>}
+                valueAjv={valueAjvStates.<%- a _%>}
+<% if(f===0) {-%>
+                autoFocus={true}
+<%}-%>
+                handleSetValue={handleSetValue}
+                arrayType='<%-type.slice(1, -1)_%>'
               />
             </CardContent>
 <%}-%>

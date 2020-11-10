@@ -384,6 +384,13 @@ exports.checkJsonDataFile = function(jsonModel, options){
             case 'Date':
             case 'Time':
             case 'DateTime':
+            case '[String]':
+            case '[Int]':
+            case '[Float]':
+            case '[Boolean]':
+            case '[Date]':
+            case '[Time]':
+            case '[DateTime]':
               //ok
               break;
 
@@ -2090,6 +2097,12 @@ exports.genSpa = async function(program, {plotlyOptions}) {
     fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `TimeField.js`);
     await exports.renderToFileSync(fpath, 'model-table/components/model-create-panel/components/model-attributes-page/model-attributes-form-view/components/TimeField', ejbOpts, status, verbose);
 
+    // template: ArrayField
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-create-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `ArrayField.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-create-panel/components/model-attributes-page/model-attributes-form-view/components/ArrayField', ejbOpts, status, verbose);
+
+
+
     /**
      * modelTable - modelCreatePanel - modelAssociations
      *
@@ -2185,6 +2198,10 @@ exports.genSpa = async function(program, {plotlyOptions}) {
     // template 34: TimeField
     fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `TimeField.js`);
     await exports.renderToFileSync(fpath, 'model-table/components/model-update-panel/components/model-attributes-page/model-attributes-form-view/components/TimeField', ejbOpts, status, verbose);
+
+    // template: ArrayField
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-update-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `ArrayField.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-update-panel/components/model-attributes-page/model-attributes-form-view/components/ArrayField', ejbOpts, status, verbose);
 
     /**
      * modelTable - modelUpdatePanel - modelAssociations
@@ -2289,6 +2306,10 @@ exports.genSpa = async function(program, {plotlyOptions}) {
     fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `TimeField.js`);
     await exports.renderToFileSync(fpath, 'model-table/components/model-detail-panel/components/model-attributes-page/model-attributes-form-view/components/TimeField', ejbOpts, status, verbose);
 
+    // template: ArrayField
+    fpath = path.resolve(spaBaseDir, `${tablePath}/${ejbOpts.nameLc}-table/components/${ejbOpts.nameLc}-detail-panel/components/${ejbOpts.nameLc}-attributes-page/${ejbOpts.nameLc}-attributes-form-view/components/`, `ArrayField.js`);
+    await exports.renderToFileSync(fpath, 'model-table/components/model-detail-panel/components/model-attributes-page/model-attributes-form-view/components/ArrayField', ejbOpts, status, verbose);
+    
     /**
      * modelTable - modelDetailPanel - modelAssociations
      *

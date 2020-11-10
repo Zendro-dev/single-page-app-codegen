@@ -1383,6 +1383,561 @@ describe('1. Basic functionality', function () {
       expect(await page.title()).to.eql('Zendro');
     });
   });
+  describe('1.14 <arr> table is empty', function() {
+    //general timeout for each 'it'.
+    this.timeout(tt); //10s.
+    let n=1;
+
+    let q1 = {
+      "data": {
+        "countArrs": 0
+      }
+    };
+    let q2 = {
+      "data": {
+        "arrsConnection": {
+          "pageInfo": {
+            "startCursor": null,
+            "endCursor": null,
+            "hasPreviousPage": false,
+            "hasNextPage": false
+          },
+          "edges": []
+        }
+      }
+    };
+
+    it(`${n++}. click on: <arr>`, async function() {
+      props = {
+        buttonId: 'MainPanel-listItem-button-arr',
+        visibleIds: [
+          'ArrEnhancedTable-box-noData',
+          'ArrEnhancedTableToolbar-button-add',
+          'ArrEnhancedTableToolbar-button-import',
+          'ArrEnhancedTableToolbar-button-downloadOptions'
+        ],
+        hiddenIds: [
+          'ArrEnhancedTable-tableBody',
+        ],
+        requests: ['http://localhost:3000/graphql'],
+        responses: [],
+        expectedResponses: 2,
+      };
+      await clickOn(props);
+      // evaluate
+      let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
+      let recordsCount = await page.$$eval('[id=ArrEnhancedTable-tableBody] > tr', items => items.length);
+      expect(datas).to.deep.equalInAnyOrder([q1, q2]);
+      expect(recordsCount).to.eql(0);
+    });
+  });
+
+  describe('1.15 Add <arr>', function() {
+    //general timeout for each 'it'.
+    this.timeout(tt); //10s.
+    let n=1;
+
+    let arr = {
+      arrId: "1",
+      country: "Germany",
+      arrStr: ["str1","str2","str3"],
+      arrInt: [1,2,3],
+      arrFloat: [1.1,3.14,9.8],
+      arrBool: [true,false],
+      arrDate: null,
+      arrTime: null,
+      arrDateTime: null
+    };
+
+    let q1 = {
+      "data": {
+        "addArr": arr
+      }
+    };
+    let q2= {
+      "data": {
+        "countArrs": 1
+      }
+    };
+    let q3 = {
+      "data": {
+        "arrsConnection": {
+          "pageInfo": {
+            "startCursor": "to_be_assigned",
+            "endCursor": "to_be_assigned",
+            "hasPreviousPage": false,
+            "hasNextPage": false
+          },
+          "edges": [
+            //to_be_assigned
+          ]
+        }
+      }
+    };
+
+    let arrInput = {
+      arrId: "1",
+      country: "Germany",
+      arrStr: "str1,str2,str3",
+      arrInt: "1,2,3",
+      arrFloat: "1.1,3.14,9.8",
+      arrBool: "true,false"
+    };
+
+    it(`${n++}. click on: add icon - <arr>`, async function() {
+      props = {
+        buttonId: 'ArrEnhancedTableToolbar-button-add',
+        visibleIds: [
+          'ArrCreatePanel-tabsA-button-attributes',
+          'ArrCreatePanel-tabsA-button-associations',
+          'ArrCreatePanel-fabButton-save',
+          'ArrCreatePanel-button-cancel',
+          'ArrAttributesFormView-div-root',
+        ],
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. type on: input field - arrId`, async function () {
+      await page.click("[id=StringField-Arr-arrId]");
+      await page.type("[id=StringField-Arr-arrId]", arrInput.arrId);
+    });
+
+    it(`${n++}. type on: input field - country`, async function () {
+      await page.click("[id=StringField-Arr-country]");
+      await page.type("[id=StringField-Arr-country]", arrInput.country);
+    });
+
+    it(`${n++}. type on: input field - arrStr`, async function () {
+      await page.click("[id=ArrayField-Arr-arrStr]");
+      await page.type("[id=ArrayField-Arr-arrStr]", arrInput.arrStr);
+    });
+
+    it(`${n++}. type on: input field - arrInt`, async function () {
+      await page.click("[id=ArrayField-Arr-arrInt]");
+      await page.type("[id=ArrayField-Arr-arrInt]", arrInput.arrInt);
+    });
+
+    it(`${n++}. type on: input field - arrFloat`, async function () {
+      await page.click("[id=ArrayField-Arr-arrFloat]");
+      await page.type("[id=ArrayField-Arr-arrFloat]", arrInput.arrFloat);
+    });
+
+    it(`${n++}. type on: input field - arrBool`, async function () {
+      await page.click("[id=ArrayField-Arr-arrBool]");
+      await page.type("[id=ArrayField-Arr-arrBool]", arrInput.arrBool);
+    });
+
+    it(`${n++}. first click on: save record <arr>`, async function() {
+      props = {
+        buttonId: 'ArrCreatePanel-fabButton-save',
+        visibleIds: [
+          'ArrConfirmationDialog-create',
+        ],
+        responses: [],
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. second click on: save record <arr>`, async function() {
+      props = {
+        buttonId: 'ArrConfirmationDialog-create-button-accept',
+        visibleIds: [
+          'ArrEnhancedTable-tableBody',
+          'ArrEnhancedTableToolbar-button-add',
+          'ArrEnhancedTableToolbar-button-import',
+          'ArrEnhancedTableToolbar-button-downloadOptions',
+          'ArrEnhancedTable-row-iconButton-detail-1',
+          'ArrEnhancedTable-row-iconButton-edit-1',
+          'ArrEnhancedTable-row-iconButton-delete-1',
+        ],
+        hiddenIds: [
+          'ArrCreatePanel-tabsA-button-attributes',
+          'ArrCreatePanel-tabsA-button-associations',
+          'ArrCreatePanel-fabButton-save',
+          'ArrCreatePanel-button-cancel',
+          'ArrAttributesFormView-div-root',
+        ],
+        requests: ['http://localhost:3000/graphql'],
+        responses: [],
+        expectedResponses: 3,
+      };
+      await clickOn(props);      
+      // evaluate
+      let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
+      let recordsCount = await page.$$eval('[id=ArrEnhancedTable-tableBody] > tr', items => items.length);
+      let addArr = datas.reduce((a, c) => {if(c&&c.data&&c.data.addArr){ a=c.data.addArr; return a; } else  {return a; }}, {});
+      let arrsConnection = datas.reduce((a, c) => {if(c&&c.data&&c.data.arrsConnection){ a=c.data.arrsConnection; return a; } else  {return a; }}, {});
+      q1.data.addArr.arrId = addArr.arrId;
+      q1.data.addArr.country = addArr.country;
+      q1.data.addArr.arrStr = addArr.arrStr;
+      q1.data.addArr.arrInt = addArr.arrInt;
+      q1.data.addArr.arrFloat = addArr.arrFloat;
+      q1.data.addArr.arrBool = addArr.arrBool;
+
+      q3.data.arrsConnection.edges.push({node: q1.data.addArr});
+      q3.data.arrsConnection.pageInfo.startCursor = arrsConnection.pageInfo.startCursor;
+      q3.data.arrsConnection.pageInfo.endCursor = arrsConnection.pageInfo.endCursor;
+      expect(datas).to.deep.equalInAnyOrder([q1, q2, q3]);
+      expect(recordsCount).to.eql(1);
+    });
+  });
+
+
+  describe('1.16 Update <arr>', function() {
+    //general timeout for each 'it'.
+    this.timeout(tt); //10s.
+    let n=1;
+
+    let arrInput = {
+      arrDateTime: "2012-12-12T12:12:30.000Z,2020-02-02T02:02:30.000Z"
+    };
+
+    let arr = {
+      arrId: "1",
+      country: "Germany",
+      arrStr: ["str1","str2","str3"],
+      arrInt: [1,2,3],
+      arrFloat: [1.1,3.14,9.8],
+      arrBool: [true,false],
+      arrDate: null,
+      arrTime: null,
+      arrDateTime: ["2012-12-12T12:12:30.000Z","2020-02-02T02:02:30.000Z"]
+    };
+
+    let q1 = {
+      "data": {
+        "updateArr": arr
+      }
+    };
+    let q2= {
+      "data": {
+        "countArrs": 1
+      }
+    };
+    let q3 = {
+      "data": {
+        "arrsConnection": {
+          "pageInfo": {
+            "startCursor": "to_be_assigned",
+            "endCursor": "to_be_assigned",
+            "hasPreviousPage": false,
+            "hasNextPage": false
+          },
+          "edges": [
+            //to_be_assigned
+          ]
+        }
+      }
+    };
+
+    it(`${n++}. click on: update <arr> - record`, async function () {
+      let props = {
+        elementType: 'button',
+        buttonId: 'ArrEnhancedTable-row-iconButton-edit-1',
+        visibleIds: [
+          'ArrUpdatePanel-tabsA-button-attributes',
+          'ArrUpdatePanel-tabsA-button-associations',
+          'ArrUpdatePanel-fabButton-save',
+          'ArrUpdatePanel-button-cancel',
+          'ArrAttributesFormView-div-root',
+        ],
+      };
+      await clickOn(props);
+    });
+    
+    it(`${n++}. type on: input field - arrDateTime`, async function () {
+      await page.click("[id=ArrayField-Arr-arrDateTime]", { clickCount: 3 });
+      await page.type("[id=ArrayField-Arr-arrDateTime]", arrInput.arrDateTime);
+    });
+
+    it(`${n++}. first click on: save record <arr>`, async function() {
+      props = {
+        buttonId: 'ArrUpdatePanel-fabButton-save',
+        visibleIds: [
+          'ArrConfirmationDialog-update',
+        ],
+        responses: [],
+      };
+      await clickOn(props);
+    });
+
+    it(`${n++}. second click on: save record <arr>`, async function() {
+      props = {
+        buttonId: 'ArrConfirmationDialog-update-button-accept',
+        visibleIds: [
+          'ArrEnhancedTable-tableBody',
+          'ArrEnhancedTableToolbar-button-add',
+          'ArrEnhancedTableToolbar-button-import',
+          'ArrEnhancedTableToolbar-button-downloadOptions',
+          'ArrEnhancedTable-row-iconButton-detail-1',
+          'ArrEnhancedTable-row-iconButton-edit-1',
+          'ArrEnhancedTable-row-iconButton-delete-1',
+        ],
+        hiddenIds: [
+          'ArrUpdatePanel-tabsA-button-attributes',
+          'ArrUpdatePanel-tabsA-button-associations',
+          'ArrUpdatePanel-fabButton-save',
+          'ArrUpdatePanel-button-cancel',
+          'ArrAttributesFormView-div-root',
+        ],
+        requests: ['http://localhost:3000/graphql'],
+        responses: [],
+        expectedResponses: 3,
+      };
+      await clickOn(props);
+      // evaluate
+      let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
+      let recordsCount = await page.$$eval('[id=ArrEnhancedTable-tableBody] > tr', items => items.length);
+      let updateArr = datas.reduce((a, c) => {if(c&&c.data&&c.data.updateArr){ a=c.data.updateArr; return a; } else  {return a; }}, {});
+      let arrsConnection = datas.reduce((a, c) => {if(c&&c.data&&c.data.arrsConnection){ a=c.data.arrsConnection; return a; } else  {return a; }}, {});
+      q1.data.updateArr.arrId = updateArr.arrId;
+      q1.data.updateArr.arrInt = updateArr.arrInt;
+      q1.data.updateArr.arrFloat = updateArr.arrFloat;
+      q1.data.updateArr.arrBool = updateArr.arrBool;
+      q1.data.updateArr.arrStr = updateArr.arrStr;
+      q1.data.updateArr.arrDate = updateArr.arrDate;
+      q1.data.updateArr.arrDateTime = updateArr.arrDateTime;
+      q3.data.arrsConnection.edges.push({node: q1.data.updateArr});
+      q3.data.arrsConnection.pageInfo.startCursor = arrsConnection.pageInfo.startCursor;
+      q3.data.arrsConnection.pageInfo.endCursor = arrsConnection.pageInfo.endCursor;
+
+      expect(datas).to.deep.equalInAnyOrder([q1, q2, q3]);
+      expect(recordsCount).to.eql(1);
+    });
+
+  });
+
+  describe('1.17 Find <arr>', function() {
+    //general timeout for each 'it'.
+    this.timeout(tt); //10s.
+    let n=1;
+
+    let arrResult = {
+      arrId: "1",
+      country: "Germany",
+      arrStr: ["str1","str2","str3"],
+      arrInt: [1,2,3],
+      arrFloat: [1.1,3.14,9.8],
+      arrBool: [true,false],
+      arrDate: null,
+      arrTime: null,
+      arrDateTime: ["2012-12-12T12:12:30.000Z","2020-02-02T02:02:30.000Z"]
+    };
+
+    let q1= {
+      "data": {
+        "countArrs": 1
+      }
+    };
+    let q2 = {
+      "data": {
+        "arrsConnection": {
+          "pageInfo": {
+            "startCursor": "to_be_assigned",
+            "endCursor": "to_be_assigned",
+            "hasPreviousPage": false,
+            "hasNextPage": false
+          },
+          "edges": [
+            //to_be_assigned
+          ]
+        }
+      }
+    };
+
+    it(`${n++}. type on: input field - search`, async function () {
+      await page.click("input[id=ArrEnhancedTableToolbar-textField-search]", { clickCount: 3 });
+      await page.type("input[id=ArrEnhancedTableToolbar-textField-search]", '2');
+    });
+
+    it(`${n++}. click on: search`, async function() {
+      props = {
+        buttonId: 'ArrEnhancedTableToolbar-iconButton-search',
+        visibleIds: [
+          'ArrEnhancedTable-tableBody',
+          'ArrEnhancedTableToolbar-button-add',
+          'ArrEnhancedTableToolbar-button-import',
+          'ArrEnhancedTableToolbar-button-downloadOptions',
+          'ArrEnhancedTable-row-iconButton-detail-1',
+          'ArrEnhancedTable-row-iconButton-edit-1',
+          'ArrEnhancedTable-row-iconButton-delete-1',
+        ],
+        requests: ['http://localhost:3000/graphql'],
+        responses: [],
+        expectedResponses: 2,
+      };
+      await clickOn(props);
+      // evaluate
+      let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
+      let recordsCount = await page.$$eval('[id=ArrEnhancedTable-tableBody] > tr', items => items.length);
+      let arrsConnection = datas.reduce((a, c) => {if(c&&c.data&&c.data.arrsConnection){ a=c.data.arrsConnection; return a; } else  {return a; }}, {});
+      q2.data.arrsConnection.edges.push({node: arrResult});
+      q2.data.arrsConnection.pageInfo.startCursor = arrsConnection.pageInfo.startCursor;
+      q2.data.arrsConnection.pageInfo.endCursor = arrsConnection.pageInfo.endCursor;
+      expect(datas).to.deep.equalInAnyOrder([q1, q2]);
+      expect(recordsCount).to.eql(1);
+    });
+  });
+
+  describe('1.18 Clear search', function() {
+    //general timeout for each 'it'.
+    this.timeout(tt); //10s.
+    let n=1;
+
+    let arrResult = {
+      arrId: "1",
+      country: "Germany",
+      arrStr: ["str1","str2","str3"],
+      arrInt: [1,2,3],
+      arrFloat: [1.1,3.14,9.8],
+      arrBool: [true,false],
+      arrDate: null,
+      arrTime: null,
+      arrDateTime: ["2012-12-12T12:12:30.000Z","2020-02-02T02:02:30.000Z"]
+    };
+
+    let q1= {
+      "data": {
+        "countArrs": 1
+      }
+    };
+    let q2 = {
+      "data": {
+        "arrsConnection": {
+          "pageInfo": {
+            "startCursor": "to_be_assigned",
+            "endCursor": "to_be_assigned",
+            "hasPreviousPage": false,
+            "hasNextPage": false
+          },
+          "edges": [
+            //to_be_assigned
+          ]
+        }
+      }
+    };
+
+    it(`${n++}. click on: clear search`, async function() {
+      props = {
+        buttonId: 'ArrEnhancedTableToolbar-iconButton-clearSearch',
+        visibleIds: [
+          'ArrEnhancedTable-tableBody',
+          'ArrEnhancedTableToolbar-button-add',
+          'ArrEnhancedTableToolbar-button-import',
+          'ArrEnhancedTableToolbar-button-downloadOptions',
+          'ArrEnhancedTable-row-iconButton-detail-1',
+          'ArrEnhancedTable-row-iconButton-edit-1',
+          'ArrEnhancedTable-row-iconButton-delete-1',
+        ],
+        requests: ['http://localhost:3000/graphql'],
+        responses: [],
+        expectedResponses: 2,
+      };
+      await clickOn(props);
+      // evaluate
+      let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
+      let recordsCount = await page.$$eval('[id=ArrEnhancedTable-tableBody] > tr', items => items.length);
+      let arrsConnection = datas.reduce((a, c) => {if(c&&c.data&&c.data.arrsConnection){ a=c.data.arrsConnection; return a; } else  {return a; }}, {});
+      q2.data.arrsConnection.edges.push({node: arrResult});
+      q2.data.arrsConnection.pageInfo.startCursor = arrsConnection.pageInfo.startCursor;
+      q2.data.arrsConnection.pageInfo.endCursor = arrsConnection.pageInfo.endCursor;
+      expect(datas).to.deep.equalInAnyOrder([q1, q2]);
+      expect(recordsCount).to.eql(1);
+    });
+  });
+
+  describe('1.19 Delete <arr>', function() {
+    //general timeout for each 'it'.
+    this.timeout(tt); //10s.
+    let n=1;
+
+    let q1={
+      "data": {
+        "readOneArr": {
+          "cultivar": null
+        }
+      }
+    };
+    let q2={
+      "data": {
+        "deleteArr": "Item successfully deleted"
+      }
+    };
+    let q3={
+      "data": {
+        "countArrs": 0
+      }
+    };
+    let q4 = {
+      "data": {
+        "arrsConnection": {
+          "pageInfo": {
+            "startCursor": "to_be_assigned",
+            "endCursor": "to_be_assigned",
+            "hasPreviousPage": false,
+            "hasNextPage": false
+          },
+          "edges": [
+            //to_be_assigned
+          ]
+        }
+      }
+    };
+
+    it(`${n++}. click on: delete icon - <arr> - record`, async function() {
+      props = {
+        buttonId: 'ArrEnhancedTable-row-iconButton-delete-1',
+        visibleIds: [
+          'ArrAttributesFormView-div-root',
+          'ArrAssociationsPage-div-root',
+          'ArrDeleteConfirmationDialog-button-accept',
+          'ArrDeleteConfirmationDialog-button-reject',
+        ],
+      };
+      await clickOn(props);
+      // evaluate
+      expect(await page.title()).to.eql('Zendro');
+    });
+
+    it(`${n++}. click on: delete confirmation button`, async function() {
+      props = {
+        buttonId: 'ArrDeleteConfirmationDialog-button-accept',
+        visibleIds: [
+          'ArrEnhancedTable-box-noData',
+          'ArrEnhancedTableToolbar-button-add',
+          'ArrEnhancedTableToolbar-button-import',
+          'ArrEnhancedTableToolbar-button-downloadOptions',
+        ],
+        hiddenIds: [
+          'ArrAttributesFormView-div-root',
+          'ArrAssociationsPage-div-root',
+          'ArrDeleteConfirmationDialog-button-accept',
+          'ArrDeleteConfirmationDialog-button-reject',
+          'ArrEnhancedTable-tableBody',
+          'ArrEnhancedTable-row-iconButton-detail-1',
+          'ArrEnhancedTable-row-iconButton-edit-1',
+          'ArrEnhancedTable-row-iconButton-delete-1',
+        ],
+        requests: ['http://localhost:3000/graphql'],
+        responses: [],
+        expectedResponses: 3,
+      };
+      await clickOn(props);
+      // evaluate
+      let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
+      let recordsCount = await page.$$eval('[id=ArrEnhancedTable-tableBody] > tr', items => items.length);
+      let arrsConnection = datas.reduce((a, c) => {if(c&&c.data&&c.data.arrsConnection){ a=c.data.arrsConnection; return a; } else  {return a; }}, {});
+      q4.data.arrsConnection.pageInfo.startCursor = arrsConnection.pageInfo.startCursor;
+      q4.data.arrsConnection.pageInfo.endCursor = arrsConnection.pageInfo.endCursor;
+      expect(datas).to.deep.equalInAnyOrder([q2, q3, q4]);
+      expect(recordsCount).to.eql(0);
+      expect(await page.title()).to.eql('Zendro');
+    });
+  });
+
+  
+
 });
 
 /**
@@ -6595,7 +7150,8 @@ describe('4. ACL Validations', function() {
 
       let modelsTitles = [
         'Accession',            'Acl_validations',
-        'Aminoacidsequence',    'Capital',
+        'Aminoacidsequence',    'Arr',
+        'Capital',
         'Country',              'Country_to_river',
         'Cultivar',             'Dog',
         'Field_plot',           'Individual',
