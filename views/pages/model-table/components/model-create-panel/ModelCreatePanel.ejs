@@ -69,7 +69,7 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
   const [tabsValue, setTabsValue] = useState(0);
   const [valueOkStates, setValueOkStates] = useState(getInitialValueOkStates());
   const [valueAjvStates, setValueAjvStates] = useState(getInitialValueAjvStates());
-<%if(hasOwnForeingKeys){-%>
+<%if(hasOwnForeingKeys && ['to_one', 'generic_to_one'].includes(sortedAssociations[i].type)){-%>
   const [foreignKeys, setForeignKeys] = useState({});
 <%}-%>
 
@@ -603,10 +603,6 @@ if(['to_one', 'generic_to_one'].includes(sortedAssociations[i].type)){-%>
         if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.indexOf(itemId) === -1) {
           <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.push(itemId);
           set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current);
-<%if(hasOwnForeingKeys && sortedAssociations[i].foreignKey){-%>
-          handleSetValue(itemId, -2, '<%- sortedAssociations[i].foreignKey _%>');
-          setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: itemId});
-<%}-%>
         }
 <%}-%>
         break;
@@ -641,10 +637,6 @@ if(['to_one', 'generic_to_one'].includes(sortedAssociations[i].type)){-%>
       let iof = <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.indexOf(itemId);
       if(iof !== -1) {
         <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.splice(iof, 1);
-<%if(hasOwnForeingKeys && sortedAssociations[i].foreignKey){-%>
-        handleSetValue(null, -2, '<%- sortedAssociations[i].foreignKey _%>');
-        setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: null});
-<%}-%>
       }
 <%}-%>
       return;

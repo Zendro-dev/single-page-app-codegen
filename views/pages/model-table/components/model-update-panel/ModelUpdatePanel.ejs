@@ -86,7 +86,7 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
   const [valueOkStates, setValueOkStates] = useState(getInitialValueOkStates());
   const [valueAjvStates, setValueAjvStates] = useState(getInitialValueAjvStates());
   const lastFetchTime = useRef(Date.now());
-<%if(hasOwnForeingKeys){-%>
+<%if(hasOwnForeingKeys && ['to_one', 'generic_to_one'].includes(sortedAssociations[i].type)){-%>
   const [foreignKeys, setForeignKeys] = useState(getInitialForeignKeys());
 <%}-%>
 
@@ -781,10 +781,6 @@ if(['to_one', 'generic_to_one'].includes(sortedAssociations[i].type)){-%>
 -%>
         <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.push(itemId);
         set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState([...<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current]);
-<%if(hasOwnForeingKeys && sortedAssociations[i].foreignKey){-%>
-        handleSetValue(itemId, -2, '<%- sortedAssociations[i].foreignKey _%>');
-        setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: itemId});
-<%}-%>
 <%}-%>
         break;
 <%}-%>
@@ -821,10 +817,6 @@ if(['to_one', 'generic_to_one'].includes(sortedAssociations[i].type)){-%>
         if(<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current[i] === itemId) {
           <%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current.splice(i, 1);
           set<%- sortedAssociations[i].relationNameCp _%>IdsToAddState([...<%- sortedAssociations[i].relationNameLc _%>IdsToAdd.current]);
-<%if(hasOwnForeingKeys && sortedAssociations[i].foreignKey){-%>
-          handleSetValue(null, -2, '<%- sortedAssociations[i].foreignKey _%>');
-          setForeignKeys({...foreignKeys, <%- sortedAssociations[i].foreignKey _%>: null});
-<%}-%>
           return;
         }
       }
