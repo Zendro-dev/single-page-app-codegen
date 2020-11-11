@@ -10,7 +10,6 @@ version: "3.2"
 #
 # gql_postgres2                   (db)
 # gql_science_db_graphql_server2  (gql server)
-# spa_science_db_app_server2      (spa)
 #
 
 services:
@@ -134,38 +133,6 @@ services:
       - -c
       - |
         ./migrateDbAndStartServer.sh
-
-  #
-  # SPA 2
-  #
-  spa_science_db_app_server2:
-    stdin_open: true # needed for react-scripts@3.4.1 https://github.com/facebook/create-react-app/issues/8688
-    container_name: spa2
-    depends_on:
-      - gql_science_db_graphql_server2
-    build:
-      context: .
-      dockerfile: Dockerfile.app
-    volumes:
-      - ../integration_test_env/node_modules:/usr/node_modules
-      - ../integration_test_env/services/spa_science_db_app_server2:/usr/src/app
-    ports:
-     - 8081:8081
-    environment:
-     - PORT=8081
-     - REACT_APP_ZENDRO_GRAPHQL_SERVER_URL=http://localhost:3030/graphql
-     - REACT_APP_ZENDRO_LOGIN_URL=http://localhost:3030/login
-     - REACT_APP_ZENDRO_EXPORT_URL=http://localhost:3030/export
-     - REACT_APP_ZENDRO_MAX_UPLOAD_SIZE=500
-     - REACT_APP_ZENDRO_MAX_RECORD_LIMIT=25
-    networks:
-    - integrationtest
-    user: ${UID}
-    command:
-      - /bin/sh
-      - -c
-      - |
-        npm start
 
 networks:
   instance1:

@@ -22,13 +22,8 @@
       "template": "https://github.com/Zendro-dev/single-page-app.git",
       "branch": "master",
       "url": "http://localhost:8080/graphql"
-    },
-    {
-      "name": "spa_science_db_app_server2",
-      "template": "https://github.com/Zendro-dev/single-page-app.git",
-      "branch": "master",
-      "url": "http://localhost:8081/graphql"
     }
+
   ],
   "models": [
     {
@@ -50,12 +45,6 @@
       "opts": [ "-P", "-D" ],
       "path": "../integration_test_models_instance1",
       "targets": [ "spa_science_db_app_server1" ]
-    },
-    {
-      "codegen": "../..",
-      "opts": [ "-P", "-D" ],
-      "path": "../integration_test_models_instance2",
-      "targets": [ "spa_science_db_app_server2" ]
     }
   ],
   "patches": [
