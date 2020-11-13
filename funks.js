@@ -574,8 +574,10 @@ exports.addKeyRelationName = function(opts, status) {
       /**
        * Set keyRelationName attribute.
        */
-      if(association.type === 'to_one' || association.type === 'to_many') {
+      if(association.type === 'to_one' || (association.type === 'to_many' && association.typeB !== 'assocThroughArray')) {
         association.keyRelationName = association.keyIn+'_'+association.targetKey;
+      } else if(association.type === 'to_many' && association.typeB === 'assocThroughArray') {
+        association.keyRelationName = association.targetModel+'_'+association.peerTargetKey;
       } else if(association.type === 'to_many_through_sql_cross_table') {
         association.keyRelationName = association.keysIn;
       } else if(association.type === 'generic_to_one' || association.type === 'generic_to_many') {
@@ -603,7 +605,7 @@ exports.addKeyRelationName = function(opts, status) {
           let foundPeerAssociation = false;
           for(let j=0; j<opts[i].sortedAssociations.length && !foundPeerAssociation; j++) {
 
-            if(association.type === 'to_one' || association.type === 'to_many') {
+            if(association.type === 'to_one' || (association.type === 'to_many' && association.typeB !== 'assocThroughArray')) {
 
               /**
                * Case: peer association found
@@ -718,7 +720,9 @@ exports.addKeyRelationName = function(opts, status) {
                 targetModel: association.targetModel,
               });
             }else {//warning: on check (B)
-              warningsB.push({model: opt.name, association: association.relationName, targetKey: association.targetKey, targetModel: association.targetModel});
+              if(!(association.type === 'to_many' && association.typeB === 'assocThroughArray')) {
+                warningsB.push({model: opt.name, association: association.relationName, targetKey: association.targetKey, targetModel: association.targetModel});
+              }
             }
           }
 
@@ -1177,14 +1181,14 @@ checkAssociations = function(fileData){
         if(!ownTargetKeys[_targetKey]) { //case: first occurrence of targetKey
           //Case: self-associated
           if(association.target === modelName) {
-            ownTargetKeys[_targetKey] = {count: 0, selfAssociatedCount: 1};
+            //nothing to do.
           } else { //Case: not self-associated
             ownTargetKeys[_targetKey] = {count: 1, selfAssociatedCount: 0};
           }
         } else { //Case: this targetKey has appeared before
           //Case: self-associated
           if(association.target === modelName) {
-            ownTargetKeys[_targetKey].selfAssociatedCount++;
+            //nothing to do
           } else { //Case: not self-associated
             ownTargetKeys[_targetKey].count++;
           }
