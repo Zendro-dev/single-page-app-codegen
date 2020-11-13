@@ -86,8 +86,11 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
   const [valueOkStates, setValueOkStates] = useState(getInitialValueOkStates());
   const [valueAjvStates, setValueAjvStates] = useState(getInitialValueAjvStates());
   const lastFetchTime = useRef(Date.now());
-<%if(hasOwnForeingKeys && ['to_one', 'generic_to_one'].includes(sortedAssociations[i].type)){-%>
+<%if(hasOwnForeingKeys){-%>
   const [foreignKeys, setForeignKeys] = useState(getInitialForeignKeys());
+<%}-%>
+<%if(hasOwnForeingKeys && hasToManyAssociations){-%>
+  Boolean(setForeignKeys);
 <%}-%>
 
   const [updated, setUpdated] = useState(false);

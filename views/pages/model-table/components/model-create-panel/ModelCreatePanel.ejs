@@ -69,8 +69,11 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
   const [tabsValue, setTabsValue] = useState(0);
   const [valueOkStates, setValueOkStates] = useState(getInitialValueOkStates());
   const [valueAjvStates, setValueAjvStates] = useState(getInitialValueAjvStates());
-<%if(hasOwnForeingKeys && ['to_one', 'generic_to_one'].includes(sortedAssociations[i].type)){-%>
+<%if(hasOwnForeingKeys){-%>
   const [foreignKeys, setForeignKeys] = useState({});
+<%}-%>
+<%if(hasOwnForeingKeys && hasToManyAssociations){-%>
+  Boolean(setForeignKeys);
 <%}-%>
 
   const [confirmationOpen, setConfirmationOpen] = useState(false);
