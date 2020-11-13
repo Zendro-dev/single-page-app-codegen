@@ -73,7 +73,7 @@ export default function <%- nameOnPascal _%>CreatePanel(props) {
   const [foreignKeys, setForeignKeys] = useState({});
 <%}-%>
 <%if(hasOwnForeingKeys && hasToManyAssociations){-%>
-  Boolean(setForeignKeys);
+  Boolean(setForeignKeys); //avoids 'unused' warning
 <%}-%>
 
   const [confirmationOpen, setConfirmationOpen] = useState(false);

@@ -90,7 +90,7 @@ export default function <%- nameOnPascal _%>UpdatePanel(props) {
   const [foreignKeys, setForeignKeys] = useState(getInitialForeignKeys());
 <%}-%>
 <%if(hasOwnForeingKeys && hasToManyAssociations){-%>
-  Boolean(setForeignKeys);
+  Boolean(setForeignKeys); //avoids 'unused' warning
 <%}-%>
 
   const [updated, setUpdated] = useState(false);
