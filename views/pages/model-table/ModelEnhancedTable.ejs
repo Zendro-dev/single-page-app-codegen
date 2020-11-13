@@ -48,26 +48,37 @@ import <%- nameOnPascal -%>Plotly from '../../../../plots/<%- nameCp -%>Plotly';
 import ZendroStudio from '../../../../static/zendro-studio/ZendroStudio';
 <%}-%>
 
+// const drawerWidth = 280;
+// const appBarHeight = 72;
+// const mainMargin = 48;
+// const tableFooter = 80;
+// const tableToolbar = 128;
+
 const useStyles = makeStyles(theme => ({
     root: {
-        marginTop: theme.spacing(7),
+        marginTop: 72,
+        height: `calc(100vh - 72px - 48px)`,
     },
     paper: {
-        overflowX: 'auto',
+      overflow: 'auto',
+      height: `calc(100vh - 72px  - 48px)`,
+      minWidth: 570,
     },
     tableWrapper: {
-      height: '64vh',
-      maxHeight: '64vh',
+      height: `calc(100vh - 72px - 48px - 128px - 80px)`,
+      minWidth: 570,
       overflow: 'auto',
       position: 'relative',
     },
+    swipe: {
+      overflow: 'hidden',
+      height: `calc(100vh - 72px - 48px)`,
+    },
     loading: {
-      height: '64vh',
-      maxHeight: '64vh',
+      height: `calc(100vh - 72px - 48px - 128px - 80px)`,
     },
     noData: {
-      height: '64vh',
-      maxHeight: '64vh',
+      height: `calc(100vh - 72px - 48px - 128px - 80px)`,
     },
     iconSee: {
       '&:hover': {
@@ -1590,7 +1601,11 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                   handleToggleButtonValueChange={handleToggleButtonValueChange}
                 />
 
-                <SwipeableViews index={getSwipeIndex()} disabled={true}>
+                <SwipeableViews 
+                  style={{maxHeight: `calc(100vh - (72px + 48px + 128px))`}} 
+                  className={classes.swipe} 
+                  index={getSwipeIndex()} disabled={true}
+                >
                   {/*
                     Swipe page 1: Table
                   */}

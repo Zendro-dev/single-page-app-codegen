@@ -25,14 +25,25 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import api from '../../requests/requests.index'
 <%}-%>
 
+// const appBarHeight = 72;
+// const mainMargin = 48;
+// const tableFooter = 80;
+// const tableToolbar = 128;
+// const secondMainMargin = 24;
+
 const useStyles = makeStyles((theme) => ({
   root: {
     margin: theme.spacing(2),
   },
+  container: {
+    height: `calc(100vh - 72px  - 48px - 128px + 24px)`,
+    minWidth: 570,
+    overflow: 'auto'
+  },
   card: {
     maxWidth: 345,
-    paddingTop: theme.spacing(4),
-    paddingBottom: theme.spacing(8),
+    paddingTop: theme.spacing(0),
+    paddingBottom: theme.spacing(0),
   },
   formControl: {
     width: '100%'
@@ -61,6 +72,8 @@ export default function <%- nameOnPascal -%>Plotly(props) {
   }); 
   const [selectedAttribute, setSelectedAttribute] = useState("");
   const [isOnApiRequest, setIsOnApiRequest] = useState(false);
+
+  const plotRef = useRef(null);
 
   //model attributes
   const modelAttributes = getModelAttributes();
@@ -114,6 +127,7 @@ export default function <%- nameOnPascal -%>Plotly(props) {
 
   const handleClickOnGeneratePlot = (event) => {
     getBarchartData(selectedAttribute);
+    if(plotRef.current) plotRef.current.resizeHandler();
   }
 
   /**
@@ -229,82 +243,85 @@ export default function <%- nameOnPascal -%>Plotly(props) {
           Selector 
         */}
         <Grid item xs={12}>
-          <Grid container spacing={1}>
-            <Grid item>
-              <Card className={classes.card}>
-                <CardContent>
-                  <Typography gutterBottom variant="h4">
-                    { t('modelPanels.plot1.title', 'Bar chart') }
-                  </Typography>
-                  <Typography variant="body2" color="textSecondary" component="p">
-                    { t('modelPanels.plot1.description', "Select a model attribute and click on button 'generate plot' to generate a frequency distribution bar chart of the selected attribute.") }
-                  </Typography>
-                </CardContent>
-                <CardContent>
-                  <FormControl className={classes.formControl}>
-                    <TextField 
-                      id="select" 
-                      label={t('modelPanels.plot1.label', 'Attributes')}
-                      value={selectedAttribute}
-                      variant="outlined" 
-                      select
-                      onChange={handleChangeSelectedAttribute}
+          <div className={classes.container}>
+            <Grid container spacing={1}>
+              <Grid item>
+                <Card className={classes.card}>
+                  <CardContent>
+                    <Typography gutterBottom variant="h4">
+                      { t('modelPanels.plot1.title', 'Bar chart') }
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary" component="p">
+                      { t('modelPanels.plot1.description', "Select a model attribute and click on button 'generate plot' to generate a frequency distribution bar chart of the selected attribute.") }
+                    </Typography>
+                  </CardContent>
+                  <CardContent>
+                    <FormControl className={classes.formControl}>
+                      <TextField 
+                        id="select" 
+                        label={t('modelPanels.plot1.label', 'Attributes')}
+                        value={selectedAttribute}
+                        variant="outlined" 
+                        select
+                        onChange={handleChangeSelectedAttribute}
+                      >
+                        <MenuItem value="">
+                          <em>{t('modelPanels.plot1.none', 'None')}</em>
+                        </MenuItem>
+
+                        {modelAttributes.map((item, index) => {
+                          return (
+                            <MenuItem key={index} value={item}>
+                              {item}
+                            </MenuItem>
+                          );
+                        })}
+                      </TextField>
+                    </FormControl>
+                  </CardContent>
+                  <CardActions>
+                    <Button 
+                      color="primary"
+                      disabled={(selectedAttribute===""||isOnApiRequest) ? true : false}
+                      endIcon={(isOnApiRequest) ? <CircularProgress size={30} /> : null}
+                      onClick={handleClickOnGeneratePlot}
                     >
-                      <MenuItem value="">
-                        <em>{t('modelPanels.plot1.none', 'None')}</em>
-                      </MenuItem>
+                      {t('modelPanels.plot1.button', 'Generate plot')}
+                    </Button>
+                  </CardActions>
+                </Card>
+              </Grid>
+              {/*
+                Plot 
+              */}
+              <Grid item xs>
+                <div className={classes.plotDiv}>
+                  <Plot
+                    ref={plotRef}
+                    data={data}
+                    layout={layout}
+                    frames={frames}
+                    config={config}
+                    useResizeHandler={true}
+                    className={classes.plot}
 
-                      {modelAttributes.map((item, index) => {
-                        return (
-                          <MenuItem key={index} value={item}>
-                            {item}
-                          </MenuItem>
-                        );
-                      })}
-                    </TextField>
-                  </FormControl>
-                </CardContent>
-                <CardActions>
-                  <Button 
-                    color="primary"
-                    disabled={(selectedAttribute===""||isOnApiRequest) ? true : false}
-                    endIcon={(isOnApiRequest) ? <CircularProgress size={30} /> : null}
-                    onClick={handleClickOnGeneratePlot}
-                  >
-                    {t('modelPanels.plot1.button', 'Generate plot')}
-                  </Button>
-                </CardActions>
-              </Card>
+                    onInitialized={(figure) => {
+                      setData(figure.data);
+                      setLayout(figure.layout);
+                      setFrames(figure.frames);
+                      setConfig(figure.config);
+                    }}
+                    onUpdate={(figure) => {
+                      setData(figure.data);
+                      setLayout(figure.layout);
+                      setFrames(figure.frames);
+                      setConfig(figure.config);
+                    }}
+                  />
+                </div>
+              </Grid>
             </Grid>
-            {/*
-              Plot 
-            */}
-            <Grid item xs>
-              <div className={classes.plotDiv}>
-                <Plot
-                  data={data}
-                  layout={layout}
-                  frames={frames}
-                  config={config}
-                  useResizeHandler={true}
-                  className={classes.plot}
-
-                  onInitialized={(figure) => {
-                    setData(figure.data);
-                    setLayout(figure.layout);
-                    setFrames(figure.frames);
-                    setConfig(figure.config);
-                  }}
-                  onUpdate={(figure) => {
-                    setData(figure.data);
-                    setLayout(figure.layout);
-                    setFrames(figure.frames);
-                    setConfig(figure.config);
-                  }}
-                />
-              </div>
-            </Grid>
-          </Grid>
+          </div>
         </Grid>
       </Grid>
     </div>
