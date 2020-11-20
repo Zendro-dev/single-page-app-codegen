@@ -1,0 +1,18 @@
+{
+  "model" : "OM1",
+  "storageType" : "SQL",
+  "attributes" : {
+    "name" : "String",
+    "omid1": "String"
+  },
+  "associations": {
+    "MM2s": {
+      "type" : "to_many",
+      "target" : "OM2",
+      "targetKey" : "omid1",
+      "keyIn": "OM2",
+      "targetStorageType" : "sql"
+    }
+  },
+  "internalId": "omid1"
+}

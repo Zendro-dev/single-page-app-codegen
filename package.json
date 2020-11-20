@@ -12,7 +12,8 @@
   },
   "scripts": {
     "test-env": "zenv",
-    "test-integration": "zenv integration"
+    "test-integration": "zenv integration",
+    "test-integration-b": "bash ./test/previous/test/integration-test.sh"
   },
   "author": "Dr. Asis Hallab <asis.hallab@gmail.com>",
   "license": "MIT",

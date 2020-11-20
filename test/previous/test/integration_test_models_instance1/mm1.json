@@ -1,0 +1,19 @@
+{
+  "model" : "MM1",
+  "storageType" : "SQL",
+  "attributes" : {
+    "name" : "String",
+    "mmid1": "String"
+  },
+  "associations": {
+    "MM2s": {
+      "type" : "to_many_through_sql_cross_table",
+      "target" : "MM2",
+      "targetKey" : "mmid2",
+      "sourceKey": "mmid1",
+      "keysIn": "mM1_to_MM2",
+      "targetStorageType" : "sql"
+    }
+  },
+  "internalId": "mmid1"
+}

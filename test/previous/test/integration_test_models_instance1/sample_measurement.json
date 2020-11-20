@@ -1,0 +1,23 @@
+{
+  "model": "sample_measurement",
+  "storageType": "sql",
+  "attributes": {
+    "variable": "String",
+    "value": "Float",
+    "unit": "String",
+    "CAS_number": "String",
+    "description": "String",
+    "sample_id": "Int"
+  },
+  "associations": {
+    "sample": {
+      "type" : "to_one",
+      "target" : "sample",
+      "targetKey" : "sample_id",
+      "keyIn": "sample_measurement",
+      "targetStorageType" : "sql",
+      "label" : "name",
+      "sublabel": "material"
+    }
+  }
+}
