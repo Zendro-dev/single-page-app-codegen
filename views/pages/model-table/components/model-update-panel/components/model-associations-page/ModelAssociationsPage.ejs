@@ -20,13 +20,6 @@ const useStyles = makeStyles(theme => ({
   menu: {
     marginTop: theme.spacing(0),
   },
-<%if(sortedAssociations.length > 0){_%>
-  suspense: {
-    position: "relative", 
-    left: "50%",
-    transform: "translateX(-50%)",
-  },
-<%}-%>
 }));
 
 export default function <%- nameOnPascal _%>AssociationsPage(props) {
