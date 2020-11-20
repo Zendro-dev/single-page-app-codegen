@@ -86,9 +86,6 @@ services:
     user: ${UID}
     command:
       - /bin/sh
-      - -c
-      - |
-        npm start
 
   #
   # Postgres 2

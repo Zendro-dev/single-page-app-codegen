@@ -1,13 +1,14 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect<%if(sortedAssociations.length > 0){_%>, Suspense, lazy<%}-%> } from 'react';
 import { makeCancelable } from '../../../../../../../../../utils'
 import PropTypes from 'prop-types';
-<%for( let i=0; i<sortedAssociations.length; i++ ){-%>
-import <%- sortedAssociations[i].relationNameOnPascal _%>TransferLists from './<%- sortedAssociations[i].relationNameLc _%>-transfer-lists/<%- sortedAssociations[i].relationNameCp _%>TransferLists'
-<%}-%>
 import <%- nameOnPascal _%>AssociationsMenuTabs from './<%- nameCp _%>AssociationsMenuTabs'
 import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Fade from '@material-ui/core/Fade';
+//lazy loading
+<%for( let i=0; i<sortedAssociations.length; i++ ){-%>
+const <%- sortedAssociations[i].relationNameOnPascal _%>TransferLists = lazy(() => import(/* webpackChunkName: "Create-TransferLists-<%- sortedAssociations[i].relationNameOnPascal _%>" */ './<%- sortedAssociations[i].relationNameLc _%>-transfer-lists/<%- sortedAssociations[i].relationNameCp _%>TransferLists'));
+<%}-%>
 
 const debounceTimeout = 700;
 
@@ -112,20 +113,22 @@ export default function <%- nameOnPascal _%>AssociationsPage(props) {
             />
           </Grid>
 
+          {/* Transfer Lists */}
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
           {/* <%- sortedAssociations[i].relationNameCp %> Transfer Lists */}
           {(associationSelected === '<%- sortedAssociations[i].relationNameLc _%>') && (
             <Grid item xs={12} sm={10} md={9}>
-              <<%- sortedAssociations[i].relationNameOnPascal _%>TransferLists
-                idsToAdd={<%- sortedAssociations[i].relationNameLc _%>IdsToAdd}
-                handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row}
-                handleTransferToAdd={handleTransferToAdd}
-                handleUntransferFromAdd={handleUntransferFromAdd}
-              />
+              <Suspense fallback={<div />}>
+                <<%- sortedAssociations[i].relationNameOnPascal _%>TransferLists
+                  idsToAdd={<%- sortedAssociations[i].relationNameLc _%>IdsToAdd}
+                  handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row}
+                  handleTransferToAdd={handleTransferToAdd}
+                  handleUntransferFromAdd={handleUntransferFromAdd}
+                />
+              </Suspense>
             </Grid>
           )}
 <%}-%>
-
         </Grid>
       </Fade>
     </div>

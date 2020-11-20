@@ -5,12 +5,8 @@
 let isToOne = ( sortedAssociations[aindex].type === 'to_one' || sortedAssociations[aindex].type === 'generic_to_one' );
 let isToMany = ( sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many' );
 -%>
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import PropTypes from 'prop-types';
-import <%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferView from './<%- sortedAssociations[aindex].relationNameLc _%>-to-add-transfer-view/<%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferView'
-<%if(isToMany){-%>
-import <%- sortedAssociations[aindex].relationNameOnPascal _%>ToRemoveTransferView from './<%- sortedAssociations[aindex].relationNameLc _%>-to-remove-transfer-view/<%- sortedAssociations[aindex].relationNameCp _%>ToRemoveTransferView'
-<%}-%>
 import { makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
 import Grid from '@material-ui/core/Grid';
@@ -19,6 +15,11 @@ import Fade from '@material-ui/core/Fade';
 import Divider from '@material-ui/core/Divider';
 <%}-%>
 import Typography from '@material-ui/core/Typography';
+//lazy loading
+const <%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferView = lazy(() => import(/* webpackChunkName: "Create-TransferLists-ToAdd-<%- sortedAssociations[aindex].relationNameOnPascal _%>" */ './<%- sortedAssociations[aindex].relationNameLc _%>-to-add-transfer-view/<%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferView'));
+<%if(isToMany){-%>
+const <%- sortedAssociations[aindex].relationNameOnPascal _%>ToRemoveTransferView = lazy(() => import(/* webpackChunkName: "Create-TransferLists-ToRemove-<%- sortedAssociations[aindex].relationNameOnPascal _%>" */ './<%- sortedAssociations[aindex].relationNameLc _%>-to-remove-transfer-view/<%- sortedAssociations[aindex].relationNameCp _%>ToRemoveTransferView'));
+<%}-%>
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -91,18 +92,20 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
             </div>
           </Grid>
           <Grid item xs={12}>
-            <<%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferView
-              item={item}
-              idsToAdd={idsToAdd}
+            <Suspense fallback={<div />}>
+              <<%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferView
+                item={item}
+                idsToAdd={idsToAdd}
 <%if(isToOne) {-%>
-              idsToRemove={idsToRemove}
-              handleDisassociateItem={handleTransferToRemove}
-              handleReassociateItem={handleUntransferFromRemove}
+                idsToRemove={idsToRemove}
+                handleDisassociateItem={handleTransferToRemove}
+                handleReassociateItem={handleUntransferFromRemove}
 <%}-%>
-              handleTransfer={handleTransferToAdd}
-              handleUntransfer={handleUntransferFromAdd}
-              handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row={handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row}
-            />
+                handleTransfer={handleTransferToAdd}
+                handleUntransfer={handleUntransferFromAdd}
+                handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row={handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row}
+              />
+            </Suspense>
           </Grid>
 
 <%if(isToMany){-%>
@@ -131,13 +134,15 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
             </div>
           </Grid>
           <Grid item xs={12}>
-            <<%- sortedAssociations[aindex].relationNameOnPascal _%>ToRemoveTransferView
-              item={item}
-              idsToRemove={idsToRemove}
-              handleTransfer={handleTransferToRemove}
-              handleUntransfer={handleUntransferFromRemove}
-              handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row={handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row}
-            />
+            <Suspense fallback={<div />}>
+              <<%- sortedAssociations[aindex].relationNameOnPascal _%>ToRemoveTransferView
+                item={item}
+                idsToRemove={idsToRemove}
+                handleTransfer={handleTransferToRemove}
+                handleUntransfer={handleUntransferFromRemove}
+                handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row={handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row}
+              />
+            </Suspense>
           </Grid>
 <%}-%>
 

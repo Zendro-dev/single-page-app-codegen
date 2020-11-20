@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { modelChange } from '../../../../../../../store/actions'
 import PropTypes from 'prop-types';
@@ -8,16 +8,6 @@ import { makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
 import Snackbar from '../../../../../../snackbar/Snackbar';
-import <%- nameOnPascal _%>AttributesPage from './components/<%- nameLc _%>-attributes-page/<%- nameCp _%>AttributesPage'
-import <%- nameOnPascal _%>AssociationsPage from './components/<%- nameLc _%>-associations-page/<%- nameCp _%>AssociationsPage'
-import <%- nameOnPascal -%>UpdatePanel from '../<%- nameLc -%>-update-panel/<%- nameCp -%>UpdatePanel'
-import <%- nameOnPascal -%>DeleteConfirmationDialog from '../<%- nameCp -%>DeleteConfirmationDialog'
-<%for( let i=0; i<sortedAssociatedModels.length; i++ ) {
-  if(sortedAssociatedModels[i].targetModel !== name) {-%>
-import <%- sortedAssociatedModels[i].targetModelOnPascal _%> DetailPanel from '../../../<%- sortedAssociatedModels[i].targetModelLc _%>-table/components/<%- sortedAssociatedModels[i].targetModelLc _%>-detail-panel/<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel'
-<%} else {-%>
-import <%- sortedAssociatedModels[i].targetModelOnPascal _%> DetailPanelB from '../../../<%- sortedAssociatedModels[i].targetModelLc _%>-table/components/<%- sortedAssociatedModels[i].targetModelLc _%>-detail-panel/<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel'
-<%}}-%>
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
@@ -39,6 +29,17 @@ import Edit from '@material-ui/icons/Edit';
 import DeletedWarning from '@material-ui/icons/DeleteForeverOutlined';
 import UpdateOk from '@material-ui/icons/CheckCircleOutlined';
 import { red, green } from '@material-ui/core/colors';
+//lazy loading
+const <%- nameOnPascal _%>AttributesPage = lazy(() => import(/* webpackChunkName: "Detail-Attributes-<%- nameOnPascal _%>" */ './components/<%- nameLc _%>-attributes-page/<%- nameCp _%>AttributesPage'));
+const <%- nameOnPascal _%>AssociationsPage = lazy(() => import(/* webpackChunkName: "Detail-Associations-<%- nameOnPascal _%>" */ './components/<%- nameLc _%>-associations-page/<%- nameCp _%>AssociationsPage'));
+const <%- nameOnPascal -%>UpdatePanel = lazy(() => import(/* webpackChunkName: "Detail-Update-<%- nameOnPascal _%>" */ '../<%- nameLc -%>-update-panel/<%- nameCp -%>UpdatePanel'));
+const <%- nameOnPascal -%>DeleteConfirmationDialog = lazy(() => import(/* webpackChunkName: "Detail-Delete-<%- nameOnPascal _%>" */ '../<%- nameCp -%>DeleteConfirmationDialog'));
+<%for( let i=0; i<sortedAssociatedModels.length; i++ ) {
+  if(sortedAssociatedModels[i].targetModel !== name) {-%>
+const <%- sortedAssociatedModels[i].targetModelOnPascal _%>DetailPanel = lazy(() => import(/* webpackChunkName: "Detail-Detail-<%- sortedAssociatedModels[i].targetModelOnPascal _%>" */ '../../../<%- sortedAssociatedModels[i].targetModelLc _%>-table/components/<%- sortedAssociatedModels[i].targetModelLc _%>-detail-panel/<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel'));
+<%} else {-%>
+const <%- sortedAssociatedModels[i].targetModelOnPascal _%>DetailPanelB = lazy(() => import(/* webpackChunkName: "Detail-DetailB-<%- sortedAssociatedModels[i].targetModelOnPascal _%>" */ '../../../<%- sortedAssociatedModels[i].targetModelLc _%>-table/components/<%- sortedAssociatedModels[i].targetModelLc _%>-detail-panel/<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel'));
+<%}}-%>
 
 const appBarHeight = 72;
 
@@ -687,14 +688,16 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
               </Grid>
     
               <Grid item xs={12}>
-                {/* Associations Page */}
-                <<%- nameOnPascal _%>AssociationsPage
-                  item={itemState}
-                  deleted={deleted}
+                <Suspense fallback={<div />}>
+                  {/* Associations Page */}
+                  <<%- nameOnPascal _%>AssociationsPage
+                    item={itemState}
+                    deleted={deleted}
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
-                  handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row}
+                    handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row}
 <%}-%>
-                />
+                  />
+                </Suspense>
               </Grid>
             </Grid>
           </div>
@@ -709,21 +712,25 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
 
             <Grid item xs={12}>
               {/* Attributes Page */}
-              <<%- nameOnPascal _%>AttributesPage
-                item={itemState}
-                valueOkStates={valueOkStates}
-              />
+              <Suspense fallback={<div />}>
+                <<%- nameOnPascal _%>AttributesPage
+                  item={itemState}
+                  valueOkStates={valueOkStates}
+                />
+              </Suspense>
             </Grid>
   
             <Grid item xs={12}>
               {/* Associations Page */}
-              <<%- nameOnPascal _%>AssociationsPage
-                item={itemState}
-                deleted={deleted}
+              <Suspense fallback={<div />}>
+                <<%- nameOnPascal _%>AssociationsPage
+                  item={itemState}
+                  deleted={deleted}
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
-                handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row}
+                  handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row}
 <%}-%>
-              />
+                />
+              </Suspense>
             </Grid>
 
           </Grid>
@@ -732,36 +739,42 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
 
       {/* Dialog: Update Panel */}
       {(updateDialogOpen) && (
-        <<%- nameOnPascal -%>UpdatePanel
-          permissions={permissions}
-          item={updateItem}
-          handleClose={handleUpdateDialogClose}
-        />
+        <Suspense fallback={<div />}>
+          <<%- nameOnPascal -%>UpdatePanel
+            permissions={permissions}
+            item={updateItem}
+            handleClose={handleUpdateDialogClose}
+          />
+        </Suspense>
       )}
 
       {/* Dialog: Delete Confirmation */}
       {(deleteConfirmationDialogOpen) && (
-        <<%- nameOnPascal -%>DeleteConfirmationDialog
-          permissions={permissions}
-          item={deleteConfirmationItem}
-          handleAccept={handleDeleteConfirmationAccept}
-          handleReject={handleDeleteConfirmationReject}
-        />
+        <Suspense fallback={<div />}>
+          <<%- nameOnPascal -%>DeleteConfirmationDialog
+            permissions={permissions}
+            item={deleteConfirmationItem}
+            handleAccept={handleDeleteConfirmationAccept}
+            handleReject={handleDeleteConfirmationReject}
+          />
+        </Suspense>
       )}
 
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
       {/* Dialog: <%- sortedAssociatedModels[i].targetModelCp %> Detail Panel */}
       {(<%- sortedAssociatedModels[i].targetModelLc _%>DetailDialogOpen) && (
+        <Suspense fallback={<div />}>
 <%if(sortedAssociatedModels[i].targetModel !== name) {-%>
-        <<%- sortedAssociatedModels[i].targetModelOnPascal _%>DetailPanel
+          <<%- sortedAssociatedModels[i].targetModelOnPascal _%>DetailPanel
 <%} else {-%>
-        <<%- sortedAssociatedModels[i].targetModelOnPascal _%>DetailPanelB
+          <<%- sortedAssociatedModels[i].targetModelOnPascal _%>DetailPanelB
 <%}-%>
-          permissions={permissions}
-          item={<%- sortedAssociatedModels[i].targetModelLc _%>DetailItem}
-          dialog={true}
-          handleClose={handle<%- sortedAssociatedModels[i].targetModelCp _%>DetailDialogClose}
-        />
+            permissions={permissions}
+            item={<%- sortedAssociatedModels[i].targetModelLc _%>DetailItem}
+            dialog={true}
+            handleClose={handle<%- sortedAssociatedModels[i].targetModelCp _%>DetailDialogClose}
+          />
+        </Suspense>
       )}
 <%}-%>
     </div>

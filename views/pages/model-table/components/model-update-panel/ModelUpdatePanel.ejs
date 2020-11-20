@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, Suspense, lazy } from 'react';
 import { useSelector } from 'react-redux';
 import { useSnackbar } from 'notistack';
 import Snackbar from '../../../../../../snackbar/Snackbar';
@@ -7,15 +7,9 @@ import PropTypes from 'prop-types';
 import moment from "moment";
 <%}-%>
 import { useTranslation } from 'react-i18next';
-import <%- nameOnPascal _%>AttributesPage from './components/<%- nameLc _%>-attributes-page/<%- nameCp _%>AttributesPage'
-import <%- nameOnPascal _%>AssociationsPage from './components/<%- nameLc _%>-associations-page/<%- nameCp _%>AssociationsPage'
-import <%- nameOnPascal _%>TabsA from './components/<%- nameCp _%>TabsA'
-import <%- nameOnPascal _%>ConfirmationDialog from './components/<%- nameCp _%>ConfirmationDialog'
-<%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
-import <%- sortedAssociatedModels[i].targetModelOnPascal _%> DetailPanel from '../../../<%- sortedAssociatedModels[i].targetModelLc _%>-table/components/<%- sortedAssociatedModels[i].targetModelLc _%>-detail-panel/<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel'
-<%}-%>
-import api from '../../../../../../../requests/requests.index.js'
-import { makeCancelable } from '../../../../../../../utils'
+import <%- nameOnPascal _%>TabsA from './components/<%- nameCp _%>TabsA';
+import api from '../../../../../../../requests/requests.index.js';
+import { makeCancelable } from '../../../../../../../utils';
 import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
@@ -36,6 +30,13 @@ import SaveIcon from '@material-ui/icons/Save';
 import DeletedWarning from '@material-ui/icons/DeleteForeverOutlined';
 import UpdateWarning from '@material-ui/icons/ErrorOutline';
 import { amber, red } from '@material-ui/core/colors';
+//lazy loading
+const <%- nameOnPascal _%>AttributesPage = lazy(() => import(/* webpackChunkName: "Update-Attributes-<%- nameOnPascal _%>" */ './components/<%- nameLc _%>-attributes-page/<%- nameCp _%>AttributesPage'));
+const <%- nameOnPascal _%>AssociationsPage = lazy(() => import(/* webpackChunkName: "Update-Associations-<%- nameOnPascal _%>" */ './components/<%- nameLc _%>-associations-page/<%- nameCp _%>AssociationsPage'));
+const <%- nameOnPascal _%>ConfirmationDialog = lazy(() => import(/* webpackChunkName: "Update-Confirmation-<%- nameOnPascal _%>" */ './components/<%- nameCp _%>ConfirmationDialog'));
+<%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
+const <%- sortedAssociatedModels[i].targetModelOnPascal _%>DetailPanel = lazy(() => import(/* webpackChunkName: "Update-Detail-<%- sortedAssociatedModels[i].targetModelOnPascal _%>" */ '../../../<%- sortedAssociatedModels[i].targetModelLc _%>-table/components/<%- sortedAssociatedModels[i].targetModelLc _%>-detail-panel/<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel'));
+<%}-%>
 
 const debounceTimeout = 700;
 const appBarHeight = 64;
@@ -1031,16 +1032,18 @@ if(['to_one', 'generic_to_one'].includes(sortedAssociations[i].type)){-%>
           
           <Grid item xs={12}>
             {/* Attributes Page [0] */}
-            <<%- nameOnPascal _%>AttributesPage
-              hidden={tabsValue !== 0}
-              item={item}
-              valueOkStates={valueOkStates}
-              valueAjvStates={valueAjvStates}
+            <Suspense fallback={<div />}>
+              <<%- nameOnPascal _%>AttributesPage
+                hidden={tabsValue !== 0}
+                item={item}
+                valueOkStates={valueOkStates}
+                valueAjvStates={valueAjvStates}
 <%if(hasOwnForeingKeys){-%>
-              foreignKeys = {foreignKeys}
+                foreignKeys = {foreignKeys}
 <%}-%>
-              handleSetValue={handleSetValue}
-            />
+                handleSetValue={handleSetValue}
+              />
+            </Suspense>
           </Grid>
 
           {/*
@@ -1050,45 +1053,51 @@ if(['to_one', 'generic_to_one'].includes(sortedAssociations[i].type)){-%>
           {(tabsValue === 1 && !deleted) && (
             <Grid item xs={12}>
               {/* Associations Page [1] */}
-              <<%- nameOnPascal _%>AssociationsPage
-                hidden={tabsValue !== 1 || deleted}
-                item={item}
+              <Suspense fallback={<div />}>
+                <<%- nameOnPascal _%>AssociationsPage
+                  hidden={tabsValue !== 1 || deleted}
+                  item={item}
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
-                <%- sortedAssociations[i].relationNameLc _%>IdsToAdd={<%- sortedAssociations[i].relationNameLc _%>IdsToAddState}
-                <%- sortedAssociations[i].relationNameLc _%>IdsToRemove={<%- sortedAssociations[i].relationNameLc _%>IdsToRemoveState}
+                  <%- sortedAssociations[i].relationNameLc _%>IdsToAdd={<%- sortedAssociations[i].relationNameLc _%>IdsToAddState}
+                  <%- sortedAssociations[i].relationNameLc _%>IdsToRemove={<%- sortedAssociations[i].relationNameLc _%>IdsToRemoveState}
 <%}-%>
-                handleTransferToAdd={handleTransferToAdd}
-                handleUntransferFromAdd={handleUntransferFromAdd}
-                handleTransferToRemove={handleTransferToRemove}
-                handleUntransferFromRemove={handleUntransferFromRemove}
+                  handleTransferToAdd={handleTransferToAdd}
+                  handleUntransferFromAdd={handleUntransferFromAdd}
+                  handleTransferToRemove={handleTransferToRemove}
+                  handleUntransferFromRemove={handleUntransferFromRemove}
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
-                handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row}
+                  handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row}
 <%}-%>
-              />
+                />
+              </Suspense>
             </Grid>
           )}
         </Grid>
 
         {/* Confirmation Dialog */}
-        <<%- nameOnPascal _%>ConfirmationDialog
-          open={confirmationOpen}
-          title={confirmationTitle}
-          text={confirmationText}
-          acceptText={confirmationAcceptText}
-          rejectText={confirmationRejectText}
-          handleAccept={handleConfirmationAccept}
-          handleReject={handleConfirmationReject}
-        />
+        <Suspense fallback={<div />}>
+          <<%- nameOnPascal _%>ConfirmationDialog
+            open={confirmationOpen}
+            title={confirmationTitle}
+            text={confirmationText}
+            acceptText={confirmationAcceptText}
+            rejectText={confirmationRejectText}
+            handleAccept={handleConfirmationAccept}
+            handleReject={handleConfirmationReject}
+          />
+        </Suspense>
 
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
         {/* Dialog: <%- sortedAssociatedModels[i].targetModelCp %> Detail Panel */}
         {(<%- sortedAssociatedModels[i].targetModelLc _%>DetailDialogOpen) && (
-          <<%- sortedAssociatedModels[i].targetModelOnPascal _%>DetailPanel
-            permissions={permissions}
-            item={<%- sortedAssociatedModels[i].targetModelLc _%>DetailItem}
-            dialog={true}
-            handleClose={handle<%- sortedAssociatedModels[i].targetModelCp _%>DetailDialogClose}
-          />
+          <Suspense fallback={<div />}>
+            <<%- sortedAssociatedModels[i].targetModelOnPascal _%>DetailPanel
+              permissions={permissions}
+              item={<%- sortedAssociatedModels[i].targetModelLc _%>DetailItem}
+              dialog={true}
+              handleClose={handle<%- sortedAssociatedModels[i].targetModelCp _%>DetailDialogClose}
+            />
+          </Suspense>
         )}
 <%}-%>
       </div>

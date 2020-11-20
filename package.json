@@ -8,7 +8,7 @@
   },
   "main": "index.js",
   "bin": {
-    "single-page-app-codegen": "./index.js"
+    "single-page-app-codegen": "index.js"
   },
   "scripts": {
     "test-env": "zenv",

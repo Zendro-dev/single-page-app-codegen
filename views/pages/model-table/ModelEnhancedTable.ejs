@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { changesCompleted, clearChanges } from '../../../../../store/actions'
 import { makeStyles } from '@material-ui/core/styles';
@@ -13,10 +13,6 @@ import api from '../../../../../requests/requests.index.js'
 import { makeCancelable } from '../../../../../utils'
 import <%- nameOnPascal -%>EnhancedTableHead from './components/<%- nameCp -%>EnhancedTableHead'
 import <%- nameOnPascal -%>EnhancedTableToolbar from './components/<%- nameCp -%>EnhancedTableToolbar'
-import <%- nameOnPascal -%>CreatePanel from './components/<%- nameLc -%>-create-panel/<%- nameCp -%>CreatePanel'
-import <%- nameOnPascal -%>UpdatePanel from './components/<%- nameLc -%>-update-panel/<%- nameCp -%>UpdatePanel'
-import <%- nameOnPascal -%>DetailPanel from './components/<%- nameLc -%>-detail-panel/<%- nameCp -%>DetailPanel'
-import <%- nameOnPascal -%>DeleteConfirmationDialog from './components/<%- nameCp -%>DeleteConfirmationDialog'
 import <%- nameOnPascal -%>UploadFileDialog from './components/<%- nameCp -%>UploadFileDialog'
 <%if(paginationType === 'cursorBased') {-%>
 import <%- nameOnPascal -%>CursorPagination from './components/<%- nameCp -%>CursorPagination'
@@ -41,11 +37,16 @@ import Typography from '@material-ui/core/Typography';
 import Delete from '@material-ui/icons/DeleteOutline';
 import Edit from '@material-ui/icons/Edit';
 import SeeInfo from '@material-ui/icons/VisibilityTwoTone';
+//lazy loading
+const <%- nameOnPascal -%>CreatePanel = lazy(() => import(/* webpackChunkName: "Create-<%- nameOnPascal -%>" */ './components/<%- nameLc -%>-create-panel/<%- nameCp -%>CreatePanel'));
+const <%- nameOnPascal -%>UpdatePanel = lazy(() => import(/* webpackChunkName: "Update-<%- nameOnPascal -%>" */ './components/<%- nameLc -%>-update-panel/<%- nameCp -%>UpdatePanel'));
+const <%- nameOnPascal -%>DetailPanel = lazy(() => import(/* webpackChunkName: "Detail-<%- nameOnPascal -%>" */ './components/<%- nameLc -%>-detail-panel/<%- nameCp -%>DetailPanel'));
+const <%- nameOnPascal -%>DeleteConfirmationDialog = lazy(() => import(/* webpackChunkName: "Delete-<%- nameOnPascal -%>" */ './components/<%- nameCp -%>DeleteConfirmationDialog'));
 //Plotly
-import <%- nameOnPascal -%>Plotly from '../../../../plots/<%- nameCp -%>Plotly';
+const <%- nameOnPascal -%>Plotly = lazy(() => import(/* webpackChunkName: "Plotly-<%- nameOnPascal -%>" */ '../../../../plots/<%- nameCp -%>Plotly'));
 <%if(zendroStudioModels) {-%>
 //ZendroStudio
-import ZendroStudio from '../../../../static/zendro-studio/ZendroStudio';
+const ZendroStudio = lazy(() => import(/* webpackChunkName: "ZendroStudio-<%- nameOnPascal -%>" */ '../../../../static/zendro-studio/ZendroStudio'));
 <%}-%>
 
 // const drawerWidth = 280;
@@ -1862,12 +1863,16 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                   */}
                   <div>
                     {(Boolean(<%- nameOnPascal -%>Plotly)) && (
-                      <<%- nameOnPascal -%>Plotly />
+                      <Suspense fallback={<div />}>
+                        <<%- nameOnPascal -%>Plotly />
+                      </Suspense>
                     )}
                   </div>
 
 <% if(zendroStudioModels) { -%>
-                  <ZendroStudio className={ classes.zendroStudio } />
+                  <Suspense fallback={<div />}>
+                    <ZendroStudio className={ classes.zendroStudio } />
+                  </Suspense>
 <% } -%>
                 </SwipeableViews>
               </Paper>
@@ -1878,39 +1883,47 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 
       {/* Dialog: Create Panel */}
       {(createDialogOpen) && (
-        <<%- nameOnPascal -%>CreatePanel
-          permissions={permissions}
-          handleClose={handleCreateDialogClose}
-        />
+        <Suspense fallback={<div />}>
+          <<%- nameOnPascal -%>CreatePanel
+            permissions={permissions}
+            handleClose={handleCreateDialogClose}
+          />
+        </Suspense>
       )}
 
       {/* Dialog: Update Panel */}
       {(updateDialogOpen) && (
-        <<%- nameOnPascal -%>UpdatePanel
-          permissions={permissions}
-          item={updateItem}
-          handleClose={handleUpdateDialogClose}
-        />
+        <Suspense fallback={<div />}>
+          <<%- nameOnPascal -%>UpdatePanel
+            permissions={permissions}
+            item={updateItem}
+            handleClose={handleUpdateDialogClose}
+          />
+        </Suspense>
       )}
 
       {/* Dialog: Detail Panel */}
       {(detailDialogOpen) && (
-        <<%- nameOnPascal -%>DetailPanel
-          permissions={permissions}
-          item={detailItem}
-          dialog={true}
-          handleClose={handleDetailDialogClose}
-        />
+        <Suspense fallback={<div />}>
+          <<%- nameOnPascal -%>DetailPanel
+            permissions={permissions}
+            item={detailItem}
+            dialog={true}
+            handleClose={handleDetailDialogClose}
+          />
+        </Suspense>
       )}
 
       {/* Dialog: Delete Confirmation */}
       {(deleteConfirmationDialogOpen) && (
-        <<%- nameOnPascal -%>DeleteConfirmationDialog
-          permissions={permissions}
-          item={deleteConfirmationItem}
-          handleAccept={handleDeleteConfirmationAccept}
-          handleReject={handleDeleteConfirmationReject}
-        />
+        <Suspense fallback={<div />}>
+          <<%- nameOnPascal -%>DeleteConfirmationDialog
+            permissions={permissions}
+            item={deleteConfirmationItem}
+            handleAccept={handleDeleteConfirmationAccept}
+            handleReject={handleDeleteConfirmationReject}
+          />
+        </Suspense>
       )}
 
       {/* Dialog: Upload File */}

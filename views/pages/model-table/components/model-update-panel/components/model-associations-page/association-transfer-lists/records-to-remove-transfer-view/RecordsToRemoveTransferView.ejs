@@ -7,7 +7,7 @@ import { useSnackbar } from 'notistack';
 import Snackbar from '../../../../../../../../../../snackbar/Snackbar';
 import PropTypes from 'prop-types';
 import api from '../../../../../../../../../../../requests/requests.index.js';
-import { makeCancelable } from '../../../../../../../../../../../utils'
+import { makeCancelable } from '../../../../../../../../../../../utils';
 import <%- sortedAssociations[aindex].relationNameOnPascal _%>ToRemoveTransferViewToolbar from './components/<%- sortedAssociations[aindex].relationNameCp _%>ToRemoveTransferViewToolbar';
 <%if(sortedAssociations[aindex].paginationType === 'cursorBased') {-%>
 import <%- sortedAssociations[aindex].relationNameOnPascal _%>ToRemoveTransferViewCursorPagination from './components/<%- sortedAssociations[aindex].relationNameCp _%>ToRemoveTransferViewCursorPagination';

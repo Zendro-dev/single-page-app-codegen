@@ -7,10 +7,10 @@ import PropTypes from 'prop-types';
 import NotFoundSection from '../pages/NotFoundSectionPage'
 import NoPermissionSectionPage from '../pages/NoPermissionSectionPage'
 <%for( let i=0; i<models.length; i++ ){-%>
-const <%- models[i].nameOnPascal %>Table = lazy(() => import('./models-tables/<%- models[i].nameLc _%>-table/<%- models[i].nameCp _%>EnhancedTable'));
+const <%- models[i].nameOnPascal %>Table = lazy(() => import(/* webpackChunkName: "Table-<%- models[i].nameOnPascal _%>" */ './models-tables/<%- models[i].nameLc _%>-table/<%- models[i].nameCp _%>EnhancedTable'));
 <%}-%>
 <%for( let i=0; i<adminModels.length; i++ ){-%>
-const <%- adminModels[i].nameOnPascal %>Table = lazy(() => import('./admin-tables/<%- adminModels[i].nameLc _%>-table/<%- adminModels[i].nameCp _%>EnhancedTable'));
+const <%- adminModels[i].nameOnPascal %>Table = lazy(() => import(/* webpackChunkName: "Table-<%- adminModels[i].nameOnPascal _%>" */ './admin-tables/<%- adminModels[i].nameLc _%>-table/<%- adminModels[i].nameCp _%>EnhancedTable'));
 <%}-%>
 
 export default function TablesSwitch(props) {
@@ -18,7 +18,7 @@ export default function TablesSwitch(props) {
 
   return (
     
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div />}>
       <Switch>
         {/* Models */}
 <%for( let i=0; i<models.length; i++ ){-%>
