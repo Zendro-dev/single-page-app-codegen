@@ -4,5 +4,4 @@ FROM node:14.4.0-alpine
 WORKDIR /usr/src/app
 
 # Clone the skeleton App project and install dependencies
-RUN apk update && apk add git bash \
-  echo "fs.inotify.max_user_watches=524288" >> /etc/sysctl.conf
+RUN apk update && apk add git bash
