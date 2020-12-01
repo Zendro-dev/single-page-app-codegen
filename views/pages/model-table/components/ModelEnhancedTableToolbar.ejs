@@ -24,7 +24,9 @@ import ButtonBase from '@material-ui/core/ButtonBase';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import TableIcon from '@material-ui/icons/ViewComfyTwoTone';
+<%if(withPlotly) {-%>
 import ChartIcon from '@material-ui/icons/InsertChartTwoTone';
+<%}-%>
 <% if(zendroStudioModels) { -%>
 import PlotEditorIcon from '@material-ui/icons/CodeTwoTone';
 <% } -%>
@@ -125,11 +127,13 @@ export default function <%- nameOnPascal -%>EnhancedTableToolbar(props) {
                           <TableIcon fontSize="small" />
                         </ToggleButton>
                       </Tooltip>
+<%if(withPlotly) {-%>
                       <Tooltip title={ t('modelPanels.plot', "Plot") }>
                         <ToggleButton value="plot">
                           <ChartIcon fontSize="small" />
                         </ToggleButton>
                       </Tooltip>
+<%}-%>
 <%if(zendroStudioModels) {-%>
                       <Tooltip title={ t('modelPanels.plotEditor', "Plot Editor") }>
                         <ToggleButton value="plot-editor">

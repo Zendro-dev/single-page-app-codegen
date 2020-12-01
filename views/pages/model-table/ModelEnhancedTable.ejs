@@ -42,8 +42,10 @@ const <%- nameOnPascal -%>CreatePanel = lazy(() => import(/* webpackChunkName: "
 const <%- nameOnPascal -%>UpdatePanel = lazy(() => import(/* webpackChunkName: "Update-<%- nameOnPascal -%>" */ './components/<%- nameLc -%>-update-panel/<%- nameCp -%>UpdatePanel'));
 const <%- nameOnPascal -%>DetailPanel = lazy(() => import(/* webpackChunkName: "Detail-<%- nameOnPascal -%>" */ './components/<%- nameLc -%>-detail-panel/<%- nameCp -%>DetailPanel'));
 const <%- nameOnPascal -%>DeleteConfirmationDialog = lazy(() => import(/* webpackChunkName: "Delete-<%- nameOnPascal -%>" */ './components/<%- nameCp -%>DeleteConfirmationDialog'));
+<%if(withPlotly) {-%>
 //Plotly
 const <%- nameOnPascal -%>Plotly = lazy(() => import(/* webpackChunkName: "Plotly-<%- nameOnPascal -%>" */ '../../../../plots/<%- nameCp -%>Plotly'));
+<%}-%>
 <%if(zendroStudioModels) {-%>
 //ZendroStudio
 const ZendroStudio = lazy(() => import(/* webpackChunkName: "ZendroStudio-<%- nameOnPascal -%>" */ '../../../../static/zendro-studio/ZendroStudio'));
@@ -108,6 +110,10 @@ const useStyles = makeStyles(theme => ({
 <% if(zendroStudioModels) { -%>
     zendroStudio: {
       padding: theme.spacing(0, 2),
+    },
+    zendroStudioDiv: {
+      height: `calc(100vh - 72px - 48px - 128px)`,
+      overflow: 'auto',
     }
 <% } -%>
 }));
@@ -1217,13 +1223,14 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     switch(toggleButtonValue) {
       case 'table':
         return 0;
-
+<%let _swipeIndex = 1-%>
+<%if(withPlotly) {-%>
       case 'plot':
-        return 1;
-
+        return <%- _swipeIndex++ -%>;
+<%}-%>
 <%if(zendroStudioModels) {-%>
       case 'plot-editor':
-        return 2;
+        return <%- _swipeIndex++ -%>;
 
 <%}-%>
       default:
@@ -1592,7 +1599,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                 <<%- nameOnPascal -%>EnhancedTableToolbar
                   permissions={permissions}
                   search={search}
-                  showToggleButtons={Boolean(<%- nameOnPascal -%>Plotly)}
+                  showToggleButtons={<%if(withPlotly||zendroStudioModels) {-%>true<%} else{-%>false<%}-%>}
                   toggleButtonValue={toggleButtonValue}
                   onSearchEnter={handleSearchEnter}
                   onReloadClick={handleReloadClick}
@@ -1857,6 +1864,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 <%}-%>
                   </div>
 
+<%if(withPlotly) {-%>
                   {/*
                     Swipe page 2: Plot
                     Conditional rendered
@@ -1868,10 +1876,13 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                       </Suspense>
                     )}
                   </div>
+<%}-%>
 
 <% if(zendroStudioModels) { -%>
                   <Suspense fallback={<div />}>
-                    <ZendroStudio className={ classes.zendroStudio } />
+                    <div className={ classes.zendroStudioDiv }>
+                      <ZendroStudio className={ classes.zendroStudio } />
+                    </div>
                   </Suspense>
 <% } -%>
                 </SwipeableViews>
