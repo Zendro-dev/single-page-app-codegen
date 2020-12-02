@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, Suspense, lazy } from 
 import { useSelector, useDispatch } from 'react-redux';
 import { modelChange } from '../../../../../../../store/actions'
 import PropTypes from 'prop-types';
-import api from '../../../../../../../requests/requests.index.js'
+import { loadApi } from '../../../../../../../requests/requests.index.js'
 import { makeCancelable } from '../../../../../../../utils'
 import { makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
@@ -303,6 +303,7 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
     /*
       API Request: <%- requestName1 %>
     */
+    let api = await loadApi("<%- nameLc -%>");
     let cancelableApiReq = makeCancelable(api.<%- nameLc -%>.deleteItem(graphqlServerUrl, variables));
     cancelablePromises.current.push(cancelableApiReq);
     await cancelableApiReq

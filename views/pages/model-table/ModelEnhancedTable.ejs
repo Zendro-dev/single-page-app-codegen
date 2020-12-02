@@ -9,7 +9,7 @@ import Snackbar from '../../../../snackbar/Snackbar';
 import moment from "moment";
 <%}-%>
 import PropTypes from 'prop-types';
-import api from '../../../../../requests/requests.index.js'
+import { loadApi } from '../../../../../requests/requests.index.js'
 import { makeCancelable } from '../../../../../utils'
 import <%- nameOnPascal -%>EnhancedTableHead from './components/<%- nameCp -%>EnhancedTableHead'
 import <%- nameOnPascal -%>EnhancedTableToolbar from './components/<%- nameCp -%>EnhancedTableToolbar'
@@ -468,6 +468,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     /*
       API Request: <%- requestName1 %>
     */
+    let api = await loadApi("<%- nameLc -%>");
     let cancelableApiReq = makeCancelable(api.<%- nameLc -%>.getCountItems(graphqlServerUrl, search));
     cancelableCountingPromises.current.push(cancelableApiReq);
     await cancelableApiReq
@@ -602,6 +603,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     /*
       API Request: <%- requestName2 %>
     */
+    let api = await loadApi("<%- nameLc -%>");
     let cancelableApiReq = makeCancelable(api.<%- nameLc -%>.getItems(
       graphqlServerUrl,
       search,
@@ -908,6 +910,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     /*
       API Request: <%- requestName3 %>
     */
+    let api = await loadApi("<%- nameLc -%>");
     let cancelableApiReq = makeCancelable(api.<%- nameLc -%>.deleteItem(graphqlServerUrl, variables));
     cancelablePromises.current.push(cancelableApiReq);
     await cancelableApiReq
@@ -1016,6 +1019,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
     /*
       API Request: <%- requestName4 %>
     */
+    let api = await loadApi("<%- nameLc -%>");
     let cancelableApiReq = makeCancelable(api.<%- nameLc -%>.tableTemplate(graphqlServerUrl));
     cancelablePromises.current.push(cancelableApiReq);
     await cancelableApiReq

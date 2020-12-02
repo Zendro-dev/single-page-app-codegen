@@ -15,7 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
 import Snackbar from '../../../../../../../../../../snackbar/Snackbar';
 import PropTypes from 'prop-types';
-import api from '../../../../../../../../../../../requests/requests.index.js';
+import { loadApi } from '../../../../../../../../../../../requests/requests.index.js';
 import { makeCancelable } from '../../../../../../../../../../../utils'
 import <%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferViewToolbar from './components/<%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferViewToolbar';
 <%if(isCursorBased) {-%>
@@ -733,6 +733,7 @@ const cancelableCountingPromises = useRef([]);
     /*
       API Request: <%- requestName5 %>
     */
+    let api = await loadApi("<%- sortedAssociations[aindex].targetModelLc -%>");
     let cancelableApiReq = makeCancelable(api.<%- sortedAssociations[aindex].targetModelLc _%>.getCountItems(graphqlServerUrl, search, ops));
     cancelableCountingPromises.current.push(cancelableApiReq);
     await cancelableApiReq
@@ -877,6 +878,7 @@ const cancelableCountingPromises = useRef([]);
     /*
       API Request: <%- requestName1 %>
     */
+    let api = await loadApi("<%- sortedAssociations[aindex].targetModelLc -%>");
     let cancelableApiReq = makeCancelable(api.<%- sortedAssociations[aindex].targetModelLc _%>.getItems(
       graphqlServerUrl,
       search,
@@ -1037,6 +1039,7 @@ const cancelableCountingPromises = useRef([]);
     /*
       API Request: <%- requestName6 %>
     */
+    let api = await loadApi("<%- sortedAssociations[aindex].targetModelLc -%>");
     let cancelableApiReq = makeCancelable(api.<%- sortedAssociations[aindex].targetModelLc _%>.getCountItems(graphqlServerUrl, searchB, ops));
     cancelableCountingPromisesB.current.push(cancelableApiReq);
     await cancelableApiReq
@@ -1198,6 +1201,7 @@ const cancelableCountingPromises = useRef([]);
     /*
       API Request: <%- requestName4 %>
     */
+    let api = await loadApi("<%- sortedAssociations[aindex].targetModelLc -%>");
     let cancelableApiReq = makeCancelable(api.<%- sortedAssociations[aindex].targetModelLc _%>.getItems(
       graphqlServerUrl,
       searchB,

@@ -22,7 +22,7 @@ import Typography from '@material-ui/core/Typography';
 import TextField from '@material-ui/core/TextField';
 import CircularProgress from '@material-ui/core/CircularProgress';
 <%if(!standalonePlotly) {-%>
-import api from '../../requests/requests.index'
+import { loadApi } from '../../requests/requests.index'
 <%}-%>
 
 // const appBarHeight = 72;
@@ -156,6 +156,7 @@ export default function <%- nameOnPascal -%>Plotly(props) {
     /*
       API Request: <%- requestName1 %>
     */
+    let api = await loadApi("<%- nameLc -%>");
     await api.<%- nameLc -%>.getBarchartData(graphqlServerUrl, attribute)
       .then(
       //resolved
