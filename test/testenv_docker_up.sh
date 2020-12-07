@@ -1,15 +1,24 @@
 #!/usr/bin/env bash
 
+# Exit on error
+set -e
+
+# Load integration test constants
+SCRIPT_DIR="$(dirname $(readlink -f ${BASH_SOURCE[0]}))"
+source "${SCRIPT_DIR}/testenv_constants.sh"
+
+# Function to verify that all docker servies are ready to take requests
 checkGqlServer() {
 
   url="${1}"
+  max_time="${2}"
 
   elapsedTime=0
   until curl "$url" &>/dev/null
   do
 
     # Exit with error code 1
-    if [ $elapsedTime == $SERVER_CHECK_WAIT_TIME ]; then
+    if [ $elapsedTime == $max_time ]; then
 
       echo "time limit reached while waiting for ${url}"
       return 1
@@ -21,19 +30,19 @@ checkGqlServer() {
     elapsedTime=$(expr $elapsedTime + 2)
   done
 
-  echo $url is ready
+  echo -e ${YELLOW}$url${NC} is ${GREEN}ready${NC}
 
   return 0
 
 }
 
 # Up detached docker containers
+export DOCKER_UID="$DOCKER_UID"
 docker-compose \
   -f "${TEST_DIR}/integration_test_misc/docker-compose-test.yml" up -d \
   --force-recreate \
   --remove-orphans \
   --renew-anon-volumes
-
 
 # Wait for the server instances to get ready
 echo "Waiting for all servers to start"
@@ -47,7 +56,7 @@ pids=( )
 
 for url in ${HOSTS[@]}; do
 
-  checkGqlServer $url &
+  checkGqlServer $url $SERVER_CHECK_WAIT_TIME &
   pids+="$! "
 
 done

@@ -81,7 +81,7 @@ services:
      - REACT_APP_ZENDRO_MAX_RECORD_LIMIT=25
     networks:
     - integrationtest
-    user: ${UID}
+    user: ${DOCKER_UID}
     command:
       - /bin/sh
       - -c
