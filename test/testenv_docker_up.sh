@@ -36,6 +36,12 @@ checkGqlServer() {
 
 }
 
+echo ""
+echo -e ${GRAY}${DOUBLE_SEP}${NC}
+echo -e ${YELLOW}START ${GRAY}UP DOCKER CONTAINERS${NC}
+echo -e ${GRAY}${DOUBLE_SEP}${NC}
+echo ""
+
 # Up detached docker containers
 export DOCKER_UID="$DOCKER_UID"
 docker-compose \
@@ -45,7 +51,7 @@ docker-compose \
   --renew-anon-volumes
 
 # Wait for the server instances to get ready
-echo "Waiting for all servers to start"
+echo -e "\nWaiting for all servers to start"
 
 HOSTS=(
   $GRAPHQL_SERVER_1_URL
@@ -67,3 +73,9 @@ for id in ${pids[@]}; do
   wait $id || exit 0
 
 done
+
+echo ""
+echo -e ${GRAY}${DOUBLE_SEP}${NC}
+echo -e ${YELLOW}END ${GRAY}UP DOCKER CONTAINERS${NC}
+echo -e ${GRAY}${DOUBLE_SEP}${NC}
+echo ""

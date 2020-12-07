@@ -23,3 +23,13 @@ SERVER_CHECK_WAIT_TIME=180
 USER_ID=$(id -u)
 GROUP_ID=$(id -g)
 DOCKER_UID="${USER_ID}:${GROUP_ID}"
+
+# TERMINAL OUTPUT
+RED='\033[0;31m'
+GREEN='\033[1;32m'
+YELLOW='\033[1;33m'
+GRAY='\033[38;5;242m'
+NC='\033[0m'
+
+DOUBLE_SEP="=================================================================="
+SINGLE_SEP="------------------------------------------------------------------"
