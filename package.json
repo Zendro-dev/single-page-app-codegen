@@ -27,7 +27,6 @@
     "js-beautify": "^1.6.11",
     "list-dir": "^1.2.0",
     "lodash": "^4.17.5",
-    "plotly.js": "^1.58.1",
     "replace-in-file": "^6.1.0"
   },
   "devDependencies": {
