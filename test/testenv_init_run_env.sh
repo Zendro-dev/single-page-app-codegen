@@ -56,7 +56,6 @@ git clone --branch $SPA_SERVER_BRANCH https://github.com/Zendro-dev/single-page-
 
 cd $SPA_SERVER_1
 npm install
-npm install plotly.js
 cd - &>/dev/null
 
 printf \
