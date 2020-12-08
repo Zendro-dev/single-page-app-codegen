@@ -1,14 +1,8 @@
 #!/usr/bin/env bash
 
-# Exit on error
 set -e
 
-# Load integration test constants
-SCRIPT_DIR="$(dirname $(readlink -f ${BASH_SOURCE[0]}))"
-source "${SCRIPT_DIR}/testenv_constants.sh"
-
-# Function to verify that all docker servies are ready to take requests
-checkGqlServer() {
+isServiceReadyForRequests () {
 
   url="${1}"
   max_time="${2}"
@@ -33,11 +27,11 @@ checkGqlServer() {
 
 }
 
-echo ""
-echo -e ${GRAY}${DOUBLE_SEP}${NC}
-echo -e ${YELLOW}START ${GRAY}UP DOCKER CONTAINERS${NC}
-echo -e ${GRAY}${DOUBLE_SEP}${NC}
-echo ""
+# Load integration test constants
+SCRIPT_DIR="$(dirname $(readlink -f ${BASH_SOURCE[0]}))"
+source "${SCRIPT_DIR}/testenv_constants.sh"
+
+printBlockHeader "START" "UP DOCKER CONTAINERS"
 
 # Up detached docker containers
 export DOCKER_UID="$DOCKER_UID"
@@ -48,31 +42,20 @@ docker-compose \
   --renew-anon-volumes
 
 # Wait for the server instances to get ready
-echo -e "\nWaiting for all servers to start"
+echo -e "\nWaiting for all servers to start ..."
 
-HOSTS=(
-  $GRAPHQL_SERVER_1_URL
-  $GRAPHQL_SERVER_2_URL
-  $SPA_SERVER_1_URL
-)
+# Async check that the servers are ready to take requests
 pids=( )
+isServiceReadyForRequests "$GRAPHQL_SERVER_1_URL" "$SERVER_CHECK_WAIT_TIME" &
+pids+="$! "
+isServiceReadyForRequests "$GRAPHQL_SERVER_2_URL" "$SERVER_CHECK_WAIT_TIME" &
+pids+="$! "
+isServiceReadyForRequests "$SPA_SERVER_1_URL" "$SERVER_CHECK_WAIT_TIME" &
+pids+="$! "
 
-for url in ${HOSTS[@]}; do
-
-  checkGqlServer $url $SERVER_CHECK_WAIT_TIME &
-  pids+="$! "
-
-done
-
-# Wait until all servers are up and running
+# Wait for the check responses
 for id in ${pids[@]}; do
-
   wait $id || exit 0
-
 done
 
-echo ""
-echo -e ${GRAY}${DOUBLE_SEP}${NC}
-echo -e ${YELLOW}END ${GRAY}UP DOCKER CONTAINERS${NC}
-echo -e ${GRAY}${DOUBLE_SEP}${NC}
-echo ""
+printBlockHeader "END" "UP DOCKER CONTAINERS"

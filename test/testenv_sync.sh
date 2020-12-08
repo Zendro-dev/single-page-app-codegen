@@ -7,11 +7,7 @@ set -e
 SCRIPT_DIR="$(dirname $(readlink -f ${BASH_SOURCE[0]}))"
 source "${SCRIPT_DIR}/testenv_constants.sh"
 
-echo ""
-echo -e ${GRAY}${DOUBLE_SEP}${NC}
-echo -e ${YELLOW}START ${GRAY}APPLY CUSTOM PATCHES${NC}
-echo -e ${GRAY}${DOUBLE_SEP}${NC}
-echo ""
+printBlockHeader "START" "APPLY CUSTOM PATCHES"
 
 # Apply custom patches to the appropriate server instance
 patch \
@@ -30,8 +26,4 @@ patch \
   "${SPA_SERVER_1}/src/acl_rules.js" \
   "${TEST_DIR}/patches/acl_rules.js.patch"
 
-echo ""
-echo -e ${GRAY}${DOUBLE_SEP}${NC}
-echo -e ${YELLOW}END ${GRAY}APPLY CUSTOM PATCHES${NC}
-echo -e ${GRAY}${DOUBLE_SEP}${NC}
-echo ""
+printBlockHeader "END" "APPLY CUSTOM PATCHES"

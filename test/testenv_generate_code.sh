@@ -1,13 +1,19 @@
 #!/usr/bin/env bash
 
-# Exit on error
 set -e
 
-# Load integration test constants
-SCRIPT_DIR="$(dirname $(readlink -f ${BASH_SOURCE[0]}))"
-source "${SCRIPT_DIR}/testenv_constants.sh"
+printCodegenTaskStart () {
+  path=$1
+  name=$(basename $path)
+  echo -e "${GRAY}${SINGLE_SEP}${NC}\n${GREEN}START${NC} ... Generating code in ${YELLOW}${name}${NC}\n"
+}
 
-# Function to restore a repository to its original branch state
+printCodegenTaskEnd () {
+  path=$1
+  name=$(basename $path)
+  echo -e "\n${GREEN}END${NC} ... Generated code in ${YELLOW}${name}${NC}\n${GRAY}${SINGLE_SEP}${NC}"
+}
+
 cleanRepository() {
 
   REPO_PATH=$1
@@ -21,65 +27,47 @@ cleanRepository() {
 
 }
 
+generateGraphqlServerCode () {
 
-# Run the graphql server code generator on each of the graphql server instances
-echo ""
-echo -e ${GRAY}${DOUBLE_SEP}${NC}
-echo -e ${YELLOW}START ${GRAY}RUN CODE GENERATORS${NC}
-echo -e ${GRAY}${DOUBLE_SEP}${NC}
-echo ""
+  models=$1
+  output=$2
 
-GRAPHQL_SERVER_INSTANCES=(
-  "$GRAPHQL_SERVER_1"
-  "$GRAPHQL_SERVER_2"
-)
+  printCodegenTaskStart $output
 
-for i in ${!GRAPHQL_SERVER_INSTANCES[@]}; do
+  node "${GRAPHQL_CODEGEN_DIR}/index.js" -f "$models" --migrations -o $output
 
-  GRAPHQL_SERVER=${GRAPHQL_SERVER_INSTANCES[$i]}
-  INDEX=$(($i + 1))
+  printCodegenTaskEnd $output
 
-  printf -- \
-    "${SINGLE_SEP}\nGenerating code for ${YELLOW}%s${NC} ... ${GREEN}starting${NC}\n\n" \
-    $(basename ${GRAPHQL_SERVER})
+}
 
-  # Restore the graphql server repository to a clean state
-  cleanRepository $GRAPHQL_SERVER $GRAPHQL_SERVER_BRANCH
+generateSpaCode () {
 
-  # Run the code generator
-  node "${GRAPHQL_CODEGEN}/index.js" \
-    -f "${TEST_DIR}/integration_test_models_instance${INDEX}" \
-    --migrations \
-    -o $GRAPHQL_SERVER
+  models=$1
+  output=$2
 
-  printf \
-    "\nGenerating code for ${YELLOW}%s${NC} ... ${GREEN}complete${NC}\n${SINGLE_SEP}\n\n" \
-    $(basename ${GRAPHQL_SERVER})
+  printCodegenTaskStart $output
 
-done
+  node "${ROOT_DIR}/index.js" -f "$models" -o $output -P
+
+  printCodegenTaskEnd $output
+
+}
 
 
-# Run the spa code generator on the spa instance
-printf -- \
-  "${SINGLE_SEP}\nGenerating code for ${YELLOW}%s${NC} ... ${GREEN}starting${NC}\n\n" \
-  $(basename ${SPA_SERVER_1})
+# Load integration test constants
+SCRIPT_DIR="$(dirname $(readlink -f ${BASH_SOURCE[0]}))"
+source "${SCRIPT_DIR}/testenv_constants.sh"
 
-# Restore the single-page-app repository to a clean state
-cd $SPA_SERVER_1
+printBlockHeader "START" "RUN CODE GENERATORS"
+
+# Reset the repositories to their original state and run the appropriate code generator
+cleanRepository $GRAPHQL_SERVER_1 $GRAPHQL_SERVER_BRANCH
+generateGraphqlServerCode "$GRAPHQL_SERVER_1_MODELS" "$GRAPHQL_SERVER_1"
+
+cleanRepository $GRAPHQL_SERVER_2 $GRAPHQL_SERVER_BRANCH
+generateGraphqlServerCode "$GRAPHQL_SERVER_2_MODELS" "$GRAPHQL_SERVER_2"
+
 cleanRepository $SPA_SERVER_1 $SPA_SERVER_BRANCH
+generateSpaCode "$GRAPHQL_SERVER_1_MODELS" "$SPA_SERVER_1"
 
-# Run the single-page-app code generator on the single-page-app instance
-node "${ROOT_DIR}/index.js" \
-  -f "${TEST_DIR}/integration_test_models_instance1" \
-  -P -D \
-  -o $SPA_SERVER_1
-
-printf \
-  "\nGenerating code for ${YELLOW}%s${NC} ... ${GREEN}complete${NC}\n${SINGLE_SEP}\n\n" \
-  $(basename ${SPA_SERVER_1})
-
-echo ""
-echo -e ${GRAY}${DOUBLE_SEP}${NC}
-echo -e ${YELLOW}END ${GRAY}RUN CODE GENERATORS${NC}
-echo -e ${GRAY}${DOUBLE_SEP}${NC}
-echo ""
+printBlockHeader "END" "RUN CODE GENERATORS"
