@@ -6692,8 +6692,8 @@ describe('4. ACL Validations', function() {
             "message": "You don't have authorization to perform this action",
             "locations": [
               {
-                "line": 1,
-                "column": 3
+                "line": 2,
+                "column": 14
               }
             ],
             "path": [
@@ -6703,6 +6703,25 @@ describe('4. ACL Validations', function() {
         ],
         "data": {
           "countAcl_validations": null
+        }
+      };
+      let q1b = {
+        "errors": [
+          {
+            "message": "You don't have authorization to perform this action",
+            "locations": [
+              {
+                "line": 2,
+                "column": 14
+              }
+            ],
+            "path": [
+              "acl_validationsConnection"
+            ]
+          }
+        ],
+        "data": {
+          "acl_validationsConnection": null
         }
       };
       let q2 = {
@@ -6739,15 +6758,12 @@ describe('4. ACL Validations', function() {
             ],
             requests: ['http://localhost:3000/graphql'],
             responses: [],
-            expectedResponses: 1,
+            expectedResponses: 2,
           };
           await clickOn(props);
           // evaluate
           let datas = (await Promise.all(props.responses).then(a=>a, r=>{throw r})).map((data) => data);
-          expect(datas.length).to.eql(1);
-          expect(datas[0].errors[0].message).to.eql(q1.errors[0].message);
-          expect(datas[0].errors[0].path).to.eql(q1.errors[0].path);
-          expect(datas[0].data).to.eql(q1.data);
+          expect(datas).to.deep.equalInAnyOrder([q1, q1b]);
           expect(await page.title()).to.eql('Zendro');
         });
 
