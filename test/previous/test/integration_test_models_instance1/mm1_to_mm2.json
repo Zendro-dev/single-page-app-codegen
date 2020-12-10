@@ -1,5 +1,0 @@
-{
-  "model": "mM1_to_MM2",
-  "storageType": "SQL",
-  "attributes": { "mmid1": "String", "mmid2": "String" }
-}

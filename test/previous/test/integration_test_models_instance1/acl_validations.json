@@ -1,7 +1,0 @@
-{
-  "model": "acl_validations",
-  "storageType": "sql",
-  "attributes": {
-    "string_1": "String"
-  }
-}

@@ -11,8 +11,7 @@
     "single-page-app-codegen": "index.js"
   },
   "scripts": {
-    "test-integration": "bash ./test/testenv_cli.sh",
-    "test-integration-b": "bash ./test/previous/test/integration-test.sh"
+    "test-integration": "bash ./test/testenv_cli.sh"
   },
   "author": "Dr. Asis Hallab <asis.hallab@gmail.com>",
   "license": "MIT",
