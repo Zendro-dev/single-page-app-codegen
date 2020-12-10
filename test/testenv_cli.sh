@@ -109,6 +109,7 @@ fi
 # 1. Run the integration tests
 # 2. Perform a full cleanup (optionally disabled)
 if [[ $OPT_RUN_TESTS == "true" ]]; then
+  bash "${TEST_DIR}/testenv_docker_up.sh"
   mocha "${TEST_DIR}/integration-tests-mocha.js"
 
   # 1. Remove docker containers, images, and volumes
