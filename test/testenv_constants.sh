@@ -18,7 +18,7 @@ GRAPHQL_SERVER_2_URL="localhost:3030/graphql"
 
 SPA_SERVER_BRANCH=master
 SPA_SERVER_1="${ENV_DIR}/spa_science_db_app_server1"
-SPA_SERVER_1_URL="http://localhost:8080/graphql"
+SPA_SERVER_1_URL="http://localhost:8080"
 
 SERVER_CHECK_WAIT_TIME=180
 
