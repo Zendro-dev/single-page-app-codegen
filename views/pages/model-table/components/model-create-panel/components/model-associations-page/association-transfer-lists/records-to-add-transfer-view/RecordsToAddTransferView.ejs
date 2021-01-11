@@ -734,6 +734,17 @@ const cancelableCountingPromises = useRef([]);
       API Request: <%- requestName5 %>
     */
     let api = await loadApi("<%- sortedAssociations[aindex].targetModelLc -%>");
+    if(!api) {
+      let newError = {};
+      let withDetails=true;
+      variantC.current='error';
+      newError.message = t('modelPanels.messages.apiCouldNotLoaded', "API could not be loaded");
+      newError.details = t('modelPanels.messages.seeConsoleError', "Please see console log for more details on this error");
+      errorsC.current.push(newError);
+      showMessageC(newError.message, withDetails);
+      return;
+    }
+
     let cancelableApiReq = makeCancelable(api.<%- sortedAssociations[aindex].targetModelLc _%>.getCountItems(graphqlServerUrl, search, ops));
     cancelableCountingPromises.current.push(cancelableApiReq);
     await cancelableApiReq
@@ -879,6 +890,18 @@ const cancelableCountingPromises = useRef([]);
       API Request: <%- requestName1 %>
     */
     let api = await loadApi("<%- sortedAssociations[aindex].targetModelLc -%>");
+    if(!api) {
+      let newError = {};
+      let withDetails=true;
+      variant.current='error';
+      newError.message = t('modelPanels.messages.apiCouldNotLoaded', "API could not be loaded");
+      newError.details = t('modelPanels.messages.seeConsoleError', "Please see console log for more details on this error");
+      errors.current.push(newError);
+      showMessage(newError.message, withDetails);
+      clearRequestGetData();
+      return;
+    }
+
     let cancelableApiReq = makeCancelable(api.<%- sortedAssociations[aindex].targetModelLc _%>.getItems(
       graphqlServerUrl,
       search,
@@ -1040,6 +1063,17 @@ const cancelableCountingPromises = useRef([]);
       API Request: <%- requestName6 %>
     */
     let api = await loadApi("<%- sortedAssociations[aindex].targetModelLc -%>");
+    if(!api) {
+      let newError = {};
+      let withDetails=true;
+      variantD.current='error';
+      newError.message = t('modelPanels.messages.apiCouldNotLoaded', "API could not be loaded");
+      newError.details = t('modelPanels.messages.seeConsoleError', "Please see console log for more details on this error");
+      errorsD.current.push(newError);
+      showMessageD(newError.message, withDetails);
+      return;
+    }
+    
     let cancelableApiReq = makeCancelable(api.<%- sortedAssociations[aindex].targetModelLc _%>.getCountItems(graphqlServerUrl, searchB, ops));
     cancelableCountingPromisesB.current.push(cancelableApiReq);
     await cancelableApiReq
@@ -1202,6 +1236,18 @@ const cancelableCountingPromises = useRef([]);
       API Request: <%- requestName4 %>
     */
     let api = await loadApi("<%- sortedAssociations[aindex].targetModelLc -%>");
+    if(!api) {
+      let newError = {};
+      let withDetails=true;
+      variantB.current='error';
+      newError.message = t('modelPanels.messages.apiCouldNotLoaded', "API could not be loaded");
+      newError.details = t('modelPanels.messages.seeConsoleError', "Please see console log for more details on this error");
+      errorsB.current.push(newError);
+      showMessageB(newError.message, withDetails);
+      clearRequestGetDataB();
+      return;
+    }
+
     let cancelableApiReq = makeCancelable(api.<%- sortedAssociations[aindex].targetModelLc _%>.getItems(
       graphqlServerUrl,
       searchB,

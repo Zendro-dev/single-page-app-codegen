@@ -6,7 +6,9 @@ let isToOne = ( sortedAssociations[aindex].type === 'to_one' || sortedAssociatio
 let isToMany = ( sortedAssociations[aindex].type === 'to_many' || sortedAssociations[aindex].type === 'to_many_through_sql_cross_table' || sortedAssociations[aindex].type === 'generic_to_many' );
 -%>
 import React, { Suspense, lazy } from 'react';
+import { retry } from '../../../../../../../../../../utils.js';
 import PropTypes from 'prop-types';
+import ErrorBoundary from '../../../../../../../../../pages/ErrorBoundary';
 import { makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
 import Grid from '@material-ui/core/Grid';
@@ -16,9 +18,9 @@ import Divider from '@material-ui/core/Divider';
 <%}-%>
 import Typography from '@material-ui/core/Typography';
 //lazy loading
-const <%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferView = lazy(() => import(/* webpackChunkName: "Create-TransferLists-ToAdd-<%- sortedAssociations[aindex].relationNameOnPascal _%>" */ './<%- sortedAssociations[aindex].relationNameLc _%>-to-add-transfer-view/<%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferView'));
+const <%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferView = lazy(() => retry(() => import(/* webpackChunkName: "Create-TransferLists-ToAdd-<%- sortedAssociations[aindex].relationNameOnPascal _%>" */ './<%- sortedAssociations[aindex].relationNameLc _%>-to-add-transfer-view/<%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferView')));
 <%if(isToMany){-%>
-const <%- sortedAssociations[aindex].relationNameOnPascal _%>ToRemoveTransferView = lazy(() => import(/* webpackChunkName: "Create-TransferLists-ToRemove-<%- sortedAssociations[aindex].relationNameOnPascal _%>" */ './<%- sortedAssociations[aindex].relationNameLc _%>-to-remove-transfer-view/<%- sortedAssociations[aindex].relationNameCp _%>ToRemoveTransferView'));
+const <%- sortedAssociations[aindex].relationNameOnPascal _%>ToRemoveTransferView = lazy(() => retry(() => import(/* webpackChunkName: "Create-TransferLists-ToRemove-<%- sortedAssociations[aindex].relationNameOnPascal _%>" */ './<%- sortedAssociations[aindex].relationNameLc _%>-to-remove-transfer-view/<%- sortedAssociations[aindex].relationNameCp _%>ToRemoveTransferView')));
 <%}-%>
 
 const useStyles = makeStyles(theme => ({
@@ -92,7 +94,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
             </div>
           </Grid>
           <Grid item xs={12}>
-            <Suspense fallback={<div />}>
+            <Suspense fallback={<div />}><ErrorBoundary showMessage={true} belowToolbar={true}>
               <<%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferView
                 item={item}
                 idsToAdd={idsToAdd}
@@ -105,7 +107,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                 handleUntransfer={handleUntransferFromAdd}
                 handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row={handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row}
               />
-            </Suspense>
+            </ErrorBoundary></Suspense>
           </Grid>
 
 <%if(isToMany){-%>
@@ -134,7 +136,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
             </div>
           </Grid>
           <Grid item xs={12}>
-            <Suspense fallback={<div />}>
+            <Suspense fallback={<div />}><ErrorBoundary showMessage={true} belowToolbar={true}>
               <<%- sortedAssociations[aindex].relationNameOnPascal _%>ToRemoveTransferView
                 item={item}
                 idsToRemove={idsToRemove}
@@ -142,7 +144,7 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
                 handleUntransfer={handleUntransferFromRemove}
                 handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row={handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row}
               />
-            </Suspense>
+            </ErrorBoundary></Suspense>
           </Grid>
 <%}-%>
 

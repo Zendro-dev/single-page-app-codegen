@@ -2,6 +2,7 @@
  * requests.index.js module provides function loadApi() which
  * imports dynamically the api modules required.
  */
+import { retry } from '../utils';
 
 const modelNamesIndex = [
 <%for( let i=0; i<models.length; i++ ){-%>
@@ -44,19 +45,22 @@ export async function loadApi(target) {
     switch(modelName) {
 <%for( let i=0; i<models.length; i++ ){-%>
       case '<%- models[i].nameLc _%>': 
-        module =  await import(/* webpackChunkName: "Request-<%- models[i].nameOnPascal _%>" */ './<%- models[i].nameLc _%>');
-        api['<%- models[i].nameLc _%>'] = module.default;
+        module =  await retry(() => import(/* webpackChunkName: "Request-<%- models[i].nameOnPascal _%>" */ './<%- models[i].nameLc _%>')).catch((e) => {console.log(e); return null});
+        if(!module) return null;  
+        else api['<%- models[i].nameLc _%>'] = module.default;
         break;
 <%}-%>
 <%for( let i=0; i<adminModels.length; i++ ){-%>
       case '<%- adminModels[i].nameLc _%>':
-        module = await import(/* webpackChunkName: "Request-<%- adminModels[i].nameOnPascal _%>" */ './<%- adminModels[i].nameLc _%>');
-        api['<%- adminModels[i].nameLc _%>'] = module.default;
+        module = await retry(() => import(/* webpackChunkName: "Request-<%- adminModels[i].nameOnPascal _%>" */ './<%- adminModels[i].nameLc _%>')).catch((e) => {console.log(e); return null});
+        if(!module) return null;
+        else api['<%- adminModels[i].nameLc _%>'] = module.default;
         break;
 <%}-%>
 
       default:
-        break;
+        console.error('unknown model request: ' + modelName);
+        return null;
     }
   }
   return api;

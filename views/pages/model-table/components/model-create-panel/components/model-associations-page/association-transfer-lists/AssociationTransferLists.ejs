@@ -1,12 +1,14 @@
 import React, { Suspense, lazy } from 'react';
 import PropTypes from 'prop-types';
+import ErrorBoundary from '../../../../../../../../../pages/ErrorBoundary';
+import { retry } from '../../../../../../../../../../utils.js';
 import { makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
 import Grid from '@material-ui/core/Grid';
 import Fade from '@material-ui/core/Fade';
 import Typography from '@material-ui/core/Typography';
 //lazy loading
-const <%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferView = lazy(() => import(/* webpackChunkName: "Create-TransferLists-ToAdd-<%- sortedAssociations[aindex].relationNameOnPascal _%>" */ './<%- sortedAssociations[aindex].relationNameLc _%>-to-add-transfer-view/<%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferView'));
+const <%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferView = lazy(() => retry(() => import(/* webpackChunkName: "Create-TransferLists-ToAdd-<%- sortedAssociations[aindex].relationNameOnPascal _%>" */ './<%- sortedAssociations[aindex].relationNameLc _%>-to-add-transfer-view/<%- sortedAssociations[aindex].relationNameCp _%>ToAddTransferView')));
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -68,14 +70,14 @@ export default function <%- sortedAssociations[aindex].relationNameOnPascal _%>T
             </div>
           </Grid>
           <Grid item xs={12}>
-            <Suspense fallback={<div />}>
+            <Suspense fallback={<div />}><ErrorBoundary showMessage={true} belowToolbar={true}>
               <<%- sortedAssociations[aindex].relationNameOnPascal _%>ToAddTransferView
                 idsToAdd={idsToAdd}
                 handleTransfer={handleTransferToAdd}
                 handleUntransfer={handleUntransferFromAdd}
                 handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row={handleClickOn<%- sortedAssociations[aindex].targetModelCp _%>Row}
               />
-            </Suspense>
+            </ErrorBoundary></Suspense>
           </Grid>
 
         </Grid>

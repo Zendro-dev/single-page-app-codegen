@@ -157,6 +157,18 @@ export default function <%- nameOnPascal -%>Plotly(props) {
       API Request: <%- requestName1 %>
     */
     let api = await loadApi("<%- nameLc -%>");
+    if(!api) {
+      let newError = {};
+      let withDetails=true;
+      variant.current='error';
+      newError.message = t('modelPanels.messages.apiCouldNotLoaded', "API could not be loaded");
+      newError.details = t('modelPanels.messages.seeConsoleError', "Please see console log for more details on this error");
+      errors.current.push(newError);
+      showMessage(newError.message, withDetails);
+      setIsOnApiRequest(false);
+      return;
+    }
+
     await api.<%- nameLc -%>.getBarchartData(graphqlServerUrl, attribute)
       .then(
       //resolved

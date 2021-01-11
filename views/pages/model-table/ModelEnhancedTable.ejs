@@ -5,12 +5,13 @@ import { makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
 import Snackbar from '../../../../snackbar/Snackbar';
+import ErrorBoundary from '../../../../pages/ErrorBoundary';
 <%if(typeAttributes.hasOwnProperty('Date') || typeAttributes.hasOwnProperty('Time') || typeAttributes.hasOwnProperty('DateTime')) {-%>
 import moment from "moment";
 <%}-%>
 import PropTypes from 'prop-types';
 import { loadApi } from '../../../../../requests/requests.index.js'
-import { makeCancelable } from '../../../../../utils'
+import { makeCancelable, retry } from '../../../../../utils'
 import <%- nameOnPascal -%>EnhancedTableHead from './components/<%- nameCp -%>EnhancedTableHead'
 import <%- nameOnPascal -%>EnhancedTableToolbar from './components/<%- nameCp -%>EnhancedTableToolbar'
 import <%- nameOnPascal -%>UploadFileDialog from './components/<%- nameCp -%>UploadFileDialog'
@@ -38,17 +39,17 @@ import Delete from '@material-ui/icons/DeleteOutline';
 import Edit from '@material-ui/icons/Edit';
 import SeeInfo from '@material-ui/icons/VisibilityTwoTone';
 //lazy loading
-const <%- nameOnPascal -%>CreatePanel = lazy(() => import(/* webpackChunkName: "Create-<%- nameOnPascal -%>" */ './components/<%- nameLc -%>-create-panel/<%- nameCp -%>CreatePanel'));
-const <%- nameOnPascal -%>UpdatePanel = lazy(() => import(/* webpackChunkName: "Update-<%- nameOnPascal -%>" */ './components/<%- nameLc -%>-update-panel/<%- nameCp -%>UpdatePanel'));
-const <%- nameOnPascal -%>DetailPanel = lazy(() => import(/* webpackChunkName: "Detail-<%- nameOnPascal -%>" */ './components/<%- nameLc -%>-detail-panel/<%- nameCp -%>DetailPanel'));
-const <%- nameOnPascal -%>DeleteConfirmationDialog = lazy(() => import(/* webpackChunkName: "Delete-<%- nameOnPascal -%>" */ './components/<%- nameCp -%>DeleteConfirmationDialog'));
+const <%- nameOnPascal -%>CreatePanel = lazy(() => retry(() => import(/* webpackChunkName: "Create-<%- nameOnPascal -%>" */ './components/<%- nameLc -%>-create-panel/<%- nameCp -%>CreatePanel')));
+const <%- nameOnPascal -%>UpdatePanel = lazy(() => retry(() => import(/* webpackChunkName: "Update-<%- nameOnPascal -%>" */ './components/<%- nameLc -%>-update-panel/<%- nameCp -%>UpdatePanel')));
+const <%- nameOnPascal -%>DetailPanel = lazy(() => retry(() => import(/* webpackChunkName: "Detail-<%- nameOnPascal -%>" */ './components/<%- nameLc -%>-detail-panel/<%- nameCp -%>DetailPanel')));
+const <%- nameOnPascal -%>DeleteConfirmationDialog = lazy(() => retry(() => import(/* webpackChunkName: "Delete-<%- nameOnPascal -%>" */ './components/<%- nameCp -%>DeleteConfirmationDialog')));
 <%if(withPlotly) {-%>
 //Plotly
-const <%- nameOnPascal -%>Plotly = lazy(() => import(/* webpackChunkName: "Plotly-<%- nameOnPascal -%>" */ '../../../../plots/<%- nameCp -%>Plotly'));
+const <%- nameOnPascal -%>Plotly = lazy(() => retry(() => import(/* webpackChunkName: "Plotly-<%- nameOnPascal -%>" */ '../../../../plots/<%- nameCp -%>Plotly')));
 <%}-%>
 <%if(zendroStudioModels) {-%>
 //ZendroStudio
-const ZendroStudio = lazy(() => import(/* webpackChunkName: "ZendroStudio-<%- nameOnPascal -%>" */ '../../../../static/zendro-studio/ZendroStudio'));
+const ZendroStudio = lazy(() => retry(() => import(/* webpackChunkName: "ZendroStudio-<%- nameOnPascal -%>" */ '../../../../static/zendro-studio/ZendroStudio')));
 <%}-%>
 
 // const drawerWidth = 280;
@@ -469,6 +470,17 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
       API Request: <%- requestName1 %>
     */
     let api = await loadApi("<%- nameLc -%>");
+    if(!api) {
+      let newError = {};
+      let withDetails=true;
+      variantB.current='error';
+      newError.message = t('modelPanels.messages.apiCouldNotLoaded', "API could not be loaded");
+      newError.details = t('modelPanels.messages.seeConsoleError', "Please see console log for more details on this error");
+      errorsB.current.push(newError);
+      showMessageB(newError.message, withDetails);
+      return;
+    }
+
     let cancelableApiReq = makeCancelable(api.<%- nameLc -%>.getCountItems(graphqlServerUrl, search));
     cancelableCountingPromises.current.push(cancelableApiReq);
     await cancelableApiReq
@@ -604,6 +616,18 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
       API Request: <%- requestName2 %>
     */
     let api = await loadApi("<%- nameLc -%>");
+    if(!api) {
+      let newError = {};
+      let withDetails=true;
+      variant.current='error';
+      newError.message = t('modelPanels.messages.apiCouldNotLoaded', "API could not be loaded");
+      newError.details = t('modelPanels.messages.seeConsoleError', "Please see console log for more details on this error");
+      errors.current.push(newError);
+      showMessage(newError.message, withDetails);
+      clearRequestGetData();
+      return;
+    }
+
     let cancelableApiReq = makeCancelable(api.<%- nameLc -%>.getItems(
       graphqlServerUrl,
       search,
@@ -911,6 +935,18 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
       API Request: <%- requestName3 %>
     */
     let api = await loadApi("<%- nameLc -%>");
+    if(!api) {
+      let newError = {};
+      let withDetails=true;
+      variant.current='error';
+      newError.message = t('modelPanels.messages.apiCouldNotLoaded', "API could not be loaded");
+      newError.details = t('modelPanels.messages.seeConsoleError', "Please see console log for more details on this error");
+      errors.current.push(newError);
+      showMessage(newError.message, withDetails);
+      clearRequestDoDelete();
+      return;
+    }
+    
     let cancelableApiReq = makeCancelable(api.<%- nameLc -%>.deleteItem(graphqlServerUrl, variables));
     cancelablePromises.current.push(cancelableApiReq);
     await cancelableApiReq
@@ -1020,6 +1056,18 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
       API Request: <%- requestName4 %>
     */
     let api = await loadApi("<%- nameLc -%>");
+    if(!api) {
+      let newError = {};
+      let withDetails=true;
+      variant.current='error';
+      newError.message = t('modelPanels.messages.apiCouldNotLoaded', "API could not be loaded");
+      newError.details = t('modelPanels.messages.seeConsoleError', "Please see console log for more details on this error");
+      errors.current.push(newError);
+      showMessage(newError.message, withDetails);
+      clearRequestGetCsvTemplate();
+      return;
+    }
+
     let cancelableApiReq = makeCancelable(api.<%- nameLc -%>.tableTemplate(graphqlServerUrl));
     cancelablePromises.current.push(cancelableApiReq);
     await cancelableApiReq
@@ -1875,19 +1923,19 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
                   */}
                   <div>
                     {(Boolean(<%- nameOnPascal -%>Plotly)) && (
-                      <Suspense fallback={<div />}>
+                      <Suspense fallback={<div />}><ErrorBoundary showMessage={true} belowToolbar={true}>
                         <<%- nameOnPascal -%>Plotly />
-                      </Suspense>
+                      </ErrorBoundary></Suspense>
                     )}
                   </div>
 <%}-%>
 
 <% if(zendroStudioModels) { -%>
-                  <Suspense fallback={<div />}>
+                  <Suspense fallback={<div />}><ErrorBoundary showMessage={true} belowToolbar={true}>
                     <div className={ classes.zendroStudioDiv }>
                       <ZendroStudio className={ classes.zendroStudio } />
                     </div>
-                  </Suspense>
+                  </ErrorBoundary></Suspense>
 <% } -%>
                 </SwipeableViews>
               </Paper>
@@ -1898,47 +1946,47 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
 
       {/* Dialog: Create Panel */}
       {(createDialogOpen) && (
-        <Suspense fallback={<div />}>
+        <Suspense fallback={<div />}><ErrorBoundary showMessage={true} belowToolbar={true} dialog={true} open={createDialogOpen} handleClose={(event) => { setCreateDialogOpen(false) }}>
           <<%- nameOnPascal -%>CreatePanel
             permissions={permissions}
             handleClose={handleCreateDialogClose}
           />
-        </Suspense>
+        </ErrorBoundary></Suspense>
       )}
 
       {/* Dialog: Update Panel */}
       {(updateDialogOpen) && (
-        <Suspense fallback={<div />}>
+        <Suspense fallback={<div />}><ErrorBoundary showMessage={true} belowToolbar={true} dialog={true} open={updateDialogOpen} handleClose={(event) => { setUpdateDialogOpen(false); setUpdateItem(undefined); }}>
           <<%- nameOnPascal -%>UpdatePanel
             permissions={permissions}
             item={updateItem}
             handleClose={handleUpdateDialogClose}
           />
-        </Suspense>
+        </ErrorBoundary></Suspense>
       )}
 
       {/* Dialog: Detail Panel */}
       {(detailDialogOpen) && (
-        <Suspense fallback={<div />}>
+        <Suspense fallback={<div />}><ErrorBoundary showMessage={true} belowToolbar={true} dialog={true} open={detailDialogOpen} handleClose={(event) => { setDetailDialogOpen(false); setDetailItem(undefined); }}>
           <<%- nameOnPascal -%>DetailPanel
             permissions={permissions}
             item={detailItem}
             dialog={true}
             handleClose={handleDetailDialogClose}
           />
-        </Suspense>
+        </ErrorBoundary></Suspense>
       )}
 
       {/* Dialog: Delete Confirmation */}
       {(deleteConfirmationDialogOpen) && (
-        <Suspense fallback={<div />}>
+        <Suspense fallback={<div />}><ErrorBoundary showMessage={true} belowToolbar={true} dialog={true} open={deleteConfirmationDialogOpen} handleClose={handleDeleteConfirmationReject}>
           <<%- nameOnPascal -%>DeleteConfirmationDialog
             permissions={permissions}
             item={deleteConfirmationItem}
             handleAccept={handleDeleteConfirmationAccept}
             handleReject={handleDeleteConfirmationReject}
           />
-        </Suspense>
+        </ErrorBoundary></Suspense>
       )}
 
       {/* Dialog: Upload File */}

@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { useSelector } from 'react-redux';
+import { retry } from '../../../../../../utils';
 import PropTypes from 'prop-types';
+import ErrorBoundary from '../../../../../pages/ErrorBoundary';
 import { makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle'
+import DialogTitle from '@material-ui/core/DialogTitle';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
@@ -18,7 +20,7 @@ import DeletedWarning from '@material-ui/icons/DeleteForeverOutlined';
 import UpdateOk from '@material-ui/icons/CheckCircleOutlined';
 import { red, green } from '@material-ui/core/colors';
 //lazy loading
-const <%- nameOnPascal -%>DetailPanel = lazy(() => import(/* webpackChunkName: "Delete-Detail<%- nameOnPascal -%>" */ './<%- nameLc -%>-detail-panel/<%- nameCp -%>DetailPanel'));
+const <%- nameOnPascal -%>DetailPanel = lazy(() => retry(() => import(/* webpackChunkName: "Delete-Detail<%- nameOnPascal -%>" */ './<%- nameLc -%>-detail-panel/<%- nameCp -%>DetailPanel')));
 
 
 const useStyles = makeStyles(theme => ({
@@ -204,14 +206,14 @@ export default function <%- nameOnPascal -%>DeleteConfirmationDialog(props) {
       </Grid>
 
       <DialogContent dividers>
-        <Suspense fallback={<div />}>
+        <Suspense fallback={<div />}><ErrorBoundary showMessage={true} belowToolbar={true}>
           <<%- nameOnPascal -%>DetailPanel 
             permissions={permissions}
             item={item}
             dialog={false}
             handleClose={handleCancel}
           />
-        </Suspense>
+        </ErrorBoundary></Suspense>
       </DialogContent>
 
       {(!deleted) && (

@@ -1,14 +1,16 @@
 import React<%if(sortedAssociations.length > 0){_%>, { Suspense, lazy }<%}-%> from 'react';
 <%if(sortedAssociations.length > 0) {-%>
+import { retry } from '../../../../../../../../../utils';
 import PropTypes from 'prop-types';
+import ErrorBoundary from '../../../../../../../../pages/ErrorBoundary';
 <%}-%>
-import <%- nameOnPascal _%>AssociationsMenuTabs from './<%- nameCp _%>AssociationsMenuTabs'
+import <%- nameOnPascal _%>AssociationsMenuTabs from './<%- nameCp _%>AssociationsMenuTabs';
 import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Fade from '@material-ui/core/Fade';
 //lazy loading
 <%for( let i=0; i<sortedAssociations.length; i++ ){-%>
-const <%- sortedAssociations[i].relationNameOnPascal _%>CompactView = lazy(() => import(/* webpackChunkName: "Detail-CompactView-<%- sortedAssociations[i].relationNameOnPascal _%>" */ './<%- sortedAssociations[i].relationNameLc _%>-compact-view/<%- sortedAssociations[i].relationNameCp _%>CompactView'));
+const <%- sortedAssociations[i].relationNameOnPascal _%>CompactView = lazy(() => retry(() => import(/* webpackChunkName: "Detail-CompactView-<%- sortedAssociations[i].relationNameOnPascal _%>" */ './<%- sortedAssociations[i].relationNameLc _%>-compact-view/<%- sortedAssociations[i].relationNameCp _%>CompactView')));
 <%}-%>
 
 const useStyles = makeStyles(theme => ({
@@ -62,12 +64,12 @@ export default function <%- nameOnPascal _%>AssociationsPage(props) {
         {/* <%- sortedAssociations[i].relationNameCp %> Compact View */}
         {(associationSelected === '<%- sortedAssociations[i].relationNameLc _%>') && (
           <Grid item xs={12} sm={10} md={9} lg={8} xl={7}>
-            <Suspense fallback={<div />}>
+            <Suspense fallback={<div />}><ErrorBoundary belowToolbar={true} showMessage={true}>
               <<%- sortedAssociations[i].relationNameOnPascal _%>CompactView
                 item={item}
                 handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociations[i].targetModelCp _%>Row}
               />
-            </Suspense>
+            </ErrorBoundary></Suspense>
           </Grid>
         )}
 <%}-%>

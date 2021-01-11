@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { modelChange } from '../../../../../../../store/actions'
+import { modelChange } from '../../../../../../../store/actions';
 import PropTypes from 'prop-types';
-import { loadApi } from '../../../../../../../requests/requests.index.js'
-import { makeCancelable } from '../../../../../../../utils'
+import { loadApi } from '../../../../../../../requests/requests.index.js';
+import { makeCancelable, retry } from '../../../../../../../utils';
 import { makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
 import Snackbar from '../../../../../../snackbar/Snackbar';
+import ErrorBoundary from '../../../../../../pages/ErrorBoundary';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
@@ -30,15 +31,15 @@ import DeletedWarning from '@material-ui/icons/DeleteForeverOutlined';
 import UpdateOk from '@material-ui/icons/CheckCircleOutlined';
 import { red, green } from '@material-ui/core/colors';
 //lazy loading
-const <%- nameOnPascal _%>AttributesPage = lazy(() => import(/* webpackChunkName: "Detail-Attributes-<%- nameOnPascal _%>" */ './components/<%- nameLc _%>-attributes-page/<%- nameCp _%>AttributesPage'));
-const <%- nameOnPascal _%>AssociationsPage = lazy(() => import(/* webpackChunkName: "Detail-Associations-<%- nameOnPascal _%>" */ './components/<%- nameLc _%>-associations-page/<%- nameCp _%>AssociationsPage'));
-const <%- nameOnPascal -%>UpdatePanel = lazy(() => import(/* webpackChunkName: "Detail-Update-<%- nameOnPascal _%>" */ '../<%- nameLc -%>-update-panel/<%- nameCp -%>UpdatePanel'));
-const <%- nameOnPascal -%>DeleteConfirmationDialog = lazy(() => import(/* webpackChunkName: "Detail-Delete-<%- nameOnPascal _%>" */ '../<%- nameCp -%>DeleteConfirmationDialog'));
+const <%- nameOnPascal _%>AttributesPage = lazy(() => retry(() => import(/* webpackChunkName: "Detail-Attributes-<%- nameOnPascal _%>" */ './components/<%- nameLc _%>-attributes-page/<%- nameCp _%>AttributesPage')));
+const <%- nameOnPascal _%>AssociationsPage = lazy(() => retry(() => import(/* webpackChunkName: "Detail-Associations-<%- nameOnPascal _%>" */ './components/<%- nameLc _%>-associations-page/<%- nameCp _%>AssociationsPage')));
+const <%- nameOnPascal -%>UpdatePanel = lazy(() => retry(() => import(/* webpackChunkName: "Detail-Update-<%- nameOnPascal _%>" */ '../<%- nameLc -%>-update-panel/<%- nameCp -%>UpdatePanel')));
+const <%- nameOnPascal -%>DeleteConfirmationDialog = lazy(() => retry(() => import(/* webpackChunkName: "Detail-Delete-<%- nameOnPascal _%>" */ '../<%- nameCp -%>DeleteConfirmationDialog')));
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ) {
   if(sortedAssociatedModels[i].targetModel !== name) {-%>
-const <%- sortedAssociatedModels[i].targetModelOnPascal _%>DetailPanel = lazy(() => import(/* webpackChunkName: "Detail-Detail-<%- sortedAssociatedModels[i].targetModelOnPascal _%>" */ '../../../<%- sortedAssociatedModels[i].targetModelLc _%>-table/components/<%- sortedAssociatedModels[i].targetModelLc _%>-detail-panel/<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel'));
+const <%- sortedAssociatedModels[i].targetModelOnPascal _%>DetailPanel = lazy(() => retry(() => import(/* webpackChunkName: "Detail-Detail-<%- sortedAssociatedModels[i].targetModelOnPascal _%>" */ '../../../<%- sortedAssociatedModels[i].targetModelLc _%>-table/components/<%- sortedAssociatedModels[i].targetModelLc _%>-detail-panel/<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel')));
 <%} else {-%>
-const <%- sortedAssociatedModels[i].targetModelOnPascal _%>DetailPanelB = lazy(() => import(/* webpackChunkName: "Detail-DetailB-<%- sortedAssociatedModels[i].targetModelOnPascal _%>" */ '../../../<%- sortedAssociatedModels[i].targetModelLc _%>-table/components/<%- sortedAssociatedModels[i].targetModelLc _%>-detail-panel/<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel'));
+const <%- sortedAssociatedModels[i].targetModelOnPascal _%>DetailPanelB = lazy(() => retry(() => import(/* webpackChunkName: "Detail-DetailB-<%- sortedAssociatedModels[i].targetModelOnPascal _%>" */ '../../../<%- sortedAssociatedModels[i].targetModelLc _%>-table/components/<%- sortedAssociatedModels[i].targetModelLc _%>-detail-panel/<%- sortedAssociatedModels[i].targetModelCp _%>DetailPanel')));
 <%}}-%>
 
 const appBarHeight = 72;
@@ -304,6 +305,18 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
       API Request: <%- requestName1 %>
     */
     let api = await loadApi("<%- nameLc -%>");
+    if(!api) {
+      let newError = {};
+      let withDetails=true;
+      variant.current='error';
+      newError.message = t('modelPanels.messages.apiCouldNotLoaded', "API could not be loaded");
+      newError.details = t('modelPanels.messages.seeConsoleError', "Please see console log for more details on this error");
+      errors.current.push(newError);
+      showMessage(newError.message, withDetails);
+      clearRequestDoDelete();
+      return;
+    }
+
     let cancelableApiReq = makeCancelable(api.<%- nameLc -%>.deleteItem(graphqlServerUrl, variables));
     cancelablePromises.current.push(cancelableApiReq);
     await cancelableApiReq
@@ -671,10 +684,12 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
 
               <Grid item xs={12}>
                 {/* Attributes Page */}
-                <<%- nameOnPascal _%>AttributesPage
-                  item={itemState}
-                  valueOkStates={valueOkStates}
-                />
+                <Suspense fallback={<div />}><ErrorBoundary showMessage={true} belowToolbar={true}>
+                  <<%- nameOnPascal _%>AttributesPage
+                    item={itemState}
+                    valueOkStates={valueOkStates}
+                  />
+                </ErrorBoundary></Suspense>
               </Grid>
 
               <Grid item xs={12} sm={11} md={10} lg={9} xl={8}>
@@ -689,7 +704,7 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
               </Grid>
     
               <Grid item xs={12}>
-                <Suspense fallback={<div />}>
+                <Suspense fallback={<div />}><ErrorBoundary showMessage={true} belowToolbar={true}>
                   {/* Associations Page */}
                   <<%- nameOnPascal _%>AssociationsPage
                     item={itemState}
@@ -698,7 +713,7 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
                     handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row}
 <%}-%>
                   />
-                </Suspense>
+                </ErrorBoundary></Suspense>
               </Grid>
             </Grid>
           </div>
@@ -713,17 +728,17 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
 
             <Grid item xs={12}>
               {/* Attributes Page */}
-              <Suspense fallback={<div />}>
+              <Suspense fallback={<div />}><ErrorBoundary showMessage={true} belowToolbar={true}>
                 <<%- nameOnPascal _%>AttributesPage
                   item={itemState}
                   valueOkStates={valueOkStates}
                 />
-              </Suspense>
+              </ErrorBoundary></Suspense>
             </Grid>
   
             <Grid item xs={12}>
               {/* Associations Page */}
-              <Suspense fallback={<div />}>
+              <Suspense fallback={<div />}><ErrorBoundary showMessage={true} belowToolbar={true}>
                 <<%- nameOnPascal _%>AssociationsPage
                   item={itemState}
                   deleted={deleted}
@@ -731,7 +746,7 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
                   handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row={handleClickOn<%- sortedAssociatedModels[i].targetModelCp _%>Row}
 <%}-%>
                 />
-              </Suspense>
+              </ErrorBoundary></Suspense>
             </Grid>
 
           </Grid>
@@ -740,31 +755,31 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
 
       {/* Dialog: Update Panel */}
       {(updateDialogOpen) && (
-        <Suspense fallback={<div />}>
+        <Suspense fallback={<div />}><ErrorBoundary showMessage={true} belowToolbar={true} dialog={true} open={updateDialogOpen} handleClose={(event) => { handleUpdateDialogClose(event, false) }}>
           <<%- nameOnPascal -%>UpdatePanel
             permissions={permissions}
             item={updateItem}
             handleClose={handleUpdateDialogClose}
           />
-        </Suspense>
+        </ErrorBoundary></Suspense>
       )}
 
       {/* Dialog: Delete Confirmation */}
       {(deleteConfirmationDialogOpen) && (
-        <Suspense fallback={<div />}>
+        <Suspense fallback={<div />}><ErrorBoundary showMessage={true} belowToolbar={true} dialog={true} open={deleteConfirmationDialogOpen} handleClose={handleDeleteConfirmationReject}>
           <<%- nameOnPascal -%>DeleteConfirmationDialog
             permissions={permissions}
             item={deleteConfirmationItem}
             handleAccept={handleDeleteConfirmationAccept}
             handleReject={handleDeleteConfirmationReject}
           />
-        </Suspense>
+        </ErrorBoundary></Suspense>
       )}
 
 <%for( let i=0; i<sortedAssociatedModels.length; i++ ){-%>
       {/* Dialog: <%- sortedAssociatedModels[i].targetModelCp %> Detail Panel */}
       {(<%- sortedAssociatedModels[i].targetModelLc _%>DetailDialogOpen) && (
-        <Suspense fallback={<div />}>
+        <Suspense fallback={<div />}><ErrorBoundary showMessage={true} belowToolbar={true} dialog={true} open={<%- sortedAssociatedModels[i].targetModelLc _%>DetailDialogOpen} handleClose={handle<%- sortedAssociatedModels[i].targetModelCp _%>DetailDialogClose}>
 <%if(sortedAssociatedModels[i].targetModel !== name) {-%>
           <<%- sortedAssociatedModels[i].targetModelOnPascal _%>DetailPanel
 <%} else {-%>
@@ -775,7 +790,7 @@ export default function <%- nameOnPascal _%>DetailPanel(props) {
             dialog={true}
             handleClose={handle<%- sortedAssociatedModels[i].targetModelCp _%>DetailDialogClose}
           />
-        </Suspense>
+        </ErrorBoundary></Suspense>
       )}
 <%}-%>
     </div>

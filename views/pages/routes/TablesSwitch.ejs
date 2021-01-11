@@ -1,16 +1,17 @@
 import React, { Suspense, lazy } from 'react';
-import { 
-  Switch,
-  Route
-} from 'react-router-dom'
+import { Switch, Route } from 'react-router-dom';
+import { retry } from '../../../utils.js';
 import PropTypes from 'prop-types';
-import NotFoundSection from '../pages/NotFoundSectionPage'
-import NoPermissionSectionPage from '../pages/NoPermissionSectionPage'
+import NotFoundSection from '../pages/NotFoundSectionPage';
+import NoPermissionSectionPage from '../pages/NoPermissionSectionPage';
+import ErrorBoundary from '../../pages/ErrorBoundary';
+
+//lazy loading
 <%for( let i=0; i<models.length; i++ ){-%>
-const <%- models[i].nameOnPascal %>Table = lazy(() => import(/* webpackChunkName: "Table-<%- models[i].nameOnPascal _%>" */ './models-tables/<%- models[i].nameLc _%>-table/<%- models[i].nameCp _%>EnhancedTable'));
+const <%- models[i].nameOnPascal %>Table = lazy(() => retry(() => import(/* webpackChunkName: "Table-<%- models[i].nameOnPascal _%>" */ './models-tables/<%- models[i].nameLc _%>-table/<%- models[i].nameCp _%>EnhancedTable')));
 <%}-%>
 <%for( let i=0; i<adminModels.length; i++ ){-%>
-const <%- adminModels[i].nameOnPascal %>Table = lazy(() => import(/* webpackChunkName: "Table-<%- adminModels[i].nameOnPascal _%>" */ './admin-tables/<%- adminModels[i].nameLc _%>-table/<%- adminModels[i].nameCp _%>EnhancedTable'));
+const <%- adminModels[i].nameOnPascal %>Table = lazy(() => retry(() => import(/* webpackChunkName: "Table-<%- adminModels[i].nameOnPascal _%>" */ './admin-tables/<%- adminModels[i].nameLc _%>-table/<%- adminModels[i].nameCp _%>EnhancedTable')));
 <%}-%>
 
 export default function TablesSwitch(props) {
@@ -27,7 +28,7 @@ export default function TablesSwitch(props) {
             /* acl check */
             (permissions&&permissions.<%- models[i].nameLc _%>&&Array.isArray(permissions.<%- models[i].nameLc _%>)
             &&(permissions.<%- models[i].nameLc _%>.includes('read') || permissions.<%- models[i].nameLc _%>.includes('*')))
-            ? ((props) => <<%- models[i].nameOnPascal _%>Table {...props} permissions={permissions}/>) : ((props) => <NoPermissionSectionPage {...props}/>)
+            ? ((props) => <ErrorBoundary showMessage={true} belowToolbar={true}><<%- models[i].nameOnPascal _%>Table {...props} permissions={permissions}/></ErrorBoundary>) : ((props) => <NoPermissionSectionPage {...props}/>)
         } />
 <%}-%>
 
@@ -38,7 +39,7 @@ export default function TablesSwitch(props) {
             /* acl check */
             (permissions&&permissions.<%- adminModels[i].nameLc _%>&&Array.isArray(permissions.<%- adminModels[i].nameLc _%>)
             &&(permissions.<%- adminModels[i].nameLc _%>.includes('read') || permissions.<%- adminModels[i].nameLc _%>.includes('*')))
-            ? ((props) => <<%- adminModels[i].nameOnPascal _%>Table {...props} permissions={permissions}/>) : ((props) => <NoPermissionSectionPage {...props}/>)
+            ? ((props) => <ErrorBoundary showMessage={true} belowToolbar={true}><<%- adminModels[i].nameOnPascal _%>Table {...props} permissions={permissions}/></ErrorBoundary>) : ((props) => <NoPermissionSectionPage {...props}/>)
         } />
 <%}-%>
 
