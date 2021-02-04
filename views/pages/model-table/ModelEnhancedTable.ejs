@@ -1121,7 +1121,7 @@ export default function <%- nameOnPascal -%>EnhancedTable(props) {
           },
         });
         //download
-        let file = response.data.data.csvTableTemplate<%- nameCp -%>.join("\n");
+        let file = response.value.join("\n");
         const url = window.URL.createObjectURL(new Blob([file]));
         const link = document.createElement("a");
         link.href = url;
