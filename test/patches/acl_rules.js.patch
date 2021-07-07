@@ -1,5 +1,5 @@
---- acl_rules.js	2020-07-27 23:01:33.599007183 -0500
-+++ acl_rules.js.patched	2020-07-27 23:01:58.032149695 -0500
+--- acl_rules.js	2021-01-05 10:34:54.861666483 +0100
++++ acl_rules.js.patched	2021-01-05 10:35:05.929483682 +0100
 @@ -13,6 +13,17 @@
        }]
      },
@@ -14,7 +14,7 @@
 +        permissions: '*'
 +      }]
 +    },
-+
-     //models
-     /**
-      * Model: accession
++    
+     // model permissions
+     {
+       roles: 'editor',

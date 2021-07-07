@@ -13,39 +13,29 @@ module.exports = {
       }]
     },
 
-    //models
-<%for( let i=0; i<models.length; i++ ){-%>
-    /**
-     * Model: <%- models[i].nameLc %>
-     */
+    // model permissions
     {
       roles: 'editor',
       allows: [{
-        resources: '<%- models[i].nameLc _%>',
-        permissions: 'create'
+        resources: [
+        <%for( let i=0; i<models.length; i++ ){-%>
+          '<%- models[i].nameLc _%>',
+        <%}-%>
+        ],
+        permissions: ['create', 'update', 'delete']
       }]
     },
+
     {
       roles: 'reader',
       allows: [{
-        resources: '<%- models[i].nameLc _%>',
-        permissions: 'read'
+        resources: [
+        <%for( let i=0; i<models.length; i++ ){-%>
+          '<%- models[i].nameLc _%>',
+        <%}-%>
+        ],
+        permissions: ['read']
       }]
-    },
-    {
-      roles: 'editor',
-      allows: [{
-        resources: '<%- models[i].nameLc _%>',
-        permissions: 'update'
-      }]
-    },
-    {
-      roles: 'editor',
-      allows: [{
-        resources: '<%- models[i].nameLc _%>',
-        permissions: 'delete'
-      }]
-    },
-<%}-%>
+    }
   ]
 }
